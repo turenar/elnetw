@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- ここをカスタマイズ -->
-	<name>Terenai Bot System / plugin developers package</name>
+	<name>Twitter client</name>
 	<groupId>jp.syuriken.snsw</groupId>
 	<artifactId>twclient-plugindev</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
