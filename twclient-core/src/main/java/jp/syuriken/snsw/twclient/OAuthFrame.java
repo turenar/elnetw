@@ -1,10 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.CancellationException;
-import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
@@ -31,86 +27,15 @@ public class OAuthFrame {
 		}
 		
 		AccessToken accessToken = null;
-		String osName = System.getProperty("os.name");
 		
 		while (null == accessToken) {
 			String strURL = requestToken.getAuthorizationURL();
 			
-			if (osName.startsWith("Mac OS")) {
-				Class<?> fileMgr = null;
-				try {
-					fileMgr = Class.forName("com.apple.eio.FileManager");
-					
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {
-						String.class
-					});
-					openURL.invoke(null, new Object[] {
-						strURL.trim()
-					});
-				} catch (SecurityException e) {
-					logger.log(Level.SEVERE, e);
-				} catch (IllegalArgumentException e) {
-					logger.log(Level.SEVERE, e);
-				} catch (ClassNotFoundException e) {
-					logger.log(Level.SEVERE, e);
-				} catch (NoSuchMethodException e) {
-					logger.log(Level.SEVERE, e);
-				} catch (IllegalAccessException e) {
-					logger.log(Level.SEVERE, e);
-				} catch (InvocationTargetException e) {
-					logger.log(Level.SEVERE, e);
-				}
-				
-			} else if (osName.startsWith("Windows")) {
-				try {
-					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + strURL.trim());
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, e);
-				}
-			} else {
-				try {
-					Runtime.getRuntime().exec(new String[] {
-						"gnome-open",
-						strURL.trim()
-					});
-				} catch (Exception e) {
-					try {
-						String[] browsers = {
-							"firefox",
-							"chrome",
-							"opera",
-							"konqueror",
-							"epiphany",
-							"mozilla",
-						};
-						String browser = null;
-						
-						for (int count = 0; count < browsers.length && browser == null; count++) {
-							try {
-								if (Runtime.getRuntime().exec(new String[] {
-									"which",
-									browsers[count]
-								}).waitFor() == 0) {
-									browser = browsers[count];
-								}
-							} catch (InterruptedException e2) {
-								logger.log(Level.SEVERE, e2);
-							}
-						}
-						
-						if (browser == null) {
-							JOptionPane.showInputDialog(null, "Please input path-to-browser.", "TWclient",
-									JOptionPane.INFORMATION_MESSAGE);
-						} else {
-							Runtime.getRuntime().exec(new String[] {
-								browser,
-								strURL.trim()
-							});
-						}
-					} catch (IOException e2) {
-						logger.log(Level.SEVERE, e2);
-					}
-				}
+			try {
+				Utility.openBrowser(strURL);
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "PIN codeを表示するためのブラウザが設定できませんでした。\n\n" + e.getLocalizedMessage(),
+						"エラー", JOptionPane.ERROR_MESSAGE);
 			}
 			
 			String pin =
@@ -136,4 +61,5 @@ public class OAuthFrame {
 		}
 		return accessToken;
 	}
+	
 }

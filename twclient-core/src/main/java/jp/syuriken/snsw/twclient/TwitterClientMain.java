@@ -60,7 +60,8 @@ public class TwitterClientMain {
 			accessTokenSecret = accessToken.getTokenSecret();
 		}
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
-			.setOAuthAccessToken(accessTokenString).setOAuthAccessTokenSecret(accessTokenSecret).build();
+			.setOAuthAccessToken(accessTokenString).setOAuthAccessTokenSecret(accessTokenSecret)
+			.setUserStreamRepliesAllEnabled(false).build();
 	}
 	
 	/**

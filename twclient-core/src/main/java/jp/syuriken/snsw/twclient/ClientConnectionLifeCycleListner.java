@@ -23,20 +23,17 @@ public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleList
 	
 	@Override
 	public void onCleanUp() {
-		// TODO Auto-generated method stub
-		
+		twitterClientFrame.setStatusBar("Cleaning up stream...");
 	}
 	
 	@Override
 	public void onConnect() {
-		// TODO Auto-generated method stub
-		
+		twitterClientFrame.setStatusBar("Connected stream.");
 	}
 	
 	@Override
 	public void onDisconnect() {
-		// TODO Auto-generated method stub
-		
+		twitterClientFrame.setStatusBar("Disconnected stream.");
 	}
 	
 }
