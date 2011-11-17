@@ -1,5 +1,11 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Color;
+import java.util.Date;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -34,38 +40,64 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onDeletionNotice(long directMessageId, long userId) {
-		// TODO Auto-generated method stub
-		
+		// TODO DM Deletion is not supported yet.
 	}
 	
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		// TODO Auto-generated method stub
-		
+		StatusData statusData = new StatusData(statusDeletionNotice, new Date());
+		statusData.backgroundColor = Color.LIGHT_GRAY;
+		statusData.foregroundColor = Color.RED;
+		statusData.image = new JLabel();
+		statusData.sentBy = new JLabel(String.valueOf(statusDeletionNotice.getUserId())); // TODO
+		statusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
+		statusData.data = new JLabel("DELETED: " + statusDeletionNotice.getStatusId());
+		twitterClientFrame.addStatus(statusData, 10000);
 	}
 	
 	@Override
 	public void onDirectMessage(DirectMessage directMessage) {
-		// TODO Auto-generated method stub
-		
+		StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
+		statusData.backgroundColor = Color.LIGHT_GRAY;
+		statusData.foregroundColor = Color.CYAN;
+		statusData.image = new JLabel();
+		statusData.sentBy = new JLabel(directMessage.getSenderScreenName());
+		statusData.sentBy.setName("!dm." + directMessage.getSenderScreenName());
+		statusData.data = new JLabel("DMを受信しました: " + directMessage.getText());
+		twitterClientFrame.addStatus(statusData);
 	}
 	
 	@Override
 	public void onException(Exception ex) {
-		// TODO Auto-generated method stub
-		ex.printStackTrace();
+		twitterClientFrame.handleException(ex);
 	}
 	
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
-		// TODO Auto-generated method stub
-		
+		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
+			StatusData statusData = new StatusData(favoritedStatus, new Date());
+			statusData.backgroundColor = Color.GRAY;
+			statusData.foregroundColor = Color.YELLOW;
+			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
+			statusData.sentBy = new JLabel(source.getScreenName());
+			statusData.sentBy.setName("!fav." + source.getScreenName());
+			statusData.data = new JLabel("ふぁぼられました: " + favoritedStatus.getText());
+			twitterClientFrame.addStatus(statusData);
+		}
 	}
 	
 	@Override
 	public void onFollow(User source, User followedUser) {
-		// TODO Auto-generated method stub
-		
+		if (followedUser.getId() == twitterClientFrame.getLoginUser().getId()) {
+			StatusData statusData = new StatusData(null, new Date());
+			statusData.backgroundColor = Color.GRAY;
+			statusData.foregroundColor = Color.YELLOW;
+			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
+			statusData.sentBy = new JLabel(source.getScreenName());
+			statusData.sentBy.setName("!follow." + source.getScreenName());
+			statusData.data = new JLabel("フォローされました" + followedUser.getScreenName());
+			twitterClientFrame.addStatus(statusData);
+		}
 	}
 	
 	@Override
@@ -93,8 +125,15 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-		// TODO Auto-generated method stub
-		
+		StatusData statusData = new StatusData(null, new Date());
+		statusData.backgroundColor = Color.BLACK;
+		statusData.foregroundColor = Color.LIGHT_GRAY;
+		statusData.image = new JLabel();
+		statusData.sentBy = new JLabel();
+		statusData.sentBy.setName("!stream.overlimit");
+		statusData.data =
+				new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
+		twitterClientFrame.addStatus(statusData);
 	}
 	
 	@Override

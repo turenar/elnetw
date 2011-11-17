@@ -2,12 +2,11 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Label;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -17,13 +16,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.ImageObserver;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Timer;
@@ -37,6 +36,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -48,6 +49,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -58,13 +60,31 @@ import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.conf.Configuration;
 
 /**
  *
  * @author snsoftware
  */
 public class TwitterClientFrame extends javax.swing.JFrame {
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @author $Author$
+	 */
+	private final class ActionListenerImplementation implements ActionListener {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			StatusData statusData;
+			if (selectingPost == null) {
+				statusData = null;
+			} else {
+				statusData = statusMap.get(selectingPost.getStatusData().id);
+			}
+			handleAction(e.getActionCommand(), statusData);
+		}
+	}
 	
 	/**
 		 * TODO snsoftware
@@ -84,8 +104,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 						try {
 							twitter.createFavorite(status.getId());
 						} catch (TwitterException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							handleException(e);
 						}
 					}
 				});
@@ -130,10 +149,55 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 						}
 					}
 				} else {
-					job.run();
+					try {
+						job.run();
+					} catch (RuntimeException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}
+	}
+	
+	/**
+		 * TODO snsoftware
+		 * 
+		 * @author $Author$
+		 */
+	public class MenuPropertyEditorActionDispatcher implements ActionHandler {
+		
+		@Override
+		public void dispatchAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
+			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame(configuration);
+			propertyEditorFrame.setVisible(true);
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
+			// This is always enabled.
+		}
+		
+	}
+	
+	/**
+		 * TODO snsoftware
+		 * 
+		 * @author $Author$
+		 */
+	public class MenuQuitActionDispatcher implements ActionHandler {
+		
+		@Override
+		public void dispatchAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
+			setVisible(false);
+			dispose();
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
+			// This is always enabled
+		}
+		
 	}
 	
 	private class PostListMouseListner extends MouseAdapter {
@@ -142,11 +206,11 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		public void mouseClicked(MouseEvent e) {
 			e.getComponent().requestFocusInWindow();
 			if (e.isPopupTrigger()) {
-				selectingPost = e.getComponent();
+				selectingPost = (StatusPanel) e.getComponent();
 			}
 			if (e.getClickCount() == 2) {
-				JPanel panel = ((JPanel) e.getComponent());
-				String uniqId = panel.getName();
+				StatusPanel panel = ((StatusPanel) e.getComponent());
+				long uniqId = panel.getStatusData().id;
 				StatusData statusData = statusMap.get(uniqId);
 				actionHandlerTable.get("reply").dispatchAction("reply", statusData, TwitterClientFrame.this);
 			}
@@ -194,7 +258,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		public void dispatchAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
 			if (statusData.tag instanceof Status) {
 				final Status status = (Status) statusData.tag;
-				boolean isTweetedByMe = ((Status) statusData.tag).getUser().getId() == loginUser.getId();
+				boolean isTweetedByMe = ((Status) statusData.tag).getUser().getId() == getLoginUser().getId();
 				if (isTweetedByMe) {
 					JPanel panel = new JPanel();
 					BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
@@ -237,7 +301,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
 			if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
-				boolean isTweetedByMe = ((Status) statusData.tag).getUser().getId() == loginUser.getId();
+				boolean isTweetedByMe = ((Status) statusData.tag).getUser().getId() == getLoginUser().getId();
 				menuItem.setEnabled(isTweetedByMe);
 			} else {
 				menuItem.setEnabled(false);
@@ -290,11 +354,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 					
 					@Override
 					public void run() {
-						// TODO Auto-generated method stub
 						try {
 							twitter.retweetStatus(retweetStatus.getId());
 						} catch (TwitterException e) {
-							e.printStackTrace(); //TODO
+							handleException(e);
 						}
 					}
 				});
@@ -334,7 +397,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			Component[] components = popupMenu.getComponents();
 			for (Component component : components) {
 				JMenuItem menuItem = (JMenuItem) component;
-				StatusData statusData = statusMap.get(selectingPost.getName());
+				StatusData statusData = statusMap.get(selectingPost.getStatusData().id);
 				if (statusData == null) {
 					menuItem.setEnabled(false);
 				} else {
@@ -414,13 +477,11 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	/** TODO snsoftware */
 	private static final String APPLICATION_NAME = "Astarotte";
 	
-	private Component selectingPost;
+	private StatusPanel selectingPost;
 	
 	private Hashtable<String, ActionHandler> actionHandlerTable;
 	
 	private Status inReplyToStatus = null;
-	
-	private final java.util.LinkedList<String> infoList = new java.util.LinkedList<String>();
 	
 	private final JobQueue jobQueue = new JobQueue();
 	
@@ -430,9 +491,9 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private JPanel jPanel2;
 	
-	private JPanel jPanel3;
-	
 	private JScrollPane postDataTextAreaScrollPane;
+	
+	//	private JPanel jPanel3;
 	
 	private JScrollPane postListScrollPane;
 	
@@ -442,18 +503,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private JTextArea postDataTextArea;
 	
-	private JLabel statusLabel;
-	
 	private TwitterStream stream;
 	
+	//	private JLabel statusLabel;
+	
 	// private JPanel postListPanel;
-	private SortedPostListPanel sortedPostListPanel = new SortedPostListPanel(50, 3200);
+	private SortedPostListPanel sortedPostListPanel;
 	
-	private Label statusBar;
+	private TreeMap<String, ArrayList<StatusData>> listItems;
 	
-	private HashMap<String, ArrayList<StatusData>> listItems;
-	
-	private TreeMap<String, StatusData> statusMap;
+	private TreeMap<Long, StatusData> statusMap;
 	
 	private Twitter twitter;
 	
@@ -469,19 +528,25 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private User loginUser;
 	
-	private LinkedList<Container> postListAddQueue = new LinkedList<Container>();
+	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
 	
 	private Timer timer;
 	
 	private UpdatePostList updatePostListDispatcher;
 	
+	private ClientProperties configProperties;
+	
+	private JMenuBar clientMenu;
+	
+	private final ClientConfiguration configuration;
+	
 	
 	/** Creates new form TwitterClientFrame 
 	 * @param configuration */
-	public TwitterClientFrame(Configuration configuration) {
+	public TwitterClientFrame(ClientConfiguration configuration) {
+		this.configuration = configuration;
+		configProperties = configuration.getConfigProperties();
 		timer = new Timer("timer");
-		updatePostListDispatcher = new UpdatePostList();
-		timer.schedule(updatePostListDispatcher, 3000, 3000);
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		actionHandlerTable.put("reply", new ReplyActionDispatcher());
 		actionHandlerTable.put("qt", new QuoteTweetActionDispatcher());
@@ -489,9 +554,11 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		actionHandlerTable.put("fav", new FavoriteActionDispatcher());
 		actionHandlerTable.put("remove", new RemoveTweetActionDispatcher());
 		actionHandlerTable.put("userinfo", new UserInfoViewActionDispatcher());
-		listItems = new HashMap<String, ArrayList<StatusData>>();
-		statusMap = new TreeMap<String, StatusData>();
-		twitter = new TwitterFactory(configuration).getInstance();
+		actionHandlerTable.put("menu_quit", new MenuQuitActionDispatcher());
+		actionHandlerTable.put("menu_propeditor", new MenuPropertyEditorActionDispatcher());
+		listItems = new TreeMap<String, ArrayList<StatusData>>();
+		statusMap = new TreeMap<Long, StatusData>();
+		twitter = new TwitterFactory(configuration.getTwitterConfiguration()).getInstance();
 		try {
 			loginUser = twitter.verifyCredentials();
 		} catch (TwitterException e) {
@@ -501,7 +568,21 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		initPopupMenu();
 		initComponents();
 		
-		stream = new TwitterStreamFactory(configuration).getInstance();
+		updatePostListDispatcher = new UpdatePostList();
+		timer.schedule(updatePostListDispatcher, configProperties.getInteger("client.main.interval.list_update"),
+				configProperties.getInteger("client.main.interval.list_update"));
+		
+		timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				synchronized (postListAddQueue) {
+					System.out.println(sortedPostListPanel.toString());
+				}
+			}
+		}, 1000, 10000);
+		
+		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration()).getInstance();
 		stream.addConnectionLifeCycleListener(new ClientConnectionLifeCycleListner(this));
 		stream.addListener(new ClientStreamListner(this));
 	}
@@ -520,7 +601,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @param originalStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		StatusData statusData = new StatusData(originalStatus, originalStatus.getCreatedAt());
+		if (statusMap.containsKey(originalStatus.getId())) {
+			return; // It was already added.
+		}
+		StatusData statusData = new StatusData(originalStatus, originalStatus.getCreatedAt(), originalStatus.getId());
 		Status status;
 		if (originalStatus.isRetweet()) {
 			status = originalStatus.getRetweetedStatus();
@@ -529,12 +613,24 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		}
 		User user = status.getUser();
 		
-		JLabel icon = new JLabel(new ImageIcon(status.getUser().getProfileImageURL()));
+		if (user.getId() == loginUser.getId()) {
+			statusData.foregroundColor = Color.BLUE;
+		}
+		
+		ImageIcon iconImage = new ImageIcon(status.getUser().getProfileImageURL());
+		iconImage.setImageObserver(new ImageObserver() {
+			
+			@Override
+			public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
+				return false; // Animation GIF is disabled.
+			}
+		});
+		JLabel icon = new JLabel(iconImage);
 		statusData.image = icon;
 		
 		String screenName = user.getScreenName();
 		if (screenName.length() > 11) {
-			screenName = screenName.substring(0, 8) + "...";
+			screenName = screenName.substring(0, 9) + "..";
 		}
 		JLabel sentBy = new JLabel(screenName);
 		sentBy.setName(user.getScreenName());
@@ -546,23 +642,18 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		
 		statusData.popupMenu = tweetPopupMenu;
 		
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("@").append(user.getScreenName());
-		stringBuilder.append(" (").append(user.getName()).append(" )");
-		stringBuilder.append("<br>");//TODO
-		stringBuilder.append(status.getText());
 		if (originalStatus.isRetweet()) {
-			stringBuilder.append("\n\n"); //TODO 
+			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("Retweeted by @").append(originalStatus.getUser().getScreenName());
+			statusData.tooltip = stringBuilder.toString();
 		}
-		statusData.tooltip = stringBuilder.toString();
 		
 		if (originalStatus.isRetweet()) {
 			statusData.foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
 			for (UserMentionEntity userMentionEntity : userMentionEntities) {
-				if (userMentionEntity.getId() == loginUser.getId()) {
+				if (userMentionEntity.getId() == getLoginUser().getId()) {
 					statusData.foregroundColor = Color.RED;
 					sendNotify(status.getUser().getName(), status.getText());
 				}
@@ -572,72 +663,134 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		addStatus(statusData);
 	}
 	
-	public void addStatus(StatusData information) {
-		final JPanel linePanel = new JPanel();
+	public StatusPanel addStatus(StatusData statusData) {
+		final StatusPanel linePanel = new StatusPanel(statusData);
 		BoxLayout layout = new BoxLayout(linePanel, BoxLayout.X_AXIS);
-		linePanel.setName(Utility.long2str(information.date.getTime()));
 		linePanel.setLayout(layout);
 		linePanel.setAlignmentX(LEFT_ALIGNMENT);
-		information.image.setInheritsPopupMenu(true);
-		information.image.setFocusable(true);
-		information.image.setMinimumSize(ICON_SIZE);
-		information.image.setMaximumSize(ICON_SIZE);
-		linePanel.add(information.image);
+		statusData.image.setInheritsPopupMenu(true);
+		statusData.image.setFocusable(true);
+		statusData.image.setMinimumSize(ICON_SIZE);
+		statusData.image.setMaximumSize(ICON_SIZE);
+		linePanel.add(statusData.image);
 		linePanel.add(Box.createHorizontalStrut(3));
-		information.sentBy.setInheritsPopupMenu(true);
-		information.sentBy.setFocusable(true);
-		FontMetrics fontMetrics = information.sentBy.getFontMetrics(DEFAULT_FONT);
+		statusData.sentBy.setInheritsPopupMenu(true);
+		statusData.sentBy.setFocusable(true);
+		FontMetrics fontMetrics = statusData.sentBy.getFontMetrics(DEFAULT_FONT);
 		int str10width = fontMetrics.stringWidth("0123456789abc");
-		information.sentBy.setMinimumSize(new Dimension(str10width, fontHeight));
-		information.sentBy.setMaximumSize(new Dimension(str10width, fontHeight));
-		information.sentBy.setFont(DEFAULT_FONT);
-		linePanel.add(information.sentBy);
+		statusData.sentBy.setMinimumSize(new Dimension(str10width, fontHeight));
+		statusData.sentBy.setMaximumSize(new Dimension(str10width, fontHeight));
+		statusData.sentBy.setFont(DEFAULT_FONT);
+		linePanel.add(statusData.sentBy);
 		linePanel.add(Box.createHorizontalStrut(3));
-		information.data.setInheritsPopupMenu(true);
-		information.data.setFocusable(true);
-		information.data.setFont(DEFAULT_FONT);
-		linePanel.add(information.data);
-		linePanel.setComponentPopupMenu(information.popupMenu);
-		if (information.isSystemNotify()) {
+		statusData.data.setInheritsPopupMenu(true);
+		statusData.data.setFocusable(true);
+		statusData.data.setFont(DEFAULT_FONT);
+		linePanel.add(statusData.data);
+		linePanel.setComponentPopupMenu(statusData.popupMenu);
+		/* if (information.isSystemNotify()) {
 			information.backgroundColor = Color.BLACK;
-		}
-		linePanel.setForeground(information.foregroundColor);
-		linePanel.setBackground(information.backgroundColor);
+		} */
+		linePanel.setForeground(statusData.foregroundColor);
+		linePanel.setBackground(statusData.backgroundColor);
 		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
 		linePanel.addMouseListener(postListMouseListnerSingleton);
 		linePanel.setFocusable(true);
-		linePanel.setToolTipText(information.tooltip);
+		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addFocusListener(new FocusAdapter() {
 			
 			@Override
 			public void focusGained(FocusEvent e) {
-				e.getComponent().setBackground(new Color(0, 0, 255, 128));
+				e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
 				if (selectingPost != null) {
-					selectingPost.setBackground(statusMap.get(selectingPost.getName()).backgroundColor);
+					selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
 				}
-				selectingPost = e.getComponent();
+				selectingPost = (StatusPanel) e.getComponent();
 			}
 			
 			@Override
 			public void focusLost(FocusEvent e) {
 			}
 		});
-		information.image.setForeground(information.foregroundColor);
-		information.sentBy.setForeground(information.foregroundColor);
-		information.data.setForeground(information.foregroundColor);
+		statusData.image.setForeground(statusData.foregroundColor);
+		statusData.sentBy.setForeground(statusData.foregroundColor);
+		statusData.data.setForeground(statusData.foregroundColor);
 		
 		synchronized (listItems) {
-			statusMap.put(linePanel.getName(), information);
-			ArrayList<StatusData> list = listItems.get(information.sentBy.getName());
+			statusMap.put(statusData.id, statusData);
+			ArrayList<StatusData> list = listItems.get(statusData.sentBy.getName());
 			if (list == null) {
 				list = new ArrayList<StatusData>();
-				listItems.put(information.sentBy.getName(), list);
+				listItems.put(statusData.sentBy.getName(), list);
 			}
-			list.add(information);
+			list.add(statusData);
 		}
 		synchronized (postListAddQueue) {
 			postListAddQueue.add(linePanel);
 		}
+		return linePanel;
+	}
+	
+	public JPanel addStatus(StatusData statusData, int deletionDelay) {
+		final JPanel status = addStatus(statusData);
+		timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				sortedPostListPanel.remove(status);
+			}
+		}, deletionDelay);
+		return status;
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @return
+	 */
+	private JMenuBar getClientMenuBar() {
+		if (clientMenu == null) {
+			clientMenu = new JMenuBar();
+			{
+				JMenu applicationMenu = new JMenu("アプリケーション");
+				JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
+				quitMenuItem.setActionCommand("menu_quit");
+				quitMenuItem.addActionListener(new ActionListenerImplementation());
+				applicationMenu.add(quitMenuItem);
+				clientMenu.add(applicationMenu);
+			}
+			{
+				JMenu configMenu = new JMenu("設定");
+				JMenuItem propertyEditorMenuItem = new JMenuItem("プロパティエディター(P)", KeyEvent.VK_P);
+				propertyEditorMenuItem.setActionCommand("menu_propeditor");
+				propertyEditorMenuItem.addActionListener(new ActionListenerImplementation());
+				configMenu.add(propertyEditorMenuItem);
+				clientMenu.add(configMenu);
+			}
+		}
+		return clientMenu;
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @return the loginUser
+	 */
+	public User getLoginUser() {
+		return loginUser;
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @return the sortedPostListPanel
+	 */
+	public SortedPostListPanel getSortedPostListPanel() {
+		return sortedPostListPanel;
+	}
+	
+	public Timer getTimer() {
+		return timer;
 	}
 	
 	/**
@@ -648,6 +801,37 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	protected void handleAction(String name, StatusData statusData) {
 		ActionHandler actionHandler = actionHandlerTable.get(name);
 		actionHandler.dispatchAction(name, statusData, this);
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @param ex
+	 */
+	public void handleException(Exception ex) {
+		if (ex instanceof TwitterException) {
+			handleException((TwitterException) ex);
+			//TODO			
+		}
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 */
+	public void handleException(TwitterException e) {
+		Date date = new Date(System.currentTimeMillis() + 10000);
+		StatusData information = new StatusData(e, date);
+		information.foregroundColor = Color.RED;
+		information.backgroundColor = Color.BLACK;
+		information.image = new JLabel();
+		information.sentBy = new JLabel("ERROR!");
+		information.sentBy.setName("!sys.ex.TwitterException");
+		String errorMessage = e.getErrorMessage();
+		information.data =
+				new JLabel(errorMessage == null ? e.getLocalizedMessage() : errorMessage + ": "
+						+ postDataTextArea.getText());
+		addStatus(information);
 	}
 	
 	/**
@@ -663,9 +847,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		postDataTextAreaScrollPane = new javax.swing.JScrollPane();
 		postDataTextArea = new javax.swing.JTextArea();
 		postActionButton = new javax.swing.JButton();
-		jPanel3 = new javax.swing.JPanel();
-		statusLabel = new javax.swing.JLabel();
 		postListScrollPane = new javax.swing.JScrollPane();
+		sortedPostListPanel =
+				new SortedPostListPanel(configProperties.getInteger("client.main.list.split_size"),
+						configProperties.getInteger("client.main.list.max_size"));
 		
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
@@ -714,29 +899,29 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 								.addComponent(postDataTextAreaScrollPane, GroupLayout.PREFERRED_SIZE, 80,
 										GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
 		
-		statusLabel.setText("(Information Area)");
+//		statusLabel.setText("(Information Area)");
 		
-		GroupLayout jPanel3Layout = new GroupLayout(jPanel3);
-		jPanel3.setLayout(jPanel3Layout);
-		jPanel3Layout.setHorizontalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
-				statusLabel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
-		jPanel3Layout.setVerticalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
-				statusLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+//		GroupLayout jPanel3Layout = new GroupLayout(jPanel3);
+//		jPanel3.setLayout(jPanel3Layout);
+//		jPanel3Layout.setHorizontalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
+//				statusLabel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
+//		jPanel3Layout.setVerticalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
+//				statusLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
-		statusLabel.setText(APPLICATION_NAME);
+//		statusLabel.setText(APPLICATION_NAME);
 		
 		GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
 		jPanel1.setLayout(jPanel1Layout);
-		jPanel1Layout.setHorizontalGroup(jPanel1Layout
-			.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		jPanel1Layout.setHorizontalGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//			.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 			.addComponent(jPanel2, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
 					Short.MAX_VALUE));
 		jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
 				jPanel1Layout.createSequentialGroup()
 					.addComponent(jPanel2, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-					.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+//					.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+			));
 		
 		sortedPostListPanel.setBackground(Color.WHITE);
 		postListScrollPane.getViewport().setView(sortedPostListPanel);
@@ -751,27 +936,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(jSplitPane1,
 				GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE));
 		
-		statusBar = new Label("twclient initialized.");
-		getContentPane().add(statusBar);
-		
 		fontHeight = sortedPostListPanel.getFontMetrics(DEFAULT_FONT).getHeight();
 		
 		pack();
 		
+		setJMenuBar(getClientMenuBar());
 		setSize(500, 500);
 	}
 	
 	private void initPopupMenu() {
-		ActionListener actionListner = new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				StatusData statusData = statusMap.get(selectingPost.getName());
-				if (statusData != null) {
-					handleAction(e.getActionCommand(), statusData);
-				}
-			}
-		};
+		ActionListener actionListner = new ActionListenerImplementation();
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.addPopupMenuListener(new TweetPopupMenuListner());
 		
@@ -820,14 +994,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 						postDataTextArea.setText("");
 						inReplyToStatus = null;
 					} catch (TwitterException e) {
-						Date date = new Date(System.currentTimeMillis() + 10000);
-						StatusData information = new StatusData(e, date);
-						information.foregroundColor = Color.RED;
-						information.image = new JLabel();
-						information.sentBy = new JLabel("ERROR!");
-						information.sentBy.setName("!sys.ex.TwitterException");
-						information.data = new JLabel(e.getErrorMessage() + ": " + postDataTextArea.getText());
-						addStatus(information);
+						handleException(e);
 					} finally {
 						try {
 							EventQueue.invokeAndWait(new Runnable() {
@@ -876,13 +1043,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		}
 	}
 	
-	public Status setInReplyToStatus(Status status) {
-		Status previousInReplyToStatus = inReplyToStatus;
-		inReplyToStatus = status;
-		return previousInReplyToStatus;
-	}
-	
-	public void setStatusBar(final String status) {
+	/*public void setStatusBar(final String status) {
 		EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -890,6 +1051,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 				statusLabel.setText(status);
 			}
 		});
+	}*/
+	
+	public Status setInReplyToStatus(Status status) {
+		Status previousInReplyToStatus = inReplyToStatus;
+		inReplyToStatus = status;
+		return previousInReplyToStatus;
 	}
 	
 	public void start() {
@@ -907,17 +1074,42 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			public void run() {
 				ResponseList<Status> homeTimeline;
 				try {
-					homeTimeline = twitter.getHomeTimeline();
+					Paging paging =
+							new Paging().count(configProperties.getInteger("client.main.page.initial_timeline"));
+					homeTimeline = twitter.getHomeTimeline(paging);
 					for (Status status : homeTimeline) {
 						addStatus(status);
 					}
 				} catch (TwitterException e) {
-					//TODO
+					handleException(e);
 				}
-				
 			}
 		});
+		timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				jobQueue.addJob(new Runnable() {
+					
+					@Override
+					public void run() {
+						Paging paging = new Paging().count(configProperties.getInteger("client.main.page.timeline"));
+						ResponseList<Status> timeline;
+						try {
+							timeline = twitter.getHomeTimeline(paging);
+							for (Status status : timeline) {
+								addStatus(status);
+							}
+						} catch (TwitterException e) {
+							handleException(e);
+						}
+					}
+				});
+			}
+		}, configProperties.getInteger("client.main.interval.timeline"),
+				configProperties.getInteger("client.main.interval.timeline"));
 		jobWorkerThread = new JobWorkerThread("jobworker");
 		jobWorkerThread.start();
 	}
+	
 }

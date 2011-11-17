@@ -7,11 +7,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Properties;
+import java.text.MessageFormat;
 import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
 
 import jp.syuriken.snsw.utils.Logger;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
@@ -24,7 +27,12 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class TwitterClientMain {
 	
-	protected Properties configProperties;
+	/** TODO snsoftware */
+	private static final File CONFIG_FILE = new File("twclient.cfg");
+	
+	protected ClientProperties configProperties;
+	
+	protected final ClientConfiguration configuration;
 	
 	private Logger logger;
 	
@@ -35,7 +43,7 @@ public class TwitterClientMain {
 	 * @param args
 	 */
 	public TwitterClientMain(String[] args) {
-		// TODO Auto-generated constructor stub
+		configuration = new ClientConfiguration();
 	}
 	
 	/**
@@ -49,9 +57,11 @@ public class TwitterClientMain {
 		String accessTokenString;
 		String accessTokenSecret;
 		
-		if (configProperties.containsKey("oauth.access_token")) {
-			accessTokenString = configProperties.getProperty("oauth.access_token");
-			accessTokenSecret = configProperties.getProperty("oauth.access_token_secret");
+		if (configProperties.containsKey("oauth.access_token.list")) {
+			String account = configProperties.getProperty("oauth.access_token.list").split(" ")[0];
+			accessTokenString = configProperties.getProperty("oauth.access_token." + account);
+			accessTokenSecret =
+					configProperties.getProperty(MessageFormat.format("oauth.access_token.{0}_secret", account));
 		} else {
 			Twitter twitter = new TwitterFactory().getInstance();
 			twitter.setOAuthConsumer(consumerKey, consumerSecret);
@@ -75,17 +85,19 @@ public class TwitterClientMain {
 			System.err.println("ログ出力用に twclient.log が開けませんでした。");
 			return 1;
 		}
-		Properties defaultConfig = new Properties();
+		ClientProperties defaultConfig = new ClientProperties();
 		try {
 			defaultConfig.load(getClass().getClassLoader().getResourceAsStream(
 					"jp/syuriken/snsw/twclient/config.properties"));
 		} catch (IOException e) {
 			System.err.println("デフォルト設定が読み込めません。");
 		}
-		configProperties = new Properties(defaultConfig);
-		if (new File("twclient.cfg").exists()) {
+		configuration.setConfigDefaultProperties(defaultConfig);
+		configProperties = new ClientProperties(defaultConfig);
+		if (CONFIG_FILE.exists()) {
 			try {
-				configProperties.load(new FileReader("twclient.cfg"));
+				configProperties.setStoreFile(CONFIG_FILE);
+				configProperties.load(new FileReader(CONFIG_FILE));
 			} catch (FileNotFoundException e) {
 				System.err.println("twclient.cfg: " + e.getLocalizedMessage());
 				logger.log(Level.WARNING, e);
@@ -93,7 +105,8 @@ public class TwitterClientMain {
 				System.err.println("twclient.cfg: " + e.getLocalizedMessage());
 			}
 		}
-		final Configuration configuration = initTwitterConfiguration();
+		configuration.setConfigProperties(configProperties);
+		configuration.setTwitterConfiguration(initTwitterConfiguration());
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -127,8 +140,18 @@ public class TwitterClientMain {
 		
 		accessToken = new OAuthFrame().show(twitter, logger);
 		//将来の参照用に accessToken を永続化する
-		configProperties.setProperty("oauth.access_token", accessToken.getToken());
-		configProperties.setProperty("oauth.access_token_secret", accessToken.getTokenSecret());
+		String userId;
+		try {
+			userId = String.valueOf(twitter.verifyCredentials().getId());
+		} catch (TwitterException e1) {
+			JOptionPane.showMessageDialog(null, "ユーザー情報の取得に失敗しました。時間をおいて試してみて下さい: " + e1.getLocalizedMessage(), "エラー",
+					JOptionPane.ERROR_MESSAGE);
+			throw new RuntimeException(e1);
+		}
+		configProperties.setProperty("oauth.access_token.list", userId);
+		configProperties.setProperty("oauth.access_token." + userId, accessToken.getToken());
+		configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
+				accessToken.getTokenSecret());
 		try {
 			configProperties.store(new BufferedWriter(new FileWriter("twclient.cfg")), "Auto generated.");
 		} catch (IOException e) {
