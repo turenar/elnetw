@@ -7,6 +7,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -428,7 +429,15 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 				@Override
 				public void run() {
 					synchronized (postListAddQueue) {
+						int size = postListAddQueue.size();
 						sortedPostListPanel.add(postListAddQueue);
+						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
+						if (viewPosition.y < fontHeight + 4) {
+							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
+						} else {
+							postListScrollPane.getViewport().setViewPosition(
+									new Point(viewPosition.x, viewPosition.y + (fontHeight + 4) * size));
+						}
 					}
 				}
 			});
@@ -899,15 +908,6 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 								.addComponent(postDataTextAreaScrollPane, GroupLayout.PREFERRED_SIZE, 80,
 										GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
 		
-//		statusLabel.setText("(Information Area)");
-		
-//		GroupLayout jPanel3Layout = new GroupLayout(jPanel3);
-//		jPanel3.setLayout(jPanel3Layout);
-//		jPanel3Layout.setHorizontalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
-//				statusLabel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
-//		jPanel3Layout.setVerticalGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
-//				statusLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
-		
 //		statusLabel.setText(APPLICATION_NAME);
 		
 		GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
@@ -925,6 +925,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		
 		sortedPostListPanel.setBackground(Color.WHITE);
 		postListScrollPane.getViewport().setView(sortedPostListPanel);
+		postListScrollPane.getVerticalScrollBar().setUnitIncrement(
+				configProperties.getInteger("client.main.list.scroll"));
 		
 		jSplitPane1.setTopComponent(jPanel1);
 		jSplitPane1.setRightComponent(postListScrollPane);
