@@ -8,7 +8,7 @@ import javax.swing.JLabel;
 import twitter4j.ConnectionLifeCycleListener;
 
 /**
- * TODO snsoftware
+ * ストリームコネクションフック。
  * 
  * @author $Author$
  */
@@ -20,7 +20,7 @@ public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleList
 	/**
 	 * インスタンスを生成する。
 	 * 
-	 * @param twitterClientFrame
+	 * @param twitterClientFrame API呼び出し
 	 */
 	public ClientConnectionLifeCycleListner(TwitterClientFrame twitterClientFrame) {
 		this.twitterClientFrame = twitterClientFrame;

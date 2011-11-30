@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import javax.swing.JOptionPane;
 
 /**
- * TODO snsoftware
+ * ユーティリティクラス。
  * 
  * @author $Author$
  */
@@ -29,6 +29,11 @@ public class Utility {
 	private static OSType ostype;
 	
 	
+	/**
+	 * インストールされているブラウザを確定する。
+	 * 
+	 * @return ブラウザコマンド
+	 */
 	protected static String detectBrowser() {
 		if (detectedBrowser != null) {
 			return detectedBrowser;
@@ -62,15 +67,14 @@ public class Utility {
 		
 		if (detectedBrowser == null) {
 			detectedBrowser =
-					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "TWclient",
+					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "twclient",
 							JOptionPane.INFORMATION_MESSAGE);
 		}
 		return detectedBrowser;
 	}
 	
 	/**
-	 * TODO snsoftware
-	 * 
+	 * OSを確定する
 	 */
 	private static void detectOS() {
 		String osName = System.getProperty("os.name");
@@ -83,28 +87,18 @@ public class Utility {
 		}
 	}
 	
+	/**
+	 * 16進ダンプする
+	 * 
+	 * @param str 文字列
+	 * @return 16進ダンプ
+	 */
 	protected static String hexDump(String str) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < str.length(); i++) {
 			stringBuilder.append(jp.syuriken.snsw.utils.Utility.fixStringLength(Integer.toHexString(str.charAt(i)), 4));
 		}
 		return stringBuilder.toString();
-	}
-	
-	/**
-	 * TODO snsoftware
-	 * 
-	 * @param time
-	 * @return
-	 */
-	public static String long2str(long arg) {
-		long temp = arg;
-		char[] bytes = new char[4];
-		for (int i = 3; i > 0; i--) {
-			bytes[i] = (char) (temp & 0xffff);
-			temp >>= 8;
-		}
-		return new String(bytes);
 	}
 	
 	/**

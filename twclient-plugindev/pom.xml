@@ -6,9 +6,7 @@
 
 	<!-- ここをカスタマイズ -->
 	<name>Twitter client</name>
-	<groupId>jp.syuriken.snsw</groupId>
 	<artifactId>twclient-plugindev</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<url>http://code.google.com/p/tbotsys</url>
 	<description>Twitter client</description>
 	<packaging>jar</packaging>
@@ -97,7 +95,6 @@
 		<dependency>
 			<groupId>jp.syuriken.snsw</groupId>
 			<artifactId>java-utils</artifactId>
-			<version>0.6-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

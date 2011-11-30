@@ -4,7 +4,6 @@ import java.util.concurrent.CancellationException;
 
 import javax.swing.JOptionPane;
 
-import jp.syuriken.snsw.utils.Logger;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
@@ -17,7 +16,13 @@ import twitter4j.auth.RequestToken;
  */
 public class OAuthFrame {
 	
-	public AccessToken show(Twitter twitter, Logger logger) {
+	/**
+	 * AccessTokenを取得するために、Twitterのoauthページを開き、PINコードを入力させる。
+	 * 
+	 * @param twitter Twitter
+	 * @return アクセストークン
+	 */
+	public AccessToken show(Twitter twitter) {
 		RequestToken requestToken = null;
 		
 		try {

@@ -6,14 +6,18 @@ import javax.swing.UnsupportedLookAndFeelException;
 import jp.syuriken.snsw.twclient.TwitterClientMain;
 
 /**
- * TODO snsoftware
+ * TwitterClient のためのランチャ
  * 
  * @author $Author$
  */
 public class TwitterClientLauncher {
 	
+	/**
+	 * Launch
+	 * 
+	 * @param args アプリケーション引数
+	 */
 	public static void main(String[] args) {
-		// set Nimbus for LookAndFeel
 		try {
 			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException e) {
