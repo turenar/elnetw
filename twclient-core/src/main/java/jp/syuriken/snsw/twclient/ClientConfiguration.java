@@ -35,9 +35,9 @@ public class ClientConfiguration {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * Twitterの設定を取得する。
 	 * 
-	 * @return the twitterConfiguration
+	 * @return {@link Configuration}インスタンス
 	 */
 	public Configuration getTwitterConfiguration() {
 		return twitterConfiguration;
@@ -62,9 +62,9 @@ public class ClientConfiguration {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * Twitter4JのConfigurationを設定する。
 	 * 
-	 * @param twitterConfiguration
+	 * @param twitterConfiguration {@link Configuration}インスタンス
 	 */
 	public void setTwitterConfiguration(Configuration twitterConfiguration) {
 		this.twitterConfiguration = twitterConfiguration;

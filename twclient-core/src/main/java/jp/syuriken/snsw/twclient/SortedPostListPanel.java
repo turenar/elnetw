@@ -75,7 +75,7 @@ import javax.swing.JPanel;
 public class SortedPostListPanel extends JPanel {
 	
 	/**
-	 * TODO snsoftware
+	 * コンポーネントを比較する
 	 * 
 	 * @author $Author$
 	 */
@@ -89,15 +89,20 @@ public class SortedPostListPanel extends JPanel {
 		
 		@Override
 		public int compare(Component o1, Component o2) {
-			return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
+			if (o1 instanceof StatusPanel && o2 instanceof StatusPanel) {
+				return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
+			} else {
+				throw new IllegalArgumentException("SortedPostListPanelに追加できるコンポーネントはStatusPanelだけです。");
+			}
 		}
 	}
 	
 	
 	/**
 	 * {@link StatusPanel} を日時で比較する。
+	 * @param a 比較する側 
+	 * @param b 比較される側
 	 * @return a.compareTo(b)
-	 * 
 	 */
 	public static int compareDate(StatusPanel a, StatusPanel b) {
 		return a.compareTo(b);
@@ -164,6 +169,11 @@ public class SortedPostListPanel extends JPanel {
 		this.add(comp);
 	}
 	
+	/**
+	 * valuesの内容をこのパネルに追加する
+	 * 
+	 * @param values StatusPanelのLinkedList
+	 */
 	public synchronized void add(LinkedList<StatusPanel> values) {
 		if (values.size() == 0) {
 			return;
@@ -189,7 +199,6 @@ public class SortedPostListPanel extends JPanel {
 				continue;
 			}
 		}
-		// TODO StatusPanelへの変更の適用
 		if (branches.isEmpty()) {
 			while (values.isEmpty() == false) {
 				firstBranch.addLast(values.peekFirst());
@@ -225,6 +234,11 @@ public class SortedPostListPanel extends JPanel {
 		return this.add(comp);
 	}
 	
+	/**
+	 * valueをこのパネルから削除する。
+	 * 
+	 * @param value 削除するStatusPanel
+	 */
 	public synchronized void remove(StatusPanel value) {
 		if (compareDate(firstBranch.peekLast(), value) < 0) {
 			firstBranch.remove(value);
@@ -239,9 +253,8 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
-	* TODO snsoftware
-	* 
-	*/
+	 * firstBranchを分割する。分割しない時もある。
+	 */
 	private synchronized void splitFirstBranch() {
 		while (firstBranch.size() > (leafSize << 1)) {
 			ListIterator<StatusPanel> li = firstBranch.listIterator(firstBranch.size());
@@ -272,8 +285,7 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
-	 * TODO snsoftware
-	 * 
+	 * いくつかの要素を開放する。開放しない時もある。
 	 */
 	private synchronized void tryRelease() {
 		while (size > maxContainSize + leafSize) {

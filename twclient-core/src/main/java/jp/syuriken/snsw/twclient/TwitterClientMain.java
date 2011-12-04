@@ -21,17 +21,19 @@ import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
 /**
- * TODO snsoftware
+ * 実際に起動するランチャ
  * 
  * @author $Author$
  */
 public class TwitterClientMain {
 	
-	/** TODO snsoftware */
+	/** 設定ファイル */
 	private static final File CONFIG_FILE = new File("twclient.cfg");
 	
+	/** 設定データ */
 	protected ClientProperties configProperties;
 	
+	/** 設定 */
 	protected final ClientConfiguration configuration;
 	
 	private Logger logger;
@@ -40,16 +42,15 @@ public class TwitterClientMain {
 	/**
 	 * インスタンスを生成する。
 	 * 
-	 * @param args
+	 * @param args コマンドラインオプション
 	 */
 	public TwitterClientMain(String[] args) {
 		configuration = new ClientConfiguration();
 	}
 	
 	/**
-	 * TODO snsoftware
-	 * @return 
-	 * 
+	 * TwitterConfigurationを作成する。
+	 * @return 認証済み Configuration インスタンス
 	 */
 	private Configuration initTwitterConfiguration() {
 		String consumerKey = configProperties.getProperty("oauth.consumer");
@@ -71,11 +72,12 @@ public class TwitterClientMain {
 		}
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
 			.setOAuthAccessToken(accessTokenString).setOAuthAccessTokenSecret(accessTokenSecret)
-			.setUserStreamRepliesAllEnabled(false).build();
+			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")).build();
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * 起動する。
+	 * @return 終了値
 	 * 
 	 */
 	public int run() {
@@ -130,15 +132,14 @@ public class TwitterClientMain {
 	}
 	
 	/**
-	 * TODO snsoftware
-	 * @param requestToken 
-	 * @return 
-	 * 
+	 * OAuthアクセストークンの取得を試す
+	 * @param twitter Twitterインスタンス
+	 * @return アクセストークン
 	 */
 	private AccessToken tryGetOAuthAccessToken(Twitter twitter) {
 		AccessToken accessToken = null;
 		
-		accessToken = new OAuthFrame().show(twitter, logger);
+		accessToken = new OAuthFrame().show(twitter);
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {

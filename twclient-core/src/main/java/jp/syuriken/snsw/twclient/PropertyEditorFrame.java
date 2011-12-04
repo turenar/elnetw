@@ -6,8 +6,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -23,18 +21,21 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
-import javax.swing.UIManager;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-// #disabled# VS4E -- DO NOT REMOVE THIS LINE!
+/**
+ * プロパティーエディター。
+ * 
+ * @author $Author$
+ */
 public class PropertyEditorFrame extends JFrame {
 	
 	/**
-	 * TODO snsoftware
+	 * セルレンダラ。
 	 * 
 	 * @author $Author$
 	 */
@@ -47,7 +48,7 @@ public class PropertyEditorFrame extends JFrame {
 		/**
 		 * インスタンスを生成する。
 		 * 
-		 * @param tableModel
+		 * @param tableModel テーブルモデル
 		 */
 		public DefaultTableCellRendererExtension(DefaultTableModelExtension tableModel) {
 			model = tableModel;
@@ -72,7 +73,7 @@ public class PropertyEditorFrame extends JFrame {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * テーブルモデル
 	 * 
 	 * @author $Author$
 	 */
@@ -101,19 +102,7 @@ public class PropertyEditorFrame extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
-	
-	protected static void installLnF() {
-		try {
-			//String lnfClassname = PREFERRED_LOOK_AND_FEEL;
-			//if (lnfClassname == null) {
-//				lnfClassname = ;
-			//}
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			System.err.println("Cannot install " + PREFERRED_LOOK_AND_FEEL + " on this platform:" + e.getMessage());
-		}
-	}
-	
+	/* 
 	public static void main(String[] args) throws IOException {
 		ClientConfiguration clientConfiguration = new ClientConfiguration();
 		ClientProperties defaultProperties = new ClientProperties();
@@ -129,7 +118,7 @@ public class PropertyEditorFrame extends JFrame {
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		frame.setVisible(true);
 	}
-	
+	*/
 	
 	private JScrollPane paneListProperties;
 	
@@ -143,15 +132,12 @@ public class PropertyEditorFrame extends JFrame {
 	
 	private DefaultTableModelExtension tableModel;
 	
-	private static final String PREFERRED_LOOK_AND_FEEL = "javax.swing.plaf.metal.MetalLookAndFeel";
 	
-	
-	@Deprecated
-	public PropertyEditorFrame() {
-		configuration = null;
-		initComponents();
-	}
-	
+	/**
+	 * インスタンスを生成する
+	 * 
+	 * @param configuration プロパティー
+	 */
 	public PropertyEditorFrame(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initComponents();
@@ -175,9 +161,9 @@ public class PropertyEditorFrame extends JFrame {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * 終了ボタンを押した時のハンドラ。
 	 * 
-	 * @param e
+	 * @param e イベント
 	 */
 	protected void btnExitMouseClicked(MouseEvent e) {
 		setVisible(false);

@@ -14,7 +14,7 @@ import twitter4j.UserList;
 import twitter4j.UserStreamListener;
 
 /**
- * TODO snsoftware
+ * ユーザーストリームリスナ。
  * 
  * @author $Author$
  */
@@ -26,7 +26,7 @@ public class ClientStreamListner implements UserStreamListener {
 	/**
 	 * インスタンスを生成する。
 	 * 
-	 * @param twitterClientFrame
+	 * @param twitterClientFrame API
 	 */
 	public ClientStreamListner(TwitterClientFrame twitterClientFrame) {
 		this.twitterClientFrame = twitterClientFrame;
