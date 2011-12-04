@@ -799,7 +799,9 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	* @param name
 	*/
 	protected void handleAction(String name, StatusData statusData) {
-		ActionHandler actionHandler = actionHandlerTable.get(name);
+		int indexOf = name.indexOf('!');
+		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
+		ActionHandler actionHandler = actionHandlerTable.get(commandName);
 		actionHandler.dispatchAction(name, statusData, this);
 	}
 	
