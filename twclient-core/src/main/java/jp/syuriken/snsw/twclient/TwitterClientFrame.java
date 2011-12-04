@@ -853,7 +853,9 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	* @param statusData ステータス情報
 	*/
 	protected void handleAction(String name, StatusData statusData) {
-		ActionHandler actionHandler = actionHandlerTable.get(name);
+		int indexOf = name.indexOf('!');
+		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
+		ActionHandler actionHandler = actionHandlerTable.get(commandName);
 		actionHandler.handleAction(name, statusData, this);
 	}
 	
