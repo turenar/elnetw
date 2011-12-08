@@ -52,7 +52,7 @@ public class ClientStreamListner implements UserStreamListener {
 		statusData.sentBy = new JLabel(String.valueOf(statusDeletionNotice.getUserId())); // TODO
 		statusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
 		statusData.data = new JLabel("DELETED: " + statusDeletionNotice.getStatusId());
-		twitterClientFrame.addStatus(statusData, 10000);
+		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
 	}
 	
 	@Override
@@ -133,7 +133,7 @@ public class ClientStreamListner implements UserStreamListener {
 		statusData.sentBy.setName("!stream.overlimit");
 		statusData.data =
 				new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
-		twitterClientFrame.addStatus(statusData);
+		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
 	}
 	
 	@Override

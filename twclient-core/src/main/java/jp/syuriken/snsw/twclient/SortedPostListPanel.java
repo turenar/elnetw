@@ -79,8 +79,9 @@ public class SortedPostListPanel extends JPanel {
 	 * 
 	 * @author $Author$
 	 */
-	private final static class ComponentComparator implements Comparator<Component> {
+	public final static class ComponentComparator implements Comparator<Component> {
 		
+		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
 		
 		
@@ -238,18 +239,25 @@ public class SortedPostListPanel extends JPanel {
 	 * valueをこのパネルから削除する。
 	 * 
 	 * @param value 削除するStatusPanel
+	 * @return 削除したかどうか
 	 */
-	public synchronized void remove(StatusPanel value) {
+	public synchronized boolean remove(StatusPanel value) {
 		if (compareDate(firstBranch.peekLast(), value) < 0) {
 			firstBranch.remove(value);
 			firstPanel.remove(value);
+			size--;
+			return true;
 		} else {
 			for (JPanel container : branches) {
 				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount()), value) < 0) {
 					container.remove(value);
+					container.invalidate();
+					size--;
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 	
 	/**

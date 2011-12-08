@@ -773,7 +773,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @return 追加された (もしくはそのあと削除された) ステータス。
 	 */
 	public JPanel addStatus(StatusData statusData, int deletionDelay) {
-		final JPanel status = addStatus(statusData);
+		final StatusPanel status = addStatus(statusData);
 		timer.schedule(new TimerTask() {
 			
 			@Override
@@ -810,6 +810,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			}
 		}
 		return clientMenu;
+	}
+	
+	/**
+	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
+	 * 若干重要度が高いときは *2 とかしてみよう！
+	 * 
+	 * @return 一時的な情報が生き残る時間
+	 */
+	public int getInfoSurviveTime() {
+		return configProperties.getInteger("client.info.survive_time");
 	}
 	
 	/**

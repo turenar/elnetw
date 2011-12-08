@@ -35,7 +35,7 @@ public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleList
 		statusData.sentBy = new JLabel();
 		statusData.sentBy.setName("!sys.stream.cleanup");
 		statusData.data = new JLabel("Cleaning up stream...");
-		twitterClientFrame.addStatus(statusData);
+		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime());
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleList
 		statusData.sentBy = new JLabel();
 		statusData.sentBy.setName("!sys.stream.disconnect");
 		statusData.data = new JLabel("Disconnected stream...");
-		twitterClientFrame.addStatus(statusData, 3000);
+		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime());
 	}
 	
 }
