@@ -245,6 +245,7 @@ public class SortedPostListPanel extends JPanel {
 		if (compareDate(firstBranch.peekLast(), value) < 0) {
 			firstBranch.remove(value);
 			firstPanel.remove(value);
+			firstPanel.invalidate();
 			size--;
 			return true;
 		} else {

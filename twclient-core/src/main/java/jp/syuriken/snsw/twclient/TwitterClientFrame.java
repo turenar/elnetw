@@ -94,6 +94,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public class FavoriteActionHandler implements ActionHandler {
 		
 		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem favMenuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+			return favMenuItem;
+		}
+		
+		@Override
 		public void handleAction(String actionName, final StatusData statusData, TwitterClientFrame frameInstance) {
 			if (statusData.tag instanceof Status) {
 				addJob(new Runnable() {
@@ -173,6 +179,11 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public class MenuPropertyEditorActionHandler implements ActionHandler {
 		
 		@Override
+		public JMenuItem createJMenuItem() {
+			return new JMenuItem("Reply", KeyEvent.VK_R);
+		}
+		
+		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
 			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame(configuration);
 			propertyEditorFrame.setVisible(true);
@@ -191,6 +202,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @author $Author$
 	 */
 	public class MenuQuitActionHandler implements ActionHandler {
+		
+		@Override
+		public JMenuItem createJMenuItem() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
@@ -231,6 +248,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public class QuoteTweetActionHandler implements ActionHandler {
 		
 		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
+			return quoteMenuItem;
+		}
+		
+		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
 			if (statusData.tag instanceof Status) {
 				inReplyToStatus = (Status) statusData.tag;
@@ -258,6 +281,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @author $Author$
 	 */
 	public class RemoveTweetActionHandler implements ActionHandler {
+		
+		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem deleteMenuItem = new JMenuItem("削除(D)...", KeyEvent.VK_D);
+			return deleteMenuItem;
+		}
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
@@ -322,6 +351,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public class ReplyActionHandler implements ActionHandler {
 		
 		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
+			return replyMenuItem;
+		}
+		
+		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
 			if (statusData.tag instanceof Status) {
 				String text = String.format("@%s ", statusData.sentBy.getName());
@@ -348,6 +383,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @author $Author$
 	 */
 	public class RetweetActionHandler implements ActionHandler {
+		
+		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
+			return retweetMenuItem;
+		}
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
@@ -408,7 +449,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 				if (statusData == null) {
 					menuItem.setEnabled(false);
 				} else {
-					ActionHandler actionHandler = actionHandlerTable.get(menuItem.getActionCommand());
+					ActionHandler actionHandler = getActionHandler(menuItem.getActionCommand());
 					if (actionHandler != null) {
 						actionHandler.popupMenuWillBecomeVisible(menuItem, statusData);
 					} else {
@@ -458,6 +499,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public class UserInfoViewActionHandler implements ActionHandler {
 		
 		@Override
+		public JMenuItem createJMenuItem() {
+			JMenuItem aboutMenuItem = new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
+			return aboutMenuItem;
+		}
+		
+		@Override
 		public void handleAction(String actionName, final StatusData statusData, TwitterClientFrame frameInstance) {
 			if (statusData.tag instanceof Status) {
 				addJob(Priority.MEDIUM, new Runnable() {
@@ -485,7 +532,6 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 				menuItem.setEnabled(false);
 			}
 		}
-		
 	}
 	
 	
@@ -572,7 +618,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		statusMap = new TreeMap<Long, StatusData>();
 		twitter = new TwitterFactory(configuration.getTwitterConfiguration()).getInstance();
 		getLoginUser();
-		initPopupMenu();
+		getPopupMenu();
 		initComponents();
 		
 		updatePostListDispatcher = new UpdatePostList();
@@ -785,6 +831,19 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	}
 	
 	/**
+	 * TODO snsoftware
+	 * 
+	 * @param name
+	 * @return
+	 */
+	private ActionHandler getActionHandler(String name) {
+		int indexOf = name.indexOf('!');
+		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
+		ActionHandler actionHandler = actionHandlerTable.get(commandName);
+		return actionHandler;
+	}
+	
+	/**
 	 * メニューバーを取得する。
 	 * 
 	 * @return メニューバー
@@ -838,6 +897,30 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		return loginUser;
 	}
 	
+	private JPopupMenu getPopupMenu() {
+		if (tweetPopupMenu == null) {
+			ActionListener actionListner = new ActionListenerImplementation();
+			JPopupMenu popupMenu = new JPopupMenu();
+			popupMenu.addPopupMenuListener(new TweetPopupMenuListner());
+			
+			String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
+			
+			for (String actionCommand : popupMenus) {
+				ActionHandler handler = getActionHandler(actionCommand);
+				if (handler == null) {
+					System.err.println("handler " + actionCommand + " is not found."); //TODO
+				} else {
+					JMenuItem menuItem = handler.createJMenuItem();
+					menuItem.setActionCommand(actionCommand);
+					menuItem.addActionListener(actionListner);
+					popupMenu.add(menuItem);
+				}
+			}
+			tweetPopupMenu = popupMenu;
+		}
+		return tweetPopupMenu;
+	}
+	
 	/**
 	 * ソート済みリストパネルを取得する。将来的にはマルチタブになる予定なのでこのメソッドは廃止される予定です。
 	 * 
@@ -863,10 +946,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	* @param statusData ステータス情報
 	*/
 	protected void handleAction(String name, StatusData statusData) {
-		int indexOf = name.indexOf('!');
-		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
-		ActionHandler actionHandler = actionHandlerTable.get(commandName);
-		actionHandler.handleAction(name, statusData, this);
+		ActionHandler actionHandler = getActionHandler(name);
+		if (actionHandler == null) {
+			System.err.println("ActionHandler " + name + " is not found.");
+		} else {
+			actionHandler.handleAction(name, statusData, this);
+		}
 	}
 	
 	/**
@@ -1016,38 +1101,6 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		
 		setJMenuBar(getClientMenuBar());
 		setSize(500, 500);
-	}
-	
-	private void initPopupMenu() {
-		ActionListener actionListner = new ActionListenerImplementation();
-		JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.addPopupMenuListener(new TweetPopupMenuListner());
-		
-		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
-		replyMenuItem.setActionCommand("reply");
-		replyMenuItem.addActionListener(actionListner);
-		popupMenu.add(replyMenuItem);
-		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
-		quoteMenuItem.setActionCommand("qt");
-		quoteMenuItem.addActionListener(actionListner);
-		popupMenu.add(quoteMenuItem);
-		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
-		retweetMenuItem.setActionCommand("rt");
-		retweetMenuItem.addActionListener(actionListner);
-		popupMenu.add(retweetMenuItem);
-		JMenuItem favMenuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
-		favMenuItem.setActionCommand("fav");
-		favMenuItem.addActionListener(actionListner);
-		popupMenu.add(favMenuItem);
-		JMenuItem deleteMenuItem = new JMenuItem("削除(D)...", KeyEvent.VK_D);
-		deleteMenuItem.setActionCommand("remove");
-		deleteMenuItem.addActionListener(actionListner);
-		popupMenu.add(deleteMenuItem);
-		JMenuItem aboutMenuItem = new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
-		aboutMenuItem.setActionCommand("userinfo");
-		aboutMenuItem.addActionListener(actionListner);
-		popupMenu.add(aboutMenuItem);
-		tweetPopupMenu = popupMenu;
 	}
 	
 	private void postActionButtonMouseClicked(final ActionEvent e) {

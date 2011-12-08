@@ -10,6 +10,14 @@ import javax.swing.JMenuItem;
 public interface ActionHandler {
 	
 	/**
+	 * JMenuItemを作成する。これはキャッシュしないで下さい。予想外のエラーが発生する可能性があります。
+	 * また、ActionCommandは設定する必要はありません。呼び出し元でoverrideされます。
+	 * 
+	 * @return JMenuItem
+	 */
+	JMenuItem createJMenuItem();
+	
+	/**
 	 * 動作させる
 	 * 
 	 * @param actionName アクション名
