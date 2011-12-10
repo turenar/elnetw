@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -16,6 +17,8 @@ public class StatusData {
 	
 	/** この情報が作られる要因となった元オブジェクト。nullの可能性があります。 */
 	public final Object tag;
+	
+	private ArrayList<StatusPanel> statusPanels = new ArrayList<StatusPanel>();
 	
 	/** イメージ部分用のコンポーネント */
 	public JComponent image;
@@ -72,6 +75,22 @@ public class StatusData {
 	}
 	
 	/**
+	 * TODO snsoftware
+	 * 
+	 */
+	public void addStatusPanel(StatusPanel panel) {
+		synchronized (statusPanels) {
+			statusPanels.add(panel);
+		}
+	}
+	
+	public StatusPanel[] getStatusPanels() {
+		synchronized (statusPanels) {
+			return statusPanels.toArray(new StatusPanel[statusPanels.size()]);
+		}
+	}
+	
+	/**
 	 * Tweet/DirectMessageでは無いことを調べる。
 	 * 
 	 * @return sentBy.getName()が"!"で始まるかどうか
@@ -80,4 +99,9 @@ public class StatusData {
 		return sentBy.getName().startsWith("!");
 	}
 	
+	public boolean removeStatusPanel(StatusPanel panel) {
+		synchronized (statusPanels) {
+			return statusPanels.remove(panel);
+		}
+	}
 }

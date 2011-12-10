@@ -18,8 +18,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
@@ -107,9 +107,17 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 					
 					@Override
 					public void run() {
+						boolean unfavorite = false;
 						Status status = (Status) statusData.tag;
+						if (status instanceof TwitterStatus && ((TwitterStatus) status).isFavorited()) {
+							unfavorite = true;
+						}
 						try {
-							twitter.createFavorite(status.getId());
+							if (unfavorite) {
+								twitter.destroyFavorite(status.getId());
+							} else {
+								twitter.createFavorite(status.getId());
+							}
 						} catch (TwitterException e) {
 							handleException(e);
 						}
@@ -121,6 +129,12 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
 			if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
+				if (statusData.tag instanceof TwitterStatus) {
+					TwitterStatus tag = (TwitterStatus) statusData.tag;
+					menuItem.setText(tag.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
+				} else {
+					menuItem.setText("ふぁぼる(F)");
+				}
 				menuItem.setEnabled(true);
 			} else {
 				menuItem.setEnabled(false);
@@ -586,7 +600,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
 			if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
 				Status status = (Status) statusData.tag;
-				menuItem.setText(status.getUser().getName() + " について(A)");
+				menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
+					.getUser().getName()));
 				menuItem.setEnabled(true);
 			} else {
 				menuItem.setEnabled(false);
@@ -725,10 +740,14 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		if (statusMap.containsKey(originalStatus.getId())) {
-			return; // It was already added.
+		synchronized (listItems) {
+			if (statusMap.containsKey(originalStatus.getId())) {
+				return; // It was already added.
+			}
 		}
-		StatusData statusData = new StatusData(originalStatus, originalStatus.getCreatedAt(), originalStatus.getId());
+		Status twitterStatus = new TwitterStatus(originalStatus);
+		StatusData statusData = new StatusData(twitterStatus, originalStatus.getCreatedAt(), originalStatus.getId());
+		
 		Status status;
 		if (originalStatus.isRetweet()) {
 			status = originalStatus.getRetweetedStatus();
@@ -748,7 +767,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		}
 		
 		ImageIcon iconImage = new ImageIcon(status.getUser().getProfileImageURL());
-		iconImage.setImageObserver(new AnimationCanceledImageObserver());
+		iconImage.setImageObserver(AnimationCanceledImageObserver.SINGLETON);
 		JLabel icon = new JLabel(iconImage);
 		statusData.image = icon;
 		
@@ -789,7 +808,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 				}
 				if (mentioned) {
 					statusData.foregroundColor = Color.RED;
-					sendNotify(user.getName(), originalStatus.getText());
+					Utility.sendNotify(user.getName(), originalStatus.getText());
 				}
 			}
 		}
@@ -856,6 +875,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		statusData.sentBy.setForeground(statusData.foregroundColor);
 		statusData.data.setForeground(statusData.foregroundColor);
 		
+		statusData.addStatusPanel(linePanel);
 		synchronized (listItems) {
 			statusMap.put(statusData.id, statusData);
 			ArrayList<StatusData> list = listItems.get(statusData.sentBy.getName());
@@ -880,13 +900,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 */
 	public JPanel addStatus(StatusData statusData, int deletionDelay) {
 		final StatusPanel status = addStatus(statusData);
-		timer.schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				sortedPostListPanel.remove(status);
-			}
-		}, deletionDelay);
+		removeStatus(statusData, deletionDelay);
 		return status;
 	}
 	
@@ -991,6 +1005,18 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	}
 	
 	/**
+	 * TODO snsoftware
+	 * 
+	 * @param statusId
+	 * @return 
+	 */
+	public StatusData getStatus(long statusId) {
+		synchronized (listItems) {
+			return statusMap.get(statusId);
+		}
+	}
+	
+	/**
 	 * タイマーを取得する。
 	 * 
 	 * @return タイマー
@@ -1023,6 +1049,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		if (ex instanceof TwitterException) {
 			handleException((TwitterException) ex);
 			//TODO			
+		} else {
+			ex.printStackTrace();
 		}
 	}
 	
@@ -1207,28 +1235,34 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	}
 	
 	/**
-	 * 通知を送信する
-	 * @param summary 概要
-	 * @param text テキスト
+	 * ステータスを削除する。
+	 * 
+	 * @param statusData ステータスデータ
 	 */
-	private void sendNotify(String summary, String text) {
+	public void removeStatus(final StatusData statusData) {
 		try {
-			if (Runtime.getRuntime().exec(new String[] {
-				"which",
-				"notify-send"
-			}).waitFor() == 0) {
-				Runtime.getRuntime().exec(new String[] {
-					"notify-send",
-					summary,
-					text
-				});
+			for (StatusPanel panel : statusData.getStatusPanels()) {
+				sortedPostListPanel.remove(panel);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace(); //TODO
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (RuntimeException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * ステータスを削除する。
+	 * 
+	 * @param statusData ステータスデータ
+	 * @param delay 遅延 (ms)
+	 */
+	public void removeStatus(final StatusData statusData, int delay) {
+		timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				removeStatus(statusData);
+			}
+		}, delay);
 	}
 	
 	/**
@@ -1298,5 +1332,4 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		jobWorkerThread = new JobWorkerThread("jobworker");
 		jobWorkerThread.start();
 	}
-	
 }

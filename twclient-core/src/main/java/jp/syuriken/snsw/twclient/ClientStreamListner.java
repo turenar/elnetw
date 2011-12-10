@@ -45,14 +45,22 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		StatusData statusData = new StatusData(statusDeletionNotice, new Date());
-		statusData.backgroundColor = Color.LIGHT_GRAY;
-		statusData.foregroundColor = Color.RED;
-		statusData.image = new JLabel();
-		statusData.sentBy = new JLabel(String.valueOf(statusDeletionNotice.getUserId())); // TODO
-		statusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
-		statusData.data = new JLabel("DELETED: " + statusDeletionNotice.getStatusId());
-		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
+		StatusData statusData = twitterClientFrame.getStatus(statusDeletionNotice.getStatusId());
+		if (statusData != null) {
+			if (statusData.tag instanceof Status == false) {
+				return;
+			}
+			Status status = (Status) statusData.tag;
+			StatusData deletionStatusData = new StatusData(statusDeletionNotice, new Date());
+			deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
+			deletionStatusData.foregroundColor = Color.RED;
+			deletionStatusData.image = new JLabel();
+			deletionStatusData.sentBy = new JLabel(((JLabel) (statusData.sentBy)).getText()); // TODO
+			deletionStatusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
+			deletionStatusData.data = new JLabel("DELETED: " + status.getText());
+			twitterClientFrame.addStatus(deletionStatusData, twitterClientFrame.getInfoSurviveTime() * 2);
+			twitterClientFrame.removeStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
+		}
 	}
 	
 	@Override
@@ -84,6 +92,13 @@ public class ClientStreamListner implements UserStreamListener {
 			statusData.data = new JLabel("ふぁぼられました: " + favoritedStatus.getText());
 			twitterClientFrame.addStatus(statusData);
 		}
+		if (source.getId() == twitterClientFrame.getLoginUser().getId()) {
+			StatusData statusData = twitterClientFrame.getStatus(favoritedStatus.getId());
+			if (statusData.tag instanceof TwitterStatus) {
+				TwitterStatus status = (TwitterStatus) statusData.tag;
+				status.setFavorited(true);
+			}
+		}
 	}
 	
 	@Override
@@ -108,8 +123,11 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onRetweet(User source, User target, Status retweetedStatus) {
-		// TODO Auto-generated method stub
-		
+		//if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
+		System.out.println(retweetedStatus);
+		System.out.printf("%d, %d%n", retweetedStatus.getId(), retweetedStatus.getRetweetedStatus().getId());
+		twitterClientFrame.addStatus(retweetedStatus);
+		//}
 	}
 	
 	@Override
@@ -144,8 +162,23 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-		// TODO Auto-generated method stub
-		
+		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
+			StatusData statusData = new StatusData(unfavoritedStatus, new Date());
+			statusData.backgroundColor = Color.GRAY;
+			statusData.foregroundColor = Color.LIGHT_GRAY;
+			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
+			statusData.sentBy = new JLabel(source.getScreenName());
+			statusData.sentBy.setName("!unfav." + source.getScreenName());
+			statusData.data = new JLabel("ふぁぼやめられました: " + unfavoritedStatus.getText());
+			twitterClientFrame.addStatus(statusData);
+		}
+		if (source.getId() == twitterClientFrame.getLoginUser().getId()) {
+			StatusData statusData = twitterClientFrame.getStatus(unfavoritedStatus.getId());
+			if (statusData.tag instanceof TwitterStatus) {
+				TwitterStatus status = (TwitterStatus) statusData.tag;
+				status.setFavorited(false);
+			}
+		}
 	}
 	
 	@Override
