@@ -57,6 +57,7 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
+import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -483,12 +484,71 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (fontHeight + 4) * size));
+									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
 						}
 					}
 				}
 			});
 		}
+	}
+	
+	/**
+	 * ツイートに含まれるURLを開くアクションハンドラ
+	 * 
+	 * @author $Author$
+	 */
+	public class UrlActionHandler implements ActionHandler {
+		
+		@Override
+		public JMenuItem createJMenuItem() {
+			JMenu openUrlMenu = new JMenu("ツイートのURLをブラウザで開く");
+			return openUrlMenu;
+		}
+		
+		@Override
+		public void handleAction(String actionName, StatusData statusData, TwitterClientFrame frameInstance) {
+			String url = actionName.substring(actionName.indexOf('!') + 1);
+			try {
+				Utility.openBrowser(url);
+			} catch (Exception e) {
+				e.printStackTrace(); //TODO
+			}
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData) {
+			if (menuItem instanceof JMenu == false) {
+				throw new AssertionError("UrlActionHandler#pMWBV transfered menuItem which is not instanceof JMenu");
+			}
+			JMenu menu = (JMenu) menuItem;
+			if (statusData.isSystemNotify() == false && statusData.tag instanceof Status) {
+				Status status = (Status) statusData.tag;
+				menu.removeAll();
+				
+				URLEntity[] urlEntities = status.getURLEntities();
+				if (urlEntities == null || urlEntities.length == 0) {
+					menu.setEnabled(false);
+				} else {
+					for (URLEntity entity : status.getURLEntities()) {
+						JMenuItem urlMenu = new JMenuItem();
+						if (entity.getDisplayURL() == null) {
+							urlMenu.setText(entity.getURL().toString());
+						} else {
+							urlMenu.setText(entity.getDisplayURL());
+						}
+						urlMenu.setActionCommand("url!" + entity.getURL().toString());
+						for (ActionListener listener : menu.getActionListeners()) {
+							urlMenu.addActionListener(listener);
+						}
+						menu.add(urlMenu);
+					}
+					menu.setEnabled(true);
+				}
+			} else {
+				menu.setEnabled(false);
+			}
+		}
+		
 	}
 	
 	/**
@@ -831,10 +891,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * アクションハンドラを取得する
 	 * 
-	 * @param name
-	 * @return
+	 * @param name アクション名。!を含んでいても可
+	 * @return アクションハンドラ
 	 */
 	private ActionHandler getActionHandler(String name) {
 		int indexOf = name.indexOf('!');
@@ -996,6 +1056,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		table.put("fav", new FavoriteActionHandler());
 		table.put("remove", new RemoveTweetActionHandler());
 		table.put("userinfo", new UserInfoViewActionHandler());
+		table.put("url", new UrlActionHandler());
 		table.put("menu_quit", new MenuQuitActionHandler());
 		table.put("menu_propeditor", new MenuPropertyEditorActionHandler());
 	}
