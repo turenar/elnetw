@@ -623,9 +623,9 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private Thread jobWorkerThread;
 	
-	private JPanel jPanel1;
+	private JPanel editPanel;
 	
-	private JPanel jPanel2;
+	private JPanel getPostPanel;
 	
 	private JScrollPane postDataTextAreaScrollPane;
 	
@@ -945,6 +945,28 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		return clientMenu;
 	}
 	
+	private JPanel getEditPanel() {
+		if (editPanel == null) {
+			editPanel = new JPanel();
+			GroupLayout layout = new GroupLayout(editPanel);
+			editPanel.setLayout(layout);
+			layout.setHorizontalGroup( //
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
+					.addComponent(getPostPanel(), GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
+							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+			layout.setVerticalGroup( //
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
+					.addGroup(
+							layout
+								.createSequentialGroup()
+								.addComponent(getPostPanel(), GroupLayout.PREFERRED_SIZE, 86,
+										GroupLayout.PREFERRED_SIZE) //
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)));
+			
+		}
+		return editPanel;
+	}
+	
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
 	 * 若干重要度が高いときは *2 とかしてみよう！
@@ -995,13 +1017,121 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		return tweetPopupMenu;
 	}
 	
+	private JButton getPostActionButton() {
+		if (postActionButton == null) {
+			postActionButton = new javax.swing.JButton();
+			postActionButton.setText("投稿");
+			postActionButton.setName("postActionButton"); // NOI18N
+			postActionButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					postActionButtonMouseClicked(e);
+				}
+			});
+			
+		}
+		return postActionButton;
+	}
+	
+	private JTextArea getPostDataTextArea() {
+		if (postDataTextArea == null) {
+			postDataTextArea = new javax.swing.JTextArea();
+			postDataTextArea.setColumns(20);
+			postDataTextArea.setRows(5);
+			postDataTextArea.addKeyListener(new KeyAdapter() {
+				
+				@Override
+				public void keyReleased(KeyEvent e) {
+					if (e.isControlDown()) {
+						if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+							getPostActionButton().doClick();
+						}
+					}
+				}
+			});
+		}
+		return postDataTextArea;
+	}
+	
+	private JScrollPane getPostDataTextAreaScrollPane() {
+		if (postDataTextAreaScrollPane == null) {
+			postDataTextAreaScrollPane = new JScrollPane();
+			postDataTextAreaScrollPane.setViewportView(getPostDataTextArea());
+		}
+		return postDataTextAreaScrollPane;
+	}
+	
+	private LinkedList<StatusPanel> getPostListAddQueue() {
+		return postListAddQueue;
+	}
+	
+	private JScrollPane getPostListScrollPane() {
+		if (postListScrollPane == null) {
+			postListScrollPane = new javax.swing.JScrollPane();
+			postListScrollPane.getViewport().setView(getSortedPostListPanel());
+			postListScrollPane.getVerticalScrollBar().setUnitIncrement(
+					configProperties.getInteger("client.main.list.scroll"));
+			
+		}
+		return postListScrollPane;
+	}
+	
+	private JPanel getPostPanel() {
+		if (getPostPanel == null) {
+			getPostPanel = new JPanel();
+			GroupLayout layout = new GroupLayout(getPostPanel);
+			getPostPanel.setLayout(layout);
+			layout.setHorizontalGroup( //
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
+					.addGroup(
+							GroupLayout.Alignment.TRAILING, //
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(getPostDataTextAreaScrollPane(), GroupLayout.DEFAULT_SIZE, 475,
+										Short.MAX_VALUE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED) //
+								.addComponent(getPostActionButton()).addGap(18, 18, 18)));
+			layout.setVerticalGroup( //
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
+						layout
+							.createSequentialGroup()
+							.addGroup(
+									layout
+										.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(getPostActionButton())
+										.addComponent(getPostDataTextAreaScrollPane(), GroupLayout.PREFERRED_SIZE, 80,
+												GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
+			
+		}
+		return getPostPanel;
+	}
+	
 	/**
 	 * ソート済みリストパネルを取得する。将来的にはマルチタブになる予定なのでこのメソッドは廃止される予定です。
 	 * 
 	 * @return the sortedPostListPanel
 	 */
 	public SortedPostListPanel getSortedPostListPanel() {
+		if (sortedPostListPanel == null) {
+			sortedPostListPanel =
+					new SortedPostListPanel(configProperties.getInteger("client.main.list.split_size"),
+							configProperties.getInteger("client.main.list.max_size"));
+			
+			sortedPostListPanel.setBackground(Color.WHITE);
+		}
 		return sortedPostListPanel;
+	}
+	
+	private JSplitPane getSplitPane1() {
+		if (jSplitPane1 == null) {
+			jSplitPane1 = new JSplitPane();
+			jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+			jSplitPane1.setTopComponent(getEditPanel());
+			jSplitPane1.setRightComponent(getPostListScrollPane());
+		}
+		return jSplitPane1;
 	}
 	
 	/**
@@ -1096,95 +1226,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	private void initComponents() {
 		setTitle(APPLICATION_NAME);
 		
-		jSplitPane1 = new javax.swing.JSplitPane();
-		jPanel1 = new javax.swing.JPanel();
-		jPanel2 = new javax.swing.JPanel();
-		postDataTextAreaScrollPane = new javax.swing.JScrollPane();
-		postDataTextArea = new javax.swing.JTextArea();
-		postActionButton = new javax.swing.JButton();
-		postListScrollPane = new javax.swing.JScrollPane();
-		sortedPostListPanel =
-				new SortedPostListPanel(configProperties.getInteger("client.main.list.split_size"),
-						configProperties.getInteger("client.main.list.max_size"));
-		
-		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-		
-		jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-		
-		postDataTextArea.setColumns(20);
-		postDataTextArea.setRows(5);
-		postDataTextArea.addKeyListener(new KeyAdapter() {
-			
-			@Override
-			public void keyReleased(KeyEvent e) {
-				if (e.isControlDown()) {
-					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-						postActionButton.doClick();
-					}
-				}
-			}
-		});
-		postDataTextAreaScrollPane.setViewportView(postDataTextArea);
-		
-		postActionButton.setText("投稿");
-		postActionButton.setName("postActionButton"); // NOI18N
-		postActionButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				postActionButtonMouseClicked(e);
-			}
-		});
-		
-		GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
-		jPanel2.setLayout(jPanel2Layout);
-		jPanel2Layout.setHorizontalGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-				GroupLayout.Alignment.TRAILING,
-				jPanel2Layout.createSequentialGroup().addContainerGap()
-					.addComponent(postDataTextAreaScrollPane, GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(postActionButton)
-					.addGap(18, 18, 18)));
-		jPanel2Layout.setVerticalGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-				jPanel2Layout
-					.createSequentialGroup()
-					.addGroup(
-							jPanel2Layout
-								.createParallelGroup(GroupLayout.Alignment.TRAILING)
-								.addComponent(postActionButton)
-								.addComponent(postDataTextAreaScrollPane, GroupLayout.PREFERRED_SIZE, 80,
-										GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
-		
-//		statusLabel.setText(APPLICATION_NAME);
-		
-		GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
-		jPanel1.setLayout(jPanel1Layout);
-		jPanel1Layout.setHorizontalGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-//			.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-			.addComponent(jPanel2, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-					Short.MAX_VALUE));
-		jPanel1Layout.setVerticalGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-				jPanel1Layout.createSequentialGroup()
-					.addComponent(jPanel2, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-//					.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-			));
-		
-		sortedPostListPanel.setBackground(Color.WHITE);
-		postListScrollPane.getViewport().setView(sortedPostListPanel);
-		postListScrollPane.getVerticalScrollBar().setUnitIncrement(
-				configProperties.getInteger("client.main.list.scroll"));
-		
-		jSplitPane1.setTopComponent(jPanel1);
-		jSplitPane1.setRightComponent(postListScrollPane);
+		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(jSplitPane1,
-				GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(jSplitPane1,
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
+				getSplitPane1(), GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(getSplitPane1(),
 				GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE));
 		
-		fontHeight = sortedPostListPanel.getFontMetrics(DEFAULT_FONT).getHeight();
+		fontHeight = getSortedPostListPanel().getFontMetrics(DEFAULT_FONT).getHeight();
 		
 		pack();
 		
