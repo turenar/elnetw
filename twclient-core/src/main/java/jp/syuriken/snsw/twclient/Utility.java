@@ -15,12 +15,17 @@ import javax.swing.JOptionPane;
 public class Utility {
 	
 	/**
-	 * TODO snsoftware
+	 * OSの種別を判断する。
 	 * 
 	 * @author $Author$
 	 */
-	private enum OSType {
-		WINDOWS, MAC, OTHER;
+	public enum OSType {
+		/** Windows環境 */
+		WINDOWS,
+		/** MacOS環境 */
+		MAC,
+		/** その他 (*nixなど) */
+		OTHER;
 	}
 	
 	
@@ -39,7 +44,7 @@ public class Utility {
 			return detectedBrowser;
 		}
 		String[] browsers = {
-			"gnome-open",
+			"xdg-open",
 			"firefox",
 			"chrome",
 			"opera",
@@ -85,6 +90,15 @@ public class Utility {
 		} else {
 			ostype = OSType.OTHER;
 		}
+	}
+	
+	/**
+	 * OS種別を取得する
+	 * 
+	 * @return OSの種類
+	 */
+	public static OSType getOstype() {
+		return ostype;
 	}
 	
 	/**
@@ -141,6 +155,31 @@ public class Utility {
 				});
 			default:
 				break;
+		}
+	}
+	
+	/**
+	 * 通知を送信する
+	 * @param summary 概要
+	 * @param text テキスト
+	 */
+	public static void sendNotify(String summary, String text) {
+		try {
+			if (Runtime.getRuntime().exec(new String[] {
+				"which",
+				"notify-send"
+			}).waitFor() == 0) {
+				Runtime.getRuntime().exec(new String[] {
+					"notify-send",
+					summary,
+					text
+				});
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace(); //TODO
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	

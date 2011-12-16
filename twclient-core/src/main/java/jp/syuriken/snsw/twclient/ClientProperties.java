@@ -93,7 +93,7 @@ public class ClientProperties extends Properties {
 	 * @return boolean値
 	 */
 	public boolean getBoolean(String key) {
-		return Boolean.parseBoolean(key);
+		return Boolean.parseBoolean(getProperty(key));
 	}
 	
 	/**
