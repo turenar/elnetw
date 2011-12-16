@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
 
 /**
@@ -27,7 +28,7 @@ public class StatusData {
 	public JComponent sentBy;
 	
 	/** 実際のテキスト表示用のコンポーネント */
-	public JComponent data;
+	public JLabel data;
 	
 	/** ポップアップメニュー */
 	public JPopupMenu popupMenu = null;

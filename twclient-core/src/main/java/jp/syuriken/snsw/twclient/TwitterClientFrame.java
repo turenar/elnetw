@@ -20,7 +20,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -31,9 +34,11 @@ import java.util.TreeMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -44,10 +49,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import twitter4j.HashtagEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -625,7 +634,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private JPanel editPanel;
 	
-	private JPanel getPostPanel;
+	private JPanel postPanel;
 	
 	private JScrollPane postDataTextAreaScrollPane;
 	
@@ -655,6 +664,9 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	/** デフォルトフォント: TODO from config */
 	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
 	
+	/** UIフォント: TODO from config */
+	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 13);
+	
 	/** フォントの高さ */
 	protected int fontHeight;
 	
@@ -677,6 +689,18 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	private JMenuBar clientMenu;
 	
 	private final ClientConfiguration configuration;
+	
+	private JPanel tweetViewPanel;
+	
+	private JScrollPane tweetViewScrollPane;
+	
+	private JEditorPane tweetViewEditorPane;
+	
+	private JLabel tweetViewSourceLabel;
+	
+	private JLabel tweetViewDateLabel;
+	
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
 	
 	
 	/** 
@@ -860,15 +884,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			
 			@Override
 			public void focusGained(FocusEvent e) {
-				e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
-				if (selectingPost != null) {
-					selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
-				}
-				selectingPost = (StatusPanel) e.getComponent();
-			}
-			
-			@Override
-			public void focusLost(FocusEvent e) {
+				focusGainOfLinePanel(e);
 			}
 		});
 		statusData.image.setForeground(statusData.foregroundColor);
@@ -902,6 +918,115 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		final StatusPanel status = addStatus(statusData);
 		removeStatus(statusData, deletionDelay);
 		return status;
+	}
+	
+	/**
+	 * ポストパネルがフォーカスを得た時のハンドラ
+	 * 
+	 * @param e Focusイベント
+	 * @throws IllegalArgumentException 正しくないプロパティ
+	 * @throws NumberFormatException 数値ではないプロパティ
+	 */
+	private void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
+		e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
+		if (selectingPost != null) {
+			selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
+		}
+		selectingPost = (StatusPanel) e.getComponent();
+		
+		JEditorPane editor = getTweetViewEditorPane();
+		StatusData statusData = selectingPost.getStatusData();
+		if (statusData.tag instanceof Status) {
+			Status status = (Status) statusData.tag;
+			status = status.isRetweet() ? status.getRetweetedStatus() : status;
+			String originalStatusText = status.getText();
+			StringBuilder stringBuilder = new StringBuilder(originalStatusText.length());
+			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+			URLEntity[] urlEntities = status.getURLEntities();
+			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
+			
+			{
+				int copyOffset = 0;
+				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
+				copyOffset += hashtagEntities.length;
+				System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
+				copyOffset += urlEntities.length;
+				System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+			}
+			Arrays.sort(entities, new Comparator<Object>() {
+				
+				@Override
+				public int compare(Object o1, Object o2) {
+					return getStart(o1) - getStart(o2);
+				}
+				
+				private int getStart(Object obj) {
+					if (obj instanceof HashtagEntity) {
+						return ((HashtagEntity) obj).getStart();
+					} else if (obj instanceof URLEntity) {
+						return ((URLEntity) obj).getStart();
+					} else if (obj instanceof UserMentionEntity) {
+						return ((UserMentionEntity) obj).getStart();
+					} else {
+						throw new AssertionError();
+					}
+				}
+			});
+			int offset = 0;
+			for (Object entity : entities) {
+				int start;
+				int end;
+				String replaceText;
+				String url;
+				if (entity instanceof HashtagEntity) {
+					HashtagEntity hashtagEntity = (HashtagEntity) entity;
+					start = hashtagEntity.getStart();
+					end = hashtagEntity.getEnd();
+					replaceText = null;
+					url = "http://command/hashtag!" + hashtagEntity.getText();
+				} else if (entity instanceof URLEntity) {
+					URLEntity urlEntity = (URLEntity) entity;
+					start = urlEntity.getStart();
+					end = urlEntity.getEnd();
+					replaceText = urlEntity.getDisplayURL();
+					url = urlEntity.getExpandedURL().toString();
+				} else if (entity instanceof UserMentionEntity) {
+					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
+					start = mentionEntity.getStart();
+					end = mentionEntity.getEnd();
+					replaceText = null;
+					url = "http://command/userinfo!" + mentionEntity.getScreenName();
+				} else {
+					throw new AssertionError();
+				}
+				
+				if (offset < start) {
+					stringBuilder.append(originalStatusText.substring(offset, start));
+				}
+				stringBuilder.append("<a href=\"");
+				stringBuilder.append(url);
+				stringBuilder.append("\">");
+				stringBuilder.append(replaceText == null ? originalStatusText.substring(start, end) : replaceText);
+				stringBuilder.append("</a>");
+				
+				offset = end;
+			}
+			stringBuilder.append(originalStatusText.substring(offset));
+			editor.setText(stringBuilder.toString());
+			
+			JLabel viewSourceLabel = getTweetViewSourceLabel();
+			viewSourceLabel.setText(MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status
+				.getUser().getName()));
+			viewSourceLabel.setToolTipText(MessageFormat.format("from {0}", status.getSource()));
+			
+			JLabel viewDateLabel = getTweetViewDateLabel();
+			viewDateLabel.setText(dateFormat.format(status.getCreatedAt()));
+		} else {
+			editor.setText(statusData.data.getText());
+			getTweetViewSourceLabel().setText(statusData.sentBy.getName());
+			getTweetViewDateLabel().setText(dateFormat.format(statusData.date));
+		}
 	}
 	
 	/**
@@ -951,17 +1076,18 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			GroupLayout layout = new GroupLayout(editPanel);
 			editPanel.setLayout(layout);
 			layout.setHorizontalGroup( //
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
+				layout
+					.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addComponent(getPostPanel(), GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
-							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE) //
+					.addComponent(getTweetViewPanel()));
 			layout.setVerticalGroup( //
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
-							layout
-								.createSequentialGroup()
-								.addComponent(getPostPanel(), GroupLayout.PREFERRED_SIZE, 86,
-										GroupLayout.PREFERRED_SIZE) //
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)));
+							layout.createSequentialGroup()
+								.addComponent(getPostPanel(), 32, 64, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(getTweetViewPanel(), 64, Short.MAX_VALUE, GroupLayout.PREFERRED_SIZE)));
 			
 		}
 		return editPanel;
@@ -1021,7 +1147,6 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		if (postActionButton == null) {
 			postActionButton = new javax.swing.JButton();
 			postActionButton.setText("投稿");
-			postActionButton.setName("postActionButton"); // NOI18N
 			postActionButton.addActionListener(new ActionListener() {
 				
 				@Override
@@ -1038,7 +1163,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		if (postDataTextArea == null) {
 			postDataTextArea = new javax.swing.JTextArea();
 			postDataTextArea.setColumns(20);
-			postDataTextArea.setRows(5);
+			postDataTextArea.setRows(3);
+			postDataTextArea.setFont(UI_FONT);
 			postDataTextArea.addKeyListener(new KeyAdapter() {
 				
 				@Override
@@ -1078,10 +1204,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	}
 	
 	private JPanel getPostPanel() {
-		if (getPostPanel == null) {
-			getPostPanel = new JPanel();
-			GroupLayout layout = new GroupLayout(getPostPanel);
-			getPostPanel.setLayout(layout);
+		if (postPanel == null) {
+			postPanel = new JPanel();
+			GroupLayout layout = new GroupLayout(postPanel);
+			postPanel.setLayout(layout);
 			layout.setHorizontalGroup( //
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
@@ -1101,11 +1227,11 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 									layout
 										.createParallelGroup(GroupLayout.Alignment.TRAILING)
 										.addComponent(getPostActionButton())
-										.addComponent(getPostDataTextAreaScrollPane(), GroupLayout.PREFERRED_SIZE, 80,
+										.addComponent(getPostDataTextAreaScrollPane(), 32, 64,
 												GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
 			
 		}
-		return getPostPanel;
+		return postPanel;
 	}
 	
 	/**
@@ -1153,6 +1279,86 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 */
 	public Timer getTimer() {
 		return timer;
+	}
+	
+	private JLabel getTweetViewDateLabel() {
+		if (tweetViewDateLabel == null) {
+			tweetViewDateLabel = new JLabel();
+			tweetViewDateLabel.setText("2012/1/1 00:00:00");
+		}
+		return tweetViewDateLabel;
+	}
+	
+	private JEditorPane getTweetViewEditorPane() {
+		if (tweetViewEditorPane == null) {
+			tweetViewEditorPane = new JEditorPane();
+			tweetViewEditorPane.setEditable(false);
+			tweetViewEditorPane.setContentType("text/html");
+			tweetViewEditorPane.setFont(UI_FONT);
+			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
+				
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+						String url = e.getURL().toString();
+						if (url.startsWith("http://command/")) {
+							String command = url.substring("http://command/".length());
+							handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
+						} else {
+							try {
+								Utility.openBrowser(url);
+							} catch (Exception e1) {
+								e1.printStackTrace(); //TODO
+							}
+						}
+					}
+				}
+			});
+		}
+		return tweetViewEditorPane;
+	}
+	
+	private JPanel getTweetViewPanel() {
+		if (tweetViewPanel == null) {
+			tweetViewPanel = new JPanel();
+			GroupLayout layout = new GroupLayout(tweetViewPanel);
+			tweetViewPanel.setLayout(layout);
+			layout.setVerticalGroup( //
+				layout.createSequentialGroup() //
+					.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
+						.addComponent(getTweetViewSourceLabel(), Alignment.LEADING) //
+						.addComponent(getTweetViewDateLabel(), Alignment.LEADING)) //
+					.addContainerGap().addComponent(getTweetViewScrollPane()));
+			layout.setHorizontalGroup( //
+				layout.createParallelGroup(Alignment.LEADING) //
+					.addGroup(layout.createSequentialGroup() // 
+						.addComponent(getTweetViewSourceLabel()) //
+						.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
+						.addComponent(getTweetViewDateLabel())) //
+					.addComponent(getTweetViewScrollPane()));
+		}
+		return tweetViewPanel;
+	}
+	
+	private JScrollPane getTweetViewScrollPane() {
+		if (tweetViewScrollPane == null) {
+			tweetViewScrollPane = new JScrollPane();
+			tweetViewScrollPane.getViewport().setView(getTweetViewEditorPane());
+			tweetViewScrollPane.getVerticalScrollBar().setUnitIncrement(
+					configProperties.getInteger("client.main.list.scroll"));
+		}
+		return tweetViewScrollPane;
+	}
+	
+	private JLabel getTweetViewSourceLabel() {
+		if (tweetViewSourceLabel == null) {
+			tweetViewSourceLabel = new JLabel();
+			tweetViewSourceLabel.setText("@twclient (仮の名前＠だれか名前考えて)");
+			tweetViewSourceLabel.setToolTipText("from 暗黒の調和師");
+		}
+		return tweetViewSourceLabel;
 	}
 	
 	/**
