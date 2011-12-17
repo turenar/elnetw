@@ -702,6 +702,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
 	
+	private FontMetrics fontMetrics;
+	
+	private Dimension linePanelSizeOfSentBy;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -737,6 +741,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration()).getInstance();
 		stream.addConnectionLifeCycleListener(new ClientConnectionLifeCycleListner(this));
 		stream.addListener(new ClientStreamListner(this));
+		
+		fontMetrics = getFontMetrics(DEFAULT_FONT);
+		int str12width = fontMetrics.stringWidth("0123456789abc");
+		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
 	}
 	
 	/**
@@ -859,16 +867,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.sentBy.setInheritsPopupMenu(true);
 		statusData.sentBy.setFocusable(true);
-		FontMetrics fontMetrics = statusData.sentBy.getFontMetrics(DEFAULT_FONT);
-		int str10width = fontMetrics.stringWidth("0123456789abc");
-		statusData.sentBy.setMinimumSize(new Dimension(str10width, fontHeight));
-		statusData.sentBy.setMaximumSize(new Dimension(str10width, fontHeight));
+		statusData.sentBy.setMinimumSize(linePanelSizeOfSentBy);
+		statusData.sentBy.setMaximumSize(linePanelSizeOfSentBy);
 		statusData.sentBy.setFont(DEFAULT_FONT);
 		linePanel.add(statusData.sentBy);
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.data.setInheritsPopupMenu(true);
 		statusData.data.setFocusable(true);
 		statusData.data.setFont(DEFAULT_FONT);
+		int dataWidth = fontMetrics.stringWidth(statusData.data.getText());
+		
 		linePanel.add(statusData.data);
 		linePanel.setComponentPopupMenu(statusData.popupMenu);
 		/* if (information.isSystemNotify()) {
@@ -876,6 +884,10 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		} */
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
+		Dimension minSize =
+				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight + 4);
+		linePanel.setMinimumSize(minSize);
+		linePanel.setPreferredSize(minSize);
 		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
 		linePanel.addMouseListener(postListMouseListnerSingleton);
 		linePanel.setFocusable(true);
@@ -1384,7 +1396,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	public void handleException(Exception ex) {
 		if (ex instanceof TwitterException) {
 			handleException((TwitterException) ex);
-			//TODO			
+			//TODO
 		} else {
 			ex.printStackTrace();
 		}
