@@ -16,6 +16,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
@@ -158,13 +160,19 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 */
 	private class JobWorkerThread extends Thread {
 		
-		protected boolean isCanceled = false;
+		protected volatile boolean isCanceled = false;
 		
 		private Object threadHolder = new Object();
 		
 		
 		public JobWorkerThread(String name) {
 			super(name);
+			setDaemon(true);
+		}
+		
+		public void cleanUp() {
+			jobQueue.setJobWorkerThread(null, null);
+			isCanceled = true;
 		}
 		
 		@Override
@@ -630,7 +638,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private final JobQueue jobQueue = new JobQueue();
 	
-	private Thread jobWorkerThread;
+	private JobWorkerThread jobWorkerThread;
 	
 	private JPanel editPanel;
 	
@@ -706,13 +714,17 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private Dimension linePanelSizeOfSentBy;
 	
+	private final Object mainThreadHolder;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
 	 * @param configuration 設定
+	 * @param threadHolder スレッドホルダ
 	 */
-	public TwitterClientFrame(ClientConfiguration configuration) {
+	public TwitterClientFrame(ClientConfiguration configuration, Object threadHolder) {
 		this.configuration = configuration;
+		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
 		timer = new Timer("timer");
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
@@ -930,6 +942,16 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		final StatusPanel status = addStatus(statusData);
 		removeStatus(statusData, deletionDelay);
 		return status;
+	}
+	
+	/**
+	 * 終了できるようにお掃除する
+	 */
+	public void cleanUp() {
+		configuration.setShutdownPhase(true);
+		stream.shutdown();
+		timer.cancel();
+		jobWorkerThread.cleanUp();
 	}
 	
 	/**
@@ -1443,8 +1465,17 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 */
 	private void initComponents() {
 		setTitle(APPLICATION_NAME);
-		
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+		
+		addWindowListener(new WindowAdapter() {
+			
+			@Override
+			public void windowClosed(WindowEvent e) {
+				synchronized (mainThreadHolder) {
+					mainThreadHolder.notifyAll();
+				}
+			}
+		});
 		
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);

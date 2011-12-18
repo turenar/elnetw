@@ -15,6 +15,8 @@ public class ClientConfiguration {
 	
 	private Configuration twitterConfiguration;
 	
+	private boolean isShutdownPahse;
+	
 	
 	/**
 	 * デフォルト設定を格納するプロパティを取得する。
@@ -44,6 +46,15 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * シャットダウンフェーズかどうかを取得する。
+	 * 
+	 * @return シャットダウンフェーズかどうか
+	 */
+	public boolean isShutdownPahse() {
+		return isShutdownPahse;
+	}
+	
+	/**
 	 * デフォルト設定を格納するプロパティを設定する。
 	 * 
 	 * @param configDefaultProperties the configDefaultProperties to set
@@ -59,6 +70,14 @@ public class ClientConfiguration {
 	 */
 	public void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
+	}
+	
+	/**
+	 * シャットダウンフェーズであるかどうかを設定する
+	 * @param isShutdownPahse シャットダウンフェーズかどうか。
+	 */
+	public void setShutdownPhase(boolean isShutdownPahse) {
+		this.isShutdownPahse = isShutdownPahse;
 	}
 	
 	/**

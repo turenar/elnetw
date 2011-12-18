@@ -36,6 +36,9 @@ public class TwitterClientMain {
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 	
+	/** スレッドホルダ */
+	protected Object threadHolder = new Object();
+	
 	private Logger logger;
 	
 	
@@ -109,6 +112,7 @@ public class TwitterClientMain {
 		}
 		configuration.setConfigProperties(configProperties);
 		configuration.setTwitterConfiguration(initTwitterConfiguration());
+		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -120,9 +124,22 @@ public class TwitterClientMain {
 						e.printStackTrace();
 					}
 				});
-				new TwitterClientFrame(configuration).start();
+				frame.start();
 			}
 		});
+		
+		synchronized (threadHolder) {
+			while (configuration.isShutdownPahse() == false) {
+				try {
+					threadHolder.wait(10000);
+					break;
+				} catch (InterruptedException e) {
+					// do nothing
+				}
+			}
+		}
+		frame.cleanUp();
+		
 		try {
 			logger.close();
 		} catch (IOException e) {
