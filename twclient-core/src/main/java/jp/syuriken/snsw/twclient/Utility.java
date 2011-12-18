@@ -102,20 +102,6 @@ public class Utility {
 	}
 	
 	/**
-	 * 16進ダンプする
-	 * 
-	 * @param str 文字列
-	 * @return 16進ダンプ
-	 */
-	protected static String hexDump(String str) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 0; i < str.length(); i++) {
-			stringBuilder.append(jp.syuriken.snsw.utils.Utility.fixStringLength(Integer.toHexString(str.charAt(i)), 4));
-		}
-		return stringBuilder.toString();
-	}
-	
-	/**
 	 * browserを表示する。
 	 * 
 	 * @param url 開くURL

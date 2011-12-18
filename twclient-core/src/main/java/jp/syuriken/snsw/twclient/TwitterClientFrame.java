@@ -58,6 +58,10 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.HashtagEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -716,6 +720,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	
 	private final Object mainThreadHolder;
 	
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -723,6 +729,8 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 * @param threadHolder スレッドホルダ
 	 */
 	public TwitterClientFrame(ClientConfiguration configuration, Object threadHolder) {
+		logger.info("initializing frame");
+		
 		this.configuration = configuration;
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
@@ -757,6 +765,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 		fontMetrics = getFontMetrics(DEFAULT_FONT);
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
+		logger.info("initialized");
 	}
 	
 	/**
@@ -1404,7 +1413,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	protected void handleAction(String name, StatusData statusData) {
 		ActionHandler actionHandler = getActionHandler(name);
 		if (actionHandler == null) {
-			System.err.println("ActionHandler " + name + " is not found.");
+			logger.warn("ActionHandler {} is not found.", name);
 		} else {
 			actionHandler.handleAction(name, statusData, this);
 		}
@@ -1420,7 +1429,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			handleException((TwitterException) ex);
 			//TODO
 		} else {
-			ex.printStackTrace();
+			logger.warn(null, ex);
 		}
 	}
 	
@@ -1430,6 +1439,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 	 */
 	public void handleException(TwitterException e) {
 		Date date = new Date(System.currentTimeMillis() + 10000);
+		logger.warn(null, e);
 		StatusData information = new StatusData(e, date);
 		information.foregroundColor = Color.RED;
 		information.backgroundColor = Color.BLACK;
@@ -1586,6 +1596,7 @@ public class TwitterClientFrame extends javax.swing.JFrame {
 			@Override
 			public void run() {
 				setVisible(true);
+				logger.info("visibled");
 			}
 		});
 		stream.user();

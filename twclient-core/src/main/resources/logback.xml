@@ -1,0 +1,26 @@
+<configuration>
+	<appender name="TRACE" class="ch.qos.logback.core.FileAppender">
+		<file>twclient.log</file>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				%d{hh:mm:ss.SSS} [%-4level %logger{36}] %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<Target>System.out</Target>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{HH:mm:ss.SSS} [%-4level %logger{36}] %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<logger name="jp.syuriken.snsw">
+		<level value="TRACE" />
+	</logger>
+
+	<root>
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

@@ -29,9 +29,14 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>jp.syuriken.snsw</groupId>
-				<artifactId>java-utils</artifactId>
-				<version>0.6-SNAPSHOT</version>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>[1.6,)</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>[1.0,)</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

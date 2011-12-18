@@ -2,17 +2,18 @@ package jp.syuriken.snsw.twclient;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.MessageFormat;
-import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
-import jp.syuriken.snsw.utils.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -27,8 +28,11 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class TwitterClientMain {
 	
+	/** 設定ファイル名 */
+	private static final String CONFIG_FILE_NAME = "twclient.cfg";
+	
 	/** 設定ファイル */
-	private static final File CONFIG_FILE = new File("twclient.cfg");
+	private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
 	
 	/** 設定データ */
 	protected ClientProperties configProperties;
@@ -39,7 +43,7 @@ public class TwitterClientMain {
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
 	
-	private Logger logger;
+	private final Logger logger;
 	
 	
 	/**
@@ -48,7 +52,14 @@ public class TwitterClientMain {
 	 * @param args コマンドラインオプション
 	 */
 	public TwitterClientMain(String[] args) {
+		logger = LoggerFactory.getLogger(getClass());
 		configuration = new ClientConfiguration();
+		
+		try {
+			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			logger.warn("LookAndFeelの設定に失敗", e);
+		}
 	}
 	
 	/**
@@ -84,46 +95,38 @@ public class TwitterClientMain {
 	 * 
 	 */
 	public int run() {
-		try {
-			logger = Logger.getLogger("twclient.log", Level.ALL);
-		} catch (IOException e) {
-			System.err.println("ログ出力用に twclient.log が開けませんでした。");
-			return 1;
-		}
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
 			defaultConfig.load(getClass().getClassLoader().getResourceAsStream(
 					"jp/syuriken/snsw/twclient/config.properties"));
 		} catch (IOException e) {
-			System.err.println("デフォルト設定が読み込めません。");
+			logger.error("デフォルト設定が読み込めません", e);
 		}
 		configuration.setConfigDefaultProperties(defaultConfig);
 		configProperties = new ClientProperties(defaultConfig);
+		configProperties.setStoreFile(CONFIG_FILE);
 		if (CONFIG_FILE.exists()) {
+			logger.debug(CONFIG_FILE_NAME + " is found.");
 			try {
-				configProperties.setStoreFile(CONFIG_FILE);
 				configProperties.load(new FileReader(CONFIG_FILE));
-			} catch (FileNotFoundException e) {
-				System.err.println("twclient.cfg: " + e.getLocalizedMessage());
-				logger.log(Level.WARNING, e);
 			} catch (IOException e) {
-				System.err.println("twclient.cfg: " + e.getLocalizedMessage());
+				logger.warn("設定ファイルの読み込み中にエラー", e);
 			}
 		}
 		configuration.setConfigProperties(configProperties);
 		configuration.setTwitterConfiguration(initTwitterConfiguration());
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				logger.error("Uncaught Exception", e);
+			}
+		});
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
-				Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-					
-					@Override
-					public void uncaughtException(Thread t, Throwable e) {
-						e.printStackTrace();
-					}
-				});
 				frame.start();
 			}
 		});
@@ -131,20 +134,16 @@ public class TwitterClientMain {
 		synchronized (threadHolder) {
 			while (configuration.isShutdownPahse() == false) {
 				try {
-					threadHolder.wait(10000);
+					threadHolder.wait();
 					break;
 				} catch (InterruptedException e) {
 					// do nothing
 				}
 			}
 		}
+		logger.info("Exiting twclient...");
 		frame.cleanUp();
 		
-		try {
-			logger.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		return 0;
 	}
 	
@@ -171,7 +170,7 @@ public class TwitterClientMain {
 		configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
 				accessToken.getTokenSecret());
 		try {
-			configProperties.store(new BufferedWriter(new FileWriter("twclient.cfg")), "Auto generated.");
+			configProperties.store(new BufferedWriter(new FileWriter(CONFIG_FILE_NAME)), "Auto generated.");
 		} catch (IOException e) {
 			// TODO 
 			e.printStackTrace();
