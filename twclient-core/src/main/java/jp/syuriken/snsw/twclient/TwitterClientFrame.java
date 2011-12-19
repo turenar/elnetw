@@ -585,10 +585,10 @@ import twitter4j.UserMentionEntity;
 	 * @throws NumberFormatException 数値ではないプロパティ
 	 */
 	private void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
-		e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
 		if (selectingPost != null) {
 			selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
 		}
+		e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
 		selectingPost = (StatusPanel) e.getComponent();
 		
 		JEditorPane editor = getTweetViewEditorPane();
