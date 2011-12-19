@@ -20,7 +20,7 @@ import twitter4j.UserStreamListener;
  */
 public class ClientStreamListner implements UserStreamListener {
 	
-	private final TwitterClientFrame twitterClientFrame;
+	private final ClientFrameApi twitterClientFrame;
 	
 	
 	/**
@@ -28,7 +28,7 @@ public class ClientStreamListner implements UserStreamListener {
 	 * 
 	 * @param twitterClientFrame API
 	 */
-	public ClientStreamListner(TwitterClientFrame twitterClientFrame) {
+	public ClientStreamListner(ClientFrameApi twitterClientFrame) {
 		this.twitterClientFrame = twitterClientFrame;
 	}
 	

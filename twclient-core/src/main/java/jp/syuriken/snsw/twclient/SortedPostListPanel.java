@@ -262,6 +262,21 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
+	 * 最初のコンポーネントをフォーカスする
+	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
+	 */
+	public synchronized boolean requestFocusFirstComponent() {
+		StatusPanel panel = firstBranch.getFirst();
+		if (panel == null) {
+			panel = (StatusPanel) branches.getFirst().getComponent(0);
+		}
+		if (panel == null) {
+			return false;
+		}
+		return panel.requestFocusInWindow();
+	}
+	
+	/**
 	 * firstBranchを分割する。分割しない時もある。
 	 */
 	private synchronized void splitFirstBranch() {
