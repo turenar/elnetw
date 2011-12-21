@@ -169,6 +169,10 @@ public class Utility {
 		}
 	}
 	
+	/*package*/static Object[] toArray(Object... obj) {
+		return obj;
+	}
+	
 	private Utility() {
 	}
 	

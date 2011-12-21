@@ -352,7 +352,6 @@ import twitter4j.UserMentionEntity;
 		getLoginUser();
 		getPopupMenu();
 		initComponents();
-		
 		updatePostListDispatcher = new UpdatePostList();
 		timer.schedule(updatePostListDispatcher, configProperties.getInteger("client.main.interval.list_update"),
 				configProperties.getInteger("client.main.interval.list_update"));
@@ -362,7 +361,7 @@ import twitter4j.UserMentionEntity;
 			@Override
 			public void run() {
 				synchronized (postListAddQueue) {
-					System.out.println(sortedPostListPanel.toString());
+					logger.debug(sortedPostListPanel.toString());
 				}
 			}
 		}, 1000, 10000);
@@ -1043,6 +1042,7 @@ import twitter4j.UserMentionEntity;
 		if (actionHandler == null) {
 			logger.warn("ActionHandler {} is not found.", name);
 		} else {
+			logger.trace("ActionHandler {} called.", name);
 			actionHandler.handleAction(name, statusData, this);
 		}
 	}

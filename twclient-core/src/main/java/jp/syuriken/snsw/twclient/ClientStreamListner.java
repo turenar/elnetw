@@ -1,10 +1,14 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -21,6 +25,8 @@ import twitter4j.UserStreamListener;
 public class ClientStreamListner implements UserStreamListener {
 	
 	private final ClientFrameApi twitterClientFrame;
+	
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	
 	/**
@@ -45,6 +51,8 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		logger.trace("onDeletionNotice: {}", statusDeletionNotice);
+		
 		StatusData statusData = twitterClientFrame.getStatus(statusDeletionNotice.getStatusId());
 		if (statusData != null) {
 			if (statusData.tag instanceof Status == false) {
@@ -65,6 +73,8 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onDirectMessage(DirectMessage directMessage) {
+		logger.trace("onDirectMessage: {}", directMessage);
+		
 		StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
 		statusData.backgroundColor = Color.LIGHT_GRAY;
 		statusData.foregroundColor = Color.CYAN;
@@ -82,6 +92,8 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
+		logger.trace("onFavorite: {}", favoritedStatus);
+		
 		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(favoritedStatus, new Date());
 			statusData.backgroundColor = Color.GRAY;
@@ -103,6 +115,7 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onFollow(User source, User followedUser) {
+		logger.trace("onFollow: {} {}", source, followedUser);
 		if (followedUser.getId() == twitterClientFrame.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(null, new Date());
 			statusData.backgroundColor = Color.GRAY;
@@ -117,12 +130,18 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onFriendList(long[] friendIds) {
-		// TODO Auto-generated method stub
-		
+		if (logger.isTraceEnabled()) {
+			logger.trace("onFriendList: {}", Arrays.toString(friendIds));
+			// TODO Auto-generated method stub
+		}
 	}
 	
 	@Override
 	public void onRetweet(User source, User target, Status retweetedStatus) {
+		if (logger.isTraceEnabled()) {
+			logger.trace("onRetweet: source={}, target={}, retweet={}",
+					Utility.toArray(source, target, retweetedStatus));
+		}
 		//if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
 		System.out.println(retweetedStatus);
 		System.out.printf("%d, %d%n", retweetedStatus.getId(), retweetedStatus.getRetweetedStatus().getId());
@@ -133,7 +152,6 @@ public class ClientStreamListner implements UserStreamListener {
 	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	@Override
@@ -143,6 +161,7 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+		logger.trace("onTrackLimitationNotice: {}", numberOfLimitedStatuses);
 		StatusData statusData = new StatusData(null, new Date());
 		statusData.backgroundColor = Color.BLACK;
 		statusData.foregroundColor = Color.LIGHT_GRAY;
@@ -162,6 +181,10 @@ public class ClientStreamListner implements UserStreamListener {
 	
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
+		if (logger.isTraceEnabled()) {
+			logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}",
+					Utility.toArray(source, target, unfavoritedStatus));
+		}
 		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(unfavoritedStatus, new Date());
 			statusData.backgroundColor = Color.GRAY;
