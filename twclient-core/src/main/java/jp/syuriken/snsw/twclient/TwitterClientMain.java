@@ -1,10 +1,8 @@
 package jp.syuriken.snsw.twclient;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.MessageFormat;
@@ -17,8 +15,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * 実際に起動するランチャ
@@ -46,33 +42,6 @@ public class TwitterClientMain {
 	 */
 	public TwitterClientMain(String[] args) {
 		configuration = new ClientConfiguration();
-	}
-	
-	/**
-	 * TwitterConfigurationを作成する。
-	 * @return 認証済み Configuration インスタンス
-	 */
-	private Configuration initTwitterConfiguration() {
-		String consumerKey = configProperties.getProperty("oauth.consumer");
-		String consumerSecret = configProperties.getProperty("oauth.consumer_secret");
-		String accessTokenString;
-		String accessTokenSecret;
-		
-		if (configProperties.containsKey("oauth.access_token.list")) {
-			String account = configProperties.getProperty("oauth.access_token.list").split(" ")[0];
-			accessTokenString = configProperties.getProperty("oauth.access_token." + account);
-			accessTokenSecret =
-					configProperties.getProperty(MessageFormat.format("oauth.access_token.{0}_secret", account));
-		} else {
-			Twitter twitter = new TwitterFactory().getInstance();
-			twitter.setOAuthConsumer(consumerKey, consumerSecret);
-			AccessToken accessToken = tryGetOAuthAccessToken(twitter);
-			accessTokenString = accessToken.getToken();
-			accessTokenSecret = accessToken.getTokenSecret();
-		}
-		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
-			.setOAuthAccessToken(accessTokenString).setOAuthAccessTokenSecret(accessTokenSecret)
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")).build();
 	}
 	
 	/**
@@ -108,7 +77,9 @@ public class TwitterClientMain {
 			}
 		}
 		configuration.setConfigProperties(configProperties);
-		configuration.setTwitterConfiguration(initTwitterConfiguration());
+		
+		tryGetOAuthAccessToken();
+		
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -136,10 +107,13 @@ public class TwitterClientMain {
 	 * @param twitter Twitterインスタンス
 	 * @return アクセストークン
 	 */
-	private AccessToken tryGetOAuthAccessToken(Twitter twitter) {
-		AccessToken accessToken = null;
+	private boolean tryGetOAuthAccessToken() {
+		if (configuration.getAccountList() != null) {
+			return false;
+		}
+		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
+		AccessToken accessToken = new OAuthFrame().show(twitter);
 		
-		accessToken = new OAuthFrame().show(twitter);
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
@@ -150,15 +124,11 @@ public class TwitterClientMain {
 			throw new RuntimeException(e1);
 		}
 		configProperties.setProperty("oauth.access_token.list", userId);
+		configProperties.setProperty("oauth.access_token.default", userId);
 		configProperties.setProperty("oauth.access_token." + userId, accessToken.getToken());
 		configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
 				accessToken.getTokenSecret());
-		try {
-			configProperties.store(new BufferedWriter(new FileWriter("twclient.cfg")), "Auto generated.");
-		} catch (IOException e) {
-			// TODO 
-			e.printStackTrace();
-		}
-		return accessToken;
+		configProperties.store();
+		return true;
 	}
 }
