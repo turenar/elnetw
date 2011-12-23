@@ -18,7 +18,10 @@ import twitter4j.UserMentionEntity;
  * 
  * @author $Author: snsoftware $
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({
+	"serial",
+	"deprecation"
+})
 public class TwitterStatus implements Status {
 	
 	private final Status originalStatus;

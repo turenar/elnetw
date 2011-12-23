@@ -206,7 +206,7 @@ import twitter4j.UserMentionEntity;
 					if (actionHandler != null) {
 						actionHandler.popupMenuWillBecomeVisible(menuItem, statusData, TwitterClientFrame.this);
 					} else {
-						System.err.println("ActionHandler is not found: " + menuItem.getActionCommand());
+						logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
 						menuItem.setEnabled(false);
 					}
 				}
@@ -368,7 +368,7 @@ import twitter4j.UserMentionEntity;
 		
 		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration()).getInstance();
 		stream.addConnectionLifeCycleListener(new ClientConnectionLifeCycleListner(this));
-		stream.addListener(new ClientStreamListner(this));
+		stream.addListener(new ClientStreamListener(this));
 		
 		fontMetrics = getFontMetrics(DEFAULT_FONT);
 		int str12width = fontMetrics.stringWidth("0123456789abc");
@@ -793,7 +793,7 @@ import twitter4j.UserMentionEntity;
 			for (String actionCommand : popupMenus) {
 				ActionHandler handler = getActionHandler(actionCommand);
 				if (handler == null) {
-					System.err.println("handler " + actionCommand + " is not found."); //TODO
+					logger.warn("handler {} is not found.", actionCommand); //TODO
 				} else {
 					JMenuItem menuItem = handler.createJMenuItem(actionCommand);
 					menuItem.setActionCommand(actionCommand);

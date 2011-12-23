@@ -22,7 +22,7 @@ import twitter4j.UserStreamListener;
  * 
  * @author $Author$
  */
-public class ClientStreamListner implements UserStreamListener {
+public class ClientStreamListener implements UserStreamListener {
 	
 	private final ClientFrameApi twitterClientFrame;
 	
@@ -34,7 +34,7 @@ public class ClientStreamListner implements UserStreamListener {
 	 * 
 	 * @param twitterClientFrame API
 	 */
-	public ClientStreamListner(ClientFrameApi twitterClientFrame) {
+	public ClientStreamListener(ClientFrameApi twitterClientFrame) {
 		this.twitterClientFrame = twitterClientFrame;
 	}
 	
@@ -131,8 +131,7 @@ public class ClientStreamListner implements UserStreamListener {
 	@Override
 	public void onFriendList(long[] friendIds) {
 		if (logger.isTraceEnabled()) {
-			logger.trace("onFriendList: {}", Arrays.toString(friendIds));
-			// TODO Auto-generated method stub
+			logger.trace("onFriendList: count={}, {}", friendIds.length, Arrays.toString(friendIds));
 		}
 	}
 	
@@ -142,11 +141,12 @@ public class ClientStreamListner implements UserStreamListener {
 			logger.trace("onRetweet: source={}, target={}, retweet={}",
 					Utility.toArray(source, target, retweetedStatus));
 		}
-		//if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
-		System.out.println(retweetedStatus);
-		System.out.printf("%d, %d%n", retweetedStatus.getId(), retweetedStatus.getRetweetedStatus().getId());
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(), retweetedStatus
+				.getRetweetedStatus().getId(), retweetedStatus));
+		}
 		twitterClientFrame.addStatus(retweetedStatus);
-		//}
 	}
 	
 	@Override
@@ -176,7 +176,6 @@ public class ClientStreamListner implements UserStreamListener {
 	@Override
 	public void onUnblock(User source, User unblockedUser) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	@Override
