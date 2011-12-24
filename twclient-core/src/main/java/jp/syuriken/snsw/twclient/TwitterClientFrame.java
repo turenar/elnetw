@@ -35,7 +35,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -81,7 +80,7 @@ import twitter4j.UserMentionEntity;
 
 /**
  * twclientのメインウィンドウ
- * @author snsoftware
+ * @author $Author$
  */
 @SuppressWarnings("serial")
 /*package*/class TwitterClientFrame extends javax.swing.JFrame implements ClientFrameApi {
@@ -331,6 +330,8 @@ import twitter4j.UserMentionEntity;
 	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
+	private ImageCacher imageCacher;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -341,6 +342,7 @@ import twitter4j.UserMentionEntity;
 		logger.info("initializing frame");
 		
 		this.configuration = configuration;
+		configuration.setFrameApi(this);
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
 		timer = new Timer("timer");
@@ -365,6 +367,7 @@ import twitter4j.UserMentionEntity;
 				}
 			}
 		}, 1000, 10000);
+		imageCacher = new ImageCacher(configuration);
 		
 		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration()).getInstance();
 		stream.addConnectionLifeCycleListener(new ClientConnectionLifeCycleListner(this));
@@ -430,9 +433,9 @@ import twitter4j.UserMentionEntity;
 			}
 		}
 		
-		ImageIcon iconImage = new ImageIcon(status.getUser().getProfileImageURL());
-		iconImage.setImageObserver(AnimationCanceledImageObserver.SINGLETON);
-		JLabel icon = new JLabel(iconImage);
+		JLabel icon = new JLabel();
+		imageCacher.setImageIcon(icon, status.getUser());
+		icon.setHorizontalAlignment(JLabel.CENTER);
 		statusData.image = icon;
 		
 		String screenName = user.getScreenName();
@@ -472,7 +475,7 @@ import twitter4j.UserMentionEntity;
 				}
 				if (mentioned) {
 					statusData.foregroundColor = Color.RED;
-					Utility.sendNotify(user.getName(), originalStatus.getText());
+					Utility.sendNotify(user.getName(), originalStatus.getText(), imageCacher.getImageFile(user));
 				}
 			}
 		}

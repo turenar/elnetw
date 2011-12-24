@@ -15,7 +15,9 @@ public class ClientConfiguration {
 	
 	private Configuration twitterConfiguration;
 	
-	private boolean isShutdownPahse;
+	private boolean isShutdownPhase;
+	
+	private ClientFrameApi frameApi;
 	
 	
 	/**
@@ -37,6 +39,15 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * FrameApiを取得する
+	 * 
+	 * @return フレームAPI
+	 */
+	public ClientFrameApi getFrameApi() {
+		return frameApi;
+	}
+	
+	/**
 	 * Twitterの設定を取得する。
 	 * 
 	 * @return {@link Configuration}インスタンス
@@ -50,8 +61,8 @@ public class ClientConfiguration {
 	 * 
 	 * @return シャットダウンフェーズかどうか
 	 */
-	public boolean isShutdownPahse() {
-		return isShutdownPahse;
+	public boolean isShutdownPhase() {
+		return isShutdownPhase;
 	}
 	
 	/**
@@ -73,11 +84,20 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * FrameApiを設定する
+	 * 
+	 * @param frameApi フレームAPI
+	 */
+	/*package*/void setFrameApi(ClientFrameApi frameApi) {
+		this.frameApi = frameApi;
+	}
+	
+	/**
 	 * シャットダウンフェーズであるかどうかを設定する
 	 * @param isShutdownPahse シャットダウンフェーズかどうか。
 	 */
 	public void setShutdownPhase(boolean isShutdownPahse) {
-		this.isShutdownPahse = isShutdownPahse;
+		this.isShutdownPhase = isShutdownPahse;
 	}
 	
 	/**

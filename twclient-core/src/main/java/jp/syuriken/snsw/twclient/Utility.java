@@ -1,11 +1,15 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.HeadlessException;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ユーティリティクラス。
@@ -13,6 +17,51 @@ import javax.swing.JOptionPane;
  * @author $Author$
  */
 public class Utility {
+	
+	/**
+	 * notify-sendを使用して通知を送信するクラス。
+	 * 
+	 * @author $Author$
+	 */
+	protected static class LibnotifySender implements NotifySender {
+		
+		@Override
+		public void sendNotify(String summary, String text, File imageFile) throws IOException {
+			if (imageFile == null) {
+				Runtime.getRuntime().exec(new String[] {
+					"notify-send",
+					summary,
+					text
+				});
+			} else {
+				Runtime.getRuntime().exec(new String[] {
+					"notify-send",
+					"-i",
+					imageFile.getPath(),
+					summary,
+					text
+				});
+			}
+		}
+		
+	}
+	
+	/**
+	 * 通知が送信されるクラスのインターフェース
+	 * 
+	 * @author $Author$
+	 */
+	protected interface NotifySender {
+		
+		/**
+		 * 通知を送信する
+		 * @param summary 概要
+		 * @param text テキスト
+		 * @param imageFile アイコン。ない場合はnull
+		 * @throws IOException 外部プロセスの起動に失敗
+		 */
+		public void sendNotify(String summary, String text, File imageFile) throws IOException;
+	}
 	
 	/**
 	 * OSの種別を判断する。
@@ -29,9 +78,14 @@ public class Utility {
 	}
 	
 	
+	private static Logger logger = LoggerFactory.getLogger(Utility.class);
+	
 	private static String detectedBrowser = null;
 	
-	private static OSType ostype;
+	private static volatile OSType ostype;
+	
+	/** 通知を送信するクラス */
+	public static volatile NotifySender notifySender = null;
 	
 	
 	/**
@@ -79,6 +133,28 @@ public class Utility {
 	}
 	
 	/**
+	 * 通知を送信するクラスを設定する
+	 */
+	private static void detectNotifier() {
+		if (notifySender == null) {
+			if (getOstype() == OSType.OTHER) {
+				try {
+					if (Runtime.getRuntime().exec(new String[] {
+						"which",
+						"notify-send"
+					}).waitFor() == 0) {
+						notifySender = new LibnotifySender();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace(); //TODO
+				} catch (IOException e) {
+					e.printStackTrace(); //TODO
+				}
+			}
+		}
+	}
+	
+	/**
 	 * OSを確定する
 	 */
 	private static void detectOS() {
@@ -98,6 +174,9 @@ public class Utility {
 	 * @return OSの種類
 	 */
 	public static OSType getOstype() {
+		if (ostype == null) {
+			detectOS();
+		}
 		return ostype;
 	}
 	
@@ -150,22 +229,23 @@ public class Utility {
 	 * @param text テキスト
 	 */
 	public static void sendNotify(String summary, String text) {
-		try {
-			if (Runtime.getRuntime().exec(new String[] {
-				"which",
-				"notify-send"
-			}).waitFor() == 0) {
-				Runtime.getRuntime().exec(new String[] {
-					"notify-send",
-					summary,
-					text
-				});
+		sendNotify(summary, text, null);
+	}
+	
+	/**
+	 * 通知を送信する
+	 * @param summary 概要
+	 * @param text テキスト
+	 * @param imageFile アイコン
+	 */
+	public static void sendNotify(String summary, String text, File imageFile) {
+		detectNotifier();
+		if (notifySender != null) {
+			try {
+				notifySender.sendNotify(summary, text, imageFile);
+			} catch (IOException e) {
+				logger.warn("通知を送信できませんでした", e);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace(); //TODO
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

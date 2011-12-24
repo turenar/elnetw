@@ -132,7 +132,7 @@ public class TwitterClientMain {
 		});
 		
 		synchronized (threadHolder) {
-			while (configuration.isShutdownPahse() == false) {
+			while (configuration.isShutdownPhase() == false) {
 				try {
 					threadHolder.wait();
 					break;
