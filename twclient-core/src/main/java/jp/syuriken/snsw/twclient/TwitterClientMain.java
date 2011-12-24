@@ -65,9 +65,9 @@ public class TwitterClientMain {
 		}
 		configuration.setConfigDefaultProperties(defaultConfig);
 		configProperties = new ClientProperties(defaultConfig);
+		configProperties.setStoreFile(CONFIG_FILE);
 		if (CONFIG_FILE.exists()) {
 			try {
-				configProperties.setStoreFile(CONFIG_FILE);
 				configProperties.load(new FileReader(CONFIG_FILE));
 			} catch (FileNotFoundException e) {
 				System.err.println("twclient.cfg: " + e.getLocalizedMessage());
@@ -108,7 +108,7 @@ public class TwitterClientMain {
 	 * @return アクセストークン
 	 */
 	private boolean tryGetOAuthAccessToken() {
-		if (configuration.getAccountList() != null) {
+		if (configuration.getAccountList().length != 0) {
 			return false;
 		}
 		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();

@@ -22,12 +22,17 @@ public class ClientConfiguration {
 	
 	
 	/**
-	 * アカウントリストを取得する。
+	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
 	 * 
 	 * @return アカウントリスト。
 	 */
 	public String[] getAccountList() {
-		return configProperties.getProperty("oauth.access_token.list").split(" ");
+		String list = configProperties.getProperty("oauth.access_token.list");
+		if (list == null) {
+			return new String[] {};
+		} else {
+			return list.split(" ");
+		}
 	}
 	
 	/**
