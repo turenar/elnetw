@@ -77,6 +77,7 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
+import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -598,14 +599,26 @@ import twitter4j.UserMentionEntity;
 		if (statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
 			status = status.isRetweet() ? status.getRetweetedStatus() : status;
-			String originalStatusText = status.getText();
-			StringBuilder stringBuilder = new StringBuilder(originalStatusText.length());
+			String originalStatusText;
+			StringBuffer stringBuilder  = new StringBuffer(status.getText());
+			HTMLEntity.escape(stringBuilder);
+			/*int nlposition;
+			int offset = 0;
+			while ((nlposition = originalStatusTextBuffer.indexOf("&amp;", offset)) >= 0) {
+				originalStatusTextBuffer.replace(nlposition, nlposition + 5, "&");
+				offset = nlposition;
+			}*/
+			originalStatusText = stringBuilder.toString();
+			
 			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
 			URLEntity[] urlEntities = status.getURLEntities();
+			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
 			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
 			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
 			
-			{
+			if (entities.length != 0) {
 				int copyOffset = 0;
 				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
 				copyOffset += hashtagEntities.length;
@@ -640,28 +653,32 @@ import twitter4j.UserMentionEntity;
 				String url;
 				if (entity instanceof HashtagEntity) {
 					HashtagEntity hashtagEntity = (HashtagEntity) entity;
-					start = hashtagEntity.getStart();
-					end = hashtagEntity.getEnd();
+					String hashtag = hashtagEntity.getText();
+					// #<hashtag> -> must overwrite pos-1
+					start = originalStatusText.indexOf(hashtag, offset) - 1;
+					end = start + 1 + hashtag.length();
 					replaceText = null;
-					url = "http://command/hashtag!" + hashtagEntity.getText();
+					url = "http://command/hashtag!" + hashtag;
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
-					start = urlEntity.getStart();
-					end = urlEntity.getEnd();
+					url = urlEntity.getURL().toExternalForm();
+					start = originalStatusText.indexOf(url, offset);
+					end = start + url.length();
 					replaceText = urlEntity.getDisplayURL();
-					url = urlEntity.getExpandedURL().toString();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					start = mentionEntity.getStart();
-					end = mentionEntity.getEnd();
+					String screenName = mentionEntity.getScreenName();
+					// #<screenName> -> must overwrite pos-1
+					start = originalStatusText.indexOf(screenName, offset) - 1;
+					end = start + 1 + screenName.length();
 					replaceText = null;
-					url = "http://command/userinfo!" + mentionEntity.getScreenName();
+					url = "http://command/userinfo!" + screenName;
 				} else {
 					throw new AssertionError();
 				}
 				
 				if (offset < start) {
-					stringBuilder.append(originalStatusText.substring(offset, start));
+					stringBuilder.append(nl2br(originalStatusText.substring(offset, start)));
 				}
 				stringBuilder.append("<a href=\"");
 				stringBuilder.append(url);
@@ -671,7 +688,7 @@ import twitter4j.UserMentionEntity;
 				
 				offset = end;
 			}
-			stringBuilder.append(originalStatusText.substring(offset));
+			stringBuilder.append(nl2br(originalStatusText.substring(offset)));
 			editor.setText(stringBuilder.toString());
 			
 			JLabel viewSourceLabel = getTweetViewSourceLabel();
@@ -1133,6 +1150,28 @@ import twitter4j.UserMentionEntity;
 		
 		setJMenuBar(getClientMenuBar());
 		setSize(500, 500);
+	}
+	
+	/**
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
+	 * 
+	 * @param text テキスト
+	 * @return &lt;br&gt;に置き換えられた文章
+	 */
+	private String nl2br(String text) {
+		StringBuilder stringBuilder = new StringBuilder(text);
+		int offset = 0;
+		int position;
+		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
+			stringBuilder.replace(position, position + 1, "<br>");
+			offset = position;
+		}
+		offset = 0;
+		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
+			stringBuilder.replace(position, position + 1, "&nbsp;");
+			offset = position;
+		}
+		return stringBuilder.toString();
 	}
 	
 	private void postActionButtonMouseClicked(final ActionEvent e) {
