@@ -1331,7 +1331,7 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 		}, configProperties.getInteger("client.main.interval.timeline"),
 				configProperties.getInteger("client.main.interval.timeline"));
-		jobWorkerThread = new JobWorkerThread("jobworker", jobQueue);
+		jobWorkerThread = new JobWorkerThread(jobQueue);
 		jobWorkerThread.start();
 	}
 }
