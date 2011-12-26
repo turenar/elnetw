@@ -600,7 +600,7 @@ import twitter4j.internal.http.HTMLEntity;
 			Status status = (Status) statusData.tag;
 			status = status.isRetweet() ? status.getRetweetedStatus() : status;
 			String originalStatusText;
-			StringBuffer stringBuilder  = new StringBuffer(status.getText());
+			StringBuffer stringBuilder = new StringBuffer(status.getText());
 			HTMLEntity.escape(stringBuilder);
 			/*int nlposition;
 			int offset = 0;
@@ -609,6 +609,7 @@ import twitter4j.internal.http.HTMLEntity;
 				offset = nlposition;
 			}*/
 			originalStatusText = stringBuilder.toString();
+			stringBuilder.setLength(0);
 			
 			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
 			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
@@ -653,12 +654,11 @@ import twitter4j.internal.http.HTMLEntity;
 				String url;
 				if (entity instanceof HashtagEntity) {
 					HashtagEntity hashtagEntity = (HashtagEntity) entity;
-					String hashtag = hashtagEntity.getText();
-					// #<hashtag> -> must overwrite pos-1
-					start = originalStatusText.indexOf(hashtag, offset) - 1;
-					end = start + 1 + hashtag.length();
+					String hashtag = "#" + hashtagEntity.getText();
+					start = originalStatusText.indexOf(hashtag, offset);
+					end = start + hashtag.length();
 					replaceText = null;
-					url = "http://command/hashtag!" + hashtag;
+					url = "http://command/hashtag!" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
 					url = urlEntity.getURL().toExternalForm();
@@ -667,12 +667,11 @@ import twitter4j.internal.http.HTMLEntity;
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					String screenName = mentionEntity.getScreenName();
-					// #<screenName> -> must overwrite pos-1
-					start = originalStatusText.indexOf(screenName, offset) - 1;
-					end = start + 1 + screenName.length();
+					String screenName = "@" + mentionEntity.getScreenName();
+					start = originalStatusText.indexOf(screenName, offset);
+					end = start + screenName.length();
 					replaceText = null;
-					url = "http://command/userinfo!" + screenName;
+					url = "http://command/userinfo!" + mentionEntity.getScreenName();
 				} else {
 					throw new AssertionError();
 				}
