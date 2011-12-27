@@ -48,6 +48,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
 			Status status = (Status) statusData.tag;
+			if (status.isRetweet()) {
+				status = status.getRetweetedStatus();
+			}
 			menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
 				.getUser().getName()));
 			menuItem.setEnabled(true);
