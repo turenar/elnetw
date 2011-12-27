@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -24,7 +25,7 @@ import twitter4j.UserStreamListener;
  */
 public class ClientStreamListener implements UserStreamListener {
 	
-	private final ClientFrameApi twitterClientFrame;
+	private final ClientFrameApi frameApi;
 	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
@@ -35,7 +36,7 @@ public class ClientStreamListener implements UserStreamListener {
 	 * @param twitterClientFrame API
 	 */
 	public ClientStreamListener(ClientFrameApi twitterClientFrame) {
-		this.twitterClientFrame = twitterClientFrame;
+		frameApi = twitterClientFrame;
 	}
 	
 	@Override
@@ -53,7 +54,7 @@ public class ClientStreamListener implements UserStreamListener {
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 		logger.trace("onDeletionNotice: {}", statusDeletionNotice);
 		
-		StatusData statusData = twitterClientFrame.getStatus(statusDeletionNotice.getStatusId());
+		StatusData statusData = frameApi.getStatus(statusDeletionNotice.getStatusId());
 		if (statusData != null) {
 			if (statusData.tag instanceof Status == false) {
 				return;
@@ -66,8 +67,8 @@ public class ClientStreamListener implements UserStreamListener {
 			deletionStatusData.sentBy = new JLabel(((JLabel) (statusData.sentBy)).getText()); // TODO
 			deletionStatusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
 			deletionStatusData.data = new JLabel("DELETED: " + status.getText());
-			twitterClientFrame.addStatus(deletionStatusData, twitterClientFrame.getInfoSurviveTime() * 2);
-			twitterClientFrame.removeStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
+			frameApi.addStatus(deletionStatusData, frameApi.getInfoSurviveTime() * 2);
+			frameApi.removeStatus(statusData, frameApi.getInfoSurviveTime() * 2);
 		}
 	}
 	
@@ -81,31 +82,38 @@ public class ClientStreamListener implements UserStreamListener {
 		statusData.image = new JLabel();
 		statusData.sentBy = new JLabel(directMessage.getSenderScreenName());
 		statusData.sentBy.setName("!dm." + directMessage.getSenderScreenName());
-		statusData.data = new JLabel("DMを受信しました: " + directMessage.getText());
-		twitterClientFrame.addStatus(statusData);
+		String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
+		statusData.data = new JLabel(message);
+		frameApi.addStatus(statusData);
+		User sender = directMessage.getSender();
+		Utility.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()), message,
+				frameApi.getImageCacher().getImageFile(sender));
 	}
 	
 	@Override
 	public void onException(Exception ex) {
-		twitterClientFrame.handleException(ex);
+		frameApi.handleException(ex);
 	}
 	
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		logger.trace("onFavorite: {}", favoritedStatus);
 		
-		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
+		if (target.getId() == frameApi.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(favoritedStatus, new Date());
 			statusData.backgroundColor = Color.GRAY;
 			statusData.foregroundColor = Color.YELLOW;
 			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 			statusData.sentBy = new JLabel(source.getScreenName());
 			statusData.sentBy.setName("!fav." + source.getScreenName());
-			statusData.data = new JLabel("ふぁぼられました: " + favoritedStatus.getText());
-			twitterClientFrame.addStatus(statusData);
+			String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
+			statusData.data = new JLabel(message);
+			frameApi.addStatus(statusData);
+			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+					frameApi.getImageCacher().getImageFile(source));
 		}
-		if (source.getId() == twitterClientFrame.getLoginUser().getId()) {
-			StatusData statusData = twitterClientFrame.getStatus(favoritedStatus.getId());
+		if (source.getId() == frameApi.getLoginUser().getId()) {
+			StatusData statusData = frameApi.getStatus(favoritedStatus.getId());
 			if (statusData.tag instanceof TwitterStatus) {
 				TwitterStatus status = (TwitterStatus) statusData.tag;
 				status.setFavorited(true);
@@ -116,15 +124,18 @@ public class ClientStreamListener implements UserStreamListener {
 	@Override
 	public void onFollow(User source, User followedUser) {
 		logger.trace("onFollow: {} {}", source, followedUser);
-		if (followedUser.getId() == twitterClientFrame.getLoginUser().getId()) {
+		if (followedUser.getId() == frameApi.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(null, new Date());
 			statusData.backgroundColor = Color.GRAY;
 			statusData.foregroundColor = Color.YELLOW;
 			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 			statusData.sentBy = new JLabel(source.getScreenName());
 			statusData.sentBy.setName("!follow." + source.getScreenName());
-			statusData.data = new JLabel("フォローされました" + followedUser.getScreenName());
-			twitterClientFrame.addStatus(statusData);
+			String message = "フォローされました: " + followedUser.getScreenName();
+			statusData.data = new JLabel(message);
+			frameApi.addStatus(statusData);
+			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+					frameApi.getImageCacher().getImageFile(source));
 		}
 	}
 	
@@ -146,7 +157,7 @@ public class ClientStreamListener implements UserStreamListener {
 			logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(), retweetedStatus
 				.getRetweetedStatus().getId(), retweetedStatus));
 		}
-		twitterClientFrame.addStatus(retweetedStatus);
+		frameApi.addStatus(retweetedStatus);
 	}
 	
 	@Override
@@ -156,7 +167,7 @@ public class ClientStreamListener implements UserStreamListener {
 	
 	@Override
 	public void onStatus(Status originalStatus) {
-		twitterClientFrame.addStatus(originalStatus);
+		frameApi.addStatus(originalStatus);
 	}
 	
 	@Override
@@ -170,7 +181,7 @@ public class ClientStreamListener implements UserStreamListener {
 		statusData.sentBy.setName("!stream.overlimit");
 		statusData.data =
 				new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
-		twitterClientFrame.addStatus(statusData, twitterClientFrame.getInfoSurviveTime() * 2);
+		frameApi.addStatus(statusData, frameApi.getInfoSurviveTime() * 2);
 	}
 	
 	@Override
@@ -184,18 +195,21 @@ public class ClientStreamListener implements UserStreamListener {
 			logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}",
 					Utility.toArray(source, target, unfavoritedStatus));
 		}
-		if (target.getId() == twitterClientFrame.getLoginUser().getId()) {
+		if (target.getId() == frameApi.getLoginUser().getId()) {
 			StatusData statusData = new StatusData(unfavoritedStatus, new Date());
 			statusData.backgroundColor = Color.GRAY;
 			statusData.foregroundColor = Color.LIGHT_GRAY;
 			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 			statusData.sentBy = new JLabel(source.getScreenName());
 			statusData.sentBy.setName("!unfav." + source.getScreenName());
-			statusData.data = new JLabel("ふぁぼやめられました: " + unfavoritedStatus.getText());
-			twitterClientFrame.addStatus(statusData);
+			String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
+			statusData.data = new JLabel(message);
+			frameApi.addStatus(statusData);
+			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+					frameApi.getImageCacher().getImageFile(source));
 		}
-		if (source.getId() == twitterClientFrame.getLoginUser().getId()) {
-			StatusData statusData = twitterClientFrame.getStatus(unfavoritedStatus.getId());
+		if (source.getId() == frameApi.getLoginUser().getId()) {
+			StatusData statusData = frameApi.getStatus(unfavoritedStatus.getId());
 			if (statusData.tag instanceof TwitterStatus) {
 				TwitterStatus status = (TwitterStatus) statusData.tag;
 				status.setFavorited(false);

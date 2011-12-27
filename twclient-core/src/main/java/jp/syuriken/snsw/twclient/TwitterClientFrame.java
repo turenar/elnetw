@@ -139,7 +139,6 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 		
@@ -771,6 +770,11 @@ import twitter4j.internal.http.HTMLEntity;
 			
 		}
 		return editPanel;
+	}
+	
+	@Override
+	public ImageCacher getImageCacher() {
+		return imageCacher;
 	}
 	
 	/**

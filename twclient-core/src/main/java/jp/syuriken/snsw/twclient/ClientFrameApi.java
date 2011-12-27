@@ -62,6 +62,13 @@ public interface ClientFrameApi {
 	public abstract void focusPostBox();
 	
 	/**
+	 * 画像をキャッシュするオブジェクトを取得する。
+	 * 
+	 * @return ImageCacherインスタンス
+	 */
+	public abstract ImageCacher getImageCacher();
+	
+	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
 	 * 若干重要度が高いときは *2 とかしてみよう！
 	 * 
