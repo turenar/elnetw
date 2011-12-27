@@ -6,8 +6,8 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
-
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -28,7 +28,7 @@ public class RetweetActionHandler implements ActionHandler {
 	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			final Status retweetStatus = (Status) statusData.tag;
-			api.addJob(new Runnable() {
+			api.addJob(new ParallelRunnable() {
 				
 				@Override
 				public void run() {

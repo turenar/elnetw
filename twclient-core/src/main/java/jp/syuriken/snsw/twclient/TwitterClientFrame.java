@@ -1181,7 +1181,7 @@ import twitter4j.internal.http.HTMLEntity;
 			postActionButton.setEnabled(false);
 			postDataTextArea.setEnabled(false);
 			
-			addJob(Priority.HIGH, new Runnable() {
+			addJob(Priority.HIGH, new ParallelRunnable() {
 				
 				@Override
 				public void run() {
@@ -1206,8 +1206,7 @@ import twitter4j.internal.http.HTMLEntity;
 								}
 							});
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							// do nothing
 						} catch (InvocationTargetException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();

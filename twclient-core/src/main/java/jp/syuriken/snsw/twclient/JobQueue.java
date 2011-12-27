@@ -12,14 +12,6 @@ import java.util.Random;
 public class JobQueue {
 	
 	/**
-	 * TODO snsoftware
-	 * 
-	 * @author $Author$
-	 */
-	public interface PararellRunnable extends Runnable {
-	}
-	
-	/**
 	 * 優先度を格納する
 	 * 
 	 * @author $Author$

@@ -14,8 +14,8 @@ import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
-
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -54,7 +54,7 @@ public class RemoveTweetActionHandler implements ActionHandler {
 					public void propertyChange(PropertyChangeEvent evt) {
 						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 							if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-								api.addJob(new Runnable() {
+								api.addJob(new ParallelRunnable() {
 									
 									@Override
 									public void run() {

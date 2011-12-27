@@ -18,7 +18,7 @@ import twitter4j.User;
 public interface ClientFrameApi {
 	
 	/**
-	 * ジョブを追加する
+	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
 	 * 
 	 * @param priority 優先度
 	 * @param job ジョブ
@@ -26,7 +26,7 @@ public interface ClientFrameApi {
 	public abstract void addJob(Priority priority, Runnable job);
 	
 	/**
-	 * ジョブを追加する
+	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
 	 * 
 	 * @param job ジョブ
 	 */

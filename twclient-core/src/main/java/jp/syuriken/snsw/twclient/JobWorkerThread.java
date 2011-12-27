@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jp.syuriken.snsw.twclient.JobQueue.PararellRunnable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +75,7 @@ import org.slf4j.LoggerFactory;
 		
 		while (isCanceled == false) {
 			int queueSize = jobQueue.size();
+			// no synchronizing
 			if (isParent && queueSize > childThreads.size() * JOB_PER_A_WORKER) {
 				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder);
 				synchronized (childThreads) {
@@ -87,13 +86,13 @@ import org.slf4j.LoggerFactory;
 				return; // if i am child thread and what have to do is nothing, exit thread.
 			}
 			Runnable job = null;
-			if (isParent) {
+			if (isParent) { // check serializeQueue
 				job = serializeQueue.poll();
 			}
-			if (job == null) {
+			if (job == null) { // check jobQueue
 				job = jobQueue.getJob();
 			}
-			if (job == null) {
+			if (job == null) { // no job: wait
 				synchronized (threadHolder) {
 					try {
 						if (isCanceled == false) {
@@ -104,19 +103,20 @@ import org.slf4j.LoggerFactory;
 					}
 				}
 			} else {
-				if (isParent || job instanceof PararellRunnable) {
+				// 親であるか、子でParallelRunnableの場合に起動
+				if (isParent || job instanceof ParallelRunnable) {
 					try {
 						job.run();
 					} catch (RuntimeException e) {
 						logger.warn("uncaught runtime-exception", e);
 					}
-				} else {
+				} else { // ただのRunnableは親で動かす
 					serializeQueue.add(job);
 				}
 			}
 		}
 		Runnable job;
-		if (isParent) {
+		if (isParent) { // 親の場合は終了時にできるだけジョブを消費する。
 			while ((job = jobQueue.getJob()) != null) {
 				try {
 					job.run();
@@ -127,7 +127,6 @@ import org.slf4j.LoggerFactory;
 		} else {
 			parent.onExitChildThread(this);
 		}
-		System.out.println(getName() + " exiting");
-		// threadNumber.getAndDecrement();
+		logger.debug(getName() + " exiting");
 	}
 }

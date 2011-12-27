@@ -6,9 +6,9 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.TwitterStatus;
-
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -28,7 +28,7 @@ public class FavoriteActionHandler implements ActionHandler {
 	@Override
 	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
-			api.addJob(new Runnable() {
+			api.addJob(new ParallelRunnable() {
 				
 				@Override
 				public void run() {

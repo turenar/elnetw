@@ -7,9 +7,10 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.Utility;
-import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import twitter4j.Status;
 
 /**
@@ -28,7 +29,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	@Override
 	public void handleAction(String actionName, final StatusData statusData, ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
-			api.addJob(Priority.MEDIUM, new Runnable() {
+			api.addJob(Priority.MEDIUM, new ParallelRunnable() {
 				
 				@Override
 				public void run() {
