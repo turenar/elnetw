@@ -16,8 +16,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -35,6 +35,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -84,7 +85,7 @@ import twitter4j.internal.http.HTMLEntity;
  * @author $Author$
  */
 @SuppressWarnings("serial")
-/*package*/class TwitterClientFrame extends javax.swing.JFrame implements ClientFrameApi {
+/*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
 	
 	/**
 	 * MenuItemのActionListenerの実装。
@@ -285,7 +286,7 @@ import twitter4j.internal.http.HTMLEntity;
 	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
 	
 	/** UIフォント: TODO from config */
-	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 13);
+	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
 	
 	/** フォントの高さ */
 	protected int fontHeight;
@@ -331,6 +332,8 @@ import twitter4j.internal.http.HTMLEntity;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private ImageCacher imageCacher;
+	
+	private JLabel tweetViewUserIconLabel;
 	
 	
 	/** 
@@ -701,6 +704,12 @@ import twitter4j.internal.http.HTMLEntity;
 			getTweetViewSourceLabel().setText(statusData.sentBy.getName());
 			getTweetViewDateLabel().setText(dateFormat.format(statusData.date));
 		}
+		// if (statusData.image instanceof JLabel) {
+		Icon icon = ((JLabel) statusData.image).getIcon();
+		getTweetViewUserIconLabel().setIcon(icon);
+		// } else {
+		// 	getTweetViewUserIconLabel().setIcon(null);
+		// }
 	}
 	
 	@Override
@@ -764,9 +773,9 @@ import twitter4j.internal.http.HTMLEntity;
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
 							layout.createSequentialGroup()
-								.addComponent(getPostPanel(), 32, 64, GroupLayout.PREFERRED_SIZE)
+								.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(getTweetViewPanel(), 64, Short.MAX_VALUE, GroupLayout.PREFERRED_SIZE)));
+								.addComponent(getTweetViewPanel(), 64, 64, Short.MAX_VALUE)));
 			
 		}
 		return editPanel;
@@ -948,6 +957,12 @@ import twitter4j.internal.http.HTMLEntity;
 			jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 			jSplitPane1.setTopComponent(getEditPanel());
 			jSplitPane1.setRightComponent(getPostListScrollPane());
+			String pos = configProperties.getProperty("ui.main.split.pos");
+			if (pos != null) {
+				jSplitPane1.setDividerLocation(Integer.parseInt(pos));
+			} else {
+				jSplitPane1.setDividerLocation(-1);
+			}
 		}
 		return jSplitPane1;
 	}
@@ -1014,18 +1029,37 @@ import twitter4j.internal.http.HTMLEntity;
 			GroupLayout layout = new GroupLayout(tweetViewPanel);
 			tweetViewPanel.setLayout(layout);
 			layout.setVerticalGroup( //
-				layout.createSequentialGroup() //
+				layout
+					.createSequentialGroup()
 					.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
 						.addComponent(getTweetViewSourceLabel(), Alignment.LEADING) //
-						.addComponent(getTweetViewDateLabel(), Alignment.LEADING)) //
-					.addContainerGap().addComponent(getTweetViewScrollPane()));
+						.addComponent(getTweetViewDateLabel(), Alignment.LEADING))
+					.addContainerGap()
+					.addGroup(
+							layout
+								.createParallelGroup(Alignment.LEADING)
+								.addGroup(
+										layout.createSequentialGroup()
+										
+										.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
+												GroupLayout.PREFERRED_SIZE))
+								.addComponent(getTweetViewScrollPane(), Alignment.LEADING)));
 			layout.setHorizontalGroup( //
-				layout.createParallelGroup(Alignment.LEADING) //
+				layout
+					.createParallelGroup(Alignment.LEADING)
 					.addGroup(layout.createSequentialGroup() // 
 						.addComponent(getTweetViewSourceLabel()) //
 						.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
-						.addComponent(getTweetViewDateLabel())) //
-					.addComponent(getTweetViewScrollPane()));
+						.addComponent(getTweetViewDateLabel()))
+					.addGroup(
+							layout
+								.createSequentialGroup()
+								.addGap(4, 4, 4)
+								.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
+										GroupLayout.PREFERRED_SIZE)
+								.addGap(4, 4, 4)
+								.addComponent(getTweetViewScrollPane(), GroupLayout.PREFERRED_SIZE, 200,
+										Short.MAX_VALUE)));
 		}
 		return tweetViewPanel;
 	}
@@ -1047,6 +1081,15 @@ import twitter4j.internal.http.HTMLEntity;
 			tweetViewSourceLabel.setToolTipText("from 暗黒の調和師");
 		}
 		return tweetViewSourceLabel;
+	}
+	
+	private JLabel getTweetViewUserIconLabel() {
+		if (tweetViewUserIconLabel == null) {
+			tweetViewUserIconLabel = new JLabel();
+			tweetViewUserIconLabel.setHorizontalAlignment(JLabel.CENTER);
+			tweetViewUserIconLabel.setVerticalAlignment(JLabel.CENTER);
+		}
+		return tweetViewUserIconLabel;
 	}
 	
 	@Override
@@ -1128,17 +1171,8 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	private void initComponents() {
 		setTitle(APPLICATION_NAME);
-		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-		
-		addWindowListener(new WindowAdapter() {
-			
-			@Override
-			public void windowClosed(WindowEvent e) {
-				synchronized (mainThreadHolder) {
-					mainThreadHolder.notifyAll();
-				}
-			}
-		});
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		addWindowListener(this);
 		
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
@@ -1152,7 +1186,11 @@ import twitter4j.internal.http.HTMLEntity;
 		pack();
 		
 		setJMenuBar(getClientMenuBar());
-		setSize(500, 500);
+		Dimension size = configProperties.getDimension("ui.main.size");
+		if (size != null) {
+			setSize(size);
+			// setSize(500, 500);
+		}
 	}
 	
 	/**
@@ -1336,5 +1374,46 @@ import twitter4j.internal.http.HTMLEntity;
 				configProperties.getInteger("client.main.interval.timeline"));
 		jobWorkerThread = new JobWorkerThread(jobQueue);
 		jobWorkerThread.start();
+	}
+	
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// do nothing
+	}
+	
+	@Override
+	public void windowClosed(WindowEvent e) {
+		logger.debug("closing main-window...");
+		configProperties.setDimension("ui.main.size", getSize());
+		configProperties.setInteger("ui.main.split.pos", getSplitPane1().getDividerLocation());
+		configProperties.store();
+		synchronized (mainThreadHolder) {
+			mainThreadHolder.notifyAll();
+		}
+	}
+	
+	@Override
+	public void windowClosing(WindowEvent e) {
+		// do nothing
+	}
+	
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// do nothing
+	}
+	
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// do nothing
+	}
+	
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// do nothing
+	}
+	
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// do nothing
 	}
 }

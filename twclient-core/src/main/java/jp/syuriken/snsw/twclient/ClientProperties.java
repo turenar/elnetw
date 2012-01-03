@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
@@ -119,6 +120,27 @@ public class ClientProperties extends Properties {
 	}
 	
 	/**
+	 * keyに関連付けられた値を利用して、Dimensionを取得する。
+	 * 
+	 * 書式：int,int
+	 * @param key キー 
+	 * @return keyに関連付けられたDimension
+	 * @throws IllegalArgumentException 正しくない設定値
+	 */
+	public Dimension getDimension(String key) throws IllegalArgumentException {
+		String value = getProperty(key);
+		if (value == null) {
+			return null;
+		}
+		String[] rgba = value.split(",");
+		if (rgba.length == 2) {
+			return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
+		} else {
+			throw new IllegalArgumentException(MessageFormat.format("{0}はDimensionに使用できる値ではありません: {1}", key, value));
+		}
+	}
+	
+	/**
 	 * keyに関連付けられた値を利用して、intを取得する。
 	 * 
 	 * 書式：int
@@ -179,6 +201,16 @@ public class ClientProperties extends Properties {
 				key,
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
 						color.getAlpha()));
+	}
+	
+	/**
+	 * keyにDimensionを関連付ける。
+	 * 
+	 * @param key キー
+	 * @param dimension Dimensionインスタンス。null不可。
+	 */
+	public void setDimension(String key, Dimension dimension) {
+		setProperty(key, MessageFormat.format("{0},{1}", dimension.width, dimension.height));
 	}
 	
 	/**
