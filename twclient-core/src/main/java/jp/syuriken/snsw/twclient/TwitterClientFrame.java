@@ -611,6 +611,7 @@ import twitter4j.internal.http.HTMLEntity;
 				offset = nlposition;
 			}*/
 			originalStatusText = stringBuilder.toString();
+			String originalStatusTextLowerCased = originalStatusText.toLowerCase();
 			stringBuilder.setLength(0);
 			
 			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
@@ -669,8 +670,8 @@ import twitter4j.internal.http.HTMLEntity;
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					String screenName = "@" + mentionEntity.getScreenName();
-					start = originalStatusText.indexOf(screenName, offset);
+					String screenName = "@" + mentionEntity.getScreenName().toLowerCase();
+					start = originalStatusTextLowerCased.indexOf(screenName, offset);
 					end = start + screenName.length();
 					replaceText = null;
 					url = "http://command/userinfo!" + mentionEntity.getScreenName();
