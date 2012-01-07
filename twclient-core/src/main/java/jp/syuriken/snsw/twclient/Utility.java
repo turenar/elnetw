@@ -225,6 +225,19 @@ public class Utility {
 		}
 	}
 	
+	public static boolean equalString(String a, String b) {
+		if (a == b) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.hashCode() == b.hashCode()) {
+			return true;
+		}
+		return a.equals(b);
+	}
+	
 	/**
 	 * OS種別を取得する
 	 * 

@@ -67,16 +67,17 @@ public class TwitterClientMain {
 	 * @return 認証済み Configuration インスタンス
 	 */
 	private Configuration initTwitterConfiguration() {
-		String consumerKey = configProperties.getProperty("oauth.consumer");
-		String consumerSecret = configProperties.getProperty("oauth.consumer_secret");
+		String consumerKey = configProperties.getProperty("twitter.oauth.consumer");
+		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
 		String accessTokenString;
 		String accessTokenSecret;
 		
-		if (configProperties.containsKey("oauth.access_token.list")) {
-			String account = configProperties.getProperty("oauth.access_token.list").split(" ")[0];
-			accessTokenString = configProperties.getProperty("oauth.access_token." + account);
+		if (configProperties.containsKey("twitter.oauth.access_token.list")) {
+			String account = configProperties.getProperty("twitter.oauth.access_token.list").split(" ")[0];
+			accessTokenString = configProperties.getProperty("twitter.oauth.access_token." + account);
 			accessTokenSecret =
-					configProperties.getProperty(MessageFormat.format("oauth.access_token.{0}_secret", account));
+					configProperties
+						.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", account));
 		} else {
 			Twitter twitter = new TwitterFactory().getInstance();
 			twitter.setOAuthConsumer(consumerKey, consumerSecret);

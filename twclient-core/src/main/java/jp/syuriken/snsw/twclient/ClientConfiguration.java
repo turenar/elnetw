@@ -94,10 +94,10 @@ public class ClientConfiguration {
 	
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
-	 * @param isShutdownPahse シャットダウンフェーズかどうか。
+	 * @param isShutdownPhase シャットダウンフェーズかどうか。
 	 */
-	public void setShutdownPhase(boolean isShutdownPahse) {
-		this.isShutdownPhase = isShutdownPahse;
+	public void setShutdownPhase(boolean isShutdownPhase) {
+		this.isShutdownPhase = isShutdownPhase;
 	}
 	
 	/**
