@@ -576,21 +576,23 @@ import twitter4j.internal.http.HTMLEntity;
 			statusData.foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+			boolean mentioned = false;
 			for (UserMentionEntity userMentionEntity : userMentionEntities) {
-				boolean mentioned = false;
 				if (configProperties.getBoolean("client.main.match.id_strict_match")) {
 					if (userMentionEntity.getId() == getLoginUser().getId()) {
 						mentioned = true;
+						break;
 					}
 				} else {
 					if (userMentionEntity.getScreenName().startsWith(loginUser.getScreenName())) {
 						mentioned = true;
+						break;
 					}
 				}
-				if (mentioned) {
-					statusData.foregroundColor = Color.RED;
-					Utility.sendNotify(user.getName(), originalStatus.getText(), imageCacher.getImageFile(user));
-				}
+			}
+			if (mentioned) {
+				statusData.foregroundColor = Color.RED;
+				Utility.sendNotify(user.getName(), originalStatus.getText(), imageCacher.getImageFile(user));
 			}
 		}
 		
