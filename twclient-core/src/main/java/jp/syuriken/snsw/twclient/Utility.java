@@ -1,10 +1,13 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.HeadlessException;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
@@ -17,6 +20,24 @@ import org.slf4j.LoggerFactory;
  * @author $Author$
  */
 public class Utility {
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @author $Author$
+	 */
+	public static class IllegalKeyStringException extends RuntimeException {
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param key
+		 */
+		public IllegalKeyStringException(String key) {
+			super("正しくないキー: " + key);
+		}
+		
+	}
 	
 	/**
 	 * notify-sendを使用して通知を送信するクラス。
@@ -86,6 +107,42 @@ public class Utility {
 	
 	/** 通知を送信するクラス */
 	public static volatile NotifySender notifySender = null;
+	
+	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
+	
+	static {
+		keyMap.put(KeyEvent.VK_ENTER, "%return");
+		keyMap.put(KeyEvent.VK_UP, "%up");
+		keyMap.put(KeyEvent.VK_DOWN, "%down");
+		keyMap.put(KeyEvent.VK_RIGHT, "%right");
+		keyMap.put(KeyEvent.VK_LEFT, "%left");
+		keyMap.put(KeyEvent.VK_CIRCUMFLEX, "%caret");
+		keyMap.put(KeyEvent.VK_PLUS, "%plus");
+		keyMap.put(KeyEvent.VK_AT, "%at");
+		keyMap.put(KeyEvent.VK_TAB, "%tab");
+		keyMap.put(KeyEvent.VK_EQUALS, "%equal");
+		keyMap.put(KeyEvent.VK_COLON, "%colon");
+		keyMap.put(KeyEvent.VK_F1, "%F1");
+		keyMap.put(KeyEvent.VK_F2, "%F2");
+		keyMap.put(KeyEvent.VK_F3, "%F3");
+		keyMap.put(KeyEvent.VK_F4, "%F4");
+		keyMap.put(KeyEvent.VK_F5, "%F5");
+		keyMap.put(KeyEvent.VK_F6, "%F6");
+		keyMap.put(KeyEvent.VK_F7, "%F7");
+		keyMap.put(KeyEvent.VK_F8, "%F8");
+		keyMap.put(KeyEvent.VK_F9, "%F9");
+		keyMap.put(KeyEvent.VK_F10, "%F10");
+		keyMap.put(KeyEvent.VK_F11, "%F11");
+		keyMap.put(KeyEvent.VK_F12, "%F12");
+	}
+	
+	/*package*/static final ThreadLocal<StringBuilder> stringBuilderThreadLocal = new ThreadLocal<StringBuilder>() {
+		
+		@Override
+		protected StringBuilder initialValue() {
+			return new StringBuilder();
+		}
+	};
 	
 	
 	/**
@@ -253,7 +310,29 @@ public class Utility {
 		return obj;
 	}
 	
-	private Utility() {
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static String toKeyString(int code, int modifiers) throws IllegalKeyStringException {
+		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
+		stringBuilder.setLength(0);
+		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
+			stringBuilder.append('^');
+		}
+		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
+			stringBuilder.append('@');
+		}
+		if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
+			stringBuilder.append('+');
+		}
+		String key = keyMap.get(code);
+		stringBuilder.append(key != null ? key : (char) code);
+		return stringBuilder.toString();
 	}
 	
+	private Utility() {
+	}
 }

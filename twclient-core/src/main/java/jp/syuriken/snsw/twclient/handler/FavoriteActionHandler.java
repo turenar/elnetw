@@ -26,16 +26,24 @@ public class FavoriteActionHandler implements ActionHandler {
 	}
 	
 	@Override
-	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
+	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			api.addJob(new ParallelRunnable() {
 				
 				@Override
 				public void run() {
-					boolean unfavorite = false;
 					Status status = (Status) statusData.tag;
-					if (status instanceof TwitterStatus && ((TwitterStatus) status).isFavorited()) {
+					boolean unfavorite;
+					if (actionName.equals("fav!force=f")) {
+						unfavorite = false;
+					} else if (actionName.equals("fav!force=u")) {
 						unfavorite = true;
+					} else {
+						if (status instanceof TwitterStatus && ((TwitterStatus) status).isFavorited()) {
+							unfavorite = true;
+						} else {
+							unfavorite = false;
+						}
 					}
 					try {
 						if (unfavorite) {

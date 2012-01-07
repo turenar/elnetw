@@ -9,15 +9,16 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -25,8 +26,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -47,6 +52,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -54,11 +60,15 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.Utility.IllegalKeyStringException;
+import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
+import jp.syuriken.snsw.twclient.handler.PostActionHandler;
 import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.ReplyActionHandler;
 import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 
@@ -85,7 +95,7 @@ import twitter4j.internal.http.HTMLEntity;
  * @author $Author$
  */
 @SuppressWarnings("serial")
-/*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
+/*package*/final class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
 	
 	/**
 	 * MenuItemのActionListenerの実装。
@@ -104,6 +114,49 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 			handleAction(e.getActionCommand(), statusData);
 		}
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @author $Author$
+	 */
+	public class CoreFrameActionHandler implements ActionHandler {
+		
+		@Override
+		public JMenuItem createJMenuItem(String commandName) {
+			return null;
+		}
+		
+		@Override
+		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
+			if (actionName.equals("core!focusinput")) {
+				getPostBox().requestFocusInWindow();
+			} else if (actionName.equals("core!focuslist")) {
+				if (selectingPost == null) {
+					sortedPostListPanel.requestFocusFirstComponent();
+				} else {
+					selectingPost.requestFocusInWindow();
+				}
+			} else if (actionName.equals("core!postnext")) {
+				if (selectingPost == null) {
+					sortedPostListPanel.requestFocusFirstComponent();
+				} else {
+					sortedPostListPanel.requestFocusNextOf(selectingPost);
+				}
+			} else if (actionName.equals("core!postprev")) {
+				if (selectingPost == null) {
+					sortedPostListPanel.requestFocusFirstComponent();
+				} else {
+					sortedPostListPanel.requestFocusPreviousOf(selectingPost);
+				}
+			}
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+		}
+		
 	}
 	
 	/**
@@ -156,7 +209,36 @@ import twitter4j.internal.http.HTMLEntity;
 		
 	}
 	
-	private class PostListMouseListner extends MouseAdapter {
+	private class PostListListener implements MouseListener, FocusListener, KeyListener {
+		
+		@Override
+		public void focusGained(FocusEvent e) {
+			focusGainOfLinePanel(e);
+		}
+		
+		@Override
+		public void focusLost(FocusEvent e) {
+		}
+		
+		@Override
+		public void keyPressed(KeyEvent e) {
+		}
+		
+		@Override
+		public void keyReleased(KeyEvent e) {
+			synchronized (shortcutKeyMap) {
+				String keyString = Utility.toKeyString(e.getKeyCode(), e.getModifiersEx());
+				String actionCommandName = shortcutKeyMap.get(keyString);
+				if (actionCommandName != null) {
+					handleAction(actionCommandName, selectingPost.getStatusData());
+					e.consume();
+				}
+			}
+		}
+		
+		@Override
+		public void keyTyped(KeyEvent e) {
+		}
 		
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -166,11 +248,24 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 			if (e.getClickCount() == 2) {
 				StatusPanel panel = ((StatusPanel) e.getComponent());
-				long uniqId = panel.getStatusData().id;
-				StatusData statusData = statusMap.get(uniqId);
-				actionHandlerTable.get("reply").handleAction("reply", statusData, TwitterClientFrame.this);
+				handleAction("reply", panel.getStatusData());
 			}
-			
+		}
+		
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+		
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
 		}
 	}
 	
@@ -248,7 +343,7 @@ import twitter4j.internal.http.HTMLEntity;
 	/** アプリケーション名 */
 	private static final String APPLICATION_NAME = "Astarotte";
 	
-	private StatusPanel selectingPost;
+	protected StatusPanel selectingPost;
 	
 	private Hashtable<String, ActionHandler> actionHandlerTable;
 	
@@ -262,7 +357,7 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private JPanel postPanel;
 	
-	private JScrollPane postDataTextAreaScrollPane;
+	private JScrollPane postBoxScrollPane;
 	
 	private JScrollPane postListScrollPane;
 	
@@ -270,7 +365,7 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private JButton postActionButton;
 	
-	private JTextArea postDataTextArea;
+	private JTextArea postBox;
 	
 	private TwitterStream stream;
 	
@@ -291,7 +386,7 @@ import twitter4j.internal.http.HTMLEntity;
 	/** フォントの高さ */
 	protected int fontHeight;
 	
-	private MouseListener postListMouseListnerSingleton = new PostListMouseListner();
+	private PostListListener postListListenerSingleton = new PostListListener();
 	
 	private static final Dimension ICON_SIZE = new Dimension(64, 18);
 	
@@ -335,6 +430,10 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private JLabel tweetViewUserIconLabel;
 	
+	private Map<String, String> shortcutKeyMap = new HashMap<String, String>();
+	
+	private static Locale locale = Locale.getDefault();
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -350,7 +449,9 @@ import twitter4j.internal.http.HTMLEntity;
 		configProperties = configuration.getConfigProperties();
 		timer = new Timer("timer");
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
-		initActionHandlerTable(actionHandlerTable);
+		initActionHandlerTable();
+		initShortcutKey();
+		
 		listItems = new TreeMap<String, ArrayList<StatusData>>();
 		statusMap = new TreeMap<Long, StatusData>();
 		twitter = new TwitterFactory(configuration.getTwitterConfiguration()).getInstance();
@@ -382,6 +483,11 @@ import twitter4j.internal.http.HTMLEntity;
 		logger.info("initialized");
 	}
 	
+	@Override
+	public ActionHandler addActionHandler(String name, ActionHandler handler) {
+		return actionHandlerTable.put(name, handler);
+	}
+	
 	/**
 	 * ジョブを追加する
 	 * 
@@ -401,6 +507,11 @@ import twitter4j.internal.http.HTMLEntity;
 	@Override
 	public void addJob(Runnable job) {
 		jobQueue.addJob(job);
+	}
+	
+	@Override
+	public void addShortcutKey(String keyString, String actionName) {
+		shortcutKeyMap.put(keyString, actionName);
 	}
 	
 	/**
@@ -528,16 +639,11 @@ import twitter4j.internal.http.HTMLEntity;
 		linePanel.setMinimumSize(minSize);
 		linePanel.setPreferredSize(minSize);
 		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
-		linePanel.addMouseListener(postListMouseListnerSingleton);
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
-		linePanel.addFocusListener(new FocusAdapter() {
-			
-			@Override
-			public void focusGained(FocusEvent e) {
-				focusGainOfLinePanel(e);
-			}
-		});
+		linePanel.addMouseListener(postListListenerSingleton);
+		linePanel.addFocusListener(postListListenerSingleton);
+		linePanel.addKeyListener(postListListenerSingleton);
 		statusData.image.setForeground(statusData.foregroundColor);
 		statusData.sentBy.setForeground(statusData.foregroundColor);
 		statusData.data.setForeground(statusData.foregroundColor);
@@ -582,6 +688,51 @@ import twitter4j.internal.http.HTMLEntity;
 		jobWorkerThread.cleanUp();
 	}
 	
+	@Override
+	public void doPost() {
+		if (postBox.getText().isEmpty() == false) {
+			if (selectingPost != null) {
+				selectingPost.requestFocusInWindow();
+			}
+			postActionButton.setEnabled(false);
+			postBox.setEnabled(false);
+			
+			addJob(Priority.HIGH, new ParallelRunnable() {
+				
+				@Override
+				public void run() {
+					try {
+						StatusUpdate statusUpdate = new StatusUpdate(postBox.getText());
+						if (inReplyToStatus != null) {
+							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
+						}
+						twitter.updateStatus(statusUpdate);
+						postBox.setText("");
+						inReplyToStatus = null;
+					} catch (TwitterException e) {
+						handleException(e);
+					} finally {
+						try {
+							EventQueue.invokeAndWait(new Runnable() {
+								
+								@Override
+								public void run() {
+									postActionButton.setEnabled(true);
+									postBox.setEnabled(true);
+								}
+							});
+						} catch (InterruptedException e) {
+							// do nothing
+						} catch (InvocationTargetException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+		}
+	}
+	
 	/**
 	 * ポストパネルがフォーカスを得た時のハンドラ
 	 * 
@@ -611,7 +762,7 @@ import twitter4j.internal.http.HTMLEntity;
 				offset = nlposition;
 			}*/
 			originalStatusText = stringBuilder.toString();
-			String originalStatusTextLowerCased = originalStatusText.toLowerCase();
+			String originalStatusTextLowerCased = originalStatusText.toLowerCase(locale);
 			stringBuilder.setLength(0);
 			
 			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
@@ -670,7 +821,7 @@ import twitter4j.internal.http.HTMLEntity;
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					String screenName = "@" + mentionEntity.getScreenName().toLowerCase();
+					String screenName = "@" + mentionEntity.getScreenName().toLowerCase(locale);
 					start = originalStatusTextLowerCased.indexOf(screenName, offset);
 					end = start + screenName.length();
 					replaceText = null;
@@ -715,7 +866,7 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	@Override
 	public void focusPostBox() {
-		getPostDataTextArea().requestFocusInWindow();
+		getPostBox().requestFocusInWindow();
 	}
 	
 	/**
@@ -847,7 +998,7 @@ import twitter4j.internal.http.HTMLEntity;
 				
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					postActionButtonMouseClicked(e);
+					doPost();
 				}
 			});
 			
@@ -855,38 +1006,65 @@ import twitter4j.internal.http.HTMLEntity;
 		return postActionButton;
 	}
 	
-	private JTextArea getPostDataTextArea() {
-		if (postDataTextArea == null) {
-			postDataTextArea = new javax.swing.JTextArea();
-			postDataTextArea.setColumns(20);
-			postDataTextArea.setRows(3);
-			postDataTextArea.setFont(UI_FONT);
-			postDataTextArea.addKeyListener(new KeyAdapter() {
+	private JTextArea getPostBox() {
+		if (postBox == null) {
+			postBox = new javax.swing.JTextArea();
+			postBox.setColumns(20);
+			postBox.setRows(3);
+			postBox.setFont(UI_FONT);
+			postBox.addKeyListener(new KeyAdapter() {
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
 					if (e.isControlDown()) {
-						if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-							getPostActionButton().doClick();
+						switch (e.getKeyCode()) {
+							case KeyEvent.VK_ENTER:
+								getPostActionButton().doClick();
+								break;
+							case KeyEvent.VK_L:
+								handleAction("core!focuslist", null);
+							default:
+								break;
 						}
 					}
 				}
 			});
 		}
-		return postDataTextArea;
+		return postBox;
 	}
 	
-	private JScrollPane getPostDataTextAreaScrollPane() {
-		if (postDataTextAreaScrollPane == null) {
-			postDataTextAreaScrollPane = new JScrollPane();
-			postDataTextAreaScrollPane.setViewportView(getPostDataTextArea());
+	private JScrollPane getPostBoxScrollPane() {
+		if (postBoxScrollPane == null) {
+			postBoxScrollPane = new JScrollPane();
+			postBoxScrollPane.setViewportView(getPostBox());
 		}
-		return postDataTextAreaScrollPane;
+		return postBoxScrollPane;
 	}
 	
 	private JScrollPane getPostListScrollPane() {
 		if (postListScrollPane == null) {
-			postListScrollPane = new javax.swing.JScrollPane();
+			postListScrollPane = new JScrollPane() {
+				
+				@Override
+				protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+					logger.trace("jscrollpane#processKeyBinding: keyStroke={}, Event={}, condition={}, pressed={}",
+							Utility.toArray(ks, e, condition, pressed));
+					switch (ks.getKeyCode()) {
+						case KeyEvent.VK_DOWN:
+						case KeyEvent.VK_UP:
+						case KeyEvent.VK_RIGHT:
+						case KeyEvent.VK_LEFT:
+							return false;
+						default:
+							return super.processKeyBinding(ks, e, condition, pressed);
+					}
+				}
+				
+				@Override
+				protected void processKeyEvent(KeyEvent e) {
+					logger.trace("jscrollpane#processKeyEvent: {}", e);
+				}
+			};
 			postListScrollPane.getViewport().setView(getSortedPostListPanel());
 			postListScrollPane.getVerticalScrollBar().setUnitIncrement(
 					configProperties.getInteger("client.main.list.scroll"));
@@ -904,11 +1082,8 @@ import twitter4j.internal.http.HTMLEntity;
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
 							GroupLayout.Alignment.TRAILING, //
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(getPostDataTextAreaScrollPane(), GroupLayout.DEFAULT_SIZE, 475,
-										Short.MAX_VALUE)
+							layout.createSequentialGroup().addContainerGap()
+								.addComponent(getPostBoxScrollPane(), GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED) //
 								.addComponent(getPostActionButton()).addGap(18, 18, 18)));
 			layout.setVerticalGroup( //
@@ -916,11 +1091,10 @@ import twitter4j.internal.http.HTMLEntity;
 						layout
 							.createSequentialGroup()
 							.addGroup(
-									layout
-										.createParallelGroup(GroupLayout.Alignment.TRAILING)
+									layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 										.addComponent(getPostActionButton())
-										.addComponent(getPostDataTextAreaScrollPane(), 32, 64,
-												GroupLayout.PREFERRED_SIZE)).addContainerGap(6, Short.MAX_VALUE)));
+										.addComponent(getPostBoxScrollPane(), 32, 64, GroupLayout.PREFERRED_SIZE))
+							.addContainerGap(6, Short.MAX_VALUE)));
 			
 		}
 		return postPanel;
@@ -933,7 +1107,7 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	@Override
 	public String getPostText() {
-		return getPostDataTextArea().getText();
+		return getPostBox().getText();
 	}
 	
 	/**
@@ -1145,25 +1319,27 @@ import twitter4j.internal.http.HTMLEntity;
 		information.sentBy.setName("!sys.ex.TwitterException");
 		String errorMessage = e.getErrorMessage();
 		information.data =
-				new JLabel(errorMessage == null ? e.getLocalizedMessage() : errorMessage + ": "
-						+ postDataTextArea.getText());
+				new JLabel(errorMessage == null ? e.getLocalizedMessage() : errorMessage + ": " + postBox.getText());
 		addStatus(information);
 	}
 	
 	/**
 	 * アクションハンドラーテーブルを初期化する。
-	 * @param table アクションハンドラーテーブル
 	 */
-	private void initActionHandlerTable(Hashtable<String, ActionHandler> table) {
-		table.put("reply", new ReplyActionHandler());
-		table.put("qt", new QuoteTweetActionHandler());
-		table.put("rt", new RetweetActionHandler());
-		table.put("fav", new FavoriteActionHandler());
-		table.put("remove", new RemoveTweetActionHandler());
-		table.put("userinfo", new UserInfoViewActionHandler());
-		table.put("url", new UrlActionHandler());
-		table.put("menu_quit", new MenuQuitActionHandler());
-		table.put("menu_propeditor", new MenuPropertyEditorActionHandler());
+	private void initActionHandlerTable() {
+		addActionHandler("reply", new ReplyActionHandler());
+		addActionHandler("qt", new QuoteTweetActionHandler());
+		addActionHandler("unofficial_rt", new UnofficialRetweetActionHandler());
+		addActionHandler("rt", new RetweetActionHandler());
+		addActionHandler("fav", new FavoriteActionHandler());
+		addActionHandler("remove", new RemoveTweetActionHandler());
+		addActionHandler("userinfo", new UserInfoViewActionHandler());
+		addActionHandler("url", new UrlActionHandler());
+		addActionHandler("clear", new ClearPostBoxActionHandler());
+		addActionHandler("post", new PostActionHandler());
+		addActionHandler("core", new CoreFrameActionHandler());
+		addActionHandler("menu_quit", new MenuQuitActionHandler());
+		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 	}
 	
 	/**
@@ -1195,6 +1371,28 @@ import twitter4j.internal.http.HTMLEntity;
 	}
 	
 	/**
+	 * TODO snsoftware
+	 * 
+	 */
+	protected void initShortcutKey() {
+		Properties shortcutkeyProperties = new Properties();
+		try {
+			shortcutkeyProperties.load(getClass().getClassLoader().getResourceAsStream(
+					"jp/syuriken/snsw/twclient/ui_main_shortcutkey.properties"));
+		} catch (IOException e) {
+			logger.error("ショートカットキーの読み込みに失敗", e);
+		}
+		for (Object obj : shortcutkeyProperties.keySet()) {
+			String key = (String) obj;
+			try {
+				addShortcutKey(key, shortcutkeyProperties.getProperty(key));
+			} catch (IllegalKeyStringException e) {
+				logger.warn("ショートカットキーの読み込み中にエラー", e);
+			}
+		}
+	}
+	
+	/**
 	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
 	 * 
 	 * @param text テキスト
@@ -1214,50 +1412,6 @@ import twitter4j.internal.http.HTMLEntity;
 			offset = position;
 		}
 		return stringBuilder.toString();
-	}
-	
-	private void postActionButtonMouseClicked(final ActionEvent e) {
-		if (postDataTextArea.getText().isEmpty() == false) {
-			if (selectingPost != null) {
-				selectingPost.requestFocusInWindow();
-			}
-			postActionButton.setEnabled(false);
-			postDataTextArea.setEnabled(false);
-			
-			addJob(Priority.HIGH, new ParallelRunnable() {
-				
-				@Override
-				public void run() {
-					try {
-						StatusUpdate statusUpdate = new StatusUpdate(postDataTextArea.getText());
-						if (inReplyToStatus != null) {
-							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
-						}
-						twitter.updateStatus(statusUpdate);
-						postDataTextArea.setText("");
-						inReplyToStatus = null;
-					} catch (TwitterException e) {
-						handleException(e);
-					} finally {
-						try {
-							EventQueue.invokeAndWait(new Runnable() {
-								
-								@Override
-								public void run() {
-									postActionButton.setEnabled(true);
-									postDataTextArea.setEnabled(true);
-								}
-							});
-						} catch (InterruptedException e) {
-							// do nothing
-						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			});
-		}
 	}
 	
 	/**
@@ -1313,7 +1467,7 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	@Override
 	public String setPostText(String text, int selectionStart, int selectionEnd) {
-		JTextArea textArea = getPostDataTextArea();
+		JTextArea textArea = getPostBox();
 		String oldText = textArea.getText();
 		textArea.setText(text);
 		textArea.select(selectionStart, selectionEnd);

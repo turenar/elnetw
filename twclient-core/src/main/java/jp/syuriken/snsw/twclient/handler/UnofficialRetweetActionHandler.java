@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient.handler;
 
-import java.awt.event.KeyEvent;
-
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
@@ -10,38 +8,23 @@ import jp.syuriken.snsw.twclient.StatusData;
 import twitter4j.Status;
 
 /**
- * リプライするためのアクションハンドラ
+ * TODO snsoftware
  * 
  * @author $Author$
  */
-public class ReplyActionHandler implements ActionHandler {
+public class UnofficialRetweetActionHandler implements ActionHandler {
 	
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
-		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
-		return replyMenuItem;
+		return new JMenuItem("非公式RT");
 	}
 	
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
-			String text;
-			String screenName = status.getUser().getScreenName();
-			if (actionName.equals("reply!append")) {
-				String postText = api.getPostText();
-				if (postText.trim().isEmpty()) {
-					text = String.format(".@%s ", screenName);
-				} else {
-					text = String.format("%s@%s ", postText, screenName);
-				}
-				api.setPostText(text);
-			} else {
-				text = String.format("@%s ", screenName);
-				api.focusPostBox();
-			}
-			api.setPostText(text, text.length(), text.length());
-			api.setInReplyToStatus(status);
+			api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+			api.focusPostBox();
 		}
 	}
 	
@@ -53,4 +36,5 @@ public class ReplyActionHandler implements ActionHandler {
 			menuItem.setEnabled(false);
 		}
 	}
+	
 }

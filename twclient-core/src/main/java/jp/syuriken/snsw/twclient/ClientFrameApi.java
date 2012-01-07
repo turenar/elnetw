@@ -17,6 +17,8 @@ import twitter4j.User;
  */
 public interface ClientFrameApi {
 	
+	public abstract ActionHandler addActionHandler(String name, ActionHandler handler);
+	
 	/**
 	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
 	 * 
@@ -31,6 +33,8 @@ public interface ClientFrameApi {
 	 * @param job ジョブ
 	 */
 	public abstract void addJob(Runnable job);
+	
+	public abstract void addShortcutKey(String keyCode, String actionName);
 	
 	/**
 	 * リストにステータスを追加する。
@@ -55,6 +59,8 @@ public interface ClientFrameApi {
 	 * @return 追加された (もしくはそのあと削除された) ステータス。
 	 */
 	public abstract JPanel addStatus(StatusData statusData, int deletionDelay);
+	
+	public abstract void doPost();
 	
 	/**
 	 * ポストボックスをフォーカスさせる

@@ -210,7 +210,7 @@ public class ClientProperties extends Properties {
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
 	public void setDimension(String key, Dimension dimension) {
-		setProperty(key, MessageFormat.format("{0},{1}", dimension.width, dimension.height));
+		setProperty(key, dimension.width + "," + dimension.height);
 	}
 	
 	/**
