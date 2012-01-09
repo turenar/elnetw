@@ -40,8 +40,6 @@ public class JobQueue {
 	
 	private Random random;
 	
-	private Thread jobWorkerThread = null;
-	
 	private Object jobWorkerThreadHolder = null;
 	
 	
@@ -83,7 +81,7 @@ public class JobQueue {
 					}
 				}
 			}
-			if (jobWorkerThread != null) {
+			if (jobWorkerThreadHolder != null) {
 				synchronized (jobWorkerThreadHolder) {
 					jobWorkerThreadHolder.notifyAll();
 				}
@@ -160,11 +158,9 @@ public class JobQueue {
 	 * ジョブが追加されると同時にJobQueue内部で {@link Runnable#run()}が呼び出されるようになります。
 	 * </p>
 	 * @param threadHolder スレッドホルダ
-	 * @param jobWorkerThread ジョブワーカースレッド
 	 */
-	public void setJobWorkerThread(Object threadHolder, Thread jobWorkerThread) {
+	public void setJobWorkerThread(Object threadHolder) {
 		jobWorkerThreadHolder = threadHolder;
-		this.jobWorkerThread = jobWorkerThread;
 	}
 	
 	/**

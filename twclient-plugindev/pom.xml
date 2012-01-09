@@ -93,8 +93,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
-			<artifactId>java-utils</artifactId>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

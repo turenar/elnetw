@@ -20,6 +20,10 @@ public class ClientConfiguration {
 	
 	private ClientProperties configDefaultProperties;
 	
+	private boolean isShutdownPhase;
+	
+	private ClientFrameApi frameApi;
+	
 	
 	/**
 	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
@@ -67,6 +71,15 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * FrameApiを取得する
+	 * 
+	 * @return フレームAPI
+	 */
+	public ClientFrameApi getFrameApi() {
+		return frameApi;
+	}
+	
+	/**
 	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。
 	 * 
 	 * @return Twitter Configuration
@@ -107,6 +120,15 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * シャットダウンフェーズかどうかを取得する。
+	 * 
+	 * @return シャットダウンフェーズかどうか
+	 */
+	public boolean isShutdownPhase() {
+		return isShutdownPhase;
+	}
+	
+	/**
 	 * デフォルト設定を格納するプロパティを設定する。
 	 * 
 	 * @param configDefaultProperties the configDefaultProperties to set
@@ -122,6 +144,23 @@ public class ClientConfiguration {
 	 */
 	public void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
+	}
+	
+	/**
+	 * FrameApiを設定する
+	 * 
+	 * @param frameApi フレームAPI
+	 */
+	/*package*/void setFrameApi(ClientFrameApi frameApi) {
+		this.frameApi = frameApi;
+	}
+	
+	/**
+	 * シャットダウンフェーズであるかどうかを設定する
+	 * @param isShutdownPahse シャットダウンフェーズかどうか。
+	 */
+	public void setShutdownPhase(boolean isShutdownPahse) {
+		isShutdownPhase = isShutdownPahse;
 	}
 	
 	/**

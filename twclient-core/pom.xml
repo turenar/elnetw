@@ -144,11 +144,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
-			<artifactId>java-utils</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
 			<version>2.2.5</version>
@@ -157,6 +152,20 @@
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-stream</artifactId>
 			<version>2.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+			<version>4.10</version>
 		</dependency>
 	</dependencies>
 

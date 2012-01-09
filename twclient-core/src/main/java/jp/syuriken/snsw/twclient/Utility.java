@@ -1,11 +1,18 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.HeadlessException;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ユーティリティクラス。
@@ -13,6 +20,69 @@ import javax.swing.JOptionPane;
  * @author $Author$
  */
 public class Utility {
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @author $Author$
+	 */
+	public static class IllegalKeyStringException extends RuntimeException {
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param key
+		 */
+		public IllegalKeyStringException(String key) {
+			super("正しくないキー: " + key);
+		}
+		
+	}
+	
+	/**
+	 * notify-sendを使用して通知を送信するクラス。
+	 * 
+	 * @author $Author$
+	 */
+	protected static class LibnotifySender implements NotifySender {
+		
+		@Override
+		public void sendNotify(String summary, String text, File imageFile) throws IOException {
+			if (imageFile == null) {
+				Runtime.getRuntime().exec(new String[] {
+					"notify-send",
+					summary,
+					text
+				});
+			} else {
+				Runtime.getRuntime().exec(new String[] {
+					"notify-send",
+					"-i",
+					imageFile.getPath(),
+					summary,
+					text
+				});
+			}
+		}
+		
+	}
+	
+	/**
+	 * 通知が送信されるクラスのインターフェース
+	 * 
+	 * @author $Author$
+	 */
+	protected interface NotifySender {
+		
+		/**
+		 * 通知を送信する
+		 * @param summary 概要
+		 * @param text テキスト
+		 * @param imageFile アイコン。ない場合はnull
+		 * @throws IOException 外部プロセスの起動に失敗
+		 */
+		public void sendNotify(String summary, String text, File imageFile) throws IOException;
+	}
 	
 	/**
 	 * OSの種別を判断する。
@@ -29,9 +99,50 @@ public class Utility {
 	}
 	
 	
+	private static Logger logger = LoggerFactory.getLogger(Utility.class);
+	
 	private static String detectedBrowser = null;
 	
-	private static OSType ostype;
+	private static volatile OSType ostype;
+	
+	/** 通知を送信するクラス */
+	public static volatile NotifySender notifySender = null;
+	
+	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
+	
+	static {
+		keyMap.put(KeyEvent.VK_ENTER, "%return");
+		keyMap.put(KeyEvent.VK_UP, "%up");
+		keyMap.put(KeyEvent.VK_DOWN, "%down");
+		keyMap.put(KeyEvent.VK_RIGHT, "%right");
+		keyMap.put(KeyEvent.VK_LEFT, "%left");
+		keyMap.put(KeyEvent.VK_CIRCUMFLEX, "%caret");
+		keyMap.put(KeyEvent.VK_PLUS, "%plus");
+		keyMap.put(KeyEvent.VK_AT, "%at");
+		keyMap.put(KeyEvent.VK_TAB, "%tab");
+		keyMap.put(KeyEvent.VK_EQUALS, "%equal");
+		keyMap.put(KeyEvent.VK_COLON, "%colon");
+		keyMap.put(KeyEvent.VK_F1, "%F1");
+		keyMap.put(KeyEvent.VK_F2, "%F2");
+		keyMap.put(KeyEvent.VK_F3, "%F3");
+		keyMap.put(KeyEvent.VK_F4, "%F4");
+		keyMap.put(KeyEvent.VK_F5, "%F5");
+		keyMap.put(KeyEvent.VK_F6, "%F6");
+		keyMap.put(KeyEvent.VK_F7, "%F7");
+		keyMap.put(KeyEvent.VK_F8, "%F8");
+		keyMap.put(KeyEvent.VK_F9, "%F9");
+		keyMap.put(KeyEvent.VK_F10, "%F10");
+		keyMap.put(KeyEvent.VK_F11, "%F11");
+		keyMap.put(KeyEvent.VK_F12, "%F12");
+	}
+	
+	/*package*/static final ThreadLocal<StringBuilder> stringBuilderThreadLocal = new ThreadLocal<StringBuilder>() {
+		
+		@Override
+		protected StringBuilder initialValue() {
+			return new StringBuilder();
+		}
+	};
 	
 	
 	/**
@@ -79,6 +190,28 @@ public class Utility {
 	}
 	
 	/**
+	 * 通知を送信するクラスを設定する
+	 */
+	private static void detectNotifier() {
+		if (notifySender == null) {
+			if (getOstype() == OSType.OTHER) {
+				try {
+					if (Runtime.getRuntime().exec(new String[] {
+						"which",
+						"notify-send"
+					}).waitFor() == 0) {
+						notifySender = new LibnotifySender();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace(); //TODO
+				} catch (IOException e) {
+					e.printStackTrace(); //TODO
+				}
+			}
+		}
+	}
+	
+	/**
 	 * OSを確定する
 	 */
 	private static void detectOS() {
@@ -98,21 +231,10 @@ public class Utility {
 	 * @return OSの種類
 	 */
 	public static OSType getOstype() {
-		return ostype;
-	}
-	
-	/**
-	 * 16進ダンプする
-	 * 
-	 * @param str 文字列
-	 * @return 16進ダンプ
-	 */
-	protected static String hexDump(String str) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 0; i < str.length(); i++) {
-			stringBuilder.append(jp.syuriken.snsw.utils.Utility.fixStringLength(Integer.toHexString(str.charAt(i)), 4));
+		if (ostype == null) {
+			detectOS();
 		}
-		return stringBuilder.toString();
+		return ostype;
 	}
 	
 	/**
@@ -164,26 +286,53 @@ public class Utility {
 	 * @param text テキスト
 	 */
 	public static void sendNotify(String summary, String text) {
-		try {
-			if (Runtime.getRuntime().exec(new String[] {
-				"which",
-				"notify-send"
-			}).waitFor() == 0) {
-				Runtime.getRuntime().exec(new String[] {
-					"notify-send",
-					summary,
-					text
-				});
+		sendNotify(summary, text, null);
+	}
+	
+	/**
+	 * 通知を送信する
+	 * @param summary 概要
+	 * @param text テキスト
+	 * @param imageFile アイコン
+	 */
+	public static void sendNotify(String summary, String text, File imageFile) {
+		detectNotifier();
+		if (notifySender != null) {
+			try {
+				notifySender.sendNotify(summary, text, imageFile);
+			} catch (IOException e) {
+				logger.warn("通知を送信できませんでした", e);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace(); //TODO
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+	}
+	
+	/*package*/static Object[] toArray(Object... obj) {
+		return obj;
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static String toKeyString(int code, int modifiers) throws IllegalKeyStringException {
+		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
+		stringBuilder.setLength(0);
+		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
+			stringBuilder.append('^');
+		}
+		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
+			stringBuilder.append('@');
+		}
+		if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
+			stringBuilder.append('+');
+		}
+		String key = keyMap.get(code);
+		stringBuilder.append(key != null ? key : (char) code);
+		return stringBuilder.toString();
 	}
 	
 	private Utility() {
 	}
-	
 }

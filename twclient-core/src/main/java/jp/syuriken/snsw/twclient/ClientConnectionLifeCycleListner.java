@@ -14,7 +14,7 @@ import twitter4j.ConnectionLifeCycleListener;
  */
 public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleListener {
 	
-	private final TwitterClientFrame twitterClientFrame;
+	private final ClientFrameApi twitterClientFrame;
 	
 	
 	/**
@@ -22,7 +22,7 @@ public class ClientConnectionLifeCycleListner implements ConnectionLifeCycleList
 	 * 
 	 * @param twitterClientFrame API呼び出し
 	 */
-	public ClientConnectionLifeCycleListner(TwitterClientFrame twitterClientFrame) {
+	public ClientConnectionLifeCycleListner(ClientFrameApi twitterClientFrame) {
 		this.twitterClientFrame = twitterClientFrame;
 	}
 	

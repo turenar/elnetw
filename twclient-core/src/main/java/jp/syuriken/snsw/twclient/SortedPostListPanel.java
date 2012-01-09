@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -259,6 +260,75 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * 最初のコンポーネントをフォーカスする
+	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
+	 */
+	public synchronized boolean requestFocusFirstComponent() {
+		StatusPanel panel = firstBranch.getFirst();
+		if (panel == null) {
+			panel = (StatusPanel) branches.getFirst().getComponent(0);
+		}
+		if (panel == null) {
+			return false;
+		}
+		return panel.requestFocusInWindow();
+	}
+	
+	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
+		int comparison = compareDate(panel, firstBranch.getLast());
+		
+		if (comparison > 0) { // firstBranchのlastではない
+			int indexOf = firstBranch.indexOf(panel);
+			if (indexOf < 0) {
+				return false; // not found
+			}
+			return firstBranch.get(indexOf + 1).requestFocusInWindow();
+		} else {
+			for (Iterator<JPanel> iterator = branches.listIterator(); iterator.hasNext();) {
+				JPanel next = iterator.next();
+				if (compareDate(panel, (StatusPanel) next.getComponent(0)) > 0) {
+					return next.getComponent(0).requestFocusInWindow();
+				}
+				if (compareDate(panel, (StatusPanel) next.getComponent(next.getComponentCount() - 1)) <= 0) {
+					continue;
+				}
+				Component[] components = next.getComponents();
+				for (int i = 0; i < components.length; i++) {
+					StatusPanel statusPanel = (StatusPanel) components[i];
+					if (compareDate(panel, statusPanel) == 0) {
+						return components[i + 1].requestFocusInWindow();
+					}
+				}
+			}
+			return false;
+		}
+	}
+	
+	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
+		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasNext();) {
+			JPanel previous = iterator.previous();
+			if (compareDate(panel, (StatusPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
+				return previous.getComponent(previous.getComponentCount() - 1).requestFocusInWindow();
+			}
+			if (compareDate(panel, (StatusPanel) previous.getComponent(0)) >= 0) {
+				continue;
+			}
+			Component[] components = previous.getComponents();
+			for (int i = components.length - 1; i >= 0; i--) {
+				StatusPanel statusPanel = (StatusPanel) components[i];
+				if (compareDate(panel, statusPanel) == 0) {
+					return components[i - 1].requestFocusInWindow();
+				}
+			}
+		}
+		int indexOf = firstBranch.indexOf(panel);
+		if (indexOf <= 0) { // not found OR first
+			return false;
+		}
+		return firstBranch.get(indexOf - 1).requestFocusInWindow();
 	}
 	
 	/**
