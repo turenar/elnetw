@@ -156,7 +156,7 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		
 		public ConfigData() {
-			configProperties.addPropertyChangedListner(this);
+			configProperties.addPropertyChangedListener(this);
 		}
 		
 		@Override
@@ -184,7 +184,7 @@ import twitter4j.internal.http.HTMLEntity;
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * "core!*" アクションハンドラ
 	 * 
 	 * @author $Author$
 	 */
@@ -540,7 +540,7 @@ import twitter4j.internal.http.HTMLEntity;
 					logger.debug(sortedPostListPanel.toString());
 				}
 			}
-		}, 1000, 10000);
+		}, 10000, 10000);
 		imageCacher = new ImageCacher(configuration);
 		
 		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration()).getInstance();
@@ -784,14 +784,19 @@ import twitter4j.internal.http.HTMLEntity;
 						handleException(e);
 					} finally {
 						try {
-							EventQueue.invokeAndWait(new Runnable() {
+							Runnable enabler = new Runnable() {
 								
 								@Override
 								public void run() {
 									postActionButton.setEnabled(true);
 									postBox.setEnabled(true);
 								}
-							});
+							};
+							if (EventQueue.isDispatchThread()) {
+								EventQueue.invokeAndWait(enabler);
+							} else {
+								enabler.run();
+							}
 						} catch (InterruptedException e) {
 							// do nothing
 						} catch (InvocationTargetException e) {
