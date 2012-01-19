@@ -394,7 +394,7 @@ import twitter4j.internal.http.HTMLEntity;
 						int size = postListAddQueue.size();
 						sortedPostListPanel.add(postListAddQueue);
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight + 4) {
+						if (viewPosition.y < fontHeight + PADDING_OF_POSTLIST) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
@@ -406,6 +406,9 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 	}
 	
+	
+	/** TODO Megumi */
+	private static final int PADDING_OF_POSTLIST = 1;
 	
 	/** アプリケーション名 */
 	private static final String APPLICATION_NAME = "Astarotte";
@@ -455,7 +458,7 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private PostListListener postListListenerSingleton = new PostListListener();
 	
-	private static final Dimension ICON_SIZE = new Dimension(64, 18);
+	private final Dimension ICON_SIZE;
 	
 	private JPopupMenu tweetPopupMenu;
 	
@@ -549,7 +552,10 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		fontMetrics = getFontMetrics(DEFAULT_FONT);
 		int str12width = fontMetrics.stringWidth("0123456789abc");
+		fontHeight = fontMetrics.getHeight();
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
+		ICON_SIZE = new Dimension(64, fontHeight);
+		logger.debug("{}", linePanelSizeOfSentBy);
 		logger.info("initialized");
 	}
 	
@@ -705,19 +711,21 @@ import twitter4j.internal.http.HTMLEntity;
 		} */
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
-		Dimension minSize =
-				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight + 4);
-		linePanel.setMinimumSize(minSize);
-		linePanel.setPreferredSize(minSize);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
+		statusData.image.setForeground(statusData.foregroundColor);
+		statusData.sentBy.setForeground(statusData.foregroundColor);
+		statusData.data.setForeground(statusData.foregroundColor);
+		Dimension size =
+				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
+						+ PADDING_OF_POSTLIST);
+		linePanel.setMinimumSize(size);
+		linePanel.setPreferredSize(size);
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
 		linePanel.addFocusListener(postListListenerSingleton);
 		linePanel.addKeyListener(postListListenerSingleton);
-		statusData.image.setForeground(statusData.foregroundColor);
-		statusData.sentBy.setForeground(statusData.foregroundColor);
-		statusData.data.setForeground(statusData.foregroundColor);
+		linePanel.setAlignmentY(JPanel.CENTER_ALIGNMENT);
 		
 		statusData.addStatusPanel(linePanel);
 		synchronized (listItems) {
@@ -818,10 +826,11 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	private void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
-			selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
+			selectingPost.setBackground(selectingPost.getStatusData().backgroundColor);
 		}
-		e.getComponent().setBackground(configData.colorOfFocusList);
 		selectingPost = (StatusPanel) e.getComponent();
+		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
+				configData.colorOfFocusList));
 		
 		JEditorPane editor = getTweetViewEditorPane();
 		StatusData statusData = selectingPost.getStatusData();
@@ -1431,8 +1440,6 @@ import twitter4j.internal.http.HTMLEntity;
 				getSplitPane1(), GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(getSplitPane1(),
 				GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE));
-		
-		fontHeight = getSortedPostListPanel().getFontMetrics(DEFAULT_FONT).getHeight();
 		
 		pack();
 		

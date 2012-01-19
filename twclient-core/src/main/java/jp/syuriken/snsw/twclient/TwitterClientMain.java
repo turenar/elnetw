@@ -166,9 +166,9 @@ public class TwitterClientMain {
 					JOptionPane.ERROR_MESSAGE);
 			throw new RuntimeException(e1);
 		}
-		configProperties.setProperty("oauth.access_token.list", userId);
-		configProperties.setProperty("oauth.access_token." + userId, accessToken.getToken());
-		configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
+		configProperties.setProperty("twitter.oauth.access_token.list", userId);
+		configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
+		configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
 				accessToken.getTokenSecret());
 		try {
 			configProperties.store(new BufferedWriter(new FileWriter(CONFIG_FILE_NAME)), "Auto generated.");

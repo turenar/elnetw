@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Color;
 import java.awt.HeadlessException;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -144,6 +145,21 @@ public class Utility {
 		}
 	};
 	
+	
+	/**
+	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
+	 * @param target 下の色
+	 * @param source 上の色
+	 * @return 合成済みColor
+	 */
+	public static Color blendColor(Color target, Color source) {
+		double alpha = (double) source.getAlpha() / 255;
+		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
+		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
+		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
+		Color color = new Color(newr, newg, newb, target.getAlpha());
+		return color;
+	}
 	
 	/**
 	 * インストールされているブラウザを確定する。
