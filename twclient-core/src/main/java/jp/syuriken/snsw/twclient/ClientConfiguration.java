@@ -1,5 +1,13 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.TrayIcon;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.conf.Configuration;
 
 /**
@@ -8,6 +16,10 @@ import twitter4j.conf.Configuration;
  * @author $Author$
  */
 public class ClientConfiguration {
+	
+	private TrayIcon trayIcon;
+	
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private ClientProperties configProperties;
 	
@@ -19,6 +31,19 @@ public class ClientConfiguration {
 	
 	private ClientFrameApi frameApi;
 	
+	private final Utility utility = new Utility(this);
+	
+	
+	/*package*/ClientConfiguration() {
+		try {
+			trayIcon =
+					new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
+							"jp/syuriken/snsw/twclient/img/icon16.png")), TwitterClientFrame.APPLICATION_NAME);
+		} catch (IOException e) {
+			logger.error("icon ファイルの読み込みに失敗。");
+			trayIcon = null;
+		}
+	}
 	
 	/**
 	 * デフォルト設定を格納するプロパティを取得する。
@@ -48,12 +73,30 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * TrayIconをかえす。nullの場合有り。
+	 * 
+	 * @return トレイアイコン
+	 */
+	public TrayIcon getTrayIcon() {
+		return trayIcon;
+	}
+	
+	/**
 	 * Twitterの設定を取得する。
 	 * 
 	 * @return {@link Configuration}インスタンス
 	 */
 	public Configuration getTwitterConfiguration() {
 		return twitterConfiguration;
+	}
+	
+	/**
+	 * Utilityインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public Utility getUtility() {
+		return utility;
 	}
 	
 	/**

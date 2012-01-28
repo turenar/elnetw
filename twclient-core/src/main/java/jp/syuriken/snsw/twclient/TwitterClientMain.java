@@ -156,7 +156,7 @@ public class TwitterClientMain {
 	private AccessToken tryGetOAuthAccessToken(Twitter twitter) {
 		AccessToken accessToken = null;
 		
-		accessToken = new OAuthFrame().show(twitter);
+		accessToken = new OAuthFrame(configuration).show(twitter);
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {

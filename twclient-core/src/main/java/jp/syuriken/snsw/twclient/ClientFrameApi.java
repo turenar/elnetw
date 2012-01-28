@@ -68,6 +68,13 @@ public interface ClientFrameApi {
 	public abstract void focusPostBox();
 	
 	/**
+	 * ClientConfigurationインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public abstract ClientConfiguration getClientConfiguration();
+	
+	/**
 	 * 画像をキャッシュするオブジェクトを取得する。
 	 * 
 	 * @return ImageCacherインスタンス
@@ -117,6 +124,13 @@ public interface ClientFrameApi {
 	 * @return Twitterインスタンス
 	 */
 	public abstract Twitter getTwitter();
+	
+	/**
+	 * Utilityインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public abstract Utility getUtility();
 	
 	/**
 	 * 例外を処理する。
@@ -170,5 +184,4 @@ public interface ClientFrameApi {
 	 * @return 変更する前の内容
 	 */
 	public abstract String setPostText(String text, int selectingStart, int selectingEnd);
-	
 }

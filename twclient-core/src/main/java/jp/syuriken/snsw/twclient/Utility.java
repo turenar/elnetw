@@ -2,6 +2,8 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
 import java.awt.HeadlessException;
+import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -45,7 +47,7 @@ public class Utility {
 	 * 
 	 * @author $Author$
 	 */
-	protected static class LibnotifySender implements NotifySender {
+	public static class LibnotifySender implements NotifySender {
 		
 		@Override
 		public void sendNotify(String summary, String text, File imageFile) throws IOException {
@@ -99,15 +101,68 @@ public class Utility {
 		OTHER;
 	}
 	
+	/**
+	 * TrayIconを使用して通知する。
+	 * 
+	 * @author $Author$
+	 */
+	public static class TrayIconNotifySender implements NotifySender {
+		
+		private TrayIcon trayIcon;
+		
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param configuration
+		 */
+		public TrayIconNotifySender(ClientConfiguration configuration) {
+			trayIcon = configuration.getTrayIcon();
+		}
+		
+		@Override
+		public void sendNotify(String summary, String text, File imageFile) {
+			trayIcon.displayMessage(summary, text, MessageType.INFO);
+		}
+	}
 	
-	private static Logger logger = LoggerFactory.getLogger(Utility.class);
 	
-	private static String detectedBrowser = null;
+	/**
+	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
+	 * @param target 下の色
+	 * @param source 上の色
+	 * @return 合成済みColor
+	 */
+	public static Color blendColor(Color target, Color source) {
+		double alpha = (double) source.getAlpha() / 255;
+		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
+		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
+		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
+		Color color = new Color(newr, newg, newb, target.getAlpha());
+		return color;
+	}
+	
+	/**
+	 * OS種別を取得する
+	 * 
+	 * @return OSの種類
+	 */
+	public static OSType getOstype() {
+		if (ostype == null) {
+			detectOS();
+		}
+		return ostype;
+	}
+	
+	
+	private Logger logger = LoggerFactory.getLogger(Utility.class);
+	
+	private String detectedBrowser = null;
 	
 	private static volatile OSType ostype;
 	
 	/** 通知を送信するクラス */
-	public static volatile NotifySender notifySender = null;
+	public volatile NotifySender notifySender = null;
 	
 	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
 	
@@ -147,18 +202,65 @@ public class Utility {
 	
 	
 	/**
-	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
-	 * @param target 下の色
-	 * @param source 上の色
-	 * @return 合成済みColor
+	 * OSを確定する
 	 */
-	public static Color blendColor(Color target, Color source) {
-		double alpha = (double) source.getAlpha() / 255;
-		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
-		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
-		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
-		Color color = new Color(newr, newg, newb, target.getAlpha());
-		return color;
+	private static void detectOS() {
+		String osName = System.getProperty("os.name");
+		if (osName.startsWith("Mac OS")) {
+			ostype = OSType.MAC;
+		} else if (osName.startsWith("Windows")) {
+			ostype = OSType.WINDOWS;
+		} else {
+			ostype = OSType.OTHER;
+		}
+	}
+	
+	public static boolean equalString(String a, String b) {
+		if (a == b) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.hashCode() == b.hashCode()) {
+			return true;
+		}
+		return a.equals(b);
+	}
+	
+	/*package*/static Object[] toArray(Object... obj) {
+		return obj;
+	}
+	
+	/**
+	 * TODO snsoftware
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static String toKeyString(int code, int modifiers) throws IllegalKeyStringException {
+		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
+		stringBuilder.setLength(0);
+		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
+			stringBuilder.append('^');
+		}
+		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
+			stringBuilder.append('@');
+		}
+		if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
+			stringBuilder.append('+');
+		}
+		String key = keyMap.get(code);
+		stringBuilder.append(key != null ? key : (char) code);
+		return stringBuilder.toString();
+	}
+	
+	
+	private final ClientConfiguration configuration;
+	
+	
+	public Utility(ClientConfiguration configuration) {
+		this.configuration = configuration;
 	}
 	
 	/**
@@ -166,7 +268,7 @@ public class Utility {
 	 * 
 	 * @return ブラウザコマンド
 	 */
-	protected static String detectBrowser() {
+	protected String detectBrowser() {
 		if (detectedBrowser != null) {
 			return detectedBrowser;
 		}
@@ -208,7 +310,7 @@ public class Utility {
 	/**
 	 * 通知を送信するクラスを設定する
 	 */
-	private static void detectNotifier() {
+	private void detectNotifier() {
 		if (notifySender == null) {
 			if (getOstype() == OSType.OTHER) {
 				try {
@@ -224,46 +326,10 @@ public class Utility {
 					e.printStackTrace(); //TODO
 				}
 			}
+			if (notifySender == null) {
+				notifySender = new TrayIconNotifySender(configuration);
+			}
 		}
-	}
-	
-	/**
-	 * OSを確定する
-	 */
-	private static void detectOS() {
-		String osName = System.getProperty("os.name");
-		if (osName.startsWith("Mac OS")) {
-			ostype = OSType.MAC;
-		} else if (osName.startsWith("Windows")) {
-			ostype = OSType.WINDOWS;
-		} else {
-			ostype = OSType.OTHER;
-		}
-	}
-	
-	public static boolean equalString(String a, String b) {
-		if (a == b) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		if (a.hashCode() == b.hashCode()) {
-			return true;
-		}
-		return a.equals(b);
-	}
-	
-	/**
-	 * OS種別を取得する
-	 * 
-	 * @return OSの種類
-	 */
-	public static OSType getOstype() {
-		if (ostype == null) {
-			detectOS();
-		}
-		return ostype;
 	}
 	
 	/**
@@ -279,9 +345,8 @@ public class Utility {
 	 * @throws SecurityException セキュリティ例外
 	 * @throws ClassNotFoundException クラスのinvokeに失敗 (Mac OS)
 	 */
-	public static void openBrowser(String url) throws HeadlessException, IllegalArgumentException,
-			IllegalAccessException, InvocationTargetException, IOException, SecurityException, NoSuchMethodException,
-			ClassNotFoundException {
+	public void openBrowser(String url) throws HeadlessException, IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException, IOException, SecurityException, NoSuchMethodException, ClassNotFoundException {
 		detectOS();
 		switch (ostype) {
 			case WINDOWS:
@@ -314,7 +379,7 @@ public class Utility {
 	 * @param summary 概要
 	 * @param text テキスト
 	 */
-	public static void sendNotify(String summary, String text) {
+	public void sendNotify(String summary, String text) {
 		sendNotify(summary, text, null);
 	}
 	
@@ -324,7 +389,7 @@ public class Utility {
 	 * @param text テキスト
 	 * @param imageFile アイコン
 	 */
-	public static void sendNotify(String summary, String text, File imageFile) {
+	public void sendNotify(String summary, String text, File imageFile) {
 		detectNotifier();
 		if (notifySender != null) {
 			try {
@@ -333,35 +398,5 @@ public class Utility {
 				logger.warn("通知を送信できませんでした", e);
 			}
 		}
-	}
-	
-	/*package*/static Object[] toArray(Object... obj) {
-		return obj;
-	}
-	
-	/**
-	 * TODO snsoftware
-	 * 
-	 * @param key
-	 * @return
-	 */
-	public static String toKeyString(int code, int modifiers) throws IllegalKeyStringException {
-		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
-		stringBuilder.setLength(0);
-		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
-			stringBuilder.append('^');
-		}
-		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
-			stringBuilder.append('@');
-		}
-		if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
-			stringBuilder.append('+');
-		}
-		String key = keyMap.get(code);
-		stringBuilder.append(key != null ? key : (char) code);
-		return stringBuilder.toString();
-	}
-	
-	private Utility() {
 	}
 }

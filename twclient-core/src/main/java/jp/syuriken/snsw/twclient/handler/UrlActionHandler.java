@@ -8,7 +8,6 @@ import javax.swing.JMenuItem;
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.StatusData;
-import jp.syuriken.snsw.twclient.Utility;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
@@ -29,7 +28,7 @@ public class UrlActionHandler implements ActionHandler {
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		String url = actionName.substring(actionName.indexOf('!') + 1);
 		try {
-			Utility.openBrowser(url);
+			api.getUtility().openBrowser(url);
 		} catch (Exception e) {
 			e.printStackTrace(); //TODO
 		}

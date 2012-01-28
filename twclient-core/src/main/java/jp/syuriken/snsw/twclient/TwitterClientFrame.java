@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -7,6 +8,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
+import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -411,7 +413,7 @@ import twitter4j.internal.http.HTMLEntity;
 	private static final int PADDING_OF_POSTLIST = 1;
 	
 	/** アプリケーション名 */
-	private static final String APPLICATION_NAME = "Astarotte";
+	public static final String APPLICATION_NAME = "Astarotte";
 	
 	private StatusPanel selectingPost;
 	
@@ -514,9 +516,10 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	public TwitterClientFrame(ClientConfiguration configuration, Object threadHolder) {
 		logger.info("initializing frame");
-		
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
+		jobWorkerThread = new JobWorkerThread(jobQueue);
+		jobWorkerThread.start();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
 		configData = new ConfigData();
@@ -667,7 +670,8 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 			if (mentioned) {
 				statusData.foregroundColor = Color.RED;
-				Utility.sendNotify(user.getName(), originalStatus.getText(), imageCacher.getImageFile(user));
+				configuration.getUtility().sendNotify(user.getName(), originalStatus.getText(),
+						imageCacher.getImageFile(user));
 			}
 		}
 		
@@ -965,6 +969,11 @@ import twitter4j.internal.http.HTMLEntity;
 		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
 		ActionHandler actionHandler = actionHandlerTable.get(commandName);
 		return actionHandler;
+	}
+	
+	@Override
+	public ClientConfiguration getClientConfiguration() {
+		return configuration;
 	}
 	
 	/**
@@ -1270,7 +1279,7 @@ import twitter4j.internal.http.HTMLEntity;
 							handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
 						} else {
 							try {
-								Utility.openBrowser(url);
+								configuration.getUtility().openBrowser(url);
 							} catch (Exception e1) {
 								e1.printStackTrace(); //TODO
 							}
@@ -1353,6 +1362,11 @@ import twitter4j.internal.http.HTMLEntity;
 	@Override
 	public Twitter getTwitter() {
 		return twitter;
+	}
+	
+	@Override
+	public Utility getUtility() {
+		return configuration.getUtility();
 	}
 	
 	/**
@@ -1606,8 +1620,13 @@ import twitter4j.internal.http.HTMLEntity;
 				});
 			}
 		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
-		jobWorkerThread = new JobWorkerThread(jobQueue);
-		jobWorkerThread.start();
+		if (SystemTray.isSupported()) {
+			try {
+				SystemTray.getSystemTray().add(configuration.getTrayIcon());
+			} catch (AWTException e) {
+				logger.warn("SystemTrayへの追加に失敗", e);
+			}
+		}
 	}
 	
 	@Override
@@ -1621,6 +1640,9 @@ import twitter4j.internal.http.HTMLEntity;
 		configProperties.setDimension("gui.main.size", getSize());
 		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
 		configProperties.store();
+		if (SystemTray.isSupported()) {
+			SystemTray.getSystemTray().remove(configuration.getTrayIcon());
+		}
 		synchronized (mainThreadHolder) {
 			mainThreadHolder.notifyAll();
 		}
