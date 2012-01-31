@@ -199,26 +199,31 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			if (actionName.equals("core!focusinput")) {
+			if (Utility.equalString(actionName, "core!focusinput")) {
 				getPostBox().requestFocusInWindow();
-			} else if (actionName.equals("core!focuslist")) {
+			} else if (Utility.equalString(actionName, "core!focuslist")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					selectingPost.requestFocusInWindow();
 				}
-			} else if (actionName.equals("core!postnext")) {
+			} else if (Utility.equalString(actionName, "core!postnext")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					sortedPostListPanel.requestFocusNextOf(selectingPost);
 				}
-			} else if (actionName.equals("core!postprev")) {
+			} else if (Utility.equalString(actionName, "core!postprev")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					sortedPostListPanel.requestFocusPreviousOf(selectingPost);
 				}
+			} else if (Utility.equalString(actionName, "core!version")) {
+				VersionInfoFrame frame = new VersionInfoFrame();
+				frame.setVisible(true);
+			} else {
+				logger.warn("[core] {} is not command", actionName);
 			}
 		}
 		
@@ -999,6 +1004,14 @@ import twitter4j.internal.http.HTMLEntity;
 				propertyEditorMenuItem.addActionListener(new ActionListenerImplementation());
 				configMenu.add(propertyEditorMenuItem);
 				clientMenu.add(configMenu);
+			}
+			{
+				JMenu infoMenu = new JMenu("情報");
+				JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
+				versionMenuItem.setActionCommand("core!version");
+				versionMenuItem.addActionListener(new ActionListenerImplementation());
+				infoMenu.add(versionMenuItem);
+				clientMenu.add(infoMenu);
 			}
 		}
 		return clientMenu;
