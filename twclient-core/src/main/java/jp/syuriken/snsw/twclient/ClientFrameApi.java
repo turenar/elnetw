@@ -68,6 +68,13 @@ public interface ClientFrameApi {
 	public abstract void focusPostBox();
 	
 	/**
+	 * ClientConfigurationインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public abstract ClientConfiguration getClientConfiguration();
+	
+	/**
 	 * 画像をキャッシュするオブジェクトを取得する。
 	 * 
 	 * @return ImageCacherインスタンス
@@ -119,8 +126,7 @@ public interface ClientFrameApi {
 	@Deprecated
 	public abstract Twitter getTwitter();
 	
-	/**
-	 * TODO snsoftware
+	/**	 * TODO snsoftware
 	 * 
 	 * @return
 	 */
@@ -132,6 +138,13 @@ public interface ClientFrameApi {
 	 * @return
 	 */
 	Twitter getTwitterForWrite();
+	
+	/**
+	 * Utilityインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public abstract Utility getUtility();
 	
 	/**
 	 * 例外を処理する。
@@ -185,5 +198,4 @@ public interface ClientFrameApi {
 	 * @return 変更する前の内容
 	 */
 	public abstract String setPostText(String text, int selectingStart, int selectingEnd);
-	
 }

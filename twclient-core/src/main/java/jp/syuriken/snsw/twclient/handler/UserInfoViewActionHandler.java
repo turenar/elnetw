@@ -10,7 +10,6 @@ import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
-import jp.syuriken.snsw.twclient.Utility;
 import twitter4j.Status;
 
 /**
@@ -27,7 +26,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	}
 	
 	@Override
-	public void handleAction(String actionName, final StatusData statusData, ClientFrameApi api) {
+	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			api.addJob(Priority.MEDIUM, new ParallelRunnable() {
 				
@@ -35,7 +34,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				public void run() {
 					Status status = (Status) statusData.tag;
 					try {
-						Utility.openBrowser("http://twitter.com/" + status.getUser().getScreenName());
+						api.getUtility().openBrowser("http://twitter.com/" + status.getUser().getScreenName());
 					} catch (Exception e) {
 						e.printStackTrace(); //TODO
 					}

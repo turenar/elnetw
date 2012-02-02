@@ -109,6 +109,7 @@ public class TwitterClientMain {
 		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
 		AccessToken accessToken = new OAuthFrame().show(twitter);
 		
+		accessToken = new OAuthFrame(configuration).show(twitter);
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
@@ -118,10 +119,10 @@ public class TwitterClientMain {
 					JOptionPane.ERROR_MESSAGE);
 			throw new RuntimeException(e1);
 		}
-		configProperties.setProperty("oauth.access_token.list", userId);
+		configProperties.setProperty("twitter.oauth.access_token.list", userId);
 		configProperties.setProperty("oauth.access_token.default", userId);
-		configProperties.setProperty("oauth.access_token." + userId, accessToken.getToken());
-		configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
+		configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
+		configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
 				accessToken.getTokenSecret());
 		configProperties.store();
 		return true;

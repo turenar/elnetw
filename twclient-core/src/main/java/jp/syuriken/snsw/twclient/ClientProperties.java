@@ -10,19 +10,29 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * 登録済みのリスナに変更を通知するプロパティーリストです。
+ * 登録済みのリスナに変更を通知できるプロパティーリストです。
  * 
  * @author $Author$
  */
 @SuppressWarnings("serial")
 public class ClientProperties extends Properties {
 	
-	private ArrayList<PropertyChangeListener> listeners;
+	/** リスナの配列 */
+	protected ArrayList<PropertyChangeListener> listeners;
 	
-	private File storeFile;
+	/** 保存先のファイル */
+	protected File storeFile;
+	
+	private transient Hashtable<String, Object> cacheTable;
+	
+	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	
 	
 	/**
@@ -41,33 +51,60 @@ public class ClientProperties extends Properties {
 	public ClientProperties(Properties defaults) {
 		super(defaults);
 		listeners = new ArrayList<PropertyChangeListener>();
+		cacheTable = new Hashtable<String, Object>();
 	}
 	
 	/**
 	 * PropertyChangedListnerを追加する
 	 * @param listener リスナ。nullは不可
 	 */
-	public void addPropertyChangedListner(PropertyChangeListener listener) {
+	public synchronized void addPropertyChangedListener(PropertyChangeListener listener) {
 		if (listener == null) {
 			throw new IllegalArgumentException("listenerはnullであってはいけません。");
 		}
 		listeners.add(listener);
 	}
 	
+	/**
+	 * 変換済みの値をキャッシュする。
+	 * 
+	 * @param key キー
+	 * @param value 値
+	 */
+	protected synchronized void cacheValue(String key, Object value) {
+		cacheTable.put(key, value);
+	}
+	
+	/**
+	 * キャッシュ済みの値を削除する。
+	 * 
+	 * @param key キー
+	 * @return キャッシュされていた変換済みの値。キャッシュされていなかった場合null
+	 */
+	protected synchronized Object clearCachedValue(String key) {
+		return cacheTable.remove(key);
+	}
+	
 	@Override
 	public synchronized boolean equals(Object o) {
 		if (o instanceof ClientProperties == false) {
+			if (o instanceof Properties && listeners == null && storeFile == null) {
+				return super.equals(o);
+			} else {
 			return false;
+		}
 		}
 		if (super.equals(o) == false) {
 			return false;
 		}
 		ClientProperties c = (ClientProperties) o;
+		synchronized (c) {
 		if (listeners.equals(c.listeners) == false) {
 			return false;
 		}
 		if (storeFile.equals(c.storeFile) == false) {
 			return false;
+		}
 		}
 		return true;
 	}
@@ -79,7 +116,7 @@ public class ClientProperties extends Properties {
 	* @param oldValue 古い値
 	* @param newValue 新しい値
 	*/
-	public void firePropetyChanged(String key, String oldValue, String newValue) {
+	public synchronized void firePropetyChanged(String key, String oldValue, String newValue) {
 		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
 		for (PropertyChangeListener listener : listeners) {
 			listener.propertyChange(evt);
@@ -93,8 +130,35 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @return boolean値
 	 */
-	public boolean getBoolean(String key) {
-		return Boolean.parseBoolean(getProperty(key));
+	public synchronized boolean getBoolean(String key) {
+		Boolean boolean1 = getCachedValue(key, Boolean.class);
+		if (boolean1 != null) {
+			return boolean1;
+	}
+	
+		String value = getProperty(key);
+		boolean1 = Boolean.parseBoolean(value);
+		cacheValue(key, boolean1);
+		return boolean1;
+	}
+	
+	/**
+	 * キャッシュされた値を取得する。
+	 * 
+	 * @param key キー
+	 * @param expectedClass 期待するClass
+	 * @return
+	 * 	キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
+	 * 	それ以外はキャッシュされた値
+	 */
+	@SuppressWarnings("unchecked")
+	protected synchronized <T>T getCachedValue(String key, Class<T> expectedClass) {
+		Object cachedValue = cacheTable.get(key);
+		if (cachedValue == null || expectedClass.isInstance(cachedValue) == false) {
+			return null;
+		} else {
+			return (T) cachedValue;
+		}
 	}
 	
 	/**
@@ -106,17 +170,28 @@ public class ClientProperties extends Properties {
 	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません 
 	 * @throws NumberFormatException 数値に変換できない値です
 	 */
-	public Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
+	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
+		Color color = getCachedValue(key, Color.class);
+		if (color != null) {
+			return color;
+		}
+		
 		String value = getProperty(key);
+		if (value == null) {
+			return null;
+		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 4) {
-			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
+			color =
+					new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
 					Integer.parseInt(rgba[3]));
 		} else if (rgba.length == 3) {
-			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
+			color = new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はColorに使用できる値ではありません: {1}", key, value));
 		}
+		cacheValue(key, color);
+		return color;
 	}
 	
 	/**
@@ -127,17 +202,24 @@ public class ClientProperties extends Properties {
 	 * @return keyに関連付けられたDimension
 	 * @throws IllegalArgumentException 正しくない設定値
 	 */
-	public Dimension getDimension(String key) throws IllegalArgumentException {
+	public synchronized Dimension getDimension(String key) throws IllegalArgumentException {
+		Dimension dimension = getCachedValue(key, Dimension.class);
+		if (dimension != null) {
+			return dimension;
+		}
+		
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
 		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 2) {
-			return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
+			dimension = new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はDimensionに使用できる値ではありません: {1}", key, value));
 		}
+		cacheValue(key, dimension);
+		return dimension;
 	}
 	
 	/**
@@ -147,8 +229,16 @@ public class ClientProperties extends Properties {
 	 * @param key キー 
 	 * @return keyに関連付けられたint
 	 */
-	public int getInteger(String key) {
-		return Integer.parseInt(getProperty(key));
+	public synchronized int getInteger(String key) {
+		Integer integer = getCachedValue(key, Integer.class);
+		if (integer != null) {
+			return integer;
+	}
+	
+		String value = getProperty(key);
+		integer = Integer.valueOf(value);
+		cacheValue(key, integer);
+		return integer;
 	}
 	
 	/**
@@ -158,15 +248,23 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @return keyに関連付けられたlong
 	 */
-	public long getLong(String key) {
-		return Long.parseLong(getProperty(key));
+	public synchronized long getLong(String key) {
+		Long long1 = getCachedValue(key, Long.class);
+		if (long1 != null) {
+			return long1;
+	}
+	
+		String value = getProperty(key);
+		long1 = Long.valueOf(value);
+		cacheValue(key, long1);
+		return long1;
 	}
 	
 	@Override
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
 		hashCode += 19 * listeners.hashCode();
-		hashCode += 41 * storeFile.hashCode();
+		hashCode += 19 * storeFile.hashCode();
 		return hashCode;
 	}
 	
@@ -176,7 +274,7 @@ public class ClientProperties extends Properties {
 	 * @param listener リスナ
 	 * @return 登録されて削除された場合true
 	 */
-	public boolean removePropertyChangedListener(PropertyChangeListener listener) {
+	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
 		return listeners.remove(listener);
 	}
 	
@@ -186,7 +284,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param value 値
 	 */
-	public void setBoolean(String key, boolean value) {
+	public synchronized void setBoolean(String key, boolean value) {
+		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 	
@@ -196,7 +295,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param color Colorインスタンス。null不可。
 	 */
-	public void setColor(String key, Color color) {
+	public synchronized void setColor(String key, Color color) {
+		clearCachedValue(key);
 		setProperty(
 				key,
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
@@ -209,7 +309,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
-	public void setDimension(String key, Dimension dimension) {
+	public synchronized void setDimension(String key, Dimension dimension) {
+		clearCachedValue(key);
 		setProperty(key, dimension.width + "," + dimension.height);
 	}
 	
@@ -219,7 +320,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param value 値
 	 */
-	public void setInteger(String key, int value) {
+	public synchronized void setInteger(String key, int value) {
+		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 	
@@ -229,7 +331,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param value 値
 	 */
-	public void setLong(String key, long value) {
+	public synchronized void setLong(String key, long value) {
+		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 	
@@ -249,7 +352,7 @@ public class ClientProperties extends Properties {
 	 * 
 	 * @param storeFile デフォルトの保存先のファイル
 	 */
-	public void setStoreFile(File storeFile) {
+	public synchronized void setStoreFile(File storeFile) {
 		this.storeFile = storeFile;
 	}
 	
@@ -265,7 +368,7 @@ public class ClientProperties extends Properties {
 	* ファイルに保存する
 	* @param comments ファイルのコメント
 	*/
-	public void store(String comments) {
+	public synchronized void store(String comments) {
 		FileWriter fileWriter = null;
 		BufferedWriter bufferedWriter = null;
 		try {
@@ -273,16 +376,14 @@ public class ClientProperties extends Properties {
 			bufferedWriter = new BufferedWriter(fileWriter);
 			store(bufferedWriter, comments);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Propertiesファイルの保存中にエラー", e);
 		} finally {
 			if (bufferedWriter != null) {
 				try {
 					bufferedWriter.flush();
 					bufferedWriter.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.warn("Propertiesファイルのクローズ中にエラー", e);
 				}
 			}
 		}

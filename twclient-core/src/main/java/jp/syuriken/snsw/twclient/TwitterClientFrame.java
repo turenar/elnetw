@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -7,6 +8,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
+import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -18,6 +20,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
@@ -152,8 +156,73 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 	}
 	
+	private class ConfigData implements PropertyChangeListener {
+		
+		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
+		
+		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
+		
+		private static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
+		
+		private static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
+		
+		private static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
+		
+		private static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
+		
+		private static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
+		
+		private static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
+		
+		public int intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
+		
+		public int intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
+		
+		public Color colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
+		
+		public Paging pagingOfGettingTimeline = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_TIMELINE));
+		
+		public Paging pagingOfGettingInitialTimeline = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
+		
+		public boolean mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
+		
+		public int scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
+		
+		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
+		
+		
+		public ConfigData() {
+			configProperties.addPropertyChangedListener(this);
+		}
+		
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			String name = evt.getPropertyName();
+			if (Utility.equalString(name, PROPERTY_INTERVAL_POSTLIST_UPDATE)) {
+				intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
+			} else if (Utility.equalString(name, PROPERTY_INTERVAL_TIMELINE)) {
+				intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
+			} else if (Utility.equalString(name, PROPERTY_COLOR_FOCUS_LIST)) {
+				colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
+			} else if (Utility.equalString(name, PROPERTY_PAGING_TIMELINE)) {
+				pagingOfGettingTimeline = new Paging().count(configProperties.getInteger(PROPERTY_PAGING_TIMELINE));
+			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_TIMELINE)) {
+				pagingOfGettingInitialTimeline =
+						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
+			} else if (Utility.equalString(name, PROPERTY_ID_STRICT_MATCH)) {
+				mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
+			} else if (Utility.equalString(name, PROPERTY_LIST_SCROLL)) {
+				scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
+			} else if (Utility.equalString(name, PROPERTY_INFO_SURVIVE_TIME)) {
+				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
+			}
+		}
+	}
+	
 	/**
-	 * TODO snsoftware
+	 * "core!*" アクションハンドラ
 	 * 
 	 * @author $Author$
 	 */
@@ -166,26 +235,31 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			if (actionName.equals("core!focusinput")) {
+			if (Utility.equalString(actionName, "core!focusinput")) {
 				getPostBox().requestFocusInWindow();
-			} else if (actionName.equals("core!focuslist")) {
+			} else if (Utility.equalString(actionName, "core!focuslist")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					selectingPost.requestFocusInWindow();
 				}
-			} else if (actionName.equals("core!postnext")) {
+			} else if (Utility.equalString(actionName, "core!postnext")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					sortedPostListPanel.requestFocusNextOf(selectingPost);
 				}
-			} else if (actionName.equals("core!postprev")) {
+			} else if (Utility.equalString(actionName, "core!postprev")) {
 				if (selectingPost == null) {
 					sortedPostListPanel.requestFocusFirstComponent();
 				} else {
 					sortedPostListPanel.requestFocusPreviousOf(selectingPost);
 				}
+			} else if (Utility.equalString(actionName, "core!version")) {
+				VersionInfoFrame frame = new VersionInfoFrame();
+				frame.setVisible(true);
+			} else {
+				logger.warn("[core] {} is not command", actionName);
 			}
 		}
 		
@@ -423,7 +497,7 @@ import twitter4j.internal.http.HTMLEntity;
 						
 						sortedPostListPanel.add(postListAddQueue);
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight + 4) {
+						if (viewPosition.y < fontHeight + PADDING_OF_POSTLIST) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
@@ -526,11 +600,13 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 	}
 	
+	/** TODO Megumi */
+	private static final int PADDING_OF_POSTLIST = 1;
 	
 	/** アプリケーション名 */
-	private static final String APPLICATION_NAME = "Astarotte";
+	public static final String APPLICATION_NAME = "Astarotte";
 	
-	protected StatusPanel selectingPost;
+	private StatusPanel selectingPost;
 	
 	private Hashtable<String, ActionHandler> actionHandlerTable;
 	
@@ -573,11 +649,11 @@ import twitter4j.internal.http.HTMLEntity;
 	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
 	
 	/** フォントの高さ */
-	protected int fontHeight;
+	private int fontHeight;
 	
 	private PostListListener postListListenerSingleton = new PostListListener();
 	
-	private static final Dimension ICON_SIZE = new Dimension(64, 18);
+	private final Dimension ICON_SIZE;
 	
 	private JPopupMenu tweetPopupMenu;
 	
@@ -631,6 +707,8 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private static Locale locale = Locale.getDefault();
 	
+	private ConfigData configData;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -639,11 +717,13 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	public TwitterClientFrame(ClientConfiguration configuration, Object threadHolder) {
 		logger.info("initializing frame");
-		
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
+		jobWorkerThread = new JobWorkerThread(jobQueue);
+		jobWorkerThread.start();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
+		configData = new ConfigData();
 		timer = new Timer("timer");
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		initActionHandlerTable();
@@ -658,8 +738,8 @@ import twitter4j.internal.http.HTMLEntity;
 		getPopupMenu();
 		initComponents();
 		updatePostListDispatcher = new UpdatePostList();
-		timer.schedule(updatePostListDispatcher, configProperties.getInteger("client.main.interval.list_update"),
-				configProperties.getInteger("client.main.interval.list_update"));
+		timer.schedule(updatePostListDispatcher, configData.intervalOfPostListUpdate,
+				configData.intervalOfPostListUpdate);
 		
 		timer.schedule(new TimerTask() {
 			
@@ -680,7 +760,10 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		fontMetrics = getFontMetrics(DEFAULT_FONT);
 		int str12width = fontMetrics.stringWidth("0123456789abc");
+		fontHeight = fontMetrics.getHeight();
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
+		ICON_SIZE = new Dimension(64, fontHeight);
+		logger.debug("{}", linePanelSizeOfSentBy);
 		logger.info("initialized");
 	}
 	
@@ -737,8 +820,7 @@ import twitter4j.internal.http.HTMLEntity;
 			status = originalStatus;
 		}
 		User user = status.getUser();
-		
-		if (configProperties.getBoolean("client.main.match.id_strict_match")) {
+		if (configData.mentionIdStrictMatch) {
 			if (user.getId() == getLoginUser().getId()) {
 				statusData.foregroundColor = Color.BLUE;
 			}
@@ -779,7 +861,7 @@ import twitter4j.internal.http.HTMLEntity;
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
 			boolean mentioned = false;
 			for (UserMentionEntity userMentionEntity : userMentionEntities) {
-				if (configProperties.getBoolean("client.main.match.id_strict_match")) {
+				if (configData.mentionIdStrictMatch) {
 					if (userMentionEntity.getId() == getLoginUser().getId()) {
 						mentioned = true;
 						break;
@@ -793,7 +875,8 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 			if (mentioned) {
 				statusData.foregroundColor = Color.RED;
-				Utility.sendNotify(user.getName(), originalStatus.getText(), imageCacher.getImageFile(user));
+				configuration.getUtility().sendNotify(user.getName(), originalStatus.getText(),
+						imageCacher.getImageFile(user));
 			}
 		}
 		
@@ -837,19 +920,21 @@ import twitter4j.internal.http.HTMLEntity;
 		} */
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
-		Dimension minSize =
-				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight + 4);
-		linePanel.setMinimumSize(minSize);
-		linePanel.setPreferredSize(minSize);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
+		statusData.image.setForeground(statusData.foregroundColor);
+		statusData.sentBy.setForeground(statusData.foregroundColor);
+		statusData.data.setForeground(statusData.foregroundColor);
+		Dimension size =
+				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
+						+ PADDING_OF_POSTLIST);
+		linePanel.setMinimumSize(size);
+		linePanel.setPreferredSize(size);
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
 		linePanel.addFocusListener(postListListenerSingleton);
 		linePanel.addKeyListener(postListListenerSingleton);
-		statusData.image.setForeground(statusData.foregroundColor);
-		statusData.sentBy.setForeground(statusData.foregroundColor);
-		statusData.data.setForeground(statusData.foregroundColor);
+		linePanel.setAlignmentY(JPanel.CENTER_ALIGNMENT);
 		
 		statusData.addStatusPanel(linePanel);
 		synchronized (listItems) {
@@ -916,14 +1001,19 @@ import twitter4j.internal.http.HTMLEntity;
 						handleException(e);
 					} finally {
 						try {
-							EventQueue.invokeAndWait(new Runnable() {
+							Runnable enabler = new Runnable() {
 								
 								@Override
 								public void run() {
 									postActionButton.setEnabled(true);
 									postBox.setEnabled(true);
 								}
-							});
+							};
+							if (EventQueue.isDispatchThread()) {
+								EventQueue.invokeAndWait(enabler);
+							} else {
+								enabler.run();
+							}
 						} catch (InterruptedException e) {
 							// do nothing
 						} catch (InvocationTargetException e) {
@@ -945,10 +1035,11 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	private void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
-			selectingPost.setBackground(statusMap.get(selectingPost.getStatusData().id).backgroundColor);
+			selectingPost.setBackground(selectingPost.getStatusData().backgroundColor);
 		}
-		e.getComponent().setBackground(configProperties.getColor("client.main.color.list.focus"));
 		selectingPost = (StatusPanel) e.getComponent();
+		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
+				configData.colorOfFocusList));
 		
 		JEditorPane editor = getTweetViewEditorPane();
 		StatusData statusData = selectingPost.getStatusData();
@@ -1101,6 +1192,11 @@ import twitter4j.internal.http.HTMLEntity;
 		return actionHandler;
 	}
 	
+	@Override
+	public ClientConfiguration getClientConfiguration() {
+		return configuration;
+	}
+	
 	/**
 	 * メニューバーを取得する。
 	 * 
@@ -1125,6 +1221,14 @@ import twitter4j.internal.http.HTMLEntity;
 				propertyEditorMenuItem.addActionListener(menuActionListener);
 				configMenu.add(propertyEditorMenuItem);
 				clientMenu.add(configMenu);
+			}
+			{
+				JMenu infoMenu = new JMenu("情報");
+				JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
+				versionMenuItem.setActionCommand("core!version");
+				versionMenuItem.addActionListener(new ActionListenerImplementation());
+				infoMenu.add(versionMenuItem);
+				clientMenu.add(infoMenu);
 			}
 		}
 		return clientMenu;
@@ -1166,7 +1270,7 @@ import twitter4j.internal.http.HTMLEntity;
 	 */
 	@Override
 	public int getInfoSurviveTime() {
-		return configProperties.getInteger("client.info.survive_time");
+		return configData.timeOfSurvivingInfo;
 	}
 	
 	/**
@@ -1286,8 +1390,7 @@ import twitter4j.internal.http.HTMLEntity;
 				}
 			};
 			postListScrollPane.getViewport().setView(getSortedPostListPanel());
-			postListScrollPane.getVerticalScrollBar().setUnitIncrement(
-					configProperties.getInteger("client.main.list.scroll"));
+			postListScrollPane.getVerticalScrollBar().setUnitIncrement(configData.scrollAmount);
 			
 		}
 		return postListScrollPane;
@@ -1352,8 +1455,8 @@ import twitter4j.internal.http.HTMLEntity;
 	public SortedPostListPanel getSortedPostListPanel() {
 		if (sortedPostListPanel == null) {
 			sortedPostListPanel =
-					new SortedPostListPanel(configProperties.getInteger("client.main.list.split_size"),
-							configProperties.getInteger("client.main.list.max_size"));
+					new SortedPostListPanel(configProperties.getInteger("core.postlist.split_size"),
+							configProperties.getInteger("core.postlist.max_size"));
 			
 			sortedPostListPanel.setBackground(Color.WHITE);
 		}
@@ -1366,7 +1469,7 @@ import twitter4j.internal.http.HTMLEntity;
 			jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 			jSplitPane1.setTopComponent(getEditPanel());
 			jSplitPane1.setRightComponent(getPostListScrollPane());
-			String pos = configProperties.getProperty("ui.main.split.pos");
+			String pos = configProperties.getProperty("gui.main.split.pos");
 			if (pos != null) {
 				jSplitPane1.setDividerLocation(Integer.parseInt(pos));
 			} else {
@@ -1420,7 +1523,7 @@ import twitter4j.internal.http.HTMLEntity;
 							handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
 						} else {
 							try {
-								Utility.openBrowser(url);
+								configuration.getUtility().openBrowser(url);
 							} catch (Exception e1) {
 								e1.printStackTrace(); //TODO
 							}
@@ -1477,8 +1580,7 @@ import twitter4j.internal.http.HTMLEntity;
 		if (tweetViewScrollPane == null) {
 			tweetViewScrollPane = new JScrollPane();
 			tweetViewScrollPane.getViewport().setView(getTweetViewEditorPane());
-			tweetViewScrollPane.getVerticalScrollBar().setUnitIncrement(
-					configProperties.getInteger("client.main.list.scroll"));
+			tweetViewScrollPane.getVerticalScrollBar().setUnitIncrement(configData.scrollAmount);
 		}
 		return tweetViewScrollPane;
 	}
@@ -1516,6 +1618,11 @@ import twitter4j.internal.http.HTMLEntity;
 	@Override
 	public Twitter getTwitterForWrite() {
 		return twitterForWrite;
+	}
+	
+	@Override
+	public Utility getUtility() {
+		return configuration.getUtility();
 	}
 	
 	/**
@@ -1607,12 +1714,10 @@ import twitter4j.internal.http.HTMLEntity;
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(getSplitPane1(),
 				GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE));
 		
-		fontHeight = getSortedPostListPanel().getFontMetrics(DEFAULT_FONT).getHeight();
-		
 		pack();
 		
 		setJMenuBar(getClientMenuBar());
-		Dimension size = configProperties.getDimension("ui.main.size");
+		Dimension size = configProperties.getDimension("gui.main.size");
 		if (size != null) {
 			setSize(size);
 			// setSize(500, 500);
@@ -1764,8 +1869,7 @@ import twitter4j.internal.http.HTMLEntity;
 			public void run() {
 				ResponseList<Status> homeTimeline;
 				try {
-					Paging paging =
-							new Paging().count(configProperties.getInteger("client.main.page.initial_timeline"));
+					Paging paging = configData.pagingOfGettingInitialTimeline;
 					homeTimeline = twitterForRead.getHomeTimeline(paging);
 					for (Status status : homeTimeline) {
 						addStatus(status);
@@ -1783,7 +1887,7 @@ import twitter4j.internal.http.HTMLEntity;
 					
 					@Override
 					public void run() {
-						Paging paging = new Paging().count(configProperties.getInteger("client.main.page.timeline"));
+						Paging paging = configData.pagingOfGettingTimeline;
 						ResponseList<Status> timeline;
 						try {
 							timeline = twitterForRead.getHomeTimeline(paging);
@@ -1796,10 +1900,14 @@ import twitter4j.internal.http.HTMLEntity;
 					}
 				});
 			}
-		}, configProperties.getInteger("client.main.interval.timeline"),
-				configProperties.getInteger("client.main.interval.timeline"));
-		jobWorkerThread = new JobWorkerThread(jobQueue);
-		jobWorkerThread.start();
+		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
+		if (SystemTray.isSupported()) {
+			try {
+				SystemTray.getSystemTray().add(configuration.getTrayIcon());
+			} catch (AWTException e) {
+				logger.warn("SystemTrayへの追加に失敗", e);
+			}
+		}
 	}
 	
 	@Override
@@ -1810,9 +1918,12 @@ import twitter4j.internal.http.HTMLEntity;
 	@Override
 	public void windowClosed(WindowEvent e) {
 		logger.debug("closing main-window...");
-		configProperties.setDimension("ui.main.size", getSize());
-		configProperties.setInteger("ui.main.split.pos", getSplitPane1().getDividerLocation());
+		configProperties.setDimension("gui.main.size", getSize());
+		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
 		configProperties.store();
+		if (SystemTray.isSupported()) {
+			SystemTray.getSystemTray().remove(configuration.getTrayIcon());
+		}
 		synchronized (mainThreadHolder) {
 			mainThreadHolder.notifyAll();
 		}

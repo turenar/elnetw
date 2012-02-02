@@ -16,7 +16,7 @@ import twitter4j.UserMentionEntity;
 /**
  * RT/favしたかどうかを格納できるTwitter拡張型
  * 
- * @author $Author: snsoftware $
+ * @author $Author$
  */
 @SuppressWarnings({
 	"serial",

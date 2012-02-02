@@ -10,11 +10,22 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 /**
- * TODO snsoftware
+ * OAuthでアクセストークンを取得するためのクラス。
  * 
  * @author $Author$
  */
 public class OAuthFrame {
+	
+	private final ClientConfiguration configuration;
+	
+	
+	/**
+	 * インスタンスを生成する。
+	 * @param configuration 設定
+	 */
+	public OAuthFrame(ClientConfiguration configuration) {
+		this.configuration = configuration;
+	}
 	
 	/**
 	 * AccessTokenを取得するために、Twitterのoauthページを開き、PINコードを入力させる。
@@ -37,7 +48,7 @@ public class OAuthFrame {
 			String strURL = requestToken.getAuthorizationURL();
 			
 			try {
-				Utility.openBrowser(strURL);
+				configuration.getUtility().openBrowser(strURL);
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "PIN codeを表示するためのブラウザが設定できませんでした。\n\n" + e.getLocalizedMessage(),
 						"エラー", JOptionPane.ERROR_MESSAGE);

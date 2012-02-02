@@ -86,8 +86,8 @@ public class ClientStreamListener implements UserStreamListener {
 		statusData.data = new JLabel(message);
 		frameApi.addStatus(statusData);
 		User sender = directMessage.getSender();
-		Utility.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()), message,
-				frameApi.getImageCacher().getImageFile(sender));
+		frameApi.getUtility().sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()),
+				message, frameApi.getImageCacher().getImageFile(sender));
 	}
 	
 	@Override
@@ -109,7 +109,8 @@ public class ClientStreamListener implements UserStreamListener {
 			String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
 			statusData.data = new JLabel(message);
 			frameApi.addStatus(statusData);
-			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+			frameApi.getUtility().sendNotify(
+					MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
 					frameApi.getImageCacher().getImageFile(source));
 		}
 		if (source.getId() == frameApi.getLoginUser().getId()) {
@@ -134,7 +135,8 @@ public class ClientStreamListener implements UserStreamListener {
 			String message = "フォローされました: " + followedUser.getScreenName();
 			statusData.data = new JLabel(message);
 			frameApi.addStatus(statusData);
-			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+			frameApi.getUtility().sendNotify(
+					MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
 					frameApi.getImageCacher().getImageFile(source));
 		}
 	}
@@ -205,7 +207,8 @@ public class ClientStreamListener implements UserStreamListener {
 			String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
 			statusData.data = new JLabel(message);
 			frameApi.addStatus(statusData);
-			Utility.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+			frameApi.getUtility().sendNotify(
+					MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
 					frameApi.getImageCacher().getImageFile(source));
 		}
 		if (source.getId() == frameApi.getLoginUser().getId()) {

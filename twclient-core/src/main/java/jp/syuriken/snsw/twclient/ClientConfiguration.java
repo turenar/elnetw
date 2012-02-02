@@ -1,13 +1,20 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.TrayIcon;
+import java.io.IOException;
 import java.text.MessageFormat;
+
+import javax.imageio.ImageIO;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.auth.AccessToken;
+import twitter4j.auth.AccessToken;import twitter4j.conf.Configuration;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * twclient の情報などを格納するクラス。
@@ -15,6 +22,10 @@ import twitter4j.conf.ConfigurationBuilder;
  * @author $Author$
  */
 public class ClientConfiguration {
+	
+	private TrayIcon trayIcon;
+	
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private ClientProperties configProperties;
 	
@@ -24,6 +35,19 @@ public class ClientConfiguration {
 	
 	private ClientFrameApi frameApi;
 	
+	private final Utility utility = new Utility(this);
+	
+	
+	/*package*/ClientConfiguration() {
+		try {
+			trayIcon =
+					new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
+							"jp/syuriken/snsw/twclient/img/icon16.png")), TwitterClientFrame.APPLICATION_NAME);
+		} catch (IOException e) {
+			logger.error("icon ファイルの読み込みに失敗。");
+			trayIcon = null;
+		}
+	}
 	
 	/**
 	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
@@ -80,16 +104,22 @@ public class ClientConfiguration {
 	}
 	
 	/**
-	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。
+	 * TrayIconをかえす。nullの場合有り。
 	 * 
+	 * @return トレイアイコン
+	 */
+	public TrayIcon getTrayIcon() {
+		return trayIcon;
+	}
+		/**
+	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 * 
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration() {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
 	
-	/**
-	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
+	/**	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
 	 * @param accountId アカウントID 
 	 * @return Twitter Configuration
 	 */
@@ -117,6 +147,15 @@ public class ClientConfiguration {
 			.setOAuthConsumerKey(consumerKey) //
 			.setOAuthConsumerSecret(consumerSecret) //
 			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"));
+	}
+	
+	/**
+	 * Utilityインスタンスを取得する。
+	 * 
+	 * @return インスタンス
+	 */
+	public Utility getUtility() {
+		return utility;
 	}
 	
 	/**
@@ -157,10 +196,10 @@ public class ClientConfiguration {
 	
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
-	 * @param isShutdownPahse シャットダウンフェーズかどうか。
+	 * @param isShutdownPhase シャットダウンフェーズかどうか。
 	 */
-	public void setShutdownPhase(boolean isShutdownPahse) {
-		isShutdownPhase = isShutdownPahse;
+	public void setShutdownPhase(boolean isShutdownPhase) {
+		this.isShutdownPhase = isShutdownPhase;
 	}
 	
 	/**

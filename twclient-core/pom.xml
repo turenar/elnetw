@@ -79,6 +79,10 @@
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2/</url>
+		</pluginRepository>
+		<pluginRepository>
 			<id>tmatesoft-releases</id>
 			<url>http://maven.tmatesoft.com/content/repositories/releases/</url>
 			<releases>
@@ -191,6 +195,10 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>etc/license</directory>
+				<filtering>false</filtering>
 			</resource>
 		</resources>
 
