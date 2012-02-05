@@ -107,10 +107,10 @@ public class Utility {
 	 * @author $Author$
 	 */
 	public static class TrayIconNotifySender implements NotifySender {
-	
+		
 		private TrayIcon trayIcon;
-	
-	
+		
+		
 		/**
 		 * インスタンスを生成する。
 		 * 
@@ -328,9 +328,9 @@ public class Utility {
 			}
 			if (notifySender == null) {
 				notifySender = new TrayIconNotifySender(configuration);
+			}
 		}
 	}
-		}
 	
 	/**
 	 * browserを表示する。

@@ -126,6 +126,14 @@ public class SortedPostListPanel extends JPanel {
 	
 	/**
 	 * インスタンスを生成する。
+	 * 
+	 */
+	public SortedPostListPanel() {
+		this(3200, 50);
+	}
+	
+	/**
+	 * インスタンスを生成する。
 	 * @param leafSize 二層目のJPanelの期待サイズ (このサイズより大きくなる可能性があります)
 	 * @param maxSize このクラスが格納する要素数
 	 * 
@@ -231,6 +239,17 @@ public class SortedPostListPanel extends JPanel {
 		updateUI();
 	}
 	
+	/**
+	 * {@link #add(LinkedList)}の糖衣構文
+	 * 
+	 * @param panel パネル
+	 */
+	public void add(StatusPanel panel) {
+		LinkedList<StatusPanel> list = new LinkedList<StatusPanel>();
+		list.add(panel);
+		add(list);
+	}
+	
 	@Override
 	public Component add(String name, Component comp) {
 		return this.add(comp);
@@ -277,6 +296,12 @@ public class SortedPostListPanel extends JPanel {
 		return panel.requestFocusInWindow();
 	}
 	
+	/**
+	 * 次のコンポーネントをフォーカスする
+	 * 
+	 * @param panel パネル
+	 * @return フォーカスが成功しそうかどうか
+	 */
 	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
 		int comparison = compareDate(panel, firstBranch.getLast());
 		
@@ -307,6 +332,12 @@ public class SortedPostListPanel extends JPanel {
 		}
 	}
 	
+	/**
+	 * 前のコンポーネントをフォーカスする
+	 * 
+	 * @param panel パネル
+	 * @return フォーカスが成功しそうかどうか
+	 */
 	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
 		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasNext();) {
 			JPanel previous = iterator.previous();

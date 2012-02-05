@@ -38,6 +38,9 @@ public class TwitterClientMain {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
+	/** スレッドホルダ */
+	protected Object threadHolder = new Object();
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -79,7 +82,8 @@ public class TwitterClientMain {
 		}
 		configuration.setConfigProperties(configProperties);
 		tryGetOAuthAccessToken();
-		final TwitterClientFrame frame = new TwitterClientFrame(configuration, new Object());
+		
+		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			
 			@Override
@@ -87,6 +91,8 @@ public class TwitterClientMain {
 				logger.error("Uncaught Exception", e);
 			}
 		});
+		configuration.addFrameTab(new TimelineViewTab(configuration));
+		
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -94,6 +100,19 @@ public class TwitterClientMain {
 				frame.start();
 			}
 		});
+		
+		synchronized (threadHolder) {
+			while (configuration.isShutdownPhase() == false) {
+				try {
+					threadHolder.wait();
+					break;
+				} catch (InterruptedException e) {
+					// do nothing
+				}
+			}
+		}
+		logger.info("Exiting twclient...");
+		frame.cleanUp();
 		
 		return 0;
 	}
@@ -107,9 +126,8 @@ public class TwitterClientMain {
 			return false;
 		}
 		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
-		AccessToken accessToken = new OAuthFrame().show(twitter);
+		AccessToken accessToken = new OAuthFrame(configuration).show(twitter);
 		
-		accessToken = new OAuthFrame(configuration).show(twitter);
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {

@@ -3,18 +3,21 @@ package jp.syuriken.snsw.twclient;
 import java.awt.TrayIcon;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.auth.AccessToken;import twitter4j.conf.Configuration;
+import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * twclient の情報などを格納するクラス。
@@ -31,14 +34,23 @@ public class ClientConfiguration {
 	
 	private ClientProperties configDefaultProperties;
 	
-	private boolean isShutdownPhase;
+	private boolean isShutdownPhase = false;
 	
-	private ClientFrameApi frameApi;
+	private TwitterClientFrame frameApi;
+	
+	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 	
 	private final Utility utility = new Utility(this);
 	
+	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
+	
+	private final FilterService rootFilterService;
+	
+	private ImageCacher imageCacher;
+	
 	
 	/*package*/ClientConfiguration() {
+		rootFilterService = new FilterService(this);
 		try {
 			trayIcon =
 					new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
@@ -50,12 +62,29 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 新しいタブを追加する。
+	 * 
+	 * @param tab タブ
+	 * @return 追加されたかどうか。
+	 */
+	public boolean addFrameTab(ClientTab tab) {
+		if (tab == null) {
+			return false;
+		}
+		tabsListLock.writeLock().lock();
+		boolean result = tabsList.add(tab);
+		frameApi.addTab(tab);
+		tabsListLock.writeLock().unlock();
+		return result;
+	}
+	
+	/**
 	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
 	 * 
 	 * @return アカウントリスト。
 	 */
 	public String[] getAccountList() {
-		String list = configProperties.getProperty("oauth.access_token.list");
+		String list = configProperties.getProperty("twitter.oauth.access_token.list");
 		if (list == null) {
 			return new String[] {};
 		} else {
@@ -87,7 +116,7 @@ public class ClientConfiguration {
 	 * @return アカウントのID (int)
 	 */
 	public String getDefaultAccountId() {
-		String accountId = configProperties.getProperty("oauth.access_token.default");
+		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null) {
 			accountId = getAccountList()[0];
 		}
@@ -104,6 +133,59 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 指定されたインデックスのFrameTabを取得する。
+	 * 
+	 * @param index インデックス
+	 * @return FrameTab
+	 */
+	public ClientTab getFrameTab(int index) {
+		tabsListLock.readLock().lock();
+		ClientTab result = tabsList.get(index);
+		tabsListLock.readLock().unlock();
+		return result;
+	}
+	
+	/**
+	 * 追加されているFrameTabの個数を数える
+	 * 
+	 * @return 個数
+	 */
+	public int getFrameTabCount() {
+		tabsListLock.readLock().lock();
+		int size = tabsList.size();
+		tabsListLock.readLock().unlock();
+		return size;
+	}
+	
+	/*package*/List<ClientTab> getFrameTabs() {
+		return tabsList;
+	}
+	
+	/*package*/ReentrantReadWriteLock getFrameTabsLock() {
+		return tabsListLock;
+	}
+	
+	/**
+	 * ImageCacherインスタンスを取得する。
+	 * @return イメージキャッシャ
+	 */
+	public ImageCacher getImageCacher() {
+		if (imageCacher == null) {
+			imageCacher = new ImageCacher(this);
+		}
+		return imageCacher;
+	}
+	
+	/**
+	 * すべての入力をフィルターするクラスを取得する。
+	 * 
+	 * @return フィルター
+	 */
+	public FilterService getRootFilterService() {
+		return rootFilterService;
+	}
+	
+	/**
 	 * TrayIconをかえす。nullの場合有り。
 	 * 
 	 * @return トレイアイコン
@@ -111,10 +193,11 @@ public class ClientConfiguration {
 	public TrayIcon getTrayIcon() {
 		return trayIcon;
 	}
-		/**
-	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 * 
-	 * @return Twitter Configuration
-	 */
+	
+	/**
+	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 * 
+	* @return Twitter Configuration
+	*/
 	public Configuration getTwitterConfiguration() {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
@@ -124,9 +207,9 @@ public class ClientConfiguration {
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration(String accountId) {
-		String accessTokenString = configProperties.getProperty("oauth.access_token." + accountId);
+		String accessTokenString = configProperties.getProperty("twitter.oauth.access_token." + accountId);
 		String accessTokenSecret =
-				configProperties.getProperty(MessageFormat.format("oauth.access_token.{0}_secret", accountId));
+				configProperties.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", accountId));
 		
 		return getTwitterConfigurationBuilder() //
 			.setOAuthAccessToken(accessTokenString) //
@@ -140,8 +223,8 @@ public class ClientConfiguration {
 	 * @return Twitter ConfigurationBuilder
 	 */
 	public ConfigurationBuilder getTwitterConfigurationBuilder() {
-		String consumerKey = configProperties.getProperty("oauth.consumer");
-		String consumerSecret = configProperties.getProperty("oauth.consumer_secret");
+		String consumerKey = configProperties.getProperty("twitter.oauth.consumer");
+		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
 		
 		return new ConfigurationBuilder() //
 			.setOAuthConsumerKey(consumerKey) //
@@ -168,6 +251,23 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * タブを削除する
+	 * 
+	 * @param tab タブ
+	 * @return 削除されたかどうか。
+	 */
+	public boolean removeFrameTab(ClientTab tab) {
+		tabsListLock.writeLock().lock();
+		int indexOf = tabsList.indexOf(tab);
+		if (indexOf != -1) {
+			tabsList.remove(indexOf);
+			frameApi.removeFrameTab(indexOf, tab);
+		}
+		tabsListLock.writeLock().unlock();
+		return indexOf != -1;
+	}
+	
+	/**
 	 * デフォルト設定を格納するプロパティを設定する。
 	 * 
 	 * @param configDefaultProperties the configDefaultProperties to set
@@ -190,7 +290,7 @@ public class ClientConfiguration {
 	 * 
 	 * @param frameApi フレームAPI
 	 */
-	/*package*/void setFrameApi(ClientFrameApi frameApi) {
+	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
 		this.frameApi = frameApi;
 	}
 	
@@ -209,7 +309,7 @@ public class ClientConfiguration {
 	 */
 	public Exception tryGetOAuthToken() {
 		Twitter twitter = new TwitterFactory(getTwitterConfigurationBuilder().build()).getInstance();
-		AccessToken accessToken = new OAuthFrame().show(twitter);
+		AccessToken accessToken = new OAuthFrame(this).show(twitter);
 		
 		//将来の参照用に accessToken を永続化する
 		String userId;
@@ -228,16 +328,15 @@ public class ClientConfiguration {
 				}
 			}
 			if (updateAccountList) {
-				configProperties.setProperty("oauth.access_token.list", MessageFormat.format("{0} {1}",
-						configProperties.getProperty("oauth.access_token.list"), userId));
+				configProperties.setProperty("twitter.oauth.access_token.list", MessageFormat.format("{0} {1}",
+						configProperties.getProperty("twitter.oauth.access_token.list"), userId));
 			}
-			configProperties.setProperty("oauth.access_token." + userId, accessToken.getToken());
-			configProperties.setProperty(MessageFormat.format("oauth.access_token.{0}_secret", userId),
+			configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
+			configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
 					accessToken.getTokenSecret());
 			configProperties.store();
 		}
 		return null;
 		
 	}
-	
 }

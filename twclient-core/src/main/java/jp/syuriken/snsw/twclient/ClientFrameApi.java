@@ -1,10 +1,12 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Font;
 import java.util.Timer;
 
-import javax.swing.JPanel;
+import javax.swing.Icon;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -17,7 +19,13 @@ import twitter4j.User;
  */
 public interface ClientFrameApi {
 	
-	public abstract ActionHandler addActionHandler(String name, ActionHandler handler);
+	/**
+	 * アクションハンドラを追加する
+	 * @param name ハンドラ名。"!"を含んではいけません。
+	 * @param handler ハンドラ
+	 * @return 以前登録されていたハンドラ。
+	 */
+	ActionHandler addActionHandler(String name, ActionHandler handler);
 	
 	/**
 	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
@@ -25,61 +33,77 @@ public interface ClientFrameApi {
 	 * @param priority 優先度
 	 * @param job ジョブ
 	 */
-	public abstract void addJob(Priority priority, Runnable job);
+	void addJob(Priority priority, Runnable job);
 	
 	/**
 	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
 	 * 
 	 * @param job ジョブ
 	 */
-	public abstract void addJob(Runnable job);
-	
-	public abstract void addShortcutKey(String keyCode, String actionName);
+	void addJob(Runnable job);
 	
 	/**
-	 * リストにステータスを追加する。
+	 * ショートカットキーとアクションコマンドを関連付ける
 	 * 
-	 * @param originalStatus 元となるStatus
+	 * @param keyCode キー文字列。
+	 * @param actionName アクションコマンド名
+	 * @see Utility#toKeyString(int, int)
 	 */
-	public abstract void addStatus(Status originalStatus);
+	void addShortcutKey(String keyCode, String actionName);
 	
 	/**
-	 * リストにステータスを追加する。
-	 * 
-	 * @param statusData StatusDataインスタンス。
-	 * @return 追加された StatusPanel
+	 * すでに入力されている内容を用いて投稿を行う。
 	 */
-	public abstract StatusPanel addStatus(StatusData statusData);
-	
-	/**
-	 * リストにステータスを追加する。その後deltionDelayミリ秒後に該当するステータスを削除する。
-	 * 
-	 * @param statusData StatusDataインスタンス。
-	 * @param deletionDelay 削除を予約する時間。ミリ秒
-	 * @return 追加された (もしくはそのあと削除された) ステータス。
-	 */
-	public abstract JPanel addStatus(StatusData statusData, int deletionDelay);
-	
-	public abstract void doPost();
+	void doPost();
 	
 	/**
 	 * ポストボックスをフォーカスさせる
 	 */
-	public abstract void focusPostBox();
+	void focusPostBox();
+	
+	/**
+	 * ショートカットキーを用いてアクションコマンドを取得する。
+	 * 
+	 * @param keyString キー文字列。
+	 * @return アクションコマンド名
+	 */
+	String getActionCommandByShortcutKey(String keyString);
+	
+	/**
+	 * 指定されたアクションコマンド名で呼び出されるアクションハンドラを取得する。
+	 * 
+	 * @param actionCommand アクションコマンド名
+	 * @return アクションハンドラ
+	 */
+	ActionHandler getActionHandler(String actionCommand);
 	
 	/**
 	 * ClientConfigurationインスタンスを取得する。
 	 * 
 	 * @return インスタンス
 	 */
-	public abstract ClientConfiguration getClientConfiguration();
+	ClientConfiguration getClientConfiguration();
+	
+	/**
+	 * 設定情報を格納したクラスを取得する。該当のプロパティを変更すると自動的に更新されます。
+	 * 
+	 * @return 設定情報を格納したクラス。
+	 */
+	ConfigData getConfigData();
+	
+	/**
+	 * デフォルトで使用されるフォントを取得する。
+	 * 
+	 * @return フォント
+	 */
+	Font getDefaultFont();
 	
 	/**
 	 * 画像をキャッシュするオブジェクトを取得する。
 	 * 
 	 * @return ImageCacherインスタンス
 	 */
-	public abstract ImageCacher getImageCacher();
+	ImageCacher getImageCacher();
 	
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
@@ -87,36 +111,35 @@ public interface ClientFrameApi {
 	 * 
 	 * @return 一時的な情報が生き残る時間
 	 */
-	public abstract int getInfoSurviveTime();
+	int getInfoSurviveTime();
 	
 	/**
 	 * ログインしているユーザーを取得する。取得出来なかった場合nullの可能性あり。また、ブロックする可能性あり。
 	 * 
 	 * @return the loginUser
 	 */
-	public abstract User getLoginUser();
+	User getLoginUser();
 	
 	/**
 	 * 今現在ポストボックスに入力されている文字列を返す。
 	 * 
 	 * @return ポストボックスに入力されている文字列
 	 */
-	public abstract String getPostText();
+	String getPostText();
 	
 	/**
-	 * 内部で保持しているステータスデータを取得する
+	 * 現在選択しているタブを取得する。
 	 * 
-	 * @param statusId ステータスID (ユニーク)
-	 * @return ステータスデータ。ない場合はnull
+	 * @return 選択しているタブ
 	 */
-	public abstract StatusData getStatus(long statusId);
+	ClientTab getSelectingTab();
 	
 	/**
 	 * タイマーを取得する。
 	 * 
 	 * @return タイマー
 	 */
-	public abstract Timer getTimer();
+	Timer getTimer();
 	
 	/**
 	 * Twitterインスタンスを取得する
@@ -124,55 +147,56 @@ public interface ClientFrameApi {
 	 * @return Twitterインスタンス
 	 */
 	@Deprecated
-	public abstract Twitter getTwitter();
+	Twitter getTwitter();
 	
-	/**	 * TODO snsoftware
+	/**
+	 * 読み込み用のTwitterインスタンスを取得する。
 	 * 
-	 * @return
+	 * @return 読み込み用Twitterインスタンス
 	 */
 	Twitter getTwitterForRead();
 	
 	/**
-	 * TODO snsoftware
+	 * 書き込み用のTwitterインスタンスを取得する。
 	 * 
-	 * @return
+	 * @return 書き込み用のTwitterインスタンス
 	 */
 	Twitter getTwitterForWrite();
+	
+	/**
+	 * UIに用いられるフォントを取得する。
+	 * 
+	 * @return フォント
+	 */
+	Font getUiFont();
 	
 	/**
 	 * Utilityインスタンスを取得する。
 	 * 
 	 * @return インスタンス
 	 */
-	public abstract Utility getUtility();
+	Utility getUtility();
+	
+	/**
+	 * アクションコマンド名を使用してアクションハンドラを呼び出す。
+	 * 
+	 * @param name アクションコマンド名
+	 * @param statusData データ
+	 */
+	void handleAction(String name, StatusData statusData);
 	
 	/**
 	 * 例外を処理する。
 	 * 
 	 * @param ex 例外
 	 */
-	public abstract void handleException(Exception ex);
+	void handleException(Exception ex);
 	
 	/**
 	 * 例外を処理する。
 	 * @param ex 例外
 	 */
-	public abstract void handleException(TwitterException ex);
-	
-	/**
-	 * ステータスを削除する。
-	 * 
-	 * @param statusData ステータスデータ
-	 */
-	public abstract void removeStatus(final StatusData statusData);
-	
-	/**
-	 * ステータスを削除する。
-	 * 
-	 * @param statusData ステータスデータ
-	 * @param delay 遅延 (ms)
-	 */
-	public abstract void removeStatus(final StatusData statusData, int delay);
+	void handleException(TwitterException ex);
 	
 	/**
 	 * inReplyToStatusを付加する。
@@ -180,7 +204,7 @@ public interface ClientFrameApi {
 	 * @param status ステータス
 	 * @return 前設定されたinReplyToStatus
 	 */
-	public abstract Status setInReplyToStatus(Status status);
+	Status setInReplyToStatus(Status status);
 	
 	/**
 	* ポストボックスの内容を変更する。
@@ -188,7 +212,7 @@ public interface ClientFrameApi {
 	* @param text 新しい内容
 	* @return 変更する前の内容
 	*/
-	public abstract String setPostText(String text);
+	String setPostText(String text);
 	
 	/**
 	 * ポストボックスの内容を変更し、指定の場所を選択する
@@ -197,5 +221,18 @@ public interface ClientFrameApi {
 	 * @param selectingEnd 選択範囲の終了
 	 * @return 変更する前の内容
 	 */
-	public abstract String setPostText(String text, int selectingStart, int selectingEnd);
+	String setPostText(String text, int selectingStart, int selectingEnd);
+	
+	/**
+	 * ツイートビューに文字列を表示する
+	 * 
+	 * @param tweetData ツイートビューのテキスト
+	 * @param createdBy 作成者
+	 * @param createdByToolTip 作成者のLabelのTooltip
+	 * @param createdAt 作成日時等
+	 * @param createdAtToolTip 作成日時のLabelのTooltip
+	 * @param icon アイコン 
+	 */
+	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
+			String createdAtToolTip, Icon icon);
 }
