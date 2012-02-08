@@ -1609,6 +1609,7 @@ import twitter4j.internal.http.HTMLEntity;
 				} catch (TwitterException e) {
 					handleException(e);
 				}
+				configuration.setInitializing(false);
 			}
 		});
 		timer.schedule(new TimerTask() {

@@ -114,7 +114,7 @@ public class Utility {
 		/**
 		 * インスタンスを生成する。
 		 * 
-		 * @param configuration
+		 * @param configuration 設定
 		 */
 		public TrayIconNotifySender(ClientConfiguration configuration) {
 			trayIcon = configuration.getTrayIcon();
@@ -259,6 +259,11 @@ public class Utility {
 	private final ClientConfiguration configuration;
 	
 	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 * @param configuration 設定
+	 */
 	public Utility(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -390,6 +395,9 @@ public class Utility {
 	 * @param imageFile アイコン
 	 */
 	public void sendNotify(String summary, String text, File imageFile) {
+		if (configuration.isInitializing()) {
+			return;
+		}
 		detectNotifier();
 		if (notifySender != null) {
 			try {
@@ -397,6 +405,8 @@ public class Utility {
 			} catch (IOException e) {
 				logger.warn("通知を送信できませんでした", e);
 			}
+		} else {
+			logger.warn("有効なNotifierが見つかりません");
 		}
 	}
 }
