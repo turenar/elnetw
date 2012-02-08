@@ -11,8 +11,12 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
+
+import jp.syuriken.snsw.twclient.JobQueue.Priority;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,9 +110,15 @@ public class Utility {
 	 * 
 	 * @author $Author$
 	 */
-	public static class TrayIconNotifySender implements NotifySender {
+	public static class TrayIconNotifySender implements NotifySender, ParallelRunnable {
 		
 		private TrayIcon trayIcon;
+		
+		private LinkedList<Object[]> queue = new LinkedList<Object[]>();
+		
+		private final ClientConfiguration configuration;
+		
+		private long lastNotified;
 		
 		
 		/**
@@ -117,12 +127,55 @@ public class Utility {
 		 * @param configuration 設定
 		 */
 		public TrayIconNotifySender(ClientConfiguration configuration) {
+			this.configuration = configuration;
 			trayIcon = configuration.getTrayIcon();
 		}
 		
 		@Override
+		public void run() {
+			synchronized (queue) {
+				long tempTime = lastNotified + 5000; //TODO 5000 from configure
+				if (tempTime > System.currentTimeMillis()) {
+					
+					configuration.getFrameApi().getTimer().schedule(new TimerTask() {
+						
+						@Override
+						public void run() {
+							TrayIconNotifySender.this.run();
+						}
+					}, tempTime - System.currentTimeMillis());
+					LoggerFactory.getLogger(getClass()).error("entering sched");
+					return;
+				}
+				LoggerFactory.getLogger(getClass()).error(
+						"cTM={}, tT={}, diff={}, queueSize={}",
+						Utility.toArray(System.currentTimeMillis(), tempTime, tempTime - System.currentTimeMillis(),
+								queue.size()));
+				Object[] arr = queue.poll();
+				if (arr == null) {
+					return;
+				}
+				String summary = (String) arr[0];
+				String text = (String) arr[1];
+				trayIcon.displayMessage(summary, text, MessageType.INFO);
+				lastNotified = System.currentTimeMillis();
+				if (queue.size() > 0) {
+					configuration.getFrameApi().addJob(Priority.LOW, this);
+				}
+			}
+		}
+		
+		@Override
 		public void sendNotify(String summary, String text, File imageFile) {
-			trayIcon.displayMessage(summary, text, MessageType.INFO);
+			synchronized (queue) {
+				queue.add(new Object[] {
+					summary,
+					text
+				/*,imageFile*/});
+				if (queue.size() == 1) {
+					configuration.getFrameApi().addJob(Priority.LOW, this);
+				}
+			}
 		}
 	}
 	
