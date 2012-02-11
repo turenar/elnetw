@@ -144,13 +144,8 @@ public class Utility {
 							TrayIconNotifySender.this.run();
 						}
 					}, tempTime - System.currentTimeMillis());
-					LoggerFactory.getLogger(getClass()).error("entering sched");
 					return;
 				}
-				LoggerFactory.getLogger(getClass()).error(
-						"cTM={}, tT={}, diff={}, queueSize={}",
-						Utility.toArray(System.currentTimeMillis(), tempTime, tempTime - System.currentTimeMillis(),
-								queue.size()));
 				Object[] arr = queue.poll();
 				if (arr == null) {
 					return;
