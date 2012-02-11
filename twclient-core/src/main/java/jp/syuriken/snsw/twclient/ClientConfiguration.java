@@ -42,6 +42,8 @@ public class ClientConfiguration {
 	
 	private final Utility utility = new Utility(this);
 	
+	private boolean isInitializing = true;
+
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	
 	private final FilterService rootFilterService;
@@ -242,6 +244,15 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 初期化中/初期TLロード中であるかどうかを返す。
+	 * 
+	 * @return the isInitializing
+	 */
+	public boolean isInitializing() {
+		return isInitializing;
+	}
+	
+	/**
 	 * シャットダウンフェーズかどうかを取得する。
 	 * 
 	 * @return シャットダウンフェーズかどうか
@@ -292,6 +303,15 @@ public class ClientConfiguration {
 	 */
 	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
 		this.frameApi = frameApi;
+	}
+	
+	/**
+	 * 初期化中/初期TLロード中であるかを設定する
+	 * 
+	 * @param isInitializing 初期化中かどうか。
+	 */
+	/*package*/void setInitializing(boolean isInitializing) {
+		this.isInitializing = isInitializing;
 	}
 	
 	/**

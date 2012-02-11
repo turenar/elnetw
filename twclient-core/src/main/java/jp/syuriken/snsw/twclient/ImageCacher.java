@@ -99,8 +99,12 @@ public class ImageCacher {
 		@Override
 		public void run() {
 			FetchEntry fetchEntry = fetchQueue.poll();
+			if (fetchEntry == null) {
+				return;
+			}
 			if (cacheManager.containsKey(fetchEntry.entry.url.toString())) {
 				setImageIcon(fetchEntry.label, fetchEntry.entry.url);
+				return;
 			}
 			
 			fetchImage(fetchEntry.entry);

@@ -1296,6 +1296,7 @@ import twitter4j.User;
 				} catch (TwitterException e) {
 					handleException(e);
 				}
+				configuration.setInitializing(false);
 			}
 		});
 		timer.schedule(new TimerTask() {
