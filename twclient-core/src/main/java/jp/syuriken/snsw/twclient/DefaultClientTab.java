@@ -3,7 +3,9 @@ package jp.syuriken.snsw.twclient;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FontMetrics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -34,6 +37,8 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+
+import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -478,16 +483,16 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void run() {
-			/* EventQueue.invokeLater(new Runnable() {
+			EventQueue.invokeLater(new Runnable() {
 				
 				@Override
 				public void run() {
 					synchronized (postListAddQueue) {
 						int size = postListAddQueue.size();
 						
-						viewTab.add(postListAddQueue);
+						sortedPostListPanel.add(postListAddQueue);
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight + PADDING_OF_POSTLIST) {
+						if (viewPosition.y < fontHeight) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
@@ -495,7 +500,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						}
 					}
 				}
-			}); */
+			});
 		}
 	}
 	
@@ -549,6 +554,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
+	private final ConfigData configData;
+	
+	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -560,11 +569,14 @@ public abstract class DefaultClientTab implements ClientTab {
 		imageCacher = configuration.getImageCacher();
 		sortedPostListPanel = new SortedPostListPanel();
 		frameApi = configuration.getFrameApi();
+		configData = frameApi.getConfigData();
 		fontMetrics = getTabComponent().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
 		iconSize = new Dimension(64, fontHeight);
+		frameApi.getTimer().schedule(new UpdatePostList(), configData.intervalOfPostListUpdate,
+				configData.intervalOfPostListUpdate);
 	}
 	
 	/**
@@ -624,24 +636,8 @@ public abstract class DefaultClientTab implements ClientTab {
 			statusData.foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-			boolean mentioned = false;
-			for (UserMentionEntity userMentionEntity : userMentionEntities) {
-				/* if (configProperties.getBoolean("client.main.match.id_strict_match")) {
-					if (userMentionEntity.getId() == getLoginUser().getId()) {
-						mentioned = true;
-						break;
-					}
-				} else { */
-				if (userMentionEntity.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
-					mentioned = true;
-					break;
-				}
-				/* } */
-			}
-			if (mentioned) {
+			if (isMentioned(userMentionEntities)) {
 				statusData.foregroundColor = Color.RED;
-				configuration.getUtility().sendNotify(user.getName(), originalStatus.getText(),
-						imageCacher.getImageFile(user));
 			}
 		}
 		
@@ -707,10 +703,9 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 			list.add(statusData);
 		}
-		getChildComponent().add(linePanel); //TODO
-		/*synchronized (postListAddQueue) {
+		synchronized (postListAddQueue) {
 			postListAddQueue.add(linePanel);
-		}*/
+		}
 		return linePanel;
 	}
 	
@@ -734,7 +729,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @throws IllegalArgumentException 正しくないプロパティ
 	 * @throws NumberFormatException 数値ではないプロパティ
 	 */
-	private void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
+	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
 			selectingPost.setBackground(selectingPost.getStatusData().backgroundColor);
 		}
@@ -847,12 +842,6 @@ public abstract class DefaultClientTab implements ClientTab {
 			frameApi.setTweetViewText(statusData.data.getText(), statusData.sentBy.getName(), null, dateFormat.get()
 				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		}
-		// if (statusData.image instanceof JLabel) {
-		// Icon icon = ((JLabel) statusData.image).getIcon();
-		// getTweetViewUserIconLabel().setIcon(icon);
-		// } else {
-		// 	getTweetViewUserIconLabel().setIcon(null);
-		// }
 	}
 	
 	/**
@@ -916,12 +905,22 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
+	 * IDが呼ばれたかどうかを判定する
+	 * 
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
+		return configuration.isMentioned(userMentionEntities);
+	}
+	
+	/**
 	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
 	 * 
 	 * @param text テキスト
 	 * @return &lt;br&gt;に置き換えられた文章
 	 */
-	private String nl2br(String text) {
+	protected String nl2br(String text) {
 		StringBuilder stringBuilder = new StringBuilder(text);
 		int offset = 0;
 		int position;

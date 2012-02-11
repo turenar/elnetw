@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -43,6 +42,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -78,7 +79,7 @@ import twitter4j.User;
  * @author $Author$
  */
 @SuppressWarnings("serial")
-/*package*/final class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
+/*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
 	
 	/**
 	 * アカウント認証するアクションハンドラ
@@ -134,6 +135,8 @@ import twitter4j.User;
 	
 	public class ConfigData implements PropertyChangeListener {
 		
+		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
+		
 		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
 		
 		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
@@ -168,6 +171,9 @@ import twitter4j.User;
 		
 		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
 		
+		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
+		
 		
 		public ConfigData() {
 			configProperties.addPropertyChangedListener(this);
@@ -193,6 +199,8 @@ import twitter4j.User;
 				scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
 			} else if (Utility.equalString(name, PROPERTY_INFO_SURVIVE_TIME)) {
 				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
+			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_MENTION)) {
+				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
 			}
 		}
 	}
@@ -463,8 +471,6 @@ import twitter4j.User;
 	
 	private User loginUser;
 	
-	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
-	
 	private Timer timer;
 	
 	private ClientProperties configProperties;
@@ -506,6 +512,8 @@ import twitter4j.User;
 	private ConfigData configData;
 	
 	private FilterService rootFilterService;
+	
+	protected ClientTab selectingTab;
 	
 	
 	/** 
@@ -1088,6 +1096,19 @@ import twitter4j.User;
 		if (viewTab == null) {
 			viewTab = new JTabbedPane();
 			viewTab.setBackground(Color.WHITE);
+			viewTab.addChangeListener(new ChangeListener() {
+				
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					if (selectingTab != null) {
+						selectingTab.focusLost();
+					}
+					selectingTab = configuration.getFrameTab(viewTab.getSelectedIndex());
+					if (selectingTab != null) {
+						selectingTab.focusGained();
+					}
+				}
+			});
 		}
 		return viewTab;
 	}
@@ -1199,6 +1220,17 @@ import twitter4j.User;
 		}
 	}
 	
+	/*package*/boolean isFocusTab(int index) {
+		return getViewTab().getSelectedIndex() == index;
+	}
+	
+	/*package*/void refreashTab(int indexOf, ClientTab tab) {
+		JTabbedPane tabbedPane = getViewTab();
+		tabbedPane.setIconAt(indexOf, tab.getIcon());
+		tabbedPane.setTitleAt(indexOf, tab.getTitle());
+		tabbedPane.setToolTipTextAt(indexOf, tab.getToolTip());
+	}
+	
 	private void reloginForRead(String accountId) {
 		twitterForRead = new TwitterFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
 		loginUser = null;
@@ -1299,6 +1331,23 @@ import twitter4j.User;
 				configuration.setInitializing(false);
 			}
 		});
+		jobQueue.addJob(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					Paging paging = configData.pagingOfGettingInitialMentions;
+					ResponseList<Status> mentions = twitterForRead.getMentions(paging);
+					for (Status status : mentions) {
+						rootFilterService.onStatus(status);
+					}
+				} catch (TwitterException e) {
+					handleException(e);
+				} finally {
+					configuration.setInitializing(false);
+				}
+			}
+		});
 		timer.schedule(new TimerTask() {
 			
 			@Override
@@ -1373,4 +1422,5 @@ import twitter4j.User;
 	public void windowOpened(WindowEvent e) {
 		// do nothing
 	}
+	
 }

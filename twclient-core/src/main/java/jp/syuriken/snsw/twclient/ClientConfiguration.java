@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.UserMentionEntity;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
@@ -43,7 +45,7 @@ public class ClientConfiguration {
 	private final Utility utility = new Utility(this);
 	
 	private boolean isInitializing = true;
-
+	
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	
 	private final FilterService rootFilterService;
@@ -64,18 +66,33 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * フィルタを追加する
+	 * 
+	 * @param rootFilter フィルター
+	 */
+	public void addFilter(RootFilter rootFilter) {
+		rootFilterService.addFilter(rootFilter);
+	}
+	
+	/**
 	 * 新しいタブを追加する。
 	 * 
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
 	 */
-	public boolean addFrameTab(ClientTab tab) {
+	public boolean addFrameTab(final ClientTab tab) {
 		if (tab == null) {
 			return false;
 		}
 		tabsListLock.writeLock().lock();
 		boolean result = tabsList.add(tab);
-		frameApi.addTab(tab);
+		EventQueue.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				frameApi.addTab(tab);
+			}
+		});
 		tabsListLock.writeLock().unlock();
 		return result;
 	}
@@ -244,12 +261,47 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 指定したタブが選択されているかどうかを取得する
+	 * 
+	 * @param tab タブ
+	 * @return 選択されているかどうか
+	 */
+	public boolean isFocusTab(ClientTab tab) {
+		tabsListLock.readLock().lock();
+		int indexOf = tabsList.indexOf(tab);
+		boolean result = frameApi.isFocusTab(indexOf);
+		tabsListLock.readLock().unlock();
+		return result;
+	}
+	
+	/**
 	 * 初期化中/初期TLロード中であるかどうかを返す。
 	 * 
 	 * @return the isInitializing
 	 */
 	public boolean isInitializing() {
 		return isInitializing;
+	}
+	
+	/**
+	 * IDが呼ばれたかどうかを判定する
+	 * 
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
+		for (UserMentionEntity userMentionEntity : userMentionEntities) {
+			if (getFrameApi().getConfigData().mentionIdStrictMatch) {
+				if (userMentionEntity.getId() == frameApi.getLoginUser().getId()) {
+					return true;
+				}
+			} else {
+				if (userMentionEntity.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -262,17 +314,41 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
+	 * 
+	 * @param tab タブ
+	 */
+	public void refreshTab(final ClientTab tab) {
+		tabsListLock.readLock().lock();
+		final int indexOf = tabsList.indexOf(tab);
+		EventQueue.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				frameApi.refreashTab(indexOf, tab);
+			}
+		});
+		tabsListLock.readLock().unlock();
+	}
+	
+	/**
 	 * タブを削除する
 	 * 
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
 	 */
-	public boolean removeFrameTab(ClientTab tab) {
+	public boolean removeFrameTab(final ClientTab tab) {
 		tabsListLock.writeLock().lock();
-		int indexOf = tabsList.indexOf(tab);
+		final int indexOf = tabsList.indexOf(tab);
 		if (indexOf != -1) {
 			tabsList.remove(indexOf);
-			frameApi.removeFrameTab(indexOf, tab);
+			EventQueue.invokeLater(new Runnable() {
+				
+				@Override
+				public void run() {
+					frameApi.removeFrameTab(indexOf, tab);
+				}
+			});
 		}
 		tabsListLock.writeLock().unlock();
 		return indexOf != -1;

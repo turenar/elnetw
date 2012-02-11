@@ -91,7 +91,9 @@ public class TwitterClientMain {
 				logger.error("Uncaught Exception", e);
 			}
 		});
+		configuration.addFilter(new RootFilter(configuration));
 		configuration.addFrameTab(new TimelineViewTab(configuration));
+		configuration.addFrameTab(new MentionViewTab(configuration));
 		
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
