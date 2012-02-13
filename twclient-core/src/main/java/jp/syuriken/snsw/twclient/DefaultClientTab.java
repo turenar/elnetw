@@ -178,7 +178,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void onException(Exception ex) {
-			// frameApi.handleException(ex);
+			logger.warn("onException:", ex);
 		}
 		
 		@Override
@@ -395,9 +395,9 @@ public abstract class DefaultClientTab implements ClientTab {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			e.getComponent().requestFocusInWindow();
-			if (e.isPopupTrigger()) {
+			/* if (e.isPopupTrigger()) {
 				selectingPost = (StatusPanel) e.getComponent();
-			}
+			} */
 			if (e.getClickCount() == 2) {
 				StatusPanel panel = ((StatusPanel) e.getComponent());
 				frameApi.handleAction("reply", panel.getStatusData());
@@ -558,6 +558,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
 	
+	private JPopupMenu tweetPopupMenu;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -577,6 +579,8 @@ public abstract class DefaultClientTab implements ClientTab {
 		iconSize = new Dimension(64, fontHeight);
 		frameApi.getTimer().schedule(new UpdatePostList(), configData.intervalOfPostListUpdate,
 				configData.intervalOfPostListUpdate);
+		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
+		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
 	}
 	
 	/**
@@ -624,7 +628,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		JLabel statusText = new JLabel(status.getText());
 		statusData.data = statusText;
 		
-		statusData.popupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
+		statusData.popupMenu = tweetPopupMenu;
 		
 		if (originalStatus.isRetweet()) {
 			StringBuilder stringBuilder = new StringBuilder();
