@@ -55,7 +55,6 @@ public class TwitterStatus implements Status {
 		return originalStatus.getAccessLevel();
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
 	public Annotations getAnnotations() {
