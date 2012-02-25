@@ -143,11 +143,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
-			<artifactId>twclient-plugindev</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
 			<version>2.2.5</version>

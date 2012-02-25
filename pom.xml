@@ -20,11 +20,6 @@
 		<dependencies>
 			<dependency>
 				<groupId>jp.syuriken.snsw</groupId>
-				<artifactId>twclient-plugindev</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>jp.syuriken.snsw</groupId>
 				<artifactId>twclient-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -142,6 +137,7 @@
 
 			<plugin>
 				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
