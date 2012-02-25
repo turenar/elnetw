@@ -5,7 +5,7 @@ import javax.swing.Icon;
 /**
  * タイムラインビュー
  * 
- * @author $Author: snsoftware $
+ * @author $Author$
  */
 public class TimelineViewTab extends DefaultClientTab {
 	

@@ -6,7 +6,7 @@ import twitter4j.UserStreamListener;
 /**
  * 入出力データをディスパッチするためのクラス。
  * 
- * @author $Author: snsoftware $
+ * @author $Author$
  */
 public interface ClientMessageListener extends UserStreamListener, ConnectionLifeCycleListener {
 	

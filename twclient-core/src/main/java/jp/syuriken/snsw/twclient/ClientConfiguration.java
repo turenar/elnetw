@@ -10,6 +10,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.imageio.ImageIO;
 
+import jp.syuriken.snsw.twclient.filter.MessageFilter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,7 @@ public class ClientConfiguration {
 	private ImageCacher imageCacher;
 	
 	
-	/*package*/ClientConfiguration() {
+	protected ClientConfiguration() {
 		rootFilterService = new FilterService(this);
 		try {
 			trayIcon =
@@ -70,7 +72,7 @@ public class ClientConfiguration {
 	 * 
 	 * @param rootFilter フィルター
 	 */
-	public void addFilter(RootFilter rootFilter) {
+	public void addFilter(MessageFilter rootFilter) {
 		rootFilterService.addFilter(rootFilter);
 	}
 	
@@ -289,7 +291,10 @@ public class ClientConfiguration {
 	 * @param userMentionEntities エンティティ
 	 * @return 呼ばれたかどうか
 	 */
-	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
+	public boolean isMentioned(UserMentionEntity[] userMentionEntities) {
+		if (userMentionEntities == null) {
+			return false;
+		}
 		for (UserMentionEntity userMentionEntity : userMentionEntities) {
 			if (getFrameApi().getConfigData().mentionIdStrictMatch) {
 				if (userMentionEntity.getId() == frameApi.getLoginUser().getId()) {
@@ -433,6 +438,13 @@ public class ClientConfiguration {
 			configProperties.store();
 		}
 		return null;
-		
 	}
+}
+
+class TestCacher extends ImageCacher {
+	
+	public TestCacher(ClientConfiguration configuration) {
+		super(configuration);
+	}
+	
 }

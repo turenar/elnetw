@@ -164,7 +164,6 @@ public class ImageCacher {
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		configuration.getFrameApi().getTimer().schedule(new ImageFlusher(), 10000, 10000);
 	}
 	
 	/**

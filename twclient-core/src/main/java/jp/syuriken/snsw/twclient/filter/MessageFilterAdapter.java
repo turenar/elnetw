@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.filter;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -6,7 +6,7 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
 
 /**
- * TODO Megumi
+ * {@link MessageFilter}のためのアダプタークラス
  * 
  * @author $Author$
  */
@@ -14,17 +14,17 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	
 	@Override
 	public boolean onChangeAccount(boolean forWrite) {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onClientMessage(String name, Object arg) {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onDeletionNotice(long directMessageId, long userId) {
-		return true;
+		return false;
 	}
 	
 	@Override
@@ -39,17 +39,17 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	
 	@Override
 	public boolean onException(Exception obj) {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onFavorite(User source, User target, Status favoritedStatus) {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onFollow(User source, User followedUser) {
-		return true;
+		return false;
 	}
 	
 	@Override
@@ -59,7 +59,7 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	
 	@Override
 	public boolean onRetweet(User source, User target, Status retweetedStatus) {
-		return true;
+		return false;
 	}
 	
 	@Override
@@ -69,27 +69,27 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	
 	@Override
 	public boolean onStreamCleanUp() {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onStreamConnect() {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onStreamDisconnect() {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onTrackLimitationNotice(int numberOfLimitedStatuses) {
-		return true;
+		return false;
 	}
 	
 	@Override
 	public boolean onUnfavorite(User source, User target, Status unfavoritedStatus) {
-		return true;
+		return false;
 	}
 	
 }

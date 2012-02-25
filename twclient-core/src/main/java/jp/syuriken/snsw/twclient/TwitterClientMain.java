@@ -9,6 +9,9 @@ import java.text.MessageFormat;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import jp.syuriken.snsw.twclient.filter.RootFilter;
+import jp.syuriken.snsw.twclient.filter.UserFilter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +27,7 @@ import twitter4j.auth.AccessToken;
  */
 public class TwitterClientMain {
 	
-	/** TODO snsoftware */
+	/** 設定ファイル名 */
 	private static final String CONFIG_FILE_NAME = "twclient.cfg";
 	
 	/** 設定ファイル */
@@ -62,6 +65,14 @@ public class TwitterClientMain {
 	 * 
 	 */
 	public int run() {
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				logger.error("Uncaught Exception", e);
+			}
+		});
+		
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
 			defaultConfig.load(getClass().getClassLoader().getResourceAsStream(
@@ -84,14 +95,8 @@ public class TwitterClientMain {
 		tryGetOAuthAccessToken();
 		
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				logger.error("Uncaught Exception", e);
-			}
-		});
 		configuration.addFilter(new RootFilter(configuration));
+		configuration.addFilter(new UserFilter(configuration));
 		configuration.addFrameTab(new TimelineViewTab(configuration));
 		configuration.addFrameTab(new MentionViewTab(configuration));
 		

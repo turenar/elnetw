@@ -1,6 +1,9 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.filter;
 
 import java.util.TreeSet;
+
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ImageCacher;
 
 import twitter4j.Status;
 

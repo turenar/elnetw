@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -17,14 +18,14 @@ import twitter4j.UserList;
  * このクラスでは登録されているフィルタが平等に呼び出されることはありません。
  * 登録順に呼び出され、該当関数がフィルターした場合 (falseまたはnullを返した時など) には以降の関数は呼び出されません。
  * なおこのクラスは並列的にフィルタを呼び出すため、フィルタのマルチスレッド対応が必要です。
- * @author $Author: snsoftware $
+ * @author $Author$
  */
-public class FilterService implements ClientMessageListener {
+/*package*/class FilterService implements ClientMessageListener {
 	
 	/**
 	 * FilterDispatch元クラス。内部的に用いられる。
 	 * 
-	 * @author $Author: snsoftware $
+	 * @author $Author$
 	 */
 	public abstract class FilterDispatcher implements ParallelRunnable {
 		
@@ -41,15 +42,15 @@ public class FilterService implements ClientMessageListener {
 		 */
 		public void dispatch() {
 			filterListLock.readLock().lock();
-			boolean isContinueable = true;
+			boolean isFiltered = false;
 			for (MessageFilter messageFilter : filterList) {
-				isContinueable = callDispatch(messageFilter);
-				if (isContinueable == false) {
+				isFiltered = callDispatch(messageFilter);
+				if (isFiltered) {
 					break;
 				}
 			}
 			filterListLock.readLock().unlock();
-			if (isContinueable) {
+			if (isFiltered == false) {
 				tabsListLock.readLock().lock();
 				for (ClientTab tab : tabsList) {
 					notifyClientMessage(tab.getRenderer());
@@ -228,7 +229,7 @@ public class FilterService implements ClientMessageListener {
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
 				obj = messageFilter.onDeletionNotice(obj);
-				return obj != null;
+				return obj == null;
 			}
 			
 			@Override
@@ -248,7 +249,7 @@ public class FilterService implements ClientMessageListener {
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
 				message = messageFilter.onDirectMessage(message);
-				return message != null;
+				return message == null;
 			}
 			
 			@Override
@@ -335,7 +336,7 @@ public class FilterService implements ClientMessageListener {
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
 				arr = messageFilter.onFriendList(arr);
-				return arr != null && arr.length != 0;
+				return arr == null || arr.length == 0;
 			}
 			
 			@Override
@@ -376,7 +377,7 @@ public class FilterService implements ClientMessageListener {
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
 				obj = messageFilter.onStatus(obj);
-				return obj != null;
+				return obj == null;
 			}
 			
 			@Override
