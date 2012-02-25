@@ -5,9 +5,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- ここをカスタマイズ -->
-	<name>Twitter client</name>
+	<name>Twitter client core package</name>
 	<artifactId>twclient-core</artifactId>
-	<url>http://code.google.com/p/tbotsys</url>
+	<url>http://code.google.com/p/turetwcl</url>
 	<description>Twitter client</description>
 
 	<packaging>jar</packaging>
@@ -108,23 +108,23 @@
 	<distributionManagement>
 		<repository>
 			<id>gc-repos</id>
-			<name>Google Code for tbotsys / releases</name>
-			<url>scm:svn:https://tbotsys.googlecode.com/svn/maven</url>
+			<name>Google Code for turetwcl / releases</name>
+			<url>scm:svn:https://turetwcl.googlecode.com/svn/maven</url>
 		</repository>
 		<snapshotRepository>
 			<uniqueVersion>true</uniqueVersion>
 			<id>gc-snapshot</id>
-			<name>Google Code for tbotsys / snapshot</name>
-			<url>scm:svn:https://tbotsys.googlecode.com/svn/maven-snapshot</url>
+			<name>Google Code for turetwcl / snapshot</name>
+			<url>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<!-- SVNの設定 -->
 	<scm>
-		<connection>scm:svn:http://tbotsys.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</connection>
-		<developerConnection>scm:svn:https://tbotsys.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</developerConnection>
-		<tag>scm:svn:https://tbotsys.googlecode.com/svn/maven-snapshot/core/tags</tag>
-		<url>http://tbotsys.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</url>
+		<connection>scm:svn:http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</connection>
+		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</developerConnection>
+		<tag>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/tags</tag>
+		<url>http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</url>
 	</scm>
 
 	<!-- 開発者のリストを記述(省略可能) -->
@@ -140,11 +140,6 @@
 			<groupId>urbanophile</groupId>
 			<artifactId>java-getopt</artifactId>
 			<version>1.0.13</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
-			<artifactId>twclient-plugindev</artifactId>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -188,7 +183,7 @@
 			<extension>
 				<groupId>org.jvnet.wagon-svn</groupId>
 				<artifactId>wagon-svn</artifactId>
-				<version>1.9</version>
+				<version>1.12</version>
 			</extension>
 		</extensions>
 		<resources>

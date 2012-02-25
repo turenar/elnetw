@@ -126,7 +126,7 @@ public class VersionInfoFrame extends JFrame {
 	
 	private JTextArea infoTextPane;
 	
-	private JList<String> libraryList;
+	private JList libraryList;
 	
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
 	
@@ -179,10 +179,10 @@ public class VersionInfoFrame extends JFrame {
 		return infoTextScrollPane;
 	}
 	
-	private JList<String> getLibraryList() {
+	private JList getLibraryList() {
 		if (libraryList == null) {
-			libraryList = new JList<String>();
-			DefaultListModel<String> defaultListModel = new DefaultListModel<String>();
+			libraryList = new JList();
+			DefaultListModel defaultListModel = new DefaultListModel();
 			for (LibraryInfo libraryName : libraryInfoList) {
 				defaultListModel.addElement(libraryName.getName());
 			}
@@ -229,8 +229,8 @@ public class VersionInfoFrame extends JFrame {
 	 * @param e イベント (ignore)
 	 */
 	protected void updateLibraryInfo(ListSelectionEvent e) {
-		JList<String> list = getLibraryList();
-		String selectedValue = list.getSelectedValue();
+		JList list = getLibraryList();
+		String selectedValue = (String) list.getSelectedValue();
 		for (LibraryInfo libraryInfo : libraryInfoList) {
 			if (Utility.equalString(libraryInfo.name, selectedValue)) {
 				getInfoTextPane().setText(libraryInfo.getInfo());
