@@ -1,6 +1,5 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.filter;
 
-import jp.syuriken.snsw.twclient.filter.MessageFilterAdapter;
 
 /**
  * {@link MessageFilterAdapter}が本当にAdapterとなってるかを確認するためだけのテスト。
@@ -8,6 +7,6 @@ import jp.syuriken.snsw.twclient.filter.MessageFilterAdapter;
  * 
  * @author $Author$
  */
-public class MessageFilterAdapterTest extends MessageFilterAdapter {
+public class MessageFilterAdapterChecker extends MessageFilterAdapter {
 	
 }

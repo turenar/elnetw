@@ -6,6 +6,6 @@ package jp.syuriken.snsw.twclient;
  * 
  * @author $Author$
  */
-public class ClientMessageAdapterTest extends ClientMessageAdapter {
+public class ClientMessageAdapterChecker extends ClientMessageAdapter {
 	
 }

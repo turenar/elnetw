@@ -1,6 +1,6 @@
 <configuration>
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>twclient.log</file>
+		<file>twclient-test.log</file>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
 				%d{hh:mm:ss.SSS} [%-4level %logger{36}] %msg%n
@@ -20,7 +20,7 @@
 	</logger>
 
 	<root>
-		<level value="INFO" />
+		<level value="TRACE" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
