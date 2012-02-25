@@ -19,6 +19,14 @@ import twitter4j.Status;
  */
 public class UserFilterTest {
 	
+	private static final class MyClientConfiguration extends ClientConfiguration {
+		
+		/*package*/MyClientConfiguration() {
+			super(true);
+		}
+	}
+	
+	
 	private static final String PROPERTY_FILTER_ID_NAME = "core.filter.user.ids";
 	
 	private static ClientConfiguration configuration;
@@ -31,8 +39,7 @@ public class UserFilterTest {
 	 */
 	@BeforeClass
 	public static void tearUpClass() {
-		configuration = new ClientConfiguration() {
-		};
+		configuration = new MyClientConfiguration();
 		ClientProperties properties = new ClientProperties();
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "1 2 3");
 		configuration.setConfigProperties(properties);
@@ -44,8 +51,7 @@ public class UserFilterTest {
 	 */
 	@Test
 	public void testIllegalFilterIds() {
-		ClientConfiguration configuration = new ClientConfiguration() {
-		};
+		ClientConfiguration configuration = new MyClientConfiguration();
 		ClientProperties properties = new ClientProperties();
 		configuration.setConfigProperties(properties);
 		

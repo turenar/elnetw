@@ -55,6 +55,10 @@ public class ClientConfiguration {
 	private ImageCacher imageCacher;
 	
 	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 */
 	protected ClientConfiguration() {
 		rootFilterService = new FilterService(this);
 		try {
@@ -65,6 +69,15 @@ public class ClientConfiguration {
 			logger.error("icon ファイルの読み込みに失敗。");
 			trayIcon = null;
 		}
+	}
+	
+	/**
+	 * <strong>テスト用</strong>インスタンスを生成する。HeadlessExceptionを無視
+	 * 
+	 * @param isTestMethod テストメソッドですよ。悪用（？）禁止
+	 */
+	protected ClientConfiguration(boolean isTestMethod) {
+		rootFilterService = new FilterService(this);
 	}
 	
 	/**

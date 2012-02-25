@@ -15,17 +15,29 @@ import org.junit.Test;
 public class RootFilterTest {
 	
 	/**
+	 * TODO Megumi
+	 * 
+	 * @author $Author$
+	 */
+	private static final class MyClientConfiguration extends ClientConfiguration {
+		
+		/*package*/MyClientConfiguration() {
+			super(true);
+		}
+		
+		@Override
+		public ImageCacher getImageCacher() {
+			return new TestImageCacher(this);
+		}
+	}
+	
+	
+	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.RootFilter#onStatus(twitter4j.Status)} のためのテスト・メソッド。
 	 */
 	@Test
 	public void testOnStatus() {
-		ClientConfiguration configuration = new ClientConfiguration() {
-			
-			@Override
-			public ImageCacher getImageCacher() {
-				return new TestImageCacher(this);
-			}
-		};
+		ClientConfiguration configuration = new MyClientConfiguration();
 		RootFilter rootFilter = new RootFilter(configuration);
 		assertNotNull(rootFilter.onStatus(new TestStatus(0)));
 		assertNotNull(rootFilter.onStatus(new TestStatus(1)));
