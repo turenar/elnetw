@@ -218,7 +218,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
 				statusData.sentBy.setName("!follow." + source.getScreenName());
-				String message = "フォローされました: " + followedUser.getScreenName();
+				String message = followedUser.getScreenName() + " にフォローされました";
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
 				configuration.getUtility().sendNotify(
