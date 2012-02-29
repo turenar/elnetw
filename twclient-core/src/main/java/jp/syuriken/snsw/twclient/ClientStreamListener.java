@@ -132,7 +132,7 @@ public class ClientStreamListener implements UserStreamListener {
 			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 			statusData.sentBy = new JLabel(source.getScreenName());
 			statusData.sentBy.setName("!follow." + source.getScreenName());
-			String message = "フォローされました: " + followedUser.getScreenName();
+			String message = followedUser.getScreenName() + " にフォローされました";
 			statusData.data = new JLabel(message);
 			frameApi.addStatus(statusData);
 			frameApi.getUtility().sendNotify(
@@ -182,7 +182,7 @@ public class ClientStreamListener implements UserStreamListener {
 		statusData.sentBy = new JLabel();
 		statusData.sentBy.setName("!stream.overlimit");
 		statusData.data =
-				new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
+				new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイートをスキップしました： TrackLimitationNotice");
 		frameApi.addStatus(statusData, frameApi.getInfoSurviveTime() * 2);
 	}
 	
