@@ -4,7 +4,6 @@ import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ImageCacher;
-
 import twitter4j.Status;
 
 /**
@@ -39,9 +38,9 @@ public class RootFilter extends MessageFilterAdapter {
 				return null;
 			} else {
 				Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
-				if (configuration.isMentioned(originalStatus.getUserMentionEntities())) {
-					configuration.getUtility().sendNotify(status.getUser().getName(), originalStatus.getText(),
-							imageCacher.getImageFile(status.getUser()));
+				if (configuration.isMentioned(status.getUserMentionEntities())) {
+					configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
+							imageCacher.getImageFile(originalStatus.getUser()));
 				}
 				statusSet.add(originalStatus.getId());
 				return originalStatus;

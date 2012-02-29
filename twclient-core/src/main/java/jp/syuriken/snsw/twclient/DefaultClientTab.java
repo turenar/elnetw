@@ -600,16 +600,15 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		User user = status.getUser();
 		
-		// TODO 
-		/* if (configProperties.getBoolean("client.main.match.id_strict_match")) {
-			if (user.getId() == getLoginUser().getId()) {
+		if (configData.mentionIdStrictMatch) {
+			if (user.getId() == frameApi.getLoginUser().getId()) {
 				statusData.foregroundColor = Color.BLUE;
 			}
-		} else { */
-		if (user.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
-			statusData.foregroundColor = Color.BLUE;
+		} else {
+			if (user.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
+				statusData.foregroundColor = Color.BLUE;
+			}
 		}
-		/* } */
 		
 		JLabel icon = new JLabel();
 		imageCacher.setImageIcon(icon, status.getUser());
