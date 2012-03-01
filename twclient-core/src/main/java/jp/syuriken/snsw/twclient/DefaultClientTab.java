@@ -178,7 +178,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void onException(Exception ex) {
-			logger.warn("onException:", ex);
+			// do nothing
 		}
 		
 		@Override
@@ -514,6 +514,30 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 	};
 	
+	
+	/**
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
+	 * 
+	 * @param text テキスト
+	 * @return &lt;br&gt;に置き換えられた文章
+	 */
+	protected static String nl2br(String text) {
+		StringBuilder stringBuilder = new StringBuilder(text);
+		int offset = 0;
+		int position;
+		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
+			stringBuilder.replace(position, position + 1, "<br>");
+			offset = position;
+		}
+		offset = 0;
+		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
+			stringBuilder.replace(position, position + 1, "&nbsp;");
+			offset = position;
+		}
+		return stringBuilder.toString();
+	}
+	
+	
 	/** {@link ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
 	
@@ -837,10 +861,17 @@ public abstract class DefaultClientTab implements ClientTab {
 			String tweetText = stringBuilder.toString();
 			String createdBy =
 					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
-			String createdByToolTip = MessageFormat.format("from {0}", status.getSource());
+			String source = status.getSource();
+			String createdAtToolTip =
+					MessageFormat
+						.format("from {0}", source.substring(source.indexOf('>') + 1, source.lastIndexOf('<')));
 			String createdAt = dateFormat.get().format(status.getCreatedAt());
-			frameApi.setTweetViewText(tweetText, createdBy, createdByToolTip, createdAt, null,
+			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, createdAtToolTip,
 					((JLabel) statusData.image).getIcon());
+		} else if (statusData.tag instanceof Exception) {
+			Exception ex = (Exception) statusData.tag;
+			frameApi.setTweetViewText(nl2br(ex.getLocalizedMessage()), ex.getClass().getName(), null, dateFormat.get()
+				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		} else {
 			frameApi.setTweetViewText(statusData.data.getText(), statusData.sentBy.getName(), null, dateFormat.get()
 				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
@@ -915,28 +946,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
 		return configuration.isMentioned(userMentionEntities);
-	}
-	
-	/**
-	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
-	 * 
-	 * @param text テキスト
-	 * @return &lt;br&gt;に置き換えられた文章
-	 */
-	protected String nl2br(String text) {
-		StringBuilder stringBuilder = new StringBuilder(text);
-		int offset = 0;
-		int position;
-		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
-			stringBuilder.replace(position, position + 1, "<br>");
-			offset = position;
-		}
-		offset = 0;
-		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
-			stringBuilder.replace(position, position + 1, "&nbsp;");
-			offset = position;
-		}
-		return stringBuilder.toString();
 	}
 	
 	/**

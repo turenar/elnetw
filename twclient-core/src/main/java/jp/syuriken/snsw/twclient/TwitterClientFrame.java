@@ -628,7 +628,7 @@ import twitter4j.User;
 						postBox.setText("");
 						inReplyToStatus = null;
 					} catch (TwitterException e) {
-						handleException(e);
+						rootFilterService.onException(e);
 					} finally {
 						try {
 							Runnable enabler = new Runnable() {
@@ -1137,12 +1137,7 @@ import twitter4j.User;
 	 */
 	@Override
 	public void handleException(Exception ex) {
-		if (ex instanceof TwitterException) {
-			handleException((TwitterException) ex);
-			//TODO
-		} else {
-			logger.warn(null, ex);
-		}
+		rootFilterService.onException(ex);
 	}
 	
 	/**
@@ -1151,7 +1146,7 @@ import twitter4j.User;
 	 */
 	@Override
 	public void handleException(TwitterException e) {
-		// TODO
+		handleException((Exception) e);
 	}
 	
 	/**

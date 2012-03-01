@@ -1,6 +1,12 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Color;
+import java.util.Date;
+
 import javax.swing.Icon;
+import javax.swing.JLabel;
+
+import twitter4j.TwitterException;
 
 /**
  * タイムラインビュー
@@ -9,7 +15,30 @@ import javax.swing.Icon;
  */
 public class TimelineViewTab extends DefaultClientTab {
 	
-	private DefaultRenderer renderer = new DefaultRenderer();
+	private DefaultRenderer renderer = new DefaultRenderer() {
+		
+		@Override
+		public void onException(Exception ex) {
+			StatusData statusData = new StatusData(ex, new Date());
+			statusData.backgroundColor = Color.BLACK;
+			statusData.foregroundColor = Color.RED;
+			statusData.image = new JLabel();
+			statusData.sentBy = new JLabel("!ERROR!");
+			statusData.sentBy.setName("!ex." + ex.getClass().getName());
+			String exString;
+			if (ex instanceof TwitterException) {
+				TwitterException twex = (TwitterException) ex;
+				exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
+			} else {
+				exString = ex.toString();
+				if (exString.length() > 256) {
+					exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
+				}
+			}
+			statusData.data = new JLabel(exString);
+			addStatus(statusData);
+		}
+	};
 	
 	private boolean focusGained;
 	

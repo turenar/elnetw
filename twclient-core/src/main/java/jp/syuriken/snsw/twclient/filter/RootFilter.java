@@ -4,6 +4,10 @@ import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ImageCacher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.Status;
 
 /**
@@ -19,6 +23,8 @@ public class RootFilter extends MessageFilterAdapter {
 	
 	private ImageCacher imageCacher;
 	
+	private Logger logger = LoggerFactory.getLogger(RootFilter.class);
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -29,6 +35,12 @@ public class RootFilter extends MessageFilterAdapter {
 		this.configuration = configuration;
 		imageCacher = configuration.getImageCacher();
 		statusSet = new TreeSet<Long>();
+	}
+	
+	@Override
+	public boolean onException(Exception ex) {
+		logger.warn("handling onException", ex);
+		return false;
 	}
 	
 	@Override
