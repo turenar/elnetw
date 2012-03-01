@@ -1290,6 +1290,16 @@ import twitter4j.internal.http.HTMLEntity;
 			tweetViewEditorPane.setFont(UI_FONT);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.setEditorKit(new HTMLEditorKit() {
+				
+				private HTMLFactory viewFactory = new HTMLFactoryDelegator();
+				
+				
+				@Override
+				public ViewFactory getViewFactory() {
+					return viewFactory;
+				}
+			});
 			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
 				
 				@Override
