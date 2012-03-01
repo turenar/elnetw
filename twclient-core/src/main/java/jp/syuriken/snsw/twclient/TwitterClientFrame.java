@@ -62,6 +62,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.Utility.IllegalKeyStringException;
@@ -75,6 +77,7 @@ import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
+import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -938,13 +941,19 @@ import twitter4j.internal.http.HTMLEntity;
 			stringBuilder.append(nl2br(originalStatusText.substring(offset)));
 			editor.setText(stringBuilder.toString());
 			
+			User user = status.getUser();
 			JLabel viewSourceLabel = getTweetViewSourceLabel();
-			viewSourceLabel.setText(MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status
-				.getUser().getName()));
-			viewSourceLabel.setToolTipText(MessageFormat.format("from {0}", status.getSource()));
+			viewSourceLabel.setText(MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName()));
+			viewSourceLabel.setToolTipText(MessageFormat.format("{0}tweets, {1}follow/{2}follower, {3}",
+					user.getStatusesCount(), user.getFriendsCount(), user.getFollowersCount(), user.getDescription()));
 			
 			JLabel viewDateLabel = getTweetViewDateLabel();
 			viewDateLabel.setText(dateFormat.format(status.getCreatedAt()));
+			
+			String source = status.getSource();
+			viewDateLabel.setToolTipText(MessageFormat.format("from {0}",
+					source.substring(source.indexOf('>') + 1, source.lastIndexOf('<'))));
+			
 		} else {
 			editor.setText(statusData.data.getText());
 			getTweetViewSourceLabel().setText(statusData.sentBy.getName());
