@@ -1,6 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -92,6 +91,7 @@ public class ClientConfiguration {
 	/**
 	 * 新しいタブを追加する。
 	 * 
+	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
 	 */
@@ -99,17 +99,33 @@ public class ClientConfiguration {
 		if (tab == null) {
 			return false;
 		}
-		tabsListLock.writeLock().lock();
-		boolean result = tabsList.add(tab);
-		EventQueue.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				frameApi.addTab(tab);
-			}
-		});
-		tabsListLock.writeLock().unlock();
+		boolean result;
+		try {
+			tabsListLock.writeLock().lock();
+			result = tabsList.add(tab);
+			frameApi.addTab(tab);
+		} finally {
+			tabsListLock.writeLock().unlock();
+		}
 		return result;
+	}
+	
+	/**
+	 * 指定されたタブをフォーカスする。
+	 * 
+	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @param tab タブ
+	 */
+	public void focusFrameTab(final ClientTab tab) {
+		try {
+			tabsListLock.readLock().lock();
+			final int indexOf = tabsList.indexOf(tab);
+			if (indexOf != -1) {
+				frameApi.focusFrameTab(tab, indexOf);
+			}
+		} finally {
+			tabsListLock.readLock().unlock();
+		}
 	}
 	
 	/**
@@ -173,9 +189,13 @@ public class ClientConfiguration {
 	 * @return FrameTab
 	 */
 	public ClientTab getFrameTab(int index) {
-		tabsListLock.readLock().lock();
-		ClientTab result = tabsList.get(index);
-		tabsListLock.readLock().unlock();
+		ClientTab result = null;
+		try {
+			tabsListLock.readLock().lock();
+			result = tabsList.get(index);
+		} finally {
+			tabsListLock.readLock().unlock();
+		}
 		return result;
 	}
 	
@@ -185,9 +205,13 @@ public class ClientConfiguration {
 	 * @return 個数
 	 */
 	public int getFrameTabCount() {
-		tabsListLock.readLock().lock();
-		int size = tabsList.size();
-		tabsListLock.readLock().unlock();
+		int size;
+		try {
+			tabsListLock.readLock().lock();
+			size = tabsList.size();
+		} finally {
+			tabsListLock.readLock().unlock();
+		}
 		return size;
 	}
 	
@@ -278,14 +302,19 @@ public class ClientConfiguration {
 	/**
 	 * 指定したタブが選択されているかどうかを取得する
 	 * 
+	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 選択されているかどうか
 	 */
 	public boolean isFocusTab(ClientTab tab) {
-		tabsListLock.readLock().lock();
-		int indexOf = tabsList.indexOf(tab);
-		boolean result = frameApi.isFocusTab(indexOf);
-		tabsListLock.readLock().unlock();
+		boolean result;
+		try {
+			tabsListLock.readLock().lock();
+			int indexOf = tabsList.indexOf(tab);
+			result = frameApi.isFocusTab(indexOf);
+		} finally {
+			tabsListLock.readLock().unlock();
+		}
 		return result;
 	}
 	
@@ -334,41 +363,38 @@ public class ClientConfiguration {
 	/**
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
 	 * 
+	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 */
 	public void refreshTab(final ClientTab tab) {
-		tabsListLock.readLock().lock();
-		final int indexOf = tabsList.indexOf(tab);
-		EventQueue.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				frameApi.refreashTab(indexOf, tab);
-			}
-		});
-		tabsListLock.readLock().unlock();
+		try {
+			tabsListLock.readLock().lock();
+			final int indexOf = tabsList.indexOf(tab);
+			frameApi.refreashTab(indexOf, tab);
+		} finally {
+			tabsListLock.readLock().unlock();
+		}
 	}
 	
 	/**
 	 * タブを削除する
 	 * 
+	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
 	 */
 	public boolean removeFrameTab(final ClientTab tab) {
-		tabsListLock.writeLock().lock();
-		final int indexOf = tabsList.indexOf(tab);
-		if (indexOf != -1) {
-			tabsList.remove(indexOf);
-			EventQueue.invokeLater(new Runnable() {
-				
-				@Override
-				public void run() {
-					frameApi.removeFrameTab(indexOf, tab);
-				}
-			});
+		final int indexOf;
+		try {
+			tabsListLock.writeLock().lock();
+			indexOf = tabsList.indexOf(tab);
+			if (indexOf != -1) {
+				tabsList.remove(indexOf);
+				frameApi.removeFrameTab(indexOf, tab);
+			}
+		} finally {
+			tabsListLock.writeLock().unlock();
 		}
-		tabsListLock.writeLock().unlock();
 		return indexOf != -1;
 	}
 	

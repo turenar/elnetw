@@ -656,6 +656,10 @@ import twitter4j.User;
 		}
 	}
 	
+	/*package*/void focusFrameTab(ClientTab tab, int index) {
+		getViewTab().setSelectedIndex(index);
+	}
+	
 	@Override
 	public void focusPostBox() {
 		getPostBox().requestFocusInWindow();

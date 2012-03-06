@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.TimerTask;
@@ -27,7 +26,6 @@ import java.util.TreeMap;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -43,13 +41,10 @@ import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
 import twitter4j.URLEntity;
 import twitter4j.User;
-import twitter4j.UserList;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.http.HTMLEntity;
 
@@ -61,299 +56,47 @@ import twitter4j.internal.http.HTMLEntity;
 public abstract class DefaultClientTab implements ClientTab {
 	
 	/**
-	 * レンダラ。このクラスをextendして {@link DefaultClientTab#getRenderer()} でインスタンスを返すことにより
-	 * 自由にフィルタしながら使うことができます。
+	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
 	 * 
 	 * @author $Author$
 	 */
-	public class DefaultRenderer implements TabRenderer {
+	public abstract class DefaultRenderer implements TabRenderer {
 		
-		private final Logger logger = LoggerFactory.getLogger(getClass());
-		
-		
-		private int getInfoSurviveTime() {
+		/**
+		 * この時間ぐらい情報を置いておけばいいんじゃないですか的な秒数を取得する
+		 * 
+		 * @return ミリ秒
+		 */
+		protected int getInfoSurviveTime() {
 			return frameApi.getInfoSurviveTime();
-		}
-		
-		@Override
-		public void onBlock(User source, User blockedUser) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onChangeAccount(boolean forWrite) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onCleanUp() {
-			// TODO Auto-generated method stub
-			
 		}
 		
 		@Override
 		public void onClientMessage(String name, Object arg) {
 			if (Utility.equalString(name, REQUEST_FOCUS_TAB_COMPONENT)) {
 				if (selectingPost == null) {
-					getTabComponent().getViewport().getView().requestFocusInWindow();
+					getSortedPostListPanel().requestFocusInWindow();
 				} else {
 					selectingPost.requestFocusInWindow();
 				}
 			} else if (Utility.equalString(name, REQUEST_FOCUS_NEXT_COMPONENT)) {
 				if (selectingPost == null) {
-					getTabComponent().getViewport().getView().requestFocusInWindow();
+					getSortedPostListPanel().requestFocusInWindow();
 				} else {
-					getChildComponent().requestFocusNextOf(selectingPost);
+					getSortedPostListPanel().requestFocusNextOf(selectingPost);
 				}
 			} else if (Utility.equalString(name, REQUEST_FOCUS_PREV_COMPONENT)) {
 				if (selectingPost == null) {
-					getTabComponent().getViewport().getView().requestFocusInWindow();
+					getSortedPostListPanel().requestFocusInWindow();
 				} else {
-					getChildComponent().requestFocusPreviousOf(selectingPost);
+					getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
 				}
 			}
-		}
-		
-		@Override
-		public void onConnect() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onDeletionNotice(long directMessageId, long userId) {
-			// TODO DM Deletion is not supported yet.
-		}
-		
-		@Override
-		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-			logger.trace("onDeletionNotice: {}", statusDeletionNotice);
-			
-			StatusData statusData = getStatus(statusDeletionNotice.getStatusId());
-			if (statusData != null) {
-				if (statusData.tag instanceof Status == false) {
-					return;
-				}
-				Status status = (Status) statusData.tag;
-				StatusData deletionStatusData = new StatusData(statusDeletionNotice, new Date());
-				deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
-				deletionStatusData.foregroundColor = Color.RED;
-				deletionStatusData.image = new JLabel();
-				deletionStatusData.sentBy = new JLabel(((JLabel) (statusData.sentBy)).getText()); // TODO
-				deletionStatusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
-				deletionStatusData.data = new JLabel("DELETED: " + status.getText());
-				addStatus(deletionStatusData, getInfoSurviveTime() * 2);
-				removeStatus(statusData, getInfoSurviveTime() * 2);
-			}
-		}
-		
-		@Override
-		public void onDirectMessage(DirectMessage directMessage) {
-			logger.trace("onDirectMessage: {}", directMessage);
-			
-			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
-			statusData.backgroundColor = Color.LIGHT_GRAY;
-			statusData.foregroundColor = Color.CYAN;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel(directMessage.getSenderScreenName());
-			statusData.sentBy.setName("!dm." + directMessage.getSenderScreenName());
-			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
-			statusData.data = new JLabel(message);
-			addStatus(statusData);
-			User sender = directMessage.getSender();
-			configuration
-				.getFrameApi()
-				.getUtility()
-				.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()), message,
-						imageCacher.getImageFile(sender));
-		}
-		
-		@Override
-		public void onDisconnect() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onException(Exception ex) {
-			// do nothing
-		}
-		
-		@Override
-		public void onFavorite(User source, User target, Status favoritedStatus) {
-			logger.trace("onFavorite: {}", favoritedStatus);
-			
-			if (target.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(favoritedStatus, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.YELLOW;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!fav." + source.getScreenName());
-				String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				configuration.getUtility().sendNotify(
-						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-						imageCacher.getImageFile(source));
-			}
-			if (source.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = getStatus(favoritedStatus.getId());
-				if (statusData.tag instanceof TwitterStatus) {
-					TwitterStatus status = (TwitterStatus) statusData.tag;
-					status.setFavorited(true);
-				}
-			}
-		}
-		
-		@Override
-		public void onFollow(User source, User followedUser) {
-			logger.trace("onFollow: {} {}", source, followedUser);
-			if (followedUser.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(null, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.YELLOW;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!follow." + source.getScreenName());
-				String message = followedUser.getScreenName() + " にフォローされました";
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				configuration.getUtility().sendNotify(
-						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-						imageCacher.getImageFile(source));
-			}
-		}
-		
-		@Override
-		public void onFriendList(long[] friendIds) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onFriendList: count={}, {}", friendIds.length, Arrays.toString(friendIds));
-			}
-		}
-		
-		@Override
-		public void onRetweet(User source, User target, Status retweetedStatus) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onRetweet: source={}, target={}, retweet={}",
-						Utility.toArray(source, target, retweetedStatus));
-			}
-			
-			if (logger.isDebugEnabled()) {
-				logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(),
-						retweetedStatus.getRetweetedStatus().getId(), retweetedStatus));
-			}
-			addStatus(retweetedStatus);
-		}
-		
-		@Override
-		public void onScrubGeo(long userId, long upToStatusId) {
-			// TODO Auto-generated method stub
 		}
 		
 		@Override
 		public void onStatus(Status originalStatus) {
 			addStatus(originalStatus);
-		}
-		
-		@Override
-		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-			logger.trace("onTrackLimitationNotice: {}", numberOfLimitedStatuses);
-			StatusData statusData = new StatusData(null, new Date());
-			statusData.backgroundColor = Color.BLACK;
-			statusData.foregroundColor = Color.LIGHT_GRAY;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel();
-			statusData.sentBy.setName("!stream.overlimit");
-			statusData.data =
-					new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
-			addStatus(statusData, getInfoSurviveTime() * 2);
-		}
-		
-		@Override
-		public void onUnblock(User source, User unblockedUser) {
-			// TODO Auto-generated method stub
-		}
-		
-		@Override
-		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}",
-						Utility.toArray(source, target, unfavoritedStatus));
-			}
-			if (target.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(unfavoritedStatus, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.LIGHT_GRAY;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!unfav." + source.getScreenName());
-				String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				configuration
-					.getFrameApi()
-					.getUtility()
-					.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-							imageCacher.getImageFile(source));
-			}
-			if (source.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = getStatus(unfavoritedStatus.getId());
-				if (statusData.tag instanceof TwitterStatus) {
-					TwitterStatus status = (TwitterStatus) statusData.tag;
-					status.setFavorited(false);
-				}
-			}
-		}
-		
-		@Override
-		public void onUserListCreation(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListDeletion(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserListUpdate(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onUserProfileUpdate(User updatedUser) {
-			// TODO Auto-generated method stub
-			
 		}
 		
 	}
@@ -423,6 +166,36 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
+	 * PostListを更新する。
+	 * 
+	 * @author $Author$
+	 */
+	public class PostListUpdater extends TimerTask {
+		
+		@Override
+		public void run() {
+			EventQueue.invokeLater(new Runnable() {
+				
+				@Override
+				public void run() {
+					synchronized (postListAddQueue) {
+						int size = postListAddQueue.size();
+						
+						getSortedPostListPanel().add(postListAddQueue);
+						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
+						if (viewPosition.y < fontHeight) {
+							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
+						} else {
+							postListScrollPane.getViewport().setViewPosition(
+									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
+						}
+					}
+				}
+			});
+		}
+	}
+	
+	/**
 	 * StatusPanelのポップアップメニューリスナ
 	 * 
 	 * @author $Author$
@@ -451,7 +224,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		@Override
 		public void popupMenuWillBecomeVisible(PopupMenuEvent arg0) {
 			if (selectingPost == null) {
-				getChildComponent().requestFocusFirstComponent();
+				getSortedPostListPanel().requestFocusFirstComponent();
 			}
 			JPopupMenu popupMenu = (JPopupMenu) arg0.getSource();
 			Component[] components = popupMenu.getComponents();
@@ -474,36 +247,9 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 	}
 	
-	/**
-	 * PostListを更新する。
-	 * 
-	 * @author $Author$
-	 */
-	public class UpdatePostList extends TimerTask {
-		
-		@Override
-		public void run() {
-			EventQueue.invokeLater(new Runnable() {
-				
-				@Override
-				public void run() {
-					synchronized (postListAddQueue) {
-						int size = postListAddQueue.size();
-						
-						sortedPostListPanel.add(postListAddQueue);
-						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight) {
-							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
-						} else {
-							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
-						}
-					}
-				}
-			});
-		}
-	}
 	
+	/** TODO Megumi */
+	private static final int PADDING_OF_POSTLIST = 1;
 	
 	/** DateFormatを管理する */
 	protected static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
@@ -596,12 +342,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		sortedPostListPanel = new SortedPostListPanel();
 		frameApi = configuration.getFrameApi();
 		configData = frameApi.getConfigData();
-		fontMetrics = getTabComponent().getFontMetrics(frameApi.getDefaultFont());
+		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
 		iconSize = new Dimension(64, fontHeight);
-		frameApi.getTimer().schedule(new UpdatePostList(), configData.intervalOfPostListUpdate,
+		frameApi.getTimer().schedule(new PostListUpdater(), configData.intervalOfPostListUpdate,
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
@@ -708,10 +454,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
 		Dimension minSize =
-				new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight + 4);
+				new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
+						+ PADDING_OF_POSTLIST);
 		linePanel.setMinimumSize(minSize);
 		linePanel.setPreferredSize(minSize);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + 4));
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
@@ -879,21 +626,21 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
-	 * {@link #getSclollPane()}の子コンポーネント
+	 * {@link #getScrollPane()}の子コンポーネント
 	 * 
 	 * @return {@link SortedPostListPanel}インスタンス
 	 */
-	protected SortedPostListPanel getChildComponent() {
-		return sortedPostListPanel;
+	protected JComponent getChildComponent() {
+		return getSortedPostListPanel();
 	}
 	
 	/**
-	 * スクロールペーン。
-	 * 
-	 * @return JScrollPane
-	 */
+	* スクロールペーン。
+	* 
+	* @return JScrollPane
+	*/
 	@SuppressWarnings("serial")
-	protected JScrollPane getSclollPane() {
+	protected JScrollPane getScrollPane() {
 		if (postListScrollPane == null) {
 			postListScrollPane = new JScrollPane() {
 				
@@ -924,6 +671,15 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
+	 * SortedPostListPanelを取得する(レンダラ用)
+	 * 
+	 * @return {@link SortedPostListPanel}インスタンス
+	 */
+	protected SortedPostListPanel getSortedPostListPanel() {
+		return sortedPostListPanel;
+	}
+	
+	/**
 	 * ステータスを取得する。
 	 * 
 	 * @param statusId ステータスID
@@ -934,8 +690,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	@Override
-	public JScrollPane getTabComponent() {
-		return getSclollPane();
+	public JComponent getTabComponent() {
+		return getScrollPane();
 	}
 	
 	/**

@@ -2,7 +2,11 @@ package jp.syuriken.snsw.twclient;
 
 import javax.swing.Icon;
 
+import twitter4j.DirectMessage;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * メンション表示用タブ
@@ -16,7 +20,77 @@ public class MentionViewTab extends DefaultClientTab {
 	 * 
 	 * @author $Author$
 	 */
-	protected class MentionRenderer extends ClientMessageAdapter implements TabRenderer {
+	protected class MentionRenderer extends DefaultRenderer {
+		
+		@Override
+		public void onBlock(User source, User blockedUser) {
+			// do nothing
+		}
+		
+		@Override
+		public void onChangeAccount(boolean forWrite) {
+			// do nothing
+		}
+		
+		@Override
+		public void onCleanUp() {
+			// do nothing
+		}
+		
+		@Override
+		public void onConnect() {
+			// do nothing
+		}
+		
+		@Override
+		public void onDeletionNotice(long directMessageId, long userId) {
+			// do nothing
+		}
+		
+		@Override
+		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+			// do nothing
+		}
+		
+		@Override
+		public void onDirectMessage(DirectMessage directMessage) {
+			// do nothing
+		}
+		
+		@Override
+		public void onDisconnect() {
+			// do nothing
+		}
+		
+		@Override
+		public void onException(Exception ex) {
+			// do nothing
+		}
+		
+		@Override
+		public void onFavorite(User source, User target, Status favoritedStatus) {
+			// do nothing
+		}
+		
+		@Override
+		public void onFollow(User source, User followedUser) {
+			// do nothing
+		}
+		
+		@Override
+		public void onFriendList(long[] friendIds) {
+			// do nothing
+		}
+		
+		@Override
+		public void onRetweet(User source, User target, Status retweetedStatus) {
+			// do nothing
+		}
+		
+		@Override
+		public void onScrubGeo(long userId, long upToStatusId) {
+			// do nothing
+		}
 		
 		@Override
 		public void onStatus(Status originalStatus) {
@@ -29,6 +103,61 @@ public class MentionViewTab extends DefaultClientTab {
 			if (isMentioned(status.getUserMentionEntities())) {
 				addStatus(originalStatus);
 			}
+		}
+		
+		@Override
+		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUnblock(User source, User unblockedUser) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListCreation(User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListDeletion(User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserListUpdate(User listOwner, UserList list) {
+			// do nothing
+		}
+		
+		@Override
+		public void onUserProfileUpdate(User updatedUser) {
+			// do nothing
 		}
 	}
 	
