@@ -951,8 +951,10 @@ import twitter4j.internal.http.HTMLEntity;
 			viewDateLabel.setText(dateFormat.format(status.getCreatedAt()));
 			
 			String source = status.getSource();
+			int tagIndexOf = source.indexOf('>');
+			int tagLastIndexOf = source.lastIndexOf('<');
 			viewDateLabel.setToolTipText(MessageFormat.format("from {0}",
-					source.substring(source.indexOf('>') + 1, source.lastIndexOf('<'))));
+					source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf)));
 			
 		} else {
 			editor.setText(statusData.data.getText());
