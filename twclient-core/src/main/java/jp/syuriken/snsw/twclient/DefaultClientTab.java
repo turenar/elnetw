@@ -508,8 +508,8 @@ public abstract class DefaultClientTab implements ClientTab {
 			selectingPost.setBackground(selectingPost.getStatusData().backgroundColor);
 		}
 		selectingPost = (StatusPanel) e.getComponent();
-		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor, configuration
-			.getFrameApi().getConfigData().colorOfFocusList));
+		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
+				frameApi.getConfigData().colorOfFocusList));
 		
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof Status) {
@@ -609,9 +609,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			String createdBy =
 					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 			String source = status.getSource();
+			int tagIndexOf = source.indexOf('>');
+			int tagLastIndexOf = source.lastIndexOf('<');
 			String createdAtToolTip =
-					MessageFormat
-						.format("from {0}", source.substring(source.indexOf('>') + 1, source.lastIndexOf('<')));
+					MessageFormat.format("from {0}",
+							source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
 			String createdAt = dateFormat.get().format(status.getCreatedAt());
 			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, createdAtToolTip,
 					((JLabel) statusData.image).getIcon());
