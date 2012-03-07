@@ -80,8 +80,10 @@ public class RemoveTweetActionHandler implements ActionHandler {
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
 			boolean isTweetedByMe = ((Status) statusData.tag).getUser().getId() == api.getLoginUser().getId();
+			menuItem.setVisible(isTweetedByMe);
 			menuItem.setEnabled(isTweetedByMe);
 		} else {
+			menuItem.setVisible(false);
 			menuItem.setEnabled(false);
 		}
 	}
