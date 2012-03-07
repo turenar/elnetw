@@ -132,7 +132,7 @@ public class ClientStreamListener implements UserStreamListener {
 			statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 			statusData.sentBy = new JLabel(source.getScreenName());
 			statusData.sentBy.setName("!follow." + source.getScreenName());
-			String message = followedUser.getScreenName() + " にフォローされました";
+			String message = "@" + followedUser.getScreenName() + " をフォローしました";
 			statusData.data = new JLabel(message);
 			frameApi.addStatus(statusData);
 			frameApi.getUtility().sendNotify(
@@ -153,9 +153,7 @@ public class ClientStreamListener implements UserStreamListener {
 		if (logger.isTraceEnabled()) {
 			logger.trace("onRetweet: source={}, target={}, retweet={}",
 					Utility.toArray(source, target, retweetedStatus));
-		}
-		
-		if (logger.isDebugEnabled()) {
+		} else if (logger.isDebugEnabled()) {
 			logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(), retweetedStatus
 				.getRetweetedStatus().getId(), retweetedStatus));
 		}
