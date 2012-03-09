@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 /**
@@ -110,27 +111,31 @@ public class JobQueue {
 			return null;
 		}
 		int randomInt = random.nextInt(HIGH_THRESHOLD);
-		synchronized (jobList) {
-			int size = jobList.size();
-			if (randomInt < LOW_THRESHOLD && size > lowStart) {
-				return jobList.remove(lowStart);
-			} else if (randomInt < MEDIUM_THRESHOLD && size > mediumStart) {
-				lowStart--;
-				if (lowStart < 0) {
-					lowStart = 0;
+		try {
+			synchronized (jobList) {
+				int size = jobList.size();
+				if (randomInt < LOW_THRESHOLD && size > lowStart) {
+					return jobList.remove(lowStart);
+				} else if (randomInt < MEDIUM_THRESHOLD && size > mediumStart) {
+					lowStart--;
+					if (lowStart < 0) {
+						lowStart = 0;
+					}
+					return jobList.remove(mediumStart);
+				} else {
+					mediumStart--;
+					if (mediumStart < 0) {
+						mediumStart = 0;
+					}
+					lowStart--;
+					if (lowStart < 0) {
+						lowStart = 0;
+					}
+					return jobList.removeFirst();
 				}
-				return jobList.remove(mediumStart);
-			} else {
-				mediumStart--;
-				if (mediumStart < 0) {
-					mediumStart = 0;
-				}
-				lowStart--;
-				if (lowStart < 0) {
-					lowStart = 0;
-				}
-				return jobList.removeFirst();
 			}
+		} catch (NoSuchElementException e) {
+			return null;
 		}
 	}
 	

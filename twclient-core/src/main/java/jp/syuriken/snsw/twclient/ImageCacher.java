@@ -6,9 +6,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -54,6 +54,11 @@ public class ImageCacher {
 			entry = imageEntry;
 			this.label = label;
 		}
+		
+		@Override
+		public String toString() {
+			return "FetchEntry{entry=" + entry.toString() + ",label=" + label.toString() + "}";
+		}
 	}
 	
 	/**
@@ -78,6 +83,15 @@ public class ImageCacher {
 		/** すでに書きこまれたかどうか */
 		protected volatile boolean isWritten = false;
 		
+		/** 画像キー */
+		public final String imageKey;
+		
+		/** 指定時間内の出現回数 */
+		public volatile int appearCount;
+		
+		/** カウント終了時間 (ms) */
+		public volatile long countEndTime;
+		
 		
 		/**
 		 * インスタンスを生成する。
@@ -86,6 +100,28 @@ public class ImageCacher {
 		 */
 		public ImageEntry(URL url) {
 			this.url = url;
+			imageKey = url.toString();
+		}
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param url URL
+		 * @param imageKey 画像キー
+		 */
+		public ImageEntry(URL url, String imageKey) {
+			this.url = url;
+			this.imageKey = imageKey;
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
+				.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
+				.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append("],isWritten=")
+				.append(isWritten).append(",appearCount=").append(appearCount).append("}");
+			return stringBuilder.toString();
 		}
 	}
 	
@@ -96,46 +132,44 @@ public class ImageCacher {
 	 */
 	protected class ImageFetcher implements Runnable {
 		
-		@Override
-		public void run() {
+		private void fetch() {
 			FetchEntry fetchEntry = fetchQueue.poll();
 			if (fetchEntry == null) {
 				return;
 			}
-			if (cacheManager.containsKey(fetchEntry.entry.url.toString())) {
-				setImageIcon(fetchEntry.label, fetchEntry.entry.url);
+			ImageEntry entry = fetchEntry.entry;
+			if (cacheManager.containsKey(entry.imageKey)) {
+				synchronized (entry) {
+					fetchEntry.label.setIcon(getImageIcon(cacheManager.get(entry.imageKey).image));
+					incrementAppearCount(entry);
+				}
 				return;
 			}
 			
 			fetchImage(fetchEntry.entry);
-			fetchEntry.label.setIcon(getImageIcon(fetchEntry.entry.image));
-			fetchEntry.label.revalidate();
-			
-			if (fetchQueue.peek() != null) {
-				configuration.getFrameApi().addJob(Priority.LOW, this);
+			if (fetchEntry.label != null) {
+				fetchEntry.label.setIcon(getImageIcon(entry.image));
+				incrementAppearCount(entry);
 			}
 		}
-	}
-	
-	/**
-	 * 画像をStorageにフラッシュするクラス
-	 * 
-	 * @author $Author$
-	 */
-	public class ImageFlusher extends TimerTask {
 		
-		@Override
-		public void run() {
-			ImageEntry entry = fluseQueue.poll();
+		private void flush() {
+			ImageEntry entry = flushQueue.poll();
 			if (entry == null) {
 				return;
 			}
 			flushImage(entry);
-			if (fluseQueue.peek() != null) {
-				configuration.getFrameApi().addJob(Priority.LOW, this);
-			}
 		}
 		
+		@Override
+		public void run() {
+			fetch();
+			flush();
+			if ((flushQueue.isEmpty() && fetchQueue.isEmpty()) == false) {
+				configuration.getFrameApi().addJob(Priority.LOW, this);
+			}
+			
+		}
 	}
 	
 	
@@ -150,12 +184,20 @@ public class ImageCacher {
 	
 	private ConcurrentLinkedQueue<FetchEntry> fetchQueue = new ConcurrentLinkedQueue<FetchEntry>();
 	
-	private ConcurrentLinkedQueue<ImageEntry> fluseQueue = new ConcurrentLinkedQueue<ImageEntry>();
+	private ConcurrentLinkedQueue<ImageEntry> flushQueue = new ConcurrentLinkedQueue<ImageEntry>();
 	
 	private ImageFetcher imageFetcher = new ImageFetcher();
 	
+	/** キャッシュ有効時間 */
+	private long cacheExpire = 604800000;
+	
 	/** キャッシュ出力先ディレクトリ */
-	public static final File OUTPUT_CACHE_DIR = new File(System.getProperty("user.home") + "/.cache/turetwcl/");
+	public final File CACHE_DIR;
+	
+	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
+	public final File USER_ICON_CACHE_DIR;
+	
+	private int flushThreshold;
 	
 	
 	/**
@@ -164,7 +206,20 @@ public class ImageCacher {
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		configuration.getFrameApi().getTimer().schedule(new ImageFlusher(), 10000, 10000);
+		cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
+		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
+		
+		switch (Utility.getOstype()) {
+			case WINDOWS:
+				CACHE_DIR = new File(System.getProperty("java.io.tmpdir") + "/turetwcl/cache");
+				break;
+			default:
+				CACHE_DIR = new File(System.getProperty("user.home") + "/.cache/turetwcl");
+				break;
+		}
+		USER_ICON_CACHE_DIR = new File(CACHE_DIR, "user");
+		
+		loadUserIconFromCaches();
 	}
 	
 	/**
@@ -173,7 +228,7 @@ public class ImageCacher {
 	 */
 	protected void fetchImage(ImageEntry entry) {
 		URL url = entry.url;
-		if (cacheManager.containsKey(entry.url.toString())) {
+		if (cacheManager.containsKey(entry.imageKey)) {
 			return;
 		}
 		
@@ -186,14 +241,6 @@ public class ImageCacher {
 				int imagelen = 0;
 				int loadlen;
 				while ((loadlen = stream.read(buf)) != -1) {
-					if (loadlen == 0) {
-						try {
-							Thread.sleep(1);
-						} catch (InterruptedException e) {
-							// do nothing
-						}
-						continue;
-					}
 					byte[] oldimage = imagedata;
 					imagedata = new byte[imagelen + loadlen];
 					System.arraycopy(oldimage, 0, imagedata, 0, imagelen);
@@ -201,11 +248,11 @@ public class ImageCacher {
 					imagelen += loadlen;
 				}
 				entry.rawimage = imagedata;
-				entry.image = Toolkit.getDefaultToolkit().createImage(imagedata);
-				cacheManager.put(url.toString(), entry);
-				fluseQueue.add(entry);
+				Image image = Toolkit.getDefaultToolkit().createImage(imagedata);
+				entry.image = image;
+				cacheManager.put(entry.imageKey, entry);
 			} catch (IOException e) {
-				logger.warn(MessageFormat.format("{0}の取得中にエラー", url), e);
+				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
 			}
 		}
 	}
@@ -224,18 +271,22 @@ public class ImageCacher {
 				}
 				FileOutputStream outputStream = null;
 				try {
-					if (OUTPUT_CACHE_DIR.exists() == false) {
-						if (OUTPUT_CACHE_DIR.mkdirs() == false) {
-							logger.warn("{} is not exist and can't mkdir", OUTPUT_CACHE_DIR.getPath());
+					File file = entry.cacheFile;
+					File dirName = file.getParentFile();
+					if (dirName.exists() == false) {
+						if (dirName.mkdirs() == false) {
+							logger.warn("{} is not exist and can't mkdir", Utility.protectPrivacy(dirName.getPath()));
 						}
 					}
-					outputStream = new FileOutputStream(entry.cacheFile);
+					outputStream = new FileOutputStream(file);
 					outputStream.write(entry.rawimage);
 					entry.isWritten = true;
-					logger.debug("{} を出力", entry.cacheFile.getPath());
+					logger.debug("Flushed: {}", Utility.protectPrivacy(entry.cacheFile.getPath()));
 					/*} catch (FileNotFoundException e) {*/
 				} catch (IOException e) {
-					logger.warn(entry.cacheFile.getPath() + " の出力に失敗", e);
+					StringBuilder stringBuilder = new StringBuilder("Failed flushing cache: ");
+					stringBuilder.append(Utility.protectPrivacy(entry.cacheFile.getPath()));
+					logger.warn(stringBuilder.toString(), e);
 					return false;
 				} finally {
 					try {
@@ -243,7 +294,10 @@ public class ImageCacher {
 							outputStream.close();
 						}
 					} catch (IOException e) {
-						logger.warn(entry.cacheFile.getPath() + " のクローズに失敗", e);
+						StringBuilder stringBuilder = new StringBuilder("Failed close file: ");
+						stringBuilder.append(Utility.protectPrivacy(entry.cacheFile.getPath()));
+						
+						logger.warn(stringBuilder.toString(), e);
 					}
 				}
 			}
@@ -270,9 +324,10 @@ public class ImageCacher {
 	 * @return ストレージ上の画像ファイル。存在しない場合はnull。
 	 */
 	public File getImageFile(User user) {
-		ImageEntry entry = cacheManager.get(user.getProfileImageURL().toExternalForm());
+		String imageKey = getImageKey(user);
+		ImageEntry entry = cacheManager.get(imageKey);
 		if (entry == null) {
-			entry = new ImageEntry(user.getProfileImageURL());
+			entry = new ImageEntry(user.getProfileImageURL(), imageKey);
 			entry.cacheFile = getImageFilename(user);
 			fetchImage(entry);
 		}
@@ -289,10 +344,9 @@ public class ImageCacher {
 	 * @return もしストレージに保存するならばこのファイル名で
 	 */
 	protected File getImageFilename(User user) {
-		String url = user.getProfileImageURL().toExternalForm();
-		String fileName = url.substring(url.lastIndexOf('/') + 1);
+		String fileName = getProfileImageName(user);
 		
-		return new File(OUTPUT_CACHE_DIR, MessageFormat.format("{0}-{1}", Long.toString(user.getId()), fileName));
+		return new File(USER_ICON_CACHE_DIR, MessageFormat.format("{0}-{1}", Long.toString(user.getId()), fileName));
 	}
 	
 	/**
@@ -301,10 +355,98 @@ public class ImageCacher {
 	 * @param image 画像データ
 	 * @return ImageIconインスタンス
 	 */
-	public Icon getImageIcon(Image image) {
+	protected Icon getImageIcon(Image image) {
 		ImageIcon imageIcon = new ImageIcon(image);
 		imageIcon.setImageObserver(AnimationCanceledImageObserver.SINGLETON);
 		return imageIcon;
+	}
+	
+	/**
+	 * 画像キーを取得する
+	 * 
+	 * @param userId ユーザーID
+	 * @param profileImageName ファイル名
+	 * @return 画像キー
+	 */
+	protected String getImageKey(String userId, String profileImageName) {
+		return "user://" + userId + "/" + profileImageName;
+	}
+	
+	/**
+	 * 画像キーを取得する
+	 * 
+	 * @param user ユーザー
+	 * @return 画像キー
+	 */
+	protected String getImageKey(User user) {
+		return getImageKey(String.valueOf(user.getId()), getProfileImageName(user));
+	}
+	
+	/**
+	 * プロフィール画像のファイル名を取得する
+	 * 
+	 * @param user ユーザー
+	 * @return ファイル名
+	 */
+	protected String getProfileImageName(User user) {
+		String url = user.getProfileImageURL().toString();
+		String fileName = url.substring(url.lastIndexOf('/') + 1);
+		return fileName;
+	}
+	
+	private void incrementAppearCount(ImageEntry entry) {
+		if (entry.isWritten) {
+			return;
+		}
+		if (entry.countEndTime < System.currentTimeMillis()) { // reset
+			entry.countEndTime = System.currentTimeMillis() + 60 * 60 * 1000;
+			entry.appearCount = 0;
+		}
+		int appearCount = ++entry.appearCount;
+		if (appearCount > flushThreshold) {
+			flushQueue.add(entry);
+		}
+	}
+	
+	/**
+	 * ディスクキャッシュからユーザーアイコンを読み込む。
+	 */
+	private void loadUserIconFromCaches() {
+		File[] listFiles = USER_ICON_CACHE_DIR.listFiles();
+		if (listFiles == null) {
+			return;
+		}
+		for (File file : listFiles) {
+			long lastModified = file.lastModified();
+			if (lastModified == 0) {
+				continue;
+			} else if (lastModified + cacheExpire < System.currentTimeMillis()) {
+				if (file.delete()) {
+					logger.debug("clean expired cache: {} (lastModified:{})", Utility.protectPrivacy(file.getPath()),
+							lastModified);
+					continue;
+				} else {
+					logger.warn("Failed cleaning cache: {}", Utility.protectPrivacy(file.getPath()));
+				}
+			}
+			String name = file.getName(); // "userId-imageName"
+			int separatorPosition = name.indexOf('-');
+			
+			if (separatorPosition == -1) {
+				continue; // not icon cache
+			}
+			
+			String userId = name.substring(0, separatorPosition);
+			String fileName = name.substring(separatorPosition + 1, name.length());
+			logger.debug("loadCache: file={}", name);
+			try {
+				ImageEntry imageEntry = new ImageEntry(file.toURI().toURL(), getImageKey(userId, fileName));
+				fetchQueue.add(new FetchEntry(imageEntry, null));
+			} catch (MalformedURLException e) {
+				logger.error("#loadFromCaches", e);
+			}
+		}
+		configuration.getFrameApi().addJob(imageFetcher);
 	}
 	
 	/**
@@ -323,6 +465,7 @@ public class ImageCacher {
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
+			incrementAppearCount(entry);
 			return true;
 		}
 	}
@@ -336,16 +479,19 @@ public class ImageCacher {
 	 * @return キャッシュヒットしたかどうか
 	 */
 	public boolean setImageIcon(JLabel label, User user) {
+		String imageKey = getImageKey(user);
 		URL url = user.getProfileImageURL();
-		ImageEntry entry = cacheManager.get(url.toString());
+		ImageEntry entry = cacheManager.get(imageKey);
+		System.err.println(imageKey);
 		if (entry == null) {
-			entry = new ImageEntry(url);
+			entry = new ImageEntry(url, imageKey);
 			entry.cacheFile = getImageFilename(user);
 			fetchQueue.add(new FetchEntry(entry, label));
 			configuration.getFrameApi().addJob(Priority.LOW, imageFetcher);
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
+			incrementAppearCount(entry);
 			return true;
 		}
 	}

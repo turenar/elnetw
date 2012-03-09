@@ -46,6 +46,20 @@ public class Utility {
 		
 	}
 	
+	private static class KVEntry {
+		
+		final String key;
+		
+		final String value;
+		
+		
+		public KVEntry(String key, String value) {
+			this.key = key;
+			this.value = value;
+		}
+		
+	}
+	
 	/**
 	 * notify-sendを使用して通知を送信するクラス。
 	 * 
@@ -175,44 +189,11 @@ public class Utility {
 	}
 	
 	
-	/**
-	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
-	 * @param target 下の色
-	 * @param source 上の色
-	 * @return 合成済みColor
-	 */
-	public static Color blendColor(Color target, Color source) {
-		double alpha = (double) source.getAlpha() / 255;
-		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
-		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
-		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
-		Color color = new Color(newr, newg, newb, target.getAlpha());
-		return color;
-	}
-	
-	/**
-	 * OS種別を取得する
-	 * 
-	 * @return OSの種類
-	 */
-	public static OSType getOstype() {
-		if (ostype == null) {
-			detectOS();
-		}
-		return ostype;
-	}
-	
-	
-	private Logger logger = LoggerFactory.getLogger(Utility.class);
-	
-	private String detectedBrowser = null;
-	
 	private static volatile OSType ostype;
 	
-	/** 通知を送信するクラス */
-	public volatile NotifySender notifySender = null;
-	
 	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
+	
+	private static KVEntry[] privacyEntries;
 	
 	static {
 		keyMap.put(KeyEvent.VK_ENTER, "%return");
@@ -238,6 +219,12 @@ public class Utility {
 		keyMap.put(KeyEvent.VK_F10, "%F10");
 		keyMap.put(KeyEvent.VK_F11, "%F11");
 		keyMap.put(KeyEvent.VK_F12, "%F12");
+		
+		privacyEntries = new KVEntry[] {
+			new KVEntry(System.getProperty("user.dir"), "{USER}/"),
+			new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
+			new KVEntry(System.getProperty("user.home"), "{HOME}/"),
+		};
 	}
 	
 	/*package*/static final ThreadLocal<StringBuilder> stringBuilderThreadLocal = new ThreadLocal<StringBuilder>() {
@@ -248,6 +235,21 @@ public class Utility {
 		}
 	};
 	
+	
+	/**
+	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
+	 * @param target 下の色
+	 * @param source 上の色
+	 * @return 合成済みColor
+	 */
+	public static Color blendColor(Color target, Color source) {
+		double alpha = (double) source.getAlpha() / 255;
+		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
+		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
+		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
+		Color color = new Color(newr, newg, newb, target.getAlpha());
+		return color;
+	}
 	
 	/**
 	 * OSを確定する
@@ -264,9 +266,6 @@ public class Utility {
 	}
 	
 	public static boolean equalString(String a, String b) {
-		if (a == b) {
-			return true;
-		}
 		if (a == null || b == null) {
 			return false;
 		}
@@ -274,6 +273,40 @@ public class Utility {
 			return true;
 		}
 		return a.equals(b);
+	}
+	
+	/**
+	 * OS種別を取得する
+	 * 
+	 * @return OSの種類
+	 */
+	public static OSType getOstype() {
+		if (ostype == null) {
+			detectOS();
+		}
+		return ostype;
+	}
+	
+	public static String protectPrivacy(String string) {
+		return protectPrivacy(new StringBuilder(string)).toString();
+	}
+	
+	public static StringBuilder protectPrivacy(StringBuilder builder) {
+		for (KVEntry entry : privacyEntries) {
+			String before = entry.key;
+			String after = entry.value;
+			int offset = 0;
+			int end;
+			while (offset < builder.length()) {
+				offset = builder.indexOf(before);
+				if (offset == -1) {
+					break;
+				}
+				end = offset + before.length();
+				builder.replace(offset, end, after);
+			}
+		}
+		return builder;
 	}
 	
 	/*package*/static Object[] toArray(Object... obj) {
@@ -305,6 +338,13 @@ public class Utility {
 	
 	
 	private final ClientConfiguration configuration;
+	
+	private Logger logger = LoggerFactory.getLogger(Utility.class);
+	
+	private String detectedBrowser = null;
+	
+	/** 通知を送信するクラス */
+	public volatile NotifySender notifySender = null;
 	
 	
 	/**
