@@ -95,6 +95,7 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
+import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -778,7 +779,7 @@ import twitter4j.UserMentionEntity;
 	
 	@Override
 	public void doPost() {
-		if (postBox.getText().isEmpty() == false) {
+		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
 			if (selectingPost != null) {
 				selectingPost.requestFocusInWindow();
 			}
@@ -790,7 +791,9 @@ import twitter4j.UserMentionEntity;
 				@Override
 				public void run() {
 					try {
-						StatusUpdate statusUpdate = new StatusUpdate(postBox.getText());
+						String text = HTMLEntity.escape(getPostBox().getText());
+						StatusUpdate statusUpdate = new StatusUpdate(text);
+						
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
@@ -810,15 +813,14 @@ import twitter4j.UserMentionEntity;
 								}
 							};
 							if (EventQueue.isDispatchThread()) {
-								EventQueue.invokeAndWait(enabler);
-							} else {
 								enabler.run();
+							} else {
+								EventQueue.invokeAndWait(enabler);
 							}
 						} catch (InterruptedException e) {
 							// do nothing
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							logger.warn("doPost", e);
 						}
 					}
 				}
@@ -1511,11 +1513,6 @@ import twitter4j.UserMentionEntity;
 		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
 			stringBuilder.replace(position, position + 1, "&nbsp;");
 			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
-			stringBuilder.replace(position, position + 5, "&amp;amp;");
-			offset = position + 9;
 		}
 	}
 	

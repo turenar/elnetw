@@ -326,10 +326,6 @@ public class TwitterStatus implements Status {
 				semicolonIndex = escapedTextBuilder.indexOf(";", index);
 				if (-1 != semicolonIndex) {
 					escaped = escapedTextBuilder.substring(index, semicolonIndex + 1);
-					if (escaped.equals("&amp;")) {
-						index += "&amp;".length();
-						continue;
-					}
 					entity = escapeEntityMap.get(escaped);
 					if (entity != null) {
 						replacedList.add(new int[] {
