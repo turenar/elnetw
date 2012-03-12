@@ -87,7 +87,8 @@ public class TwitterClientMain {
 		}
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
 			.setOAuthAccessToken(accessTokenString).setOAuthAccessTokenSecret(accessTokenSecret)
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")).build();
+			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
+			.setJSONStoreEnabled(true).build();
 	}
 	
 	/**

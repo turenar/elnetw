@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -78,6 +77,7 @@ import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +95,6 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -512,8 +511,6 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private Map<String, String> shortcutKeyMap = new HashMap<String, String>();
 	
-	private static Locale locale = Locale.getDefault();
-	
 	private ConfigData configData;
 	
 	
@@ -614,13 +611,13 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 		}
 		Status twitterStatus = new TwitterStatus(originalStatus);
-		StatusData statusData = new StatusData(twitterStatus, originalStatus.getCreatedAt(), originalStatus.getId());
+		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
-		if (originalStatus.isRetweet()) {
-			status = originalStatus.getRetweetedStatus();
+		if (twitterStatus.isRetweet()) {
+			status = twitterStatus.getRetweetedStatus();
 		} else {
-			status = originalStatus;
+			status = twitterStatus;
 		}
 		User user = status.getUser();
 		if (configData.mentionIdStrictMatch) {
@@ -652,13 +649,13 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		statusData.popupMenu = tweetPopupMenu;
 		
-		if (originalStatus.isRetweet()) {
+		if (twitterStatus.isRetweet()) {
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("Retweeted by @").append(originalStatus.getUser().getScreenName());
+			stringBuilder.append("Retweeted by @").append(twitterStatus.getUser().getScreenName());
 			statusData.tooltip = stringBuilder.toString();
 		}
 		
-		if (originalStatus.isRetweet()) {
+		if (twitterStatus.isRetweet()) {
 			statusData.foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
@@ -678,7 +675,7 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 			if (mentioned) {
 				statusData.foregroundColor = Color.RED;
-				configuration.getUtility().sendNotify(user.getName(), originalStatus.getText(),
+				configuration.getUtility().sendNotify(user.getName(), twitterStatus.getText(),
 						imageCacher.getImageFile(user));
 			}
 		}
@@ -846,27 +843,17 @@ import twitter4j.internal.http.HTMLEntity;
 		
 		JEditorPane editor = getTweetViewEditorPane();
 		StatusData statusData = selectingPost.getStatusData();
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
+		if (statusData.tag instanceof TwitterStatus) {
+			TwitterStatus status = (TwitterStatus) statusData.tag;
 			status = status.isRetweet() ? status.getRetweetedStatus() : status;
-			String originalStatusText;
-			StringBuffer stringBuilder = new StringBuffer(status.getText());
-			HTMLEntity.escape(stringBuilder);
-			/*int nlposition;
-			int offset = 0;
-			while ((nlposition = originalStatusTextBuffer.indexOf("&amp;", offset)) >= 0) {
-				originalStatusTextBuffer.replace(nlposition, nlposition + 5, "&");
-				offset = nlposition;
-			}*/
-			originalStatusText = stringBuilder.toString();
-			String originalStatusTextLowerCased = originalStatusText.toLowerCase(locale);
-			stringBuilder.setLength(0);
+			String escapedText = status.getEscapedText();
+			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
-			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+			HashtagEntity[] hashtagEntities = status.getOriginalStatus().getHashtagEntities();
 			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
-			URLEntity[] urlEntities = status.getURLEntities();
+			URLEntity[] urlEntities = status.getOriginalStatus().getURLEntities();
 			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
-			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+			UserMentionEntity[] mentionEntities = status.getOriginalStatus().getUserMentionEntities();
 			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
 			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
 			
@@ -882,19 +869,7 @@ import twitter4j.internal.http.HTMLEntity;
 				
 				@Override
 				public int compare(Object o1, Object o2) {
-					return getStart(o1) - getStart(o2);
-				}
-				
-				private int getStart(Object obj) {
-					if (obj instanceof HashtagEntity) {
-						return ((HashtagEntity) obj).getStart();
-					} else if (obj instanceof URLEntity) {
-						return ((URLEntity) obj).getStart();
-					} else if (obj instanceof UserMentionEntity) {
-						return ((UserMentionEntity) obj).getStart();
-					} else {
-						throw new AssertionError();
-					}
+					return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
 				}
 			});
 			int offset = 0;
@@ -905,22 +880,20 @@ import twitter4j.internal.http.HTMLEntity;
 				String url;
 				if (entity instanceof HashtagEntity) {
 					HashtagEntity hashtagEntity = (HashtagEntity) entity;
-					String hashtag = "#" + hashtagEntity.getText();
-					start = originalStatusText.indexOf(hashtag, offset);
-					end = start + hashtag.length();
+					start = TwitterStatus.getEntityStart(hashtagEntity);
+					end = TwitterStatus.getEntityEnd(hashtagEntity);
 					replaceText = null;
 					url = "http://command/hashtag!" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
 					url = urlEntity.getURL().toExternalForm();
-					start = originalStatusText.indexOf(url, offset);
-					end = start + url.length();
+					start = TwitterStatus.getEntityStart(urlEntity);
+					end = TwitterStatus.getEntityEnd(urlEntity);
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					String screenName = "@" + mentionEntity.getScreenName().toLowerCase(locale);
-					start = originalStatusTextLowerCased.indexOf(screenName, offset);
-					end = start + screenName.length();
+					start = TwitterStatus.getEntityStart(mentionEntity);
+					end = TwitterStatus.getEntityEnd(mentionEntity);
 					replaceText = null;
 					url = "http://command/userinfo!" + mentionEntity.getScreenName();
 				} else {
@@ -928,17 +901,17 @@ import twitter4j.internal.http.HTMLEntity;
 				}
 				
 				if (offset < start) {
-					stringBuilder.append(nl2br(originalStatusText.substring(offset, start)));
+					nl2br(stringBuilder, escapedText.substring(offset, start));
 				}
 				stringBuilder.append("<a href=\"");
 				stringBuilder.append(url);
 				stringBuilder.append("\">");
-				stringBuilder.append(replaceText == null ? originalStatusText.substring(start, end) : replaceText);
+				stringBuilder.append(replaceText == null ? escapedText.substring(start, end) : replaceText);
 				stringBuilder.append("</a>");
 				
 				offset = end;
 			}
-			stringBuilder.append(nl2br(originalStatusText.substring(offset)));
+			nl2br(stringBuilder, escapedText.substring(offset));
 			editor.setText(stringBuilder.toString());
 			
 			User user = status.getUser();
@@ -1522,25 +1495,40 @@ import twitter4j.internal.http.HTMLEntity;
 	}
 	
 	/**
-	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
 	 * 
-	 * @param text テキスト
-	 * @return &lt;br&gt;に置き換えられた文章
+	 * @param stringBuilder テキスト
+	 * @param start 置き換え開始位置
 	 */
-	private String nl2br(String text) {
-		StringBuilder stringBuilder = new StringBuilder(text);
-		int offset = 0;
+	private void nl2br(StringBuilder stringBuilder, int start) {
+		int offset = start;
 		int position;
 		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
 			stringBuilder.replace(position, position + 1, "<br>");
-			offset = position;
+			offset = position + 1;
 		}
-		offset = 0;
+		offset = start;
 		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
 			stringBuilder.replace(position, position + 1, "&nbsp;");
-			offset = position;
+			offset = position + 1;
 		}
-		return stringBuilder.toString();
+		offset = start;
+		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
+			stringBuilder.replace(position, position + 5, "&amp;amp;");
+			offset = position + 9;
+		}
+	}
+	
+	/**
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
+	 * 
+	 * @param stringBuilder テキスト
+	 * @param append 追加する文字列
+	 */
+	private void nl2br(StringBuilder stringBuilder, String append) {
+		int offset = stringBuilder.length();
+		stringBuilder.append(append);
+		nl2br(stringBuilder, offset);
 	}
 	
 	/**
@@ -1616,41 +1604,53 @@ import twitter4j.internal.http.HTMLEntity;
 			}
 		});
 		stream.user();
-		jobQueue.addJob(new Runnable() {
+		jobQueue.addJob(new TwitterRunnable() {
 			
 			@Override
-			public void run() {
+			protected void access() throws TwitterException {
 				ResponseList<Status> homeTimeline;
-				try {
-					Paging paging = configData.pagingOfGettingInitialTimeline;
-					homeTimeline = twitter.getHomeTimeline(paging);
-					for (Status status : homeTimeline) {
-						addStatus(status);
-					}
-				} catch (TwitterException e) {
-					handleException(e);
+				Paging paging = configData.pagingOfGettingInitialTimeline;
+				homeTimeline = twitter.getHomeTimeline(paging);
+				for (Status status : homeTimeline) {
+					addStatus(status);
 				}
 				configuration.setInitializing(false);
+			}
+			
+			@Override
+			protected ClientConfiguration getConfiguration() {
+				return configuration;
+			}
+			
+			@Override
+			protected void handleException(TwitterException ex) {
+				TwitterClientFrame.this.handleException(ex);
 			}
 		});
 		timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				jobQueue.addJob(new Runnable() {
+				jobQueue.addJob(new TwitterRunnable() {
 					
 					@Override
-					public void run() {
+					protected void access() throws TwitterException {
 						Paging paging = configData.pagingOfGettingTimeline;
 						ResponseList<Status> timeline;
-						try {
-							timeline = twitter.getHomeTimeline(paging);
-							for (Status status : timeline) {
-								addStatus(status);
-							}
-						} catch (TwitterException e) {
-							handleException(e);
+						timeline = twitter.getHomeTimeline(paging);
+						for (Status status : timeline) {
+							addStatus(status);
 						}
+					}
+					
+					@Override
+					protected ClientConfiguration getConfiguration() {
+						return configuration;
+					}
+					
+					@Override
+					protected void handleException(TwitterException ex) {
+						TwitterClientFrame.this.handleException(ex);
 					}
 				});
 			}

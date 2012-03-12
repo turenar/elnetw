@@ -482,7 +482,6 @@ public class ImageCacher {
 		String imageKey = getImageKey(user);
 		URL url = user.getProfileImageURL();
 		ImageEntry entry = cacheManager.get(imageKey);
-		System.err.println(imageKey);
 		if (entry == null) {
 			entry = new ImageEntry(url, imageKey);
 			entry.cacheFile = getImageFilename(user);
