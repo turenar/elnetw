@@ -65,7 +65,6 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-import jp.syuriken.snsw.twclient.Utility.IllegalKeyStringException;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
@@ -76,6 +75,7 @@ import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
+import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
@@ -514,6 +514,12 @@ import twitter4j.internal.http.HTMLEntity;
 	
 	private ConfigData configData;
 	
+	private JLabel postLengthLabel;
+	
+	private final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR = new DefaultTweetLengthCalculator(this);
+	
+	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -783,6 +789,7 @@ import twitter4j.internal.http.HTMLEntity;
 			if (selectingPost != null) {
 				selectingPost.requestFocusInWindow();
 			}
+			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
 			
@@ -791,14 +798,15 @@ import twitter4j.internal.http.HTMLEntity;
 				@Override
 				public void run() {
 					try {
-						String text = HTMLEntity.escape(getPostBox().getText());
-						StatusUpdate statusUpdate = new StatusUpdate(text);
+						String escapedText = HTMLEntity.escape(text);
+						StatusUpdate statusUpdate = new StatusUpdate(escapedText);
 						
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
 						twitter.updateStatus(statusUpdate);
 						postBox.setText("");
+						updatePostLength();
 						inReplyToStatus = null;
 					} catch (TwitterException e) {
 						handleException(e);
@@ -810,6 +818,7 @@ import twitter4j.internal.http.HTMLEntity;
 								public void run() {
 									postActionButton.setEnabled(true);
 									postBox.setEnabled(true);
+									tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 								}
 							};
 							if (EventQueue.isDispatchThread()) {
@@ -1109,6 +1118,7 @@ import twitter4j.internal.http.HTMLEntity;
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
+					updatePostLength();
 					if (e.isControlDown()) {
 						switch (e.getKeyCode()) {
 							case KeyEvent.VK_ENTER:
@@ -1132,6 +1142,15 @@ import twitter4j.internal.http.HTMLEntity;
 			postBoxScrollPane.setViewportView(getPostBox());
 		}
 		return postBoxScrollPane;
+	}
+	
+	private JLabel getPostLengthLabel() {
+		if (postLengthLabel == null) {
+			postLengthLabel = new JLabel();
+			postLengthLabel.setText("0");
+			postLengthLabel.setFont(UI_FONT);
+		}
+		return postLengthLabel;
 	}
 	
 	private JScrollPane getPostListScrollPane() {
@@ -1174,17 +1193,26 @@ import twitter4j.internal.http.HTMLEntity;
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
 							GroupLayout.Alignment.TRAILING, //
-							layout.createSequentialGroup().addContainerGap()
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
 								.addComponent(getPostBoxScrollPane(), GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED) //
-								.addComponent(getPostActionButton()).addGap(18, 18, 18)));
+								.addPreferredGap(ComponentPlacement.RELATED)
+								//
+								.addGroup(
+										layout.createParallelGroup(Alignment.TRAILING)
+											.addComponent(getPostActionButton()).addComponent(getPostLengthLabel()))
+								.addGap(18, 18, 18)));
 			layout.setVerticalGroup( //
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
 						layout
 							.createSequentialGroup()
 							.addGroup(
-									layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-										.addComponent(getPostActionButton())
+									layout
+										.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addGroup(
+												layout.createSequentialGroup().addComponent(getPostLengthLabel())
+													.addComponent(getPostActionButton()))
 										.addComponent(getPostBoxScrollPane(), 32, 64, GroupLayout.PREFERRED_SIZE))
 							.addContainerGap(6, Short.MAX_VALUE)));
 			
@@ -1475,8 +1503,7 @@ import twitter4j.internal.http.HTMLEntity;
 	}
 	
 	/**
-	 * TODO snsoftware
-	 * 
+	 * ショートカットキーテーブルを初期化する。
 	 */
 	protected void initShortcutKey() {
 		Properties shortcutkeyProperties = new Properties();
@@ -1488,11 +1515,7 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 		for (Object obj : shortcutkeyProperties.keySet()) {
 			String key = (String) obj;
-			try {
-				addShortcutKey(key, shortcutkeyProperties.getProperty(key));
-			} catch (IllegalKeyStringException e) {
-				logger.warn("ショートカットキーの読み込み中にエラー", e);
-			}
+			addShortcutKey(key, shortcutkeyProperties.getProperty(key));
 		}
 	}
 	
@@ -1585,7 +1608,15 @@ import twitter4j.internal.http.HTMLEntity;
 		String oldText = textArea.getText();
 		textArea.setText(text);
 		textArea.select(selectionStart, selectionEnd);
+		updatePostLength();
 		return oldText;
+	}
+	
+	@Override
+	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
+		TweetLengthCalculator oldCalculator = tweetLengthCalculator;
+		tweetLengthCalculator = newCalculator == null ? DEFAULT_TWEET_LENGTH_CALCULATOR : newCalculator;
+		return oldCalculator;
 	}
 	
 	/**
@@ -1659,6 +1690,18 @@ import twitter4j.internal.http.HTMLEntity;
 				logger.warn("SystemTrayへの追加に失敗", e);
 			}
 		}
+	}
+	
+	private void updatePostLength() {
+		tweetLengthCalculator.calcTweetLength(getPostBox().getText());
+	}
+	
+	@Override
+	public void updatePostLength(String length, Color color, String tooltip) {
+		JLabel label = getPostLengthLabel();
+		label.setText(length);
+		label.setForeground(color);
+		label.setToolTipText(tooltip);
 	}
 	
 	@Override

@@ -5,6 +5,7 @@ import java.util.Timer;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -15,8 +16,15 @@ import twitter4j.User;
  * 
  * @author $Author$
  */
-public interface ClientFrameApi {
+public interface ClientFrameApi extends TweetLengthUpdater {
 	
+	/**
+	 * アクションハンドラを追加する
+	 * 
+	 * @param name ハンドラ名
+	 * @param handler ハンドラ
+	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
+	 */
 	public abstract ActionHandler addActionHandler(String name, ActionHandler handler);
 	
 	/**
@@ -34,6 +42,12 @@ public interface ClientFrameApi {
 	 */
 	public abstract void addJob(Runnable job);
 	
+	/**
+	 * ショートカットキーに対応するアクションを設定する
+	 * 
+	 * @param keyCode {@link Utility#toKeyString(int, int)}を使用して取得したキーコード
+	 * @param actionName アクション名
+	 */
 	public abstract void addShortcutKey(String keyCode, String actionName);
 	
 	/**
@@ -60,6 +74,9 @@ public interface ClientFrameApi {
 	 */
 	public abstract JPanel addStatus(StatusData statusData, int deletionDelay);
 	
+	/**
+	 * ポストを行う。
+	 */
 	public abstract void doPost();
 	
 	/**
@@ -184,4 +201,5 @@ public interface ClientFrameApi {
 	 * @return 変更する前の内容
 	 */
 	public abstract String setPostText(String text, int selectingStart, int selectingEnd);
+	
 }

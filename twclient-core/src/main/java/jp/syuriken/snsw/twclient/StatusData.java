@@ -75,17 +75,13 @@ public class StatusData {
 		this.date = (Date) date.clone();
 	}
 	
-	/**
-	 * TODO snsoftware
-	 * 
-	 */
-	public void addStatusPanel(StatusPanel panel) {
+	/*package*/void addStatusPanel(StatusPanel panel) {
 		synchronized (statusPanels) {
 			statusPanels.add(panel);
 		}
 	}
 	
-	public StatusPanel[] getStatusPanels() {
+	/*package*/StatusPanel[] getStatusPanels() {
 		synchronized (statusPanels) {
 			return statusPanels.toArray(new StatusPanel[statusPanels.size()]);
 		}
@@ -100,7 +96,7 @@ public class StatusData {
 		return sentBy.getName().startsWith("!");
 	}
 	
-	public boolean removeStatusPanel(StatusPanel panel) {
+	/*package*/boolean removeStatusPanel(StatusPanel panel) {
 		synchronized (statusPanels) {
 			return statusPanels.remove(panel);
 		}

@@ -282,6 +282,12 @@ public class SortedPostListPanel extends JPanel {
 		return panel.requestFocusInWindow();
 	}
 	
+	/**
+	 * 指定されたパネルの次のパネルにフォーカスを当てる
+	 * 
+	 * @param panel パネル
+	 * @return フォーカスが成功しそうかどうか
+	 */
 	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
 		int comparison = compareDate(panel, firstBranch.getLast());
 		
@@ -312,6 +318,12 @@ public class SortedPostListPanel extends JPanel {
 		}
 	}
 	
+	/**
+	 * 指定されたパネルの前のパネルにフォーカスを当てる
+	 * 
+	 * @param panel パネル
+	 * @return フォーカスが成功しそうかどうか
+	 */
 	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
 		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasNext();) {
 			JPanel previous = iterator.previous();

@@ -17,7 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
@@ -30,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author $Author$
  */
+@SuppressWarnings("serial")
 public class VersionInfoFrame extends JFrame {
 	
 	/**
@@ -150,15 +150,6 @@ public class VersionInfoFrame extends JFrame {
 		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
 	}
 	
-	
-	public static void main(String[] args) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		new VersionInfoFrame().setVisible(true);
-	}
 	
 	/**
 	 * インスタンスを生成する
