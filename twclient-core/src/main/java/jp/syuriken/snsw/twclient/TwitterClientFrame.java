@@ -95,7 +95,6 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -798,7 +797,8 @@ import twitter4j.internal.http.HTMLEntity;
 				@Override
 				public void run() {
 					try {
-						String escapedText = HTMLEntity.escape(text);
+						// String escapedText = HTMLEntity.escape(text);
+						String escapedText = text;
 						StatusUpdate statusUpdate = new StatusUpdate(escapedText);
 						
 						if (inReplyToStatus != null) {
