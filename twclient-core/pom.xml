@@ -199,7 +199,7 @@
 
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<testSourceDirectory>src/test/java</testSourceDirectory>
-		<outputDirectory>bin/</outputDirectory>
+		<outputDirectory>target/bin</outputDirectory>
 		<testOutputDirectory>target/test</testOutputDirectory>
 		<defaultGoal>assembly:assembly</defaultGoal>
 		<directory>target</directory>

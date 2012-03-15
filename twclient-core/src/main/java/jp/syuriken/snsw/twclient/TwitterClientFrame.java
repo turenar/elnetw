@@ -46,6 +46,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.Utility.IllegalKeyStringException;
@@ -59,6 +61,8 @@ import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
+import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +77,7 @@ import twitter4j.TwitterFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
+import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -608,7 +613,7 @@ import twitter4j.User;
 	
 	@Override
 	public void doPost() {
-		if (postBox.getText().isEmpty() == false) {
+		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
 			if (selectingPost != null) {
 				selectingPost.requestFocusInWindow();
 			}
@@ -620,7 +625,9 @@ import twitter4j.User;
 				@Override
 				public void run() {
 					try {
-						StatusUpdate statusUpdate = new StatusUpdate(postBox.getText());
+						String text = HTMLEntity.escape(getPostBox().getText());
+						StatusUpdate statusUpdate = new StatusUpdate(text);
+						
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
@@ -640,15 +647,14 @@ import twitter4j.User;
 								}
 							};
 							if (EventQueue.isDispatchThread()) {
-								EventQueue.invokeAndWait(enabler);
-							} else {
 								enabler.run();
+							} else {
+								EventQueue.invokeAndWait(enabler);
 							}
 						} catch (InterruptedException e) {
 							// do nothing
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							logger.warn("doPost", e);
 						}
 					}
 				}
@@ -978,6 +984,16 @@ import twitter4j.User;
 			tweetViewEditorPane.setFont(UI_FONT);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.setEditorKit(new HTMLEditorKit() {
+				
+				private HTMLFactory viewFactory = new HTMLFactoryDelegator();
+				
+				
+				@Override
+				public ViewFactory getViewFactory() {
+					return viewFactory;
+				}
+			});
 			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
 				
 				@Override
@@ -1313,10 +1329,10 @@ import twitter4j.User;
 			}
 		});
 		stream.user();
-		jobQueue.addJob(new Runnable() {
+		jobQueue.addJob(new TwitterRunnable() {
 			
 			@Override
-			public void run() {
+			protected void access() throws TwitterException {
 				ResponseList<Status> homeTimeline;
 				try {
 					Paging paging = configData.pagingOfGettingInitialTimeline;
@@ -1329,32 +1345,50 @@ import twitter4j.User;
 				}
 				configuration.setInitializing(false);
 			}
-		});
-		jobQueue.addJob(new Runnable() {
 			
 			@Override
-			public void run() {
+			protected ClientConfiguration getConfiguration() {
+				return configuration;
+			}
+			
+			@Override
+			protected void handleException(TwitterException ex) {
+				TwitterClientFrame.this.handleException(ex);
+			}
+		});
+		jobQueue.addJob(new TwitterRunnable() {
+			
+			@Override
+			public void access() throws TwitterException {
 				try {
 					Paging paging = configData.pagingOfGettingInitialMentions;
 					ResponseList<Status> mentions = twitterForRead.getMentions(paging);
 					for (Status status : mentions) {
 						rootFilterService.onStatus(status);
 					}
-				} catch (TwitterException e) {
-					handleException(e);
 				} finally {
 					configuration.setInitializing(false);
 				}
+			}
+			
+			@Override
+			protected ClientConfiguration getConfiguration() {
+				return configuration;
+			}
+			
+			@Override
+			protected void handleException(TwitterException ex) {
+				TwitterClientFrame.this.handleException(ex);
 			}
 		});
 		timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				jobQueue.addJob(new Runnable() {
+				jobQueue.addJob(new TwitterRunnable() {
 					
 					@Override
-					public void run() {
+					protected void access() throws TwitterException {
 						Paging paging = configData.pagingOfGettingTimeline;
 						ResponseList<Status> timeline;
 						try {
@@ -1365,6 +1399,16 @@ import twitter4j.User;
 						} catch (TwitterException e) {
 							handleException(e);
 						}
+					}
+					
+					@Override
+					protected ClientConfiguration getConfiguration() {
+						return configuration;
+					}
+					
+					@Override
+					protected void handleException(TwitterException ex) {
+						TwitterClientFrame.this.handleException(ex);
 					}
 				});
 			}

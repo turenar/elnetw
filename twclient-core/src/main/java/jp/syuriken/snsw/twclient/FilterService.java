@@ -368,7 +368,8 @@ import twitter4j.UserList;
 	}
 	
 	@Override
-	public void onStatus(final Status status) {
+	public void onStatus(Status originalStatus) {
+		final Status status = (originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(originalStatus);
 		filter(new FilterDispatcher() {
 			
 			private Status obj = status;

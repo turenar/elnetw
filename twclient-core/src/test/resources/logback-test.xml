@@ -1,4 +1,4 @@
-<configuration>
+<configuration debug="false">
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<file>twclient-test.log</file>
 		<layout class="ch.qos.logback.classic.PatternLayout">

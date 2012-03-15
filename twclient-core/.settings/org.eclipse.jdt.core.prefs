@@ -1,7 +1,8 @@
-#Sat Feb 04 17:29:07 JST 2012
+#Sun Feb 26 11:55:00 JST 2012
 org.eclipse.jdt.core.formatter.insert_space_before_comma_in_for_inits=do not insert
 org.eclipse.jdt.core.formatter.brace_position_for_block=end_of_line
 org.eclipse.jdt.core.formatter.insert_space_after_at_in_annotation_type_declaration=do not insert
+encoding/src/main/java=UTF-8
 org.eclipse.jdt.core.formatter.insert_space_before_comma_in_method_declaration_throws=do not insert
 org.eclipse.jdt.core.formatter.brace_position_for_annotation_type_declaration=end_of_line
 org.eclipse.jdt.core.formatter.insert_space_after_colon_in_conditional=insert
@@ -13,6 +14,7 @@ org.eclipse.jdt.core.compiler.problem.staticAccessReceiver=warning
 org.eclipse.jdt.core.formatter.insert_space_after_opening_paren_in_if=do not insert
 org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_block=insert
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.6
+encoding/src/main/resources=UTF-8
 org.eclipse.jdt.core.formatter.insert_space_before_closing_angle_bracket_in_type_parameters=do not insert
 org.eclipse.jdt.core.compiler.problem.unusedPrivateMember=warning
 org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment=false
@@ -56,10 +58,12 @@ org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation=ignore
 org.eclipse.jdt.core.formatter.insert_space_after_comma_in_method_invocation_arguments=insert
 org.eclipse.jdt.core.formatter.insert_space_after_comma_in_multiple_local_declarations=insert
 org.eclipse.jdt.core.formatter.blank_lines_before_new_chunk=2
+encoding/etc/license=UTF-8
 org.eclipse.jdt.core.classpath.exclusionPatterns=enabled
 org.eclipse.jdt.core.formatter.alignment_for_arguments_in_explicit_constructor_call=16
 org.eclipse.jdt.core.formatter.insert_new_line_after_annotation=insert
 org.eclipse.jdt.core.formatter.number_of_empty_lines_to_preserve=1
+encoding/src/test/resources=UTF-8
 org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_type_declaration=insert
 org.eclipse.jdt.core.compiler.codegen.unusedLocal=preserve
 org.eclipse.jdt.core.formatter.brace_position_for_switch=end_of_line
@@ -193,7 +197,6 @@ org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_anonymous_ty
 org.eclipse.jdt.core.formatter.brace_position_for_enum_constant=end_of_line
 org.eclipse.jdt.core.formatter.insert_space_after_colon_in_labeled_statement=insert
 org.eclipse.jdt.core.compiler.problem.incompleteEnumSwitch=ignore
-encoding//etc/license=UTF-8
 org.eclipse.jdt.core.formatter.insert_space_after_opening_paren_in_cast=do not insert
 org.eclipse.jdt.core.codeComplete.staticFieldSuffixes=
 org.eclipse.jdt.core.formatter.insert_space_after_and_in_type_parameter=insert
@@ -263,6 +266,7 @@ org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_enum_constan
 org.eclipse.jdt.core.formatter.alignment_for_binary_expression=16
 org.eclipse.jdt.core.formatter.brace_position_for_type_declaration=end_of_line
 org.eclipse.jdt.core.formatter.insert_space_after_comma_in_method_declaration_throws=insert
+encoding/src/test/java=UTF-8
 org.eclipse.jdt.core.formatter.insert_space_before_closing_paren_in_parenthesized_expression=do not insert
 org.eclipse.jdt.core.compiler.problem.unusedParameterWhenOverridingConcrete=disabled
 org.eclipse.jdt.core.formatter.insert_space_before_binary_operator=insert

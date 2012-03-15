@@ -164,9 +164,9 @@ public class TimelineViewTab extends DefaultClientTab {
 				statusData.foregroundColor = Color.YELLOW;
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!follow." + source.getScreenName());
-				String message = followedUser.getScreenName() + " にフォローされました";
-				statusData.data = new JLabel(message);
+			statusData.sentBy.setName("!follow." + source.getScreenName());
+			String message = "@" + followedUser.getScreenName() + " をフォローしました";
+			statusData.data = new JLabel(message);
 				addStatus(statusData);
 				configuration.getUtility().sendNotify(
 						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
@@ -186,9 +186,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			if (logger.isTraceEnabled()) {
 				logger.trace("onRetweet: source={}, target={}, retweet={}",
 						Utility.toArray(source, target, retweetedStatus));
-			}
-			
-			if (logger.isDebugEnabled()) {
+			} else if (logger.isDebugEnabled()) {
 				logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(),
 						retweetedStatus.getRetweetedStatus().getId(), retweetedStatus));
 			}

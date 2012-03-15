@@ -45,12 +45,13 @@ public class RetweetActionHandler implements ActionHandler {
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if (statusData.isSystemNotify() || (statusData.tag instanceof Status) == false) {
+			menuItem.setVisible(false);
 			menuItem.setEnabled(false);
 		}
 		if (statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
-			menuItem.setEnabled(status.getUser().getId() != api.getLoginUser().getId());
+			menuItem.setEnabled(status.getUser().isProtected() == false);
+			menuItem.setVisible(status.getUser().getId() != api.getLoginUser().getId());
 		}
 	}
-	
 }

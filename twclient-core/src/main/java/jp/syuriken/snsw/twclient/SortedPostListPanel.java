@@ -188,7 +188,6 @@ public class SortedPostListPanel extends JPanel {
 		if (values.size() == 0) {
 			return;
 		}
-		size += values.size();
 		
 		Collections.sort(values, ComponentComparator.SINGLETON);
 		
@@ -199,12 +198,13 @@ public class SortedPostListPanel extends JPanel {
 			StatusPanel value = values.peekFirst();
 			StatusPanel branchValue = iterator.next();
 			
-			if (compareDate(value, branchValue) <= 0) {
+			if (compareDate(value, branchValue) < 0) {
 				continue;
 			} else {
 				firstPanel.add(values.peekFirst(), iterator.previousIndex());
 				iterator.previous();
 				iterator.add(values.pollFirst());
+				size++;
 				firstPanel.invalidate();
 				continue;
 			}
@@ -213,6 +213,7 @@ public class SortedPostListPanel extends JPanel {
 			while (values.isEmpty() == false) {
 				firstBranch.addLast(values.peekFirst());
 				firstPanel.add(values.pollFirst());
+				size++;
 			}
 		} else {
 			for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext();) {
@@ -221,7 +222,7 @@ public class SortedPostListPanel extends JPanel {
 				}
 				JPanel branch = listIterator.next();
 				Component lastOfBranch = branch.getComponent(branch.getComponentCount() - 1);
-				if (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) > 0) {
+				while (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
 					Component[] newBranch = Arrays.copyOf(branch.getComponents(), branch.getComponentCount() + 1);
 					newBranch[newBranch.length - 1] = values.pollFirst();
 					Arrays.sort(newBranch, ComponentComparator.SINGLETON);
@@ -230,8 +231,12 @@ public class SortedPostListPanel extends JPanel {
 						branch.add(component);
 					}
 					branch.invalidate();
+					size++;
 				}
 			}
+		}
+		if (values.size() != 0) {
+			throw new AssertionError();
 		}
 		splitFirstBranch();
 		

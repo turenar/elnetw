@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
@@ -37,6 +36,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,6 @@ import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.http.HTMLEntity;
 
 /**
  * ツイート表示用のタブ
@@ -261,26 +260,42 @@ public abstract class DefaultClientTab implements ClientTab {
 	};
 	
 	
+
 	/**
-	 * nl-&gt;br および 空白を &amp;nbsp;に置き換えする
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
 	 * 
-	 * @param text テキスト
-	 * @return &lt;br&gt;に置き換えられた文章
+	 * @param stringBuilder テキスト
+	 * @param start 置き換え開始位置
 	 */
-	protected static String nl2br(String text) {
-		StringBuilder stringBuilder = new StringBuilder(text);
-		int offset = 0;
+	protected static void nl2br(StringBuilder stringBuilder, int start) {
+		int offset = start;
 		int position;
 		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
 			stringBuilder.replace(position, position + 1, "<br>");
-			offset = position;
+			offset = position + 1;
 		}
-		offset = 0;
+		offset = start;
 		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
 			stringBuilder.replace(position, position + 1, "&nbsp;");
-			offset = position;
+			offset = position + 1;
 		}
-		return stringBuilder.toString();
+		offset = start;
+		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
+			stringBuilder.replace(position, position + 5, "&amp;amp;");
+			offset = position + 9;
+		}
+	}
+	
+	/**
+	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
+	 * 
+	 * @param stringBuilder テキスト
+	 * @param append 追加する文字列
+	 */
+	protected static void nl2br(StringBuilder stringBuilder, String append) {
+		int offset = stringBuilder.length();
+		stringBuilder.append(append);
+		nl2br(stringBuilder, offset);
 	}
 	
 	
@@ -330,7 +345,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private JPopupMenu tweetPopupMenu;
 	
-	
 	/**
 	 * インスタンスを生成する。
 	 * 
@@ -360,13 +374,13 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	public void addStatus(Status originalStatus) {
 		Status twitterStatus = new TwitterStatus(originalStatus);
-		StatusData statusData = new StatusData(twitterStatus, originalStatus.getCreatedAt(), originalStatus.getId());
+		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
-		if (originalStatus.isRetweet()) {
-			status = originalStatus.getRetweetedStatus();
+		if (twitterStatus.isRetweet()) {
+			status = twitterStatus.getRetweetedStatus();
 		} else {
-			status = originalStatus;
+			status = twitterStatus;
 		}
 		User user = status.getUser();
 		
@@ -399,13 +413,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		statusData.popupMenu = tweetPopupMenu;
 		
-		if (originalStatus.isRetweet()) {
+		if (twitterStatus.isRetweet()) {
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("Retweeted by @").append(originalStatus.getUser().getScreenName());
+			stringBuilder.append("Retweeted by @").append(twitterStatus.getUser().getScreenName());
 			statusData.tooltip = stringBuilder.toString();
 		}
 		
-		if (originalStatus.isRetweet()) {
+		if (twitterStatus.isRetweet()) {
 			statusData.foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
@@ -512,27 +526,17 @@ public abstract class DefaultClientTab implements ClientTab {
 				frameApi.getConfigData().colorOfFocusList));
 		
 		StatusData statusData = selectingPost.getStatusData();
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
+		if (statusData.tag instanceof TwitterStatus) {
+			TwitterStatus status = (TwitterStatus) statusData.tag;
 			status = status.isRetweet() ? status.getRetweetedStatus() : status;
-			String originalStatusText;
-			StringBuffer stringBuilder = new StringBuffer(status.getText());
-			HTMLEntity.escape(stringBuilder);
-			/*int nlposition;
-			int offset = 0;
-			while ((nlposition = originalStatusTextBuffer.indexOf("&amp;", offset)) >= 0) {
-				originalStatusTextBuffer.replace(nlposition, nlposition + 5, "&");
-				offset = nlposition;
-			}*/
-			originalStatusText = stringBuilder.toString();
-			String originalStatusTextLowerCased = originalStatusText.toLowerCase(Locale.getDefault());
-			stringBuilder.setLength(0);
+			String escapedText = status.getEscapedText();
+			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
-			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+			HashtagEntity[] hashtagEntities = status.getOriginalStatus().getHashtagEntities();
 			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
-			URLEntity[] urlEntities = status.getURLEntities();
+			URLEntity[] urlEntities = status.getOriginalStatus().getURLEntities();
 			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
-			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+			UserMentionEntity[] mentionEntities = status.getOriginalStatus().getUserMentionEntities();
 			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
 			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
 			
@@ -548,19 +552,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				
 				@Override
 				public int compare(Object o1, Object o2) {
-					return getStart(o1) - getStart(o2);
-				}
-				
-				private int getStart(Object obj) {
-					if (obj instanceof HashtagEntity) {
-						return ((HashtagEntity) obj).getStart();
-					} else if (obj instanceof URLEntity) {
-						return ((URLEntity) obj).getStart();
-					} else if (obj instanceof UserMentionEntity) {
-						return ((UserMentionEntity) obj).getStart();
-					} else {
-						throw new AssertionError();
-					}
+					return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
 				}
 			});
 			int offset = 0;
@@ -571,22 +563,20 @@ public abstract class DefaultClientTab implements ClientTab {
 				String url;
 				if (entity instanceof HashtagEntity) {
 					HashtagEntity hashtagEntity = (HashtagEntity) entity;
-					String hashtag = "#" + hashtagEntity.getText();
-					start = originalStatusText.indexOf(hashtag, offset);
-					end = start + hashtag.length();
+					start = TwitterStatus.getEntityStart(hashtagEntity);
+					end = TwitterStatus.getEntityEnd(hashtagEntity);
 					replaceText = null;
 					url = "http://command/hashtag!" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
 					url = urlEntity.getURL().toExternalForm();
-					start = originalStatusText.indexOf(url, offset);
-					end = start + url.length();
+					start = TwitterStatus.getEntityStart(urlEntity);
+					end = TwitterStatus.getEntityEnd(urlEntity);
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					String screenName = "@" + mentionEntity.getScreenName().toLowerCase(Locale.getDefault());
-					start = originalStatusTextLowerCased.indexOf(screenName, offset);
-					end = start + screenName.length();
+					start = TwitterStatus.getEntityStart(mentionEntity);
+					end = TwitterStatus.getEntityEnd(mentionEntity);
 					replaceText = null;
 					url = "http://command/userinfo!" + mentionEntity.getScreenName();
 				} else {
@@ -594,17 +584,17 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 				
 				if (offset < start) {
-					stringBuilder.append(nl2br(originalStatusText.substring(offset, start)));
+					nl2br(stringBuilder, escapedText.substring(offset, start));
 				}
 				stringBuilder.append("<a href=\"");
 				stringBuilder.append(url);
 				stringBuilder.append("\">");
-				stringBuilder.append(replaceText == null ? originalStatusText.substring(start, end) : replaceText);
+				stringBuilder.append(replaceText == null ? escapedText.substring(start, end) : replaceText);
 				stringBuilder.append("</a>");
 				
 				offset = end;
 			}
-			stringBuilder.append(nl2br(originalStatusText.substring(offset)));
+			nl2br(stringBuilder, escapedText.substring(offset));
 			String tweetText = stringBuilder.toString();
 			String createdBy =
 					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
@@ -619,8 +609,10 @@ public abstract class DefaultClientTab implements ClientTab {
 					((JLabel) statusData.image).getIcon());
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
-			frameApi.setTweetViewText(nl2br(ex.getLocalizedMessage()), ex.getClass().getName(), null, dateFormat.get()
-				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage());
+			nl2br(stringBuilder, 0);
+			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
+				dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		} else {
 			frameApi.setTweetViewText(statusData.data.getText(), statusData.sentBy.getName(), null, dateFormat.get()
 				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
