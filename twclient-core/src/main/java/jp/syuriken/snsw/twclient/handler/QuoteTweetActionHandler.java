@@ -45,8 +45,26 @@ public class QuoteTweetActionHandler implements ActionHandler {
 		
 		@Override
 		public void calcTweetLength(String original) {
-			boolean shortened = original.length() > MAX_TWEET_LENGTH;
-			int length = getShortenedText(original, true).length();
+			int fat = 0;
+			Matcher urlMatcher = DefaultTweetLengthCalculator.urlPattern.matcher(original);
+			while (urlMatcher.find()) {
+				fat += (urlMatcher.end() - urlMatcher.start()) - 20;
+			}
+			boolean shortened = original.length() - fat > MAX_TWEET_LENGTH;
+			int length;
+			if (original.length() - fat <= MAX_TWEET_LENGTH) {
+				length = original.length() - fat;
+			} else {
+				Matcher matcher = qtPattern.matcher(original);
+				if (matcher.find() == false) { // not QT
+					length = original.length() - fat;
+				} else if (matcher.end() - fat >= MAX_TWEET_LENGTH) { // [over13x] QT @...:
+					length = matcher.end() - fat;
+				} else {
+					length = matcher.end() - fat;
+				}
+			}
+			
 			Color color;
 			if (length > MAX_TWEET_LENGTH) {
 				color = Color.RED;
@@ -64,10 +82,6 @@ public class QuoteTweetActionHandler implements ActionHandler {
 		
 		@Override
 		public String getShortenedText(String original) {
-			return getShortenedText(original, false);
-		}
-		
-		/*package*/String getShortenedText(String original, boolean minimumMatch) {
 			int fat = 0;
 			Matcher urlMatcher = DefaultTweetLengthCalculator.urlPattern.matcher(original);
 			while (urlMatcher.find()) {
@@ -82,9 +96,9 @@ public class QuoteTweetActionHandler implements ActionHandler {
 				return original;
 			}
 			if (matcher.end() - fat >= MAX_TWEET_LENGTH) { // [over13x] QT @...:
-				return minimumMatch ? original.substring(0, matcher.end() + fat) : original;
+				return original;
 			}
-			return original.substring(0, (minimumMatch ? matcher.end() : MAX_TWEET_LENGTH) + fat);
+			return original.substring(0, MAX_TWEET_LENGTH + fat);
 		}
 		
 	}

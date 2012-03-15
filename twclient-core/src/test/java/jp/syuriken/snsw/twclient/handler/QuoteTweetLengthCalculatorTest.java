@@ -26,7 +26,11 @@ public class QuoteTweetLengthCalculatorTest {
 	}
 	
 	
-	/** TODO snsoftware */
+	private static final String URL1 = "http://example.com/?test=";
+	
+	private static final String BLANK_URL1 = " " + URL1;
+	
+	/** 長さ10のQTヘッダ */
 	private static final String QT_10LEN = " QT @aaaa:";
 	
 	
@@ -54,13 +58,13 @@ public class QuoteTweetLengthCalculatorTest {
 	public void testCalcTweetLength() {
 		TweetLengthCalculator calculator = new QuoteTweetLengthCalculator(new TestTweetLengthUpdater());
 		assertEquals("140", calcTweetLength(calculator, getString(120) + QT_10LEN + getString(10)));
-		assertEquals("140", calcTweetLength(calculator, getString(110) + QT_10LEN + "http://example.com/?test="));
-		assertEquals("121+", calcTweetLength(calculator, getString(110) + QT_10LEN + " http://example.com/?test="));
+		assertEquals("140", calcTweetLength(calculator, getString(110) + QT_10LEN + URL1));
+		assertEquals("121+", calcTweetLength(calculator, getString(110) + QT_10LEN + BLANK_URL1));
 		assertEquals("131+", calcTweetLength(calculator, getString(121) + QT_10LEN + getString(10)));
 		assertEquals("140+", calcTweetLength(calculator, getString(130) + QT_10LEN + getString(10)));
 		assertEquals("141+", calcTweetLength(calculator, getString(131) + QT_10LEN + getString(10)));
-		assertEquals("140+", calcTweetLength(calculator, getString(110) + QT_10LEN + "http://example.com/?test="));
-		assertEquals("141+", calcTweetLength(calculator, getString(110) + QT_10LEN + " http://example.com/?test="));
+		assertEquals("140+", calcTweetLength(calculator, getString(110) + QT_10LEN + URL1));
+		assertEquals("141+", calcTweetLength(calculator, getString(110) + QT_10LEN + BLANK_URL1));
 	}
 	
 	/**
@@ -69,10 +73,13 @@ public class QuoteTweetLengthCalculatorTest {
 	@Test
 	public void testGetShortenedText() {
 		TweetLengthCalculator calculator = new QuoteTweetLengthCalculator(new TestTweetLengthUpdater());
-		assertEquals("140", calculator.getShortenedText(getString(120) + QT_10LEN + getString(10)));
-		assertEquals("131+", calculator.getShortenedText(getString(121) + QT_10LEN + getString(10)));
-		assertEquals("140+", calculator.getShortenedText(getString(130) + QT_10LEN + getString(10)));
-		assertEquals("141+", calculator.getShortenedText(getString(131) + QT_10LEN + getString(10)));
+		assertEquals(getString(120) + QT_10LEN + getString(10),
+				calculator.getShortenedText(getString(120) + QT_10LEN + getString(10)));
+		assertEquals(getString(110) + QT_10LEN + URL1, calcTweetLength(calculator, getString(110) + QT_10LEN + URL1));
+		assertEquals(getString(110) + QT_10LEN, calcTweetLength(calculator, getString(110) + QT_10LEN + BLANK_URL1));
+		assertEquals(getString(121) + QT_10LEN + getString(9),
+				calculator.getShortenedText(getString(121) + QT_10LEN + getString(10)));
+		assertEquals(getString(130) + QT_10LEN, calculator.getShortenedText(getString(130) + QT_10LEN + getString(10)));
+		assertEquals(getString(131) + QT_10LEN, calculator.getShortenedText(getString(131) + QT_10LEN + getString(10)));
 	}
-	
 }
