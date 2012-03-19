@@ -1,0 +1,88 @@
+#!/bin/sh
+
+#====== 設定開始 ======
+## ↓強制的にポータブル状態にするときは1、しないときは0
+TURETWCL_FORCE_PORTABLE=0
+
+## ↓javaコマンドに渡す引数
+TURETWCL_JAVA_ARGS=""
+
+#===== 設定おわり =====
+
+#+-----------------------
+#|Turetwcl Launcher
+#|
+#|ランチャーjarを見付け出して起動させる。
+#+-----------------------
+
+if test "${TURETWCL_FORCE_PORTABLE}" = "1"; then
+  PORTABLE_CFG=true
+else
+  PORTABLE_CFG=false
+fi
+
+# JAVA_HOMEがない
+if test -z "${JAVA_HOME}"; then
+  # PATH環境変数の中にjavaが存在する
+  if which java >/dev/null 2>&1; then
+    JAVA_BIN="$(which java)"
+  else
+    # 見つからないときはエラー
+	echo
+    echo ERROR: JAVA_HOME not found in your environment.
+    echo Please set the JAVA_HOME variable in your environment to match the
+    echo location of your Java installation
+    echo
+	exit 1
+  fi
+else
+  JAVA_BIN="${JAVA_HOME}/bin/java"
+fi
+
+if test \! -x "${JAVA_BIN}"; then
+  echo
+  echo ERROR: JAVA_HOME is set to an invalid directory.
+  echo JAVA_HOME = "%JAVA_HOME%"
+  echo Please set the JAVA_HOME environment variable to match the
+  echo   location of your Java installation
+  echo  or install JRE \(not JDK\) to store 'javaw.exe' in your PATH.
+  echo
+  exit 1
+fi
+
+# 現在の作業ディレクトリを保存する
+WORKDIR="$(pwd)"
+
+# バッチファイルが置いてある場所の上のディレクトリに移動し、ディレクトリパスを保存
+cd "$(dirname $0)"
+BATCH_DIR="$(pwd)"
+cd ..
+BATCH_PARENT_DIR="$(pwd)"
+cd "${WORKDIR}"
+
+# binディレクトリから直接起動させたときは上のディレクトリにする。
+if test "${BATCH_DIR}" = "${WORKDIR}";then cd ..; fi
+
+# targetが存在するならポータブル設定
+if test -e "${BATCH_PARENT_DIR}/target/twclient-dist.jar"; then
+  TTJAR="${BATCH_PARENT_DIR}/target/twclient-dist.jar"
+  PORTABLE_CFG=true
+elif test -e "${BATCH_DIR}/target/twclient-dist.jar"; then
+  TTJAR="${BATCH_DIR$}/target/twclient-dist.jar"
+  PORTABLE_CFG=true
+elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
+  TTJAR="${BATCH_PARENT_DIR}/bin/launcher.jar"
+else
+  # jarが見つからない
+  echo
+  echo ERROR: Usable jar is not found.
+  echo Please re-install or, 
+  echo  if you compile from source, run 'mvn assembly:assembly'
+  echo   in twclient-core directory.
+  echo
+  exit 1
+fi
+
+JAVA_ARGS="-Dconfig.portable=${PORTABLE_CFG} ${TURETWCL_JAVA_ARGS}"
+
+"${JAVA_BIN}" ${JAVA_ARGS} -jar "${TTJAR}" $@
