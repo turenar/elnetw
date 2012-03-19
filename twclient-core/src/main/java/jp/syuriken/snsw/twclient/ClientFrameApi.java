@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Font;
 import java.util.Timer;
 
 import javax.swing.JPanel;
@@ -92,6 +93,13 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	public abstract ClientConfiguration getClientConfiguration();
 	
 	/**
+	 * デフォルトで使用されるフォントを取得する。
+	 * 
+	 * @return フォント
+	 */
+	Font getDefaultFont();
+	
+	/**
 	 * 画像をキャッシュするオブジェクトを取得する。
 	 * 
 	 * @return ImageCacherインスタンス
@@ -141,6 +149,13 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return Twitterインスタンス
 	 */
 	public abstract Twitter getTwitter();
+	
+	/**
+	 * UIに用いられるフォントを取得する。
+	 * 
+	 * @return フォント
+	 */
+	public abstract Font getUiFont();
 	
 	/**
 	 * Utilityインスタンスを取得する。

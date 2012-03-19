@@ -24,6 +24,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +66,9 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.config.BooleanConfigType;
+import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
@@ -233,6 +237,52 @@ import twitter4j.UserMentionEntity;
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		}
 		
+	}
+	
+	/**
+	 * 設定フレームを表示するアクションハンドラ
+	 * 
+	 * @author $Author$
+	 */
+	private class MenuConfiguratorActionHandler implements ActionHandler {
+		
+		private Method showMethod;
+		
+		
+		private MenuConfiguratorActionHandler() {
+			try {
+				showMethod = ConfigFrameBuilder.class.getDeclaredMethod("show");
+				showMethod.setAccessible(true);
+			} catch (SecurityException e) {
+				logger.error("blocked reflection of ConfigFrameBuilder#show()", e);
+			} catch (NoSuchMethodException e) {
+				logger.error("failed reflection of ConfigFrameBuilder#show()", e);
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JMenuItem createJMenuItem(String commandName) {
+			return null;
+		}
+		
+		@Override
+		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
+			try {
+				showMethod.invoke(configuration.getConfigBuilder());
+			} catch (IllegalArgumentException e) {
+				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+			} catch (IllegalAccessException e) {
+				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+			} catch (InvocationTargetException e) {
+				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+			}
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+			// This is always enabled.
+		}
 	}
 	
 	/**
@@ -529,6 +579,7 @@ import twitter4j.UserMentionEntity;
 		logger.info("initializing frame");
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
+		initConfigurator();
 		jobWorkerThread = new JobWorkerThread(jobQueue);
 		jobWorkerThread.start();
 		mainThreadHolder = threadHolder;
@@ -986,19 +1037,22 @@ import twitter4j.UserMentionEntity;
 			clientMenu = new JMenuBar();
 			{
 				JMenu applicationMenu = new JMenu("アプリケーション");
+				JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
+				configMenuItem.setActionCommand("menu_config");
+				configMenuItem.addActionListener(new ActionListenerImplementation());
+				applicationMenu.add(configMenuItem);
+				JMenuItem propertyEditorMenuItem = new JMenuItem("プロパティエディター(P)", KeyEvent.VK_P);
+				propertyEditorMenuItem.setActionCommand("menu_propeditor");
+				propertyEditorMenuItem.addActionListener(new ActionListenerImplementation());
+				applicationMenu.add(propertyEditorMenuItem);
+				
+				applicationMenu.addSeparator();
+				
 				JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
 				quitMenuItem.setActionCommand("menu_quit");
 				quitMenuItem.addActionListener(new ActionListenerImplementation());
 				applicationMenu.add(quitMenuItem);
 				clientMenu.add(applicationMenu);
-			}
-			{
-				JMenu configMenu = new JMenu("設定");
-				JMenuItem propertyEditorMenuItem = new JMenuItem("プロパティエディター(P)", KeyEvent.VK_P);
-				propertyEditorMenuItem.setActionCommand("menu_propeditor");
-				propertyEditorMenuItem.addActionListener(new ActionListenerImplementation());
-				configMenu.add(propertyEditorMenuItem);
-				clientMenu.add(configMenu);
 			}
 			{
 				JMenu infoMenu = new JMenu("情報");
@@ -1010,6 +1064,11 @@ import twitter4j.UserMentionEntity;
 			}
 		}
 		return clientMenu;
+	}
+	
+	@Override
+	public Font getDefaultFont() {
+		return DEFAULT_FONT;
 	}
 	
 	private JPanel getEditPanel() {
@@ -1402,6 +1461,11 @@ import twitter4j.UserMentionEntity;
 	}
 	
 	@Override
+	public Font getUiFont() {
+		return UI_FONT;
+	}
+	
+	@Override
 	public Utility getUtility() {
 		return configuration.getUtility();
 	}
@@ -1474,6 +1538,7 @@ import twitter4j.UserMentionEntity;
 		addActionHandler("core", new CoreFrameActionHandler());
 		addActionHandler("menu_quit", new MenuQuitActionHandler());
 		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
+		addActionHandler("menu_config", new MenuConfiguratorActionHandler());
 	}
 	
 	/**
@@ -1500,6 +1565,26 @@ import twitter4j.UserMentionEntity;
 			setSize(size);
 			// setSize(500, 500);
 		}
+	}
+	
+	/**
+	 * 設定ウィンドウの初期化
+	 */
+	private void initConfigurator() {
+		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
+		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
+			.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
+			.getParentGroup().getSubgroup("取得数 (ツイート数)")
+			.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
+			.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
+		configBuilder.getGroup("UI")
+			.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
+			.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
+		configBuilder
+			.getGroup("core")
+			.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒", new IntegerConfigType(1, 5, 1000))
+			.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
+					new BooleanConfigType());
 	}
 	
 	/**

@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,8 @@ public class ClientConfiguration {
 	
 	private boolean isInitializing = true;
 	
+	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
+	
 	
 	/*package*/ClientConfiguration() {
 		try {
@@ -45,6 +49,10 @@ public class ClientConfiguration {
 			logger.error("icon ファイルの読み込みに失敗。");
 			trayIcon = null;
 		}
+	}
+	
+	public ConfigFrameBuilder getConfigBuilder() {
+		return configBuilder;
 	}
 	
 	/**
