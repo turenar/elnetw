@@ -11,9 +11,18 @@
 		<dependencySet>
 			<useProjectArtifact>true</useProjectArtifact>
 			<outputDirectory>lib</outputDirectory>
+			<outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
 			<excludes>
-				<exclude>junit:junit</exclude>
+				<exclude>jp.syuriken.snsw:twclient-core</exclude>
 			</excludes>
+		</dependencySet>
+		<dependencySet>
+			<useProjectArtifact>true</useProjectArtifact>
+			<outputDirectory>bin</outputDirectory>
+			<outputFileNameMapping>launcher.${artifact.extension}</outputFileNameMapping>
+			<includes>
+				<include>jp.syuriken.snsw:twclient-core</include>
+			</includes>
 		</dependencySet>
 	</dependencySets>
 
@@ -22,32 +31,24 @@
 			<includes>
 				<include>README*</include>
 				<include>LICENSE*</include>
+				<include>CONTRIBUTION*</include>
 				<include>NOTICE*</include>
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>etc/license</directory>
-			<outputDirectory>etc/license</outputDirectory>
-			<includes>
-				<include>*.txt</include>
-			</includes>
-			<lineEnding>dos</lineEnding>
-		</fileSet>
-		<fileSet>
-			<directory>src/bin</directory>
+			<directory>bin</directory>
 			<outputDirectory>bin</outputDirectory>
 			<includes>
 				<include>*.bat</include>
 			</includes>
-			<lineEnding>dos</lineEnding>
 		</fileSet>
 		<fileSet>
-			<directory>src/bin</directory>
-			<outputDirectory>bin</outputDirectory>
+			<directory>etc/license</directory>
 			<includes>
-				<include>*.sh</include>
+				<include>*</include>
 			</includes>
-			<lineEnding>unix</lineEnding>
+			<outputDirectory>etc/license</outputDirectory>
+			<lineEnding>dos</lineEnding>
 		</fileSet>
 	</fileSets>
 </assembly>
