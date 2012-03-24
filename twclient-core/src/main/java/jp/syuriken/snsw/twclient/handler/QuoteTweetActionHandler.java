@@ -13,6 +13,9 @@ import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
+
+import com.twitter.Regex;
+
 import twitter4j.Status;
 
 /**
@@ -31,7 +34,14 @@ public class QuoteTweetActionHandler implements ActionHandler {
 		
 		private final TweetLengthUpdater updater;
 		
-		private static Pattern qtPattern = Pattern.compile("[QR]T \\@[a-zA-Z01-9_]+\\:?");
+		private static Pattern qtPattern = Pattern.compile("[QR]T\\s?\\@[a-zA-Z01-9_]{1,20}\\:?+");
+		
+		private static Pattern tokenPattern = Pattern.compile( //
+				"(?:" + Regex.VALID_URL + "|" //
+						+ Regex.AUTO_LINK_HASHTAGS + "|" //
+						+ Regex.AUTO_LINK_USERNAMES_OR_LISTS + ")", Pattern.CASE_INSENSITIVE);
+		
+		private static Pattern urlPattern = Regex.VALID_URL;
 		
 		
 		/**
@@ -45,24 +55,30 @@ public class QuoteTweetActionHandler implements ActionHandler {
 		
 		@Override
 		public void calcTweetLength(String original) {
-			int fat = 0;
-			Matcher urlMatcher = DefaultTweetLengthCalculator.urlPattern.matcher(original);
-			while (urlMatcher.find()) {
-				fat += (urlMatcher.end() - urlMatcher.start()) - 20;
-			}
-			boolean shortened = original.length() - fat > MAX_TWEET_LENGTH;
-			int length;
-			if (original.length() - fat <= MAX_TWEET_LENGTH) {
-				length = original.length() - fat;
-			} else {
-				Matcher matcher = qtPattern.matcher(original);
-				if (matcher.find() == false) { // not QT
-					length = original.length() - fat;
-				} else if (matcher.end() - fat >= MAX_TWEET_LENGTH) { // [over13x] QT @...:
-					length = matcher.end() - fat;
-				} else {
-					length = matcher.end() - fat;
+			int length = original.length();
+			boolean shortened = false;
+			Matcher qtMatcher = qtPattern.matcher(original);
+			if (qtMatcher.find()) {
+				int qtIndex = qtMatcher.end();
+				Matcher matcher = urlPattern.matcher(original);
+				int fat = 0;
+				int fatBeforeQT = 0;
+				while (matcher.find()) { //calculate fat
+					int start = matcher.start(Regex.VALID_URL_GROUP_URL);
+					int end = matcher.end(Regex.VALID_URL_GROUP_URL);
+					fat += end - start - 20;
+					if (end < qtIndex) {
+						fatBeforeQT = fat;
+					}
 				}
+				if (length - fat > MAX_TWEET_LENGTH) {
+					shortened = true;
+					length = qtMatcher.end() - fatBeforeQT;
+				} else {
+					length -= fat;
+				}
+			} else {
+				length = DefaultTweetLengthCalculator.getTweetLength(original);
 			}
 			
 			Color color;
@@ -74,7 +90,8 @@ public class QuoteTweetActionHandler implements ActionHandler {
 				color = Color.BLUE;
 			}
 			if (shortened) {
-				updater.updatePostLength(length + "+", color, "短縮されます");
+				updater.updatePostLength(length + "+", color, "短縮されます(実際の投稿は" + getShortenedText(original).length()
+						+ "文字です)");
 			} else {
 				updater.updatePostLength(String.valueOf(length), color, null);
 			}
@@ -82,23 +99,46 @@ public class QuoteTweetActionHandler implements ActionHandler {
 		
 		@Override
 		public String getShortenedText(String original) {
-			int fat = 0;
-			Matcher urlMatcher = DefaultTweetLengthCalculator.urlPattern.matcher(original);
-			while (urlMatcher.find()) {
-				fat += (urlMatcher.end() - urlMatcher.start()) - 20;
+			final Matcher qtMatcher = qtPattern.matcher(original);
+			if (original.length() <= MAX_TWEET_LENGTH || qtMatcher.find() == false) {
+				return original; // not shortable or not QT Pattern
 			}
+			int lastTokenStart = qtMatcher.start();
+			int lastFat = 0; // URL Fat (url.length() - 20)
+			int fat = lastFat;
+			final Matcher urlMatcher = urlPattern.matcher(original);
+			while (urlMatcher.find()) { // handle URL before QT
+				int start = urlMatcher.start(Regex.VALID_URL_GROUP_URL);
+				int end = urlMatcher.end(Regex.VALID_URL_GROUP_URL);
+				if (start - lastFat > lastTokenStart || end - fat > lastTokenStart) {
+					break;
+				}
+				fat += end - start - 20;
+			}
+			lastFat = fat;
 			
-			if (original.length() - fat <= MAX_TWEET_LENGTH) {
-				return original;
+			final int qtEnd = qtMatcher.end();
+			int offset = qtEnd; // Position's char includes
+			if (offset - fat > MAX_TWEET_LENGTH) {
+				return original; // avoid breaking QT
 			}
-			Matcher matcher = qtPattern.matcher(original);
-			if (matcher.find() == false) { // not QT
-				return original;
+			final Matcher tokenMatcher = tokenPattern.matcher(original);
+			while (tokenMatcher.find(offset - 1)) { // preceeding char
+				lastFat = fat;
+				lastTokenStart = tokenMatcher.start() + 1; // NOT first char, Ignore Preceeding char
+				offset = tokenMatcher.end();
+				if (lastTokenStart - fat > MAX_TWEET_LENGTH) { // no breaking token
+					return original.substring(0, MAX_TWEET_LENGTH + fat);
+				}
+				if (urlPattern.matcher(original.substring(lastTokenStart, offset)).find()) {
+					fat += offset - lastTokenStart - 20;
+				}
+				if (offset - fat > MAX_TWEET_LENGTH) { // break token
+					return original.substring(0, lastTokenStart); // lTS includes fat
+				}
+				// not over 140: continue
 			}
-			if (matcher.end() - fat >= MAX_TWEET_LENGTH) { // [over13x] QT @...:
-				return original;
-			}
-			return original.substring(0, MAX_TWEET_LENGTH + fat);
+			return original.substring(0, MAX_TWEET_LENGTH + fat); // without breaking token
 		}
 		
 	}

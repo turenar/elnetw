@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 
+import com.twitter.Regex;
+
 /**
  * デフォルトのツイートの長さを計算するクラス。URL変換を行った上での長さを計算する。
  * 
@@ -16,7 +18,7 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	private final TweetLengthUpdater updater;
 	
 	/** URLパターン */
-	public static Pattern urlPattern = Pattern.compile("https?://\\S+");
+	public static Pattern urlPattern = Regex.VALID_URL;
 	
 	
 	/**
@@ -25,11 +27,14 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	 * @param original オリジナルテキスト
 	 * @return これぐらいの長さになりそうという長さ
 	 */
-	protected static int getTweetLength(String original) {
+	public static int getTweetLength(String original) {
 		int length = original.length();
 		Matcher matcher = urlPattern.matcher(original);
 		while (matcher.find()) {
-			length = length - (matcher.end() - matcher.start()) + 20;
+			int start = matcher.start(Regex.VALID_URL_GROUP_URL);
+			int end = matcher.end(Regex.VALID_URL_GROUP_URL);
+			int fat = end - start - 20;
+			length -= fat;
 		}
 		return length;
 	}

@@ -36,8 +36,8 @@
 		</repository>
 		<repository>
 			<id>gc-repos</id>
-			<name>Google Code for tbotsys / snapshot</name>
-			<url>http://tbotsys.googlecode.com/svn/maven/</url>
+			<name>Google Code for turetwcl / releases</name>
+			<url>http://turetwcl.googlecode.com/svn/maven/</url>
 			<layout>default</layout>
 			<releases>
 				<updatePolicy>daily</updatePolicy>
@@ -45,8 +45,8 @@
 		</repository>
 		<repository>
 			<id>gc-snapshot</id>
-			<name>Google Code for tbotsys / snapshot</name>
-			<url>http://tbotsys.googlecode.com/svn/maven-snapshot/</url>
+			<name>Google Code for turetwcl / snapshot</name>
+			<url>http://turetwcl.googlecode.com/svn/maven-snapshot/</url>
 			<releases>
 				<updatePolicy>daily</updatePolicy>
 				<checksumPolicy>warn</checksumPolicy>
@@ -108,14 +108,14 @@
 	<distributionManagement>
 		<repository>
 			<id>gc-repos</id>
-			<name>Google Code for turetwcl / releases</name>
-			<url>scm:svn:https://turetwcl.googlecode.com/svn/maven</url>
+			<name>Google Code for twclient / releases</name>
+			<url>scm:svn:https://twclient.googlecode.com/svn/maven</url>
 		</repository>
 		<snapshotRepository>
 			<uniqueVersion>true</uniqueVersion>
 			<id>gc-snapshot</id>
-			<name>Google Code for turetwcl / snapshot</name>
-			<url>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot</url>
+			<name>Google Code for twclient / snapshot</name>
+			<url>scm:svn:https://twclient.googlecode.com/svn/maven-snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -165,6 +165,11 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 			<version>4.10</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twitter</groupId>
+			<artifactId>twitter-text-regex</artifactId>
+			<version>1.4.10</version>
 		</dependency>
 	</dependencies>
 

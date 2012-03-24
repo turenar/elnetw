@@ -140,14 +140,15 @@ public class VersionInfoFrame extends JFrame {
 		stringBuilder.append(VersionInfo.getUniqueVersion());
 		stringBuilder.append("\n\nThis software included library of:\n - twitter4j (");
 		stringBuilder.append(twitter4j.Version.getVersion());
-		stringBuilder.append(")\n   - json\n - slf4j\n   - logback");
+		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
 		
 		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
 		addLibraryInfo(new LibraryInfo("turetwcl", getData("turetwcl.txt")));
-		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
-		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
 		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
 		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
+		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
+		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
+		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
 	}
 	
 	
