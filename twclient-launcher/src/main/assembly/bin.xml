@@ -13,7 +13,7 @@
 			<outputDirectory>lib</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
 			<excludes>
-				<exclude>jp.syuriken.snsw:twclient-core</exclude>
+				<exclude>jp.syuriken.snsw:twclient-launcher</exclude>
 			</excludes>
 		</dependencySet>
 		<dependencySet>
@@ -21,7 +21,7 @@
 			<outputDirectory>bin</outputDirectory>
 			<outputFileNameMapping>launcher.${artifact.extension}</outputFileNameMapping>
 			<includes>
-				<include>jp.syuriken.snsw:twclient-core</include>
+				<include>jp.syuriken.snsw:twclient-launcher</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
@@ -38,9 +38,6 @@
 		<fileSet>
 			<directory>bin</directory>
 			<outputDirectory>bin</outputDirectory>
-			<includes>
-				<include>*.bat</include>
-			</includes>
 		</fileSet>
 		<fileSet>
 			<directory>etc/license</directory>

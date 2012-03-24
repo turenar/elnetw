@@ -28,12 +28,12 @@ if test -z "${JAVA_HOME}"; then
     JAVA_BIN="$(which java)"
   else
     # 見つからないときはエラー
-	echo
+    echo
     echo ERROR: JAVA_HOME not found in your environment.
     echo Please set the JAVA_HOME variable in your environment to match the
     echo location of your Java installation
     echo
-	exit 1
+    exit 1
   fi
 else
   JAVA_BIN="${JAVA_HOME}/bin/java"
@@ -42,10 +42,10 @@ fi
 if test \! -x "${JAVA_BIN}"; then
   echo
   echo ERROR: JAVA_HOME is set to an invalid directory.
-  echo JAVA_HOME = "%JAVA_HOME%"
+  echo JAVA_HOME = \"${JAVA_HOME}\"
   echo Please set the JAVA_HOME environment variable to match the
   echo   location of your Java installation
-  echo  or install JRE \(not JDK\) to store 'javaw.exe' in your PATH.
+  echo  or install JRE \(not JDK\) to store \'java.exe\' in your PATH.
   echo
   exit 1
 fi

@@ -14,6 +14,7 @@
 	</properties>
 	<modules>
 		<module>twclient-core</module>
+		<module>twclient-launcher</module>
 	</modules>
 
 	<dependencyManagement>
