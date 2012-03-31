@@ -451,14 +451,18 @@ import twitter4j.UserMentionEntity;
 				@Override
 				public void run() {
 					synchronized (postListAddQueue) {
+						if (postListAddQueue.isEmpty()) {
+							return;
+						}
 						int size = postListAddQueue.size();
 						sortedPostListPanel.add(postListAddQueue);
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight + PADDING_OF_POSTLIST) {
+						if (viewPosition.y < ICON_SIZE.height + PADDING_OF_POSTLIST) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
+									new Point(viewPosition.x, viewPosition.y + (ICON_SIZE.height + PADDING_OF_POSTLIST)
+											* size));
 						}
 					}
 				}
@@ -467,7 +471,10 @@ import twitter4j.UserMentionEntity;
 	}
 	
 	
-	/** TODO Megumi */
+	/** ポストの最小サイズ */
+	private static final int POSTLIST_MIN_SIZE = 18;
+	
+	/** パディング */
 	private static final int PADDING_OF_POSTLIST = 1;
 	
 	/** アプリケーション名 */
@@ -620,7 +627,7 @@ import twitter4j.UserMentionEntity;
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
 		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
-		ICON_SIZE = new Dimension(64, fontHeight);
+		ICON_SIZE = new Dimension(64, fontHeight < POSTLIST_MIN_SIZE ? POSTLIST_MIN_SIZE : fontHeight);
 		logger.debug("{}", linePanelSizeOfSentBy);
 		logger.info("initialized");
 	}
@@ -782,11 +789,11 @@ import twitter4j.UserMentionEntity;
 		statusData.sentBy.setForeground(statusData.foregroundColor);
 		statusData.data.setForeground(statusData.foregroundColor);
 		Dimension size =
-				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
+				new Dimension(ICON_SIZE.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, ICON_SIZE.height
 						+ PADDING_OF_POSTLIST);
 		linePanel.setMinimumSize(size);
 		linePanel.setPreferredSize(size);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, ICON_SIZE.height + PADDING_OF_POSTLIST));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
