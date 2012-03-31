@@ -189,6 +189,11 @@ public class Utility {
 		keyMap.put(KeyEvent.VK_TAB, "%tab");
 		keyMap.put(KeyEvent.VK_EQUALS, "%equal");
 		keyMap.put(KeyEvent.VK_COLON, "%colon");
+		keyMap.put(KeyEvent.VK_SPACE, "%space");
+		keyMap.put(KeyEvent.VK_PAGE_DOWN, "%pagedown");
+		keyMap.put(KeyEvent.VK_PAGE_UP, "%pageup");
+		keyMap.put(KeyEvent.VK_OPEN_BRACKET, "%bracketstart");
+		keyMap.put(KeyEvent.VK_CLOSE_BRACKET, "%bracketend");
 		keyMap.put(KeyEvent.VK_F1, "%F1");
 		keyMap.put(KeyEvent.VK_F2, "%F2");
 		keyMap.put(KeyEvent.VK_F3, "%F3");

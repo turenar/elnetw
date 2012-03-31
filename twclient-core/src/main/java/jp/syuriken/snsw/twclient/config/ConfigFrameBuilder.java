@@ -35,6 +35,8 @@ public class ConfigFrameBuilder {
 		
 		private final ConfigType type;
 		
+		private final int priority;
+		
 		
 		/**
 		 * インスタンスを生成する。
@@ -60,8 +62,24 @@ public class ConfigFrameBuilder {
 		 * @param type 設定のタイプ
 		 */
 		public Config(String group, String subgroup, String configKey, String description, String hint, ConfigType type) {
-			if (group == null || configKey == null || description == null || type == null) {
-				throw new IllegalArgumentException("group, configKey, description, type must not be null");
+			this(group, subgroup, configKey, description, hint, type, 0);
+		}
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param group グループ名
+		 * @param subgroup サブグループ名
+		 * @param configKey 設定名 (プロパティーキー)。表示しません
+		 * @param description 設定名 (説明)
+		 * @param hint ヒント
+		 * @param type 設定のタイプ
+		 * @param priority 順序付け優先度
+		 */
+		public Config(String group, String subgroup, String configKey, String description, String hint,
+				ConfigType type, int priority) {
+			if (group == null || description == null || type == null) {
+				throw new IllegalArgumentException("group, description, type must not be null");
 			}
 			this.group = group;
 			this.subgroup = subgroup;
@@ -69,13 +87,14 @@ public class ConfigFrameBuilder {
 			this.description = description;
 			this.hint = hint;
 			this.type = type;
+			this.priority = priority;
 		}
 		
 		@Override
 		public int compareTo(Config o) {
 			int result = group.compareTo(o.group);
-			if (result == 0) { // nullの場合は前に持ってくる
-				if (subgroup == null && o.subgroup == null) {
+			if (result == 0) {
+				if (subgroup == null && o.subgroup == null) { // nullの場合は前に持ってくる
 					result = 0;
 				} else if (subgroup == null || o.subgroup == null) {
 					result = subgroup == null ? -1 : 1;
@@ -84,7 +103,7 @@ public class ConfigFrameBuilder {
 				}
 			}
 			if (result == 0) {
-				result = configKey.compareTo(o.configKey);
+				result = o.getPriority() - getPriority();
 			}
 			return result;
 		}
@@ -123,6 +142,15 @@ public class ConfigFrameBuilder {
 		 */
 		public String getHint() {
 			return hint;
+		}
+		
+		/**
+		 * 順序付け優先度を取得する
+		 * 
+		 * @return priority
+		 */
+		public int getPriority() {
+			return priority;
 		}
 		
 		/**
@@ -169,6 +197,21 @@ public class ConfigFrameBuilder {
 		 */
 		public ConfigGroup addConfig(String configKey, String description, String hint, ConfigType type) {
 			ConfigFrameBuilder.this.addConfig(new Config(group, null, configKey, description, hint, type));
+			return this;
+		}
+		
+		/**
+		 * 設定を追加する。subgroupはnullを指定します。{@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
+		 * 
+		 * @param configKey 設定キー
+		 * @param description 説明
+		 * @param hint ヒント
+		 * @param type タイプ
+		 * @param priority 順序付け優先度
+		 * @return このインスタンス
+		 */
+		public ConfigGroup addConfig(String configKey, String description, String hint, ConfigType type, int priority) {
+			ConfigFrameBuilder.this.addConfig(new Config(group, null, configKey, description, hint, type, priority));
 			return this;
 		}
 		
@@ -231,6 +274,23 @@ public class ConfigFrameBuilder {
 		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type) {
 			ConfigFrameBuilder.this.addConfig(new Config(group.getGroupName(), subgroup, configKey, description, hint,
 					type));
+			return this;
+		}
+		
+		/**
+		 * 設定を追加する。 {@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
+		 * 
+		 * @param configKey 設定キー
+		 * @param description 説明
+		 * @param hint ヒント
+		 * @param type タイプ
+		 * @param priority 順序付け優先度
+		 * @return このインスタンス
+		 */
+		
+		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type, int priority) {
+			ConfigFrameBuilder.this.addConfig(new Config(group.getGroupName(), subgroup, configKey, description, hint,
+					type, priority));
 			return this;
 		}
 		

@@ -32,8 +32,12 @@ public class BooleanConfigType implements ConfigType {
 	}
 	
 	@Override
+	public boolean isPreferedAsMultiline() {
+		return false;
+	}
+	
+	@Override
 	public boolean isValid(JComponent component) {
 		return true;
 	}
-	
 }

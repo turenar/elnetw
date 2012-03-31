@@ -28,6 +28,13 @@ public interface ConfigType {
 	String getValue(JComponent component);
 	
 	/**
+	 * 複数行 (説明とコンポーネントを別の行) にしたほうがいいかを返す。
+	 * 
+	 * @return 複数行にしてもらいときはtrue
+	 */
+	boolean isPreferedAsMultiline();
+	
+	/**
 	 * 正しいあたいかどうかを判定する
 	 * 
 	 * @param component コンポーネント

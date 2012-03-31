@@ -66,6 +66,7 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
@@ -271,11 +272,11 @@ import twitter4j.UserMentionEntity;
 			try {
 				showMethod.invoke(configuration.getConfigBuilder());
 			} catch (IllegalArgumentException e) {
-				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
 			} catch (IllegalAccessException e) {
-				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
 			} catch (InvocationTargetException e) {
-				logger.warn("failed invokation of ConfigFrameBuilder#show()", e);
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
 			}
 		}
 		
@@ -1041,10 +1042,6 @@ import twitter4j.UserMentionEntity;
 				configMenuItem.setActionCommand("menu_config");
 				configMenuItem.addActionListener(new ActionListenerImplementation());
 				applicationMenu.add(configMenuItem);
-				JMenuItem propertyEditorMenuItem = new JMenuItem("プロパティエディター(P)", KeyEvent.VK_P);
-				propertyEditorMenuItem.setActionCommand("menu_propeditor");
-				propertyEditorMenuItem.addActionListener(new ActionListenerImplementation());
-				applicationMenu.add(propertyEditorMenuItem);
 				
 				applicationMenu.addSeparator();
 				
@@ -1470,13 +1467,8 @@ import twitter4j.UserMentionEntity;
 		return configuration.getUtility();
 	}
 	
-	/**
-	* Actionをhandleする。
-	* 
-	* @param name Action名
-	* @param statusData ステータス情報
-	*/
-	protected void handleAction(String name, StatusData statusData) {
+	@Override
+	public void handleAction(String name, StatusData statusData) {
 		ActionHandler actionHandler = getActionHandler(name);
 		if (actionHandler == null) {
 			logger.warn("ActionHandler {} is not found.", name);
@@ -1585,6 +1577,8 @@ import twitter4j.UserMentionEntity;
 			.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒", new IntegerConfigType(1, 5, 1000))
 			.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
 					new BooleanConfigType());
+		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
+				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", this));
 	}
 	
 	/**

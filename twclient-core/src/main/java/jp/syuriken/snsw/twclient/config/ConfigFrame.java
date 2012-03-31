@@ -71,6 +71,7 @@ public class ConfigFrame extends JFrame {
 		SequentialGroup verticalGroup = null; // Parallel[K V]
 		ParallelGroup horizontalNameGroup = null;
 		ParallelGroup horizontalValueGroup = null;
+		ParallelGroup horizontalCombinedGroup = null;
 		for (Config config : configs) {
 			if (group.equals(config.getGroup()) == false) {
 				group = config.getGroup();
@@ -87,9 +88,14 @@ public class ConfigFrame extends JFrame {
 				verticalGroup = layout.createSequentialGroup();
 				horizontalNameGroup = layout.createParallelGroup();
 				horizontalValueGroup = layout.createParallelGroup();
+				horizontalCombinedGroup = layout.createParallelGroup();
 				layout.setVerticalGroup(verticalGroup);
-				layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(horizontalNameGroup)
-					.addGroup(horizontalValueGroup));
+				layout
+					.setHorizontalGroup(layout
+						.createParallelGroup()
+						.addGroup(
+								layout.createSequentialGroup().addGroup(horizontalNameGroup)
+									.addGroup(horizontalValueGroup)).addGroup(horizontalCombinedGroup));
 				tabContent.add(subgroupPanel);
 				if (subgroup != null) {
 					subgroupPanel.setBorder(new TitledBorder(subgroup));
@@ -97,17 +103,24 @@ public class ConfigFrame extends JFrame {
 			}
 			JLabel label = new JLabel(config.getDescription());
 			label.setToolTipText(config.getHint());
+			String configKey = config.getConfigKey();
 			JComponent valueComponent =
-					config.getType().getComponent(config.getConfigKey(), properties.getProperty(config.getConfigKey()),
-							openingFrame);
+					config.getType().getComponent(configKey,
+							configKey == null ? null : properties.getProperty(configKey), openingFrame);
 			valueComponent.setToolTipText(config.getHint());
-			verticalGroup.addGroup(
-					layout.createBaselineGroup(false, true).addComponent(label)
-						.addComponent(valueComponent, 24, 24, 24)).addGap(2, 2, 2);
-			horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
-					GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
-			horizontalValueGroup.addComponent(valueComponent, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
-					GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE);
+			if (config.getType().isPreferedAsMultiline()) {
+				verticalGroup.addGap(2, 2, 2).addComponent(label).addComponent(valueComponent);
+				horizontalCombinedGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE).addComponent(valueComponent, Alignment.CENTER);
+			} else {
+				verticalGroup.addGroup(
+						layout.createBaselineGroup(false, true).addComponent(label)
+							.addComponent(valueComponent, 24, 24, 24)).addGap(2, 2, 2);
+				horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
+				horizontalValueGroup.addComponent(valueComponent, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE);
+			}
 		}
 		openingFrame.pack();
 		return openingFrame;

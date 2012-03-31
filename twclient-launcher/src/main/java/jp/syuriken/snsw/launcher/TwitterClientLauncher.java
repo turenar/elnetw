@@ -18,15 +18,16 @@ import java.util.Arrays;
  * @author $Author$
  */
 public class TwitterClientLauncher {
-
+	
 	private static FilenameFilter jarFilter = new FilenameFilter() {
-
+		
 		@Override
 		public boolean accept(File dir, String name) {
 			return name.endsWith(".jar");
 		}
 	};
-
+	
+	
 	private static void addURL(ArrayList<URL> urlList, File file) {
 		if (file.isDirectory() == false) {
 			return;
@@ -49,7 +50,7 @@ public class TwitterClientLauncher {
 			}
 		}
 	}
-
+	
 	/**
 	 * Launch
 	 * 
@@ -60,9 +61,7 @@ public class TwitterClientLauncher {
 		URLClassLoader classLoader = prepareClassLoader();
 		Class<?> clazz;
 		try {
-			clazz = Class.forName(
-					"jp.syuriken.snsw.twclient.TwitterClientMain", false,
-					classLoader);
+			clazz = Class.forName("jp.syuriken.snsw.twclient.TwitterClientMain", false, classLoader);
 			// TwitterClientMain twitterClientMain = new
 			// TwitterClientMain(args);
 			Constructor<?> constructor = clazz.getConstructor(String[].class);
@@ -74,8 +73,7 @@ public class TwitterClientLauncher {
 			System.err.println("[launcher] 起動に必要なクラスの準備に失敗しました。");
 			e.printStackTrace();
 			System.err.println("[launcher] ClassLoaderの検索先は次のとおりです。");
-			System.err.println("[launcher] "
-					+ Arrays.toString(classLoader.getURLs()));
+			System.err.println("[launcher] " + Arrays.toString(classLoader.getURLs()));
 			System.exit(1);
 			return;
 		} catch (InvocationTargetException e) {
@@ -93,18 +91,11 @@ public class TwitterClientLauncher {
 			return;
 		}
 	}
-
-	/**
-	 * TODO snsoftware
-	 * 
-	 * @return
-	 * 
-	 */
+	
 	private static URLClassLoader prepareClassLoader() {
-		String[] classpath = System.getProperty("java.class.path").split(
-				System.getProperty("path.separator"));
+		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
 		File baseDir;
-
+		
 		if (classpath.length == 1) { // run with "-jar" Option
 			baseDir = new File(classpath[0]).getParentFile();
 			if (baseDir == null) {
@@ -115,12 +106,10 @@ public class TwitterClientLauncher {
 		}
 		ArrayList<URL> libList = new ArrayList<URL>();
 		addURL(libList, new File(baseDir, "lib"));
-		addURL(libList,
-				new File(System.getProperty("user.home", ".turetwcl/lib")));
+		addURL(libList, new File(System.getProperty("user.home", ".turetwcl/lib")));
 		addURL(libList, new File("lib"));
-
+		
 		URL[] urls = libList.toArray(new URL[libList.size()]);
-		return new URLClassLoader(urls,
-				TwitterClientLauncher.class.getClassLoader());
+		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 }

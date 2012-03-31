@@ -51,6 +51,11 @@ public class ClientConfiguration {
 		}
 	}
 	
+	/**
+	 * コンフィグビルダーを取得する。
+	 * 
+	 * @return 設定ビルダー
+	 */
 	public ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
 	}

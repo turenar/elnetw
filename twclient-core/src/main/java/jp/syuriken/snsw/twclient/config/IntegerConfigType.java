@@ -92,6 +92,11 @@ public class IntegerConfigType implements ConfigType {
 	}
 	
 	@Override
+	public boolean isPreferedAsMultiline() {
+		return false;
+	}
+	
+	@Override
 	public boolean isValid(JComponent component) {
 		if (component instanceof JSpinner) {
 			return true;
@@ -106,5 +111,4 @@ public class IntegerConfigType implements ConfigType {
 			throw new AssertionError();
 		}
 	}
-	
 }

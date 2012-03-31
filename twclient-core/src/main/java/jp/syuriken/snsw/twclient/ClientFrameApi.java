@@ -165,6 +165,14 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	public abstract Utility getUtility();
 	
 	/**
+	* Actionをhandleする。
+	* 
+	* @param name Action名
+	* @param statusData ステータス情報
+	*/
+	void handleAction(String name, StatusData statusData);
+	
+	/**
 	 * 例外を処理する。
 	 * 
 	 * @param ex 例外
