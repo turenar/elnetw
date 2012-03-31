@@ -14,19 +14,36 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	public static final String REQUEST_FOCUS_FIRST_COMPONENT = "request focus firstComponent";
 	
 	/** フォーカス要請: 最後のコンポーネント (arg: なし) */
-	
 	public static final String REQUEST_FOCUS_LAST_COMPONENT = "request focus lastComponent";
 	
 	/** フォーカス要請: 次のコンポーネント (arg: なし) */
-	
 	public static final String REQUEST_FOCUS_NEXT_COMPONENT = "request focus nextComponent";
 	
 	/** フォーカス要請: 前のコンポーネント (arg: なし) */
-	
 	public static final String REQUEST_FOCUS_PREV_COMPONENT = "request focus prevComponent";
 	
-	/** フォーカス要請: タブコンポーネント (arg: なし) */
+	/** フォーカス要請: 次のユーザーの発言のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_USER_NEXT_COMPONENT = "request focus userNextComponent";
 	
+	/** フォーカス要請: 前のユーザーの発言のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_USER_PREV_COMPONENT = "request focus userPrevComponent";
+	
+	/** フォーカス要請: 表示範囲内の最初の発言のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_WINDOW_FIRST_COMPONENT = "request focus windowFirstComponent";
+	
+	/** フォーカス要請: 表示範囲内の最後の発言のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_WINDOW_LAST_COMPONENT = "request focus windowLastComponent";
+	
+	/** スクロール要請: 現在選択しているステータスを表示範囲の最後尾になるようにスクロール (arg: なし) */
+	public static final String REQUEST_SCROLL_AS_WINDOW_LAST = "scroll as window last";
+	
+	/** フォーカス要請: in_reply_toが指定されている場合、そのリプライ先の発言のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_IN_REPLY_TO = "request focus inReplyTo";
+	
+	/** フォーカス要請: {@link #REQUEST_FOCUS_IN_REPLY_TO} でジャンプした際の元のコンポーネント (arg: なし) */
+	public static final String REQUEST_FOCUS_BACK_REPLIED_BY = "request focus back inReplyTo";
+	
+	/** フォーカス要請: タブコンポーネント (arg: なし) */
 	public static final String REQUEST_FOCUS_TAB_COMPONENT = "request focus tabComponent";
 	
 	
