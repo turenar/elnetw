@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>jp.syuriken.snsw</groupId>
 		<artifactId>twclient</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1rc1</version>
 	</parent>
 
 	<!-- Mavenのリポジトリの設定 -->
