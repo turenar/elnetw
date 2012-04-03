@@ -126,7 +126,7 @@
 				<filtering>true</filtering>
 			</resource>
 			<resource>
-				<directory>etc/license</directory>
+				<directory>doc/license</directory>
 				<filtering>false</filtering>
 			</resource>
 		</resources>

@@ -40,11 +40,11 @@
 			<outputDirectory>bin</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>etc/license</directory>
+			<directory>doc/license</directory>
 			<includes>
 				<include>*</include>
 			</includes>
-			<outputDirectory>etc/license</outputDirectory>
+			<outputDirectory>doc/license</outputDirectory>
 			<lineEnding>dos</lineEnding>
 		</fileSet>
 	</fileSets>

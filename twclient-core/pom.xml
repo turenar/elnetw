@@ -202,7 +202,7 @@
 		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<outputDirectory>target/bin</outputDirectory>
 		<testOutputDirectory>target/test</testOutputDirectory>
-		<defaultGoal>assembly:assembly</defaultGoal>
+		<defaultGoal>test</defaultGoal>
 		<directory>target</directory>
 		<plugins>
 			<plugin>

@@ -11,6 +11,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TwitterClient のためのランチャ
@@ -28,7 +31,7 @@ public class TwitterClientLauncher {
 	};
 	
 	
-	private static void addURL(ArrayList<URL> urlList, File file) {
+	private static void addURL(List<URL> urlList, Map<String, URL> fileMap, File file) {
 		if (file.isDirectory() == false) {
 			return;
 		}
@@ -38,11 +41,23 @@ public class TwitterClientLauncher {
 			System.err.println("[launcher] Failed getting full-path:");
 			e.printStackTrace();
 		}
+		if (fileMap.containsKey(file.getPath())) {
+			System.out.println("skipped");
+			return; //同じディレクトリを検索したときはスキップする
+		}
+		fileMap.put(file.getPath(), null); //フルパス=path.separatorが含まれているので衝突は考えない
 		File[] files = file.listFiles(jarFilter);
 		for (File childFile : files) {
 			if (childFile.isFile()) {
+				String jarName = childFile.getName();
+				URL url = fileMap.get(jarName);
+				if (url != null) {
+					urlList.remove(url);
+				}
 				try {
-					urlList.add(childFile.toURI().toURL());
+					url = childFile.toURI().toURL();
+					fileMap.put(jarName, url);
+					urlList.add(url);
 				} catch (MalformedURLException e) {
 					System.err.println("[launcher] Failed convert to URL");
 					e.printStackTrace();
@@ -54,8 +69,7 @@ public class TwitterClientLauncher {
 	/**
 	 * Launch
 	 * 
-	 * @param args
-	 *            アプリケーション引数
+	 * @param args アプリケーション引数
 	 */
 	public static void main(String[] args) {
 		URLClassLoader classLoader = prepareClassLoader();
@@ -94,20 +108,29 @@ public class TwitterClientLauncher {
 	
 	private static URLClassLoader prepareClassLoader() {
 		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
-		File baseDir;
+		File baseDir = null;
+		boolean skipCurrentDir = false;
 		
 		if (classpath.length == 1) { // run with "-jar" Option
-			baseDir = new File(classpath[0]).getParentFile();
-			if (baseDir == null) {
-				baseDir = new File(".");
+			try {
+				baseDir = new File(classpath[0]).getCanonicalFile().getParentFile();
+			} catch (IOException e) {
+				// do nothing
 			}
-		} else {
+		}
+		if (baseDir == null) {
 			baseDir = new File(".");
+			skipCurrentDir = true;
 		}
 		ArrayList<URL> libList = new ArrayList<URL>();
-		addURL(libList, new File(baseDir, "lib"));
-		addURL(libList, new File(System.getProperty("user.home", ".turetwcl/lib")));
-		addURL(libList, new File("lib"));
+		HashMap<String, URL> fileMap = new HashMap<String, URL>();
+		if (Boolean.getBoolean("config.portable") == false) {
+			addURL(libList, fileMap, new File(baseDir, "../lib"));
+		}
+		addURL(libList, fileMap, new File(System.getProperty("user.home"), ".turetwcl/lib"));
+		if (skipCurrentDir == false) {
+			addURL(libList, fileMap, new File("lib"));
+		}
 		
 		URL[] urls = libList.toArray(new URL[libList.size()]);
 		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());

@@ -1,1 +1,1 @@
-see etc/license/*
+see doc/license/*
