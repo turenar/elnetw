@@ -1,3 +1,0 @@
-see etc/license/turetwcl.txt
-
-(License of libraries is seen under etc/license)

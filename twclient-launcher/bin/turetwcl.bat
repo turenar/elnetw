@@ -8,6 +8,8 @@ set TURETWCL_FORCE_PORTABLE=0
 REM  ↓javaコマンドに渡す引数
 set TURETWCL_JAVA_ARGS=
 
+REM  ↓javaの起動に使用するコマンド。おすすめは"javaw.exe"。起動に失敗するときは"java.exe"を指定して下さい。
+set TURETWCL_JAVA_COMMAND=javaw.exe
 REM ===== 設定おわり =====
 
 REM +-----------------------
@@ -28,7 +30,7 @@ REM JAVA_HOMEがある
 if not "%JAVA_HOME%"=="" goto FoundJhomeENV
 
 REM PATH環境変数の中にjava.exeが存在する
-for %%i in (javaw.exe) do (
+for %%i in (%TURETWCL_JAVA_COMMAND%) do (
     set JAVA_BIN="%%~$PATH:i"
     goto init
 )
@@ -44,7 +46,7 @@ goto error
 
 
 :FoundJhomeENV
-if exist "%JAVA_HOME%\bin\javaw.exe" goto FoundJhomeENVbin
+if exist "%JAVA_HOME%\bin\%TURETWCL_JAVA_COMMAND%" goto FoundJhomeENVbin
 
 echo.
 echo ERROR: JAVA_HOME is set to an invalid directory.

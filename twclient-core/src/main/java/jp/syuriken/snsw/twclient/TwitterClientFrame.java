@@ -16,6 +16,13 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -50,7 +57,10 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-import jp.syuriken.snsw.twclient.Utility.IllegalKeyStringException;
+import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
+import jp.syuriken.snsw.twclient.config.BooleanConfigType;
+import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
@@ -61,6 +71,7 @@ import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
+import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
@@ -77,7 +88,6 @@ import twitter4j.TwitterFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
-import twitter4j.internal.http.HTMLEntity;
 
 /**
  * twclientのメインウィンドウ
@@ -247,6 +257,52 @@ import twitter4j.internal.http.HTMLEntity;
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		}
 		
+	}
+	
+	/**
+	 * 設定フレームを表示するアクションハンドラ
+	 * 
+	 * @author $Author$
+	 */
+	private class MenuConfiguratorActionHandler implements ActionHandler {
+		
+		private Method showMethod;
+		
+		
+		private MenuConfiguratorActionHandler() {
+			try {
+				showMethod = ConfigFrameBuilder.class.getDeclaredMethod("show");
+				showMethod.setAccessible(true);
+			} catch (SecurityException e) {
+				logger.error("blocked reflection of ConfigFrameBuilder#show()", e);
+			} catch (NoSuchMethodException e) {
+				logger.error("failed reflection of ConfigFrameBuilder#show()", e);
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JMenuItem createJMenuItem(String commandName) {
+			return null;
+		}
+		
+		@Override
+		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
+			try {
+				showMethod.invoke(configuration.getConfigBuilder());
+			} catch (IllegalArgumentException e) {
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
+			} catch (IllegalAccessException e) {
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
+			} catch (InvocationTargetException e) {
+				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
+			}
+		}
+		
+		@Override
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+			// This is always enabled.
+		}
 	}
 	
 	/**
@@ -517,8 +573,14 @@ import twitter4j.internal.http.HTMLEntity;
 	private ConfigData configData;
 	
 	private FilterService rootFilterService;
+
+	private JLabel postLengthLabel;
 	
 	protected ClientTab selectingTab;
+	
+	private final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR = new DefaultTweetLengthCalculator(this);
+	
+	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 	
 	
 	/** 
@@ -530,6 +592,7 @@ import twitter4j.internal.http.HTMLEntity;
 		logger.info("initializing frame");
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
+		initConfigurator();
 		jobWorkerThread = new JobWorkerThread(jobQueue);
 		jobWorkerThread.start();
 		rootFilterService = configuration.getRootFilterService();
@@ -617,6 +680,7 @@ import twitter4j.internal.http.HTMLEntity;
 			if (selectingPost != null) {
 				selectingPost.requestFocusInWindow();
 			}
+			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
 			
@@ -625,14 +689,16 @@ import twitter4j.internal.http.HTMLEntity;
 				@Override
 				public void run() {
 					try {
-						String text = HTMLEntity.escape(getPostBox().getText());
-						StatusUpdate statusUpdate = new StatusUpdate(text);
+						// String escapedText = HTMLEntity.escape(text);
+						String escapedText = text;
+						StatusUpdate statusUpdate = new StatusUpdate(escapedText);
 						
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
 						twitterForWrite.updateStatus(statusUpdate);
 						postBox.setText("");
+						updatePostLength();
 						inReplyToStatus = null;
 					} catch (TwitterException e) {
 						rootFilterService.onException(e);
@@ -644,6 +710,7 @@ import twitter4j.internal.http.HTMLEntity;
 								public void run() {
 									postActionButton.setEnabled(true);
 									postBox.setEnabled(true);
+									tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 								}
 							};
 							if (EventQueue.isDispatchThread()) {
@@ -742,6 +809,13 @@ import twitter4j.internal.http.HTMLEntity;
 			clientMenu = new JMenuBar();
 			{
 				JMenu applicationMenu = new JMenu("アプリケーション");
+				JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
+				configMenuItem.setActionCommand("menu_config");
+				configMenuItem.addActionListener(new ActionListenerImplementation());
+				applicationMenu.add(configMenuItem);
+				
+				applicationMenu.addSeparator();
+				
 				JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
 				quitMenuItem.setActionCommand("menu_quit");
 				quitMenuItem.addActionListener(menuActionListener);
@@ -749,14 +823,6 @@ import twitter4j.internal.http.HTMLEntity;
 				clientMenu.add(applicationMenu);
 			}
 			clientMenu.add(getAccountMenu());
-			{
-				JMenu configMenu = new JMenu("設定");
-				JMenuItem propertyEditorMenuItem = new JMenuItem("プロパティエディター(P)", KeyEvent.VK_P);
-				propertyEditorMenuItem.setActionCommand("menu_propeditor");
-				propertyEditorMenuItem.addActionListener(menuActionListener);
-				configMenu.add(propertyEditorMenuItem);
-				clientMenu.add(configMenu);
-			}
 			{
 				JMenu infoMenu = new JMenu("情報");
 				JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
@@ -861,6 +927,7 @@ import twitter4j.internal.http.HTMLEntity;
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
+					updatePostLength();
 					if (e.isControlDown()) {
 						switch (e.getKeyCode()) {
 							case KeyEvent.VK_ENTER:
@@ -886,6 +953,15 @@ import twitter4j.internal.http.HTMLEntity;
 		return postBoxScrollPane;
 	}
 	
+	private JLabel getPostLengthLabel() {
+		if (postLengthLabel == null) {
+			postLengthLabel = new JLabel();
+			postLengthLabel.setText("0");
+			postLengthLabel.setFont(UI_FONT);
+		}
+		return postLengthLabel;
+	}
+	
 	private JPanel getPostPanel() {
 		if (postPanel == null) {
 			postPanel = new JPanel();
@@ -895,17 +971,26 @@ import twitter4j.internal.http.HTMLEntity;
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
 					.addGroup(
 							GroupLayout.Alignment.TRAILING, //
-							layout.createSequentialGroup().addContainerGap()
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
 								.addComponent(getPostBoxScrollPane(), GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED) //
-								.addComponent(getPostActionButton()).addGap(18, 18, 18)));
+								.addPreferredGap(ComponentPlacement.RELATED)
+								//
+								.addGroup(
+										layout.createParallelGroup(Alignment.TRAILING)
+											.addComponent(getPostActionButton()).addComponent(getPostLengthLabel()))
+								.addGap(18, 18, 18)));
 			layout.setVerticalGroup( //
 				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
 						layout
 							.createSequentialGroup()
 							.addGroup(
-									layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-										.addComponent(getPostActionButton())
+									layout
+										.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addGroup(
+												layout.createSequentialGroup().addComponent(getPostLengthLabel())
+													.addComponent(getPostActionButton()))
 										.addComponent(getPostBoxScrollPane(), 32, 64, GroupLayout.PREFERRED_SIZE))
 							.addContainerGap(6, Short.MAX_VALUE)));
 			
@@ -1189,6 +1274,7 @@ import twitter4j.internal.http.HTMLEntity;
 		addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
 		addActionHandler("menu_login_read", new ReloginActionHandler(false));
 		addActionHandler("menu_login_write", new ReloginActionHandler(true));
+		addActionHandler("menu_config", new MenuConfiguratorActionHandler());
 	}
 	
 	/**
@@ -1217,7 +1303,32 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 	}
 	
-	private void initShortcutKey() {
+	/**
+	 * 設定ウィンドウの初期化
+	 */
+	private void initConfigurator() {
+		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
+		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
+			.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
+			.getParentGroup().getSubgroup("取得数 (ツイート数)")
+			.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
+			.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
+		configBuilder.getGroup("UI")
+			.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
+			.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
+		configBuilder
+			.getGroup("core")
+			.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒", new IntegerConfigType(1, 5, 1000))
+			.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
+					new BooleanConfigType());
+		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
+				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", this));
+	}
+	
+	/**
+	 * ショートカットキーテーブルを初期化する。
+	 */
+	protected void initShortcutKey() {
 		Properties shortcutkeyProperties = new Properties();
 		try {
 			shortcutkeyProperties.load(getClass().getClassLoader().getResourceAsStream(
@@ -1227,11 +1338,7 @@ import twitter4j.internal.http.HTMLEntity;
 		}
 		for (Object obj : shortcutkeyProperties.keySet()) {
 			String key = (String) obj;
-			try {
-				addShortcutKey(key, shortcutkeyProperties.getProperty(key));
-			} catch (IllegalKeyStringException e) {
-				logger.warn("ショートカットキーの読み込み中にエラー", e);
-			}
+			addShortcutKey(key, shortcutkeyProperties.getProperty(key));
 		}
 	}
 	
@@ -1302,9 +1409,18 @@ import twitter4j.internal.http.HTMLEntity;
 		String oldText = textArea.getText();
 		textArea.setText(text);
 		textArea.select(selectionStart, selectionEnd);
+		updatePostLength();
 		return oldText;
 	}
 	
+	@Override
+	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
+		TweetLengthCalculator oldCalculator = tweetLengthCalculator;
+		tweetLengthCalculator = newCalculator == null ? DEFAULT_TWEET_LENGTH_CALCULATOR : newCalculator;
+		return oldCalculator;
+	}
+	
+
 	@Override
 	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
 			String createdAtToolTip, Icon icon) {
@@ -1420,6 +1536,18 @@ import twitter4j.internal.http.HTMLEntity;
 				logger.warn("SystemTrayへの追加に失敗", e);
 			}
 		}
+	}
+	
+	private void updatePostLength() {
+		tweetLengthCalculator.calcTweetLength(getPostBox().getText());
+	}
+	
+	@Override
+	public void updatePostLength(String length, Color color, String tooltip) {
+		JLabel label = getPostLengthLabel();
+		label.setText(length);
+		label.setForeground(color);
+		label.setToolTipText(tooltip);
 	}
 	
 	@Override

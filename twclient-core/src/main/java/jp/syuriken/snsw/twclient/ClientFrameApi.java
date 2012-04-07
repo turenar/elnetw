@@ -6,6 +6,7 @@ import java.util.Timer;
 import javax.swing.Icon;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -17,16 +18,16 @@ import twitter4j.User;
  * 
  * @author $Author$
  */
-public interface ClientFrameApi {
+public interface ClientFrameApi extends TweetLengthUpdater {
 	
 	/**
 	 * アクションハンドラを追加する
-	 * @param name ハンドラ名。"!"を含んではいけません。
+	 * 
+	 * @param name ハンドラ名
 	 * @param handler ハンドラ
-	 * @return 以前登録されていたハンドラ。
+	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
 	 */
-	ActionHandler addActionHandler(String name, ActionHandler handler);
-	
+	ActionHandler addActionHandler(String name, ActionHandler handler);	
 	/**
 	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
 	 * 
@@ -68,7 +69,7 @@ public interface ClientFrameApi {
 	 * @return アクションコマンド名
 	 */
 	String getActionCommandByShortcutKey(String keyString);
-	
+		
 	/**
 	 * 指定されたアクションコマンド名で呼び出されるアクションハンドラを取得する。
 	 * 
@@ -235,4 +236,5 @@ public interface ClientFrameApi {
 	 */
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
 			String createdAtToolTip, Icon icon);
+	
 }

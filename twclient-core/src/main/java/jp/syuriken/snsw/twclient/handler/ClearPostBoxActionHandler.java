@@ -21,6 +21,7 @@ public class ClearPostBoxActionHandler implements ActionHandler {
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		api.setPostText("");
+		api.setTweetLengthCalculator(null);
 	}
 	
 	@Override

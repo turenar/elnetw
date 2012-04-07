@@ -28,24 +28,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Utility {
 	
-	/**
-	 * TODO snsoftware
-	 * 
-	 * @author $Author$
-	 */
-	public static class IllegalKeyStringException extends RuntimeException {
-		
-		/**
-		 * インスタンスを生成する。
-		 * 
-		 * @param key
-		 */
-		public IllegalKeyStringException(String key) {
-			super("正しくないキー: " + key);
-		}
-		
-	}
-	
 	private static class KVEntry {
 		
 		final String key;
@@ -207,6 +189,11 @@ public class Utility {
 		keyMap.put(KeyEvent.VK_TAB, "%tab");
 		keyMap.put(KeyEvent.VK_EQUALS, "%equal");
 		keyMap.put(KeyEvent.VK_COLON, "%colon");
+		keyMap.put(KeyEvent.VK_SPACE, "%space");
+		keyMap.put(KeyEvent.VK_PAGE_DOWN, "%pagedown");
+		keyMap.put(KeyEvent.VK_PAGE_UP, "%pageup");
+		keyMap.put(KeyEvent.VK_OPEN_BRACKET, "%bracketstart");
+		keyMap.put(KeyEvent.VK_CLOSE_BRACKET, "%bracketend");
 		keyMap.put(KeyEvent.VK_F1, "%F1");
 		keyMap.put(KeyEvent.VK_F2, "%F2");
 		keyMap.put(KeyEvent.VK_F3, "%F3");
@@ -265,12 +252,22 @@ public class Utility {
 		}
 	}
 	
+	/**
+	 * 文字列が等しいかどうかを調べる。単にequalsとするよりも速くなるかもしれないぐらいの程度
+	 * 
+	 * @param a 文字列A
+	 * @param b 文字列B
+	 * @return 等しいかどうか
+	 */
 	public static boolean equalString(String a, String b) {
+		if (a == null && b == null) {
+			return true;
+		}
 		if (a == null || b == null) {
 			return false;
 		}
-		if (a.hashCode() == b.hashCode()) {
-			return true;
+		if (a.hashCode() != b.hashCode()) {
+			return false;
 		}
 		return a.equals(b);
 	}
@@ -287,10 +284,22 @@ public class Utility {
 		return ostype;
 	}
 	
+	/**
+	 * ディレクトリの文字列置換えを行う。ホームディレクトリ等を隠す。
+	 * 
+	 * @param string ディレクトリパス
+	 * @return ディレクトリパス
+	 */
 	public static String protectPrivacy(String string) {
 		return protectPrivacy(new StringBuilder(string)).toString();
 	}
 	
+	/**
+	 * ディレクトリの文字列置き換えを行う。ホームディレクトリ等を隠す
+	 * 
+	 * @param builder ディレクトリパス。変更されます。
+	 * @return builder自身。
+	 */
 	public static StringBuilder protectPrivacy(StringBuilder builder) {
 		for (KVEntry entry : privacyEntries) {
 			String before = entry.key;
@@ -314,12 +323,13 @@ public class Utility {
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * キーをキー文字列に変換する
 	 * 
-	 * @param key
-	 * @return
+	 * @param code キー
+	 * @param modifiers キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
+	 * @return キー文字列
 	 */
-	public static String toKeyString(int code, int modifiers) throws IllegalKeyStringException {
+	public static String toKeyString(int code, int modifiers) {
 		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
 		stringBuilder.setLength(0);
 		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
@@ -414,9 +424,9 @@ public class Utility {
 						notifySender = new LibnotifySender();
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace(); //TODO
+					// do nothing
 				} catch (IOException e) {
-					e.printStackTrace(); //TODO
+					logger.warn("#detectNotifier: whichの呼び出しに失敗");
 				}
 			}
 			if (notifySender == null) {

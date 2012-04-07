@@ -30,8 +30,7 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	private static final String CONFIG_FILE_NAME = "twclient.cfg";
 	
-	/** 設定ファイル */
-	private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
+	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
 	
 	/** 設定データ */
 	protected ClientProperties configProperties;
@@ -65,13 +64,20 @@ public class TwitterClientMain {
 	 * 
 	 */
 	public int run() {
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				logger.error("Uncaught Exception", e);
+		boolean portable = Boolean.getBoolean("config.portable");
+		File homeBaseDirFile = new File(HOME_BASE_DIR);
+		if (portable == false && homeBaseDirFile.exists() == false) {
+			if (homeBaseDirFile.mkdirs()) {
+				homeBaseDirFile.setReadable(false, false);
+				homeBaseDirFile.setWritable(false, false);
+				homeBaseDirFile.setExecutable(false, false);
+				homeBaseDirFile.setReadable(true, true);
+				homeBaseDirFile.setWritable(true, true);
+				homeBaseDirFile.setExecutable(true, true);
+			} else {
+				logger.warn("ディレクトリの作成ができませんでした: {}", homeBaseDirFile.getPath());
 			}
-		});
+		}
 		
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
@@ -82,11 +88,12 @@ public class TwitterClientMain {
 		}
 		configuration.setConfigDefaultProperties(defaultConfig);
 		configProperties = new ClientProperties(defaultConfig);
-		configProperties.setStoreFile(CONFIG_FILE);
-		if (CONFIG_FILE.exists()) {
+		File configFile = new File(portable ? "." : HOME_BASE_DIR, CONFIG_FILE_NAME);
+		configProperties.setStoreFile(configFile);
+		if (configFile.exists()) {
 			logger.debug(CONFIG_FILE_NAME + " is found.");
 			try {
-				configProperties.load(new FileReader(CONFIG_FILE));
+				configProperties.load(new FileReader(configFile));
 			} catch (IOException e) {
 				logger.warn("設定ファイルの読み込み中にエラー", e);
 			}

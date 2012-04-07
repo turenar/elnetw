@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.imageio.ImageIO;
 
+import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 
 import org.slf4j.Logger;
@@ -47,6 +48,8 @@ public class ClientConfiguration {
 	
 	private boolean isInitializing = true;
 	
+	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
+
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	
 	private final FilterService rootFilterService;
@@ -140,6 +143,15 @@ public class ClientConfiguration {
 		} else {
 			return list.split(" ");
 		}
+	}
+	
+	/**
+	 * コンフィグビルダーを取得する。
+	 * 
+	 * @return 設定ビルダー
+	 */
+	public ConfigFrameBuilder getConfigBuilder() {
+		return configBuilder;
 	}
 	
 	/**

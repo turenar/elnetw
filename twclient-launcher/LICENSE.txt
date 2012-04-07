@@ -1,0 +1,3 @@
+see doc/license/turetwcl.txt
+
+(License of libraries is seen under doc/license)

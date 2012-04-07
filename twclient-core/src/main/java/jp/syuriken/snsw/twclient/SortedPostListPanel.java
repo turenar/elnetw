@@ -234,6 +234,45 @@ public class SortedPostListPanel extends JPanel {
 					size++;
 				}
 			}
+			if (values.isEmpty() == false) { // all are added into last 
+				JPanel branch = branches.getLast();
+				Component[] newBranch =
+						Arrays.copyOf(branch.getComponents(), branch.getComponentCount() + values.size());
+				for (int i = 1; values.isEmpty() == false; i++) {
+					newBranch[newBranch.length - i] = values.pollFirst();
+					size++;
+				}
+				Arrays.sort(newBranch, ComponentComparator.SINGLETON);
+				int branchSize = newBranch.length;
+				int offset = 0;
+				if (branchSize > (leafSize * 2)) {
+					branches.removeLast(); // it is lastBranch
+					remove(getComponentCount() - 1);
+					while (branchSize > offset + (leafSize * 2)) {
+						JPanel panel = new JPanel();
+						panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+						for (int i = 0; i < leafSize; i++) {
+							panel.add(newBranch[offset + i]);
+						}
+						offset += leafSize;
+						branches.addLast(panel);
+						super.add(panel);
+					}
+					JPanel panel = new JPanel();
+					panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+					for (int i = offset; i < branchSize; i++) {
+						panel.add(newBranch[i]);
+					}
+					branches.addLast(panel);
+					super.add(panel);
+				} else {
+					branch.removeAll();
+					for (Component component : newBranch) {
+						branch.add(component);
+					}
+					branch.invalidate();
+				}
+			}
 		}
 		if (values.size() != 0) {
 			throw new AssertionError();
@@ -241,7 +280,7 @@ public class SortedPostListPanel extends JPanel {
 		splitFirstBranch();
 		
 		tryRelease();
-		updateUI();
+		revalidate();
 	}
 	
 	/**
@@ -302,7 +341,7 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
-	 * 次のコンポーネントをフォーカスする
+	 * 指定されたパネルの次のパネルにフォーカスを当てる
 	 * 
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
@@ -338,7 +377,7 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
-	 * 前のコンポーネントをフォーカスする
+	 * 指定されたパネルの前のパネルにフォーカスを当てる
 	 * 
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
