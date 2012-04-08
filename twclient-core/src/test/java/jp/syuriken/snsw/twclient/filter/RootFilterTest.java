@@ -2,10 +2,32 @@ package jp.syuriken.snsw.twclient.filter;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.io.IOException;
+import java.util.Timer;
+
+import javax.swing.Icon;
+
+import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
+import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.ClientTab;
 import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.TweetLengthCalculator;
+import jp.syuriken.snsw.twclient.Utility;
 
 import org.junit.Test;
+
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
 
 /**
  * RootFilter のためのテスト
@@ -14,15 +36,32 @@ import org.junit.Test;
  */
 public class RootFilterTest {
 	
-	/**
-	 * TODO Megumi
-	 * 
-	 * @author $Author$
-	 */
 	private static final class MyClientConfiguration extends ClientConfiguration {
+		
+		private ClientProperties clientProperties;
+		
 		
 		/*package*/MyClientConfiguration() {
 			super(true);
+		}
+		
+		@Override
+		public ClientProperties getConfigProperties() {
+			if (clientProperties == null) {
+				try {
+					clientProperties = new ClientProperties();
+					clientProperties.load(RootFilterTest.class
+						.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties"));
+				} catch (IOException e) {
+					throw new AssertionError(e);
+				}
+			}
+			return clientProperties;
+		}
+		
+		@Override
+		public ClientFrameApi getFrameApi() {
+			return new TestFrameApi();
 		}
 		
 		@Override
@@ -42,6 +81,157 @@ public class RootFilterTest {
 		assertNotNull(rootFilter.onStatus(new TestStatus(0)));
 		assertNotNull(rootFilter.onStatus(new TestStatus(1)));
 		assertNull(rootFilter.onStatus(new TestStatus(0)));
+	}
+}
+
+class TestFrameApi implements ClientFrameApi {
+	
+	@Override
+	public ActionHandler addActionHandler(String name, ActionHandler handler) {
+		return null;
+	}
+	
+	@Override
+	public void addJob(Priority priority, Runnable job) {
+	}
+	
+	@Override
+	public void addJob(Runnable job) {
+	}
+	
+	@Override
+	public void addShortcutKey(String keyCode, String actionName) {
+	}
+	
+	@Override
+	public void doPost() {
+	}
+	
+	@Override
+	public void focusPostBox() {
+	}
+	
+	@Override
+	public String getActionCommandByShortcutKey(String keyString) {
+		return null;
+	}
+	
+	@Override
+	public ActionHandler getActionHandler(String actionCommand) {
+		return null;
+	}
+	
+	@Override
+	public ClientConfiguration getClientConfiguration() {
+		return null;
+	}
+	
+	@Override
+	public ConfigData getConfigData() {
+		return null;
+	}
+	
+	@Override
+	public Font getDefaultFont() {
+		return null;
+	}
+	
+	@Override
+	public ImageCacher getImageCacher() {
+		return null;
+	}
+	
+	@Override
+	public int getInfoSurviveTime() {
+		return 0;
+	}
+	
+	@Override
+	public User getLoginUser() {
+		return null;
+	}
+	
+	@Override
+	public String getPostText() {
+		return null;
+	}
+	
+	@Override
+	public ClientTab getSelectingTab() {
+		return null;
+	}
+	
+	@Override
+	public Timer getTimer() {
+		return null;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@Deprecated
+	@Override
+	public Twitter getTwitter() {
+		return null;
+	}
+	
+	@Override
+	public Twitter getTwitterForRead() {
+		return null;
+	}
+	
+	@Override
+	public Twitter getTwitterForWrite() {
+		return null;
+	}
+	
+	@Override
+	public Font getUiFont() {
+		return null;
+	}
+	
+	@Override
+	public Utility getUtility() {
+		return null;
+	}
+	
+	@Override
+	public void handleAction(String name, StatusData statusData) {
+	}
+	
+	@Override
+	public void handleException(Exception ex) {
+	}
+	
+	@Override
+	public void handleException(TwitterException ex) {
+	}
+	
+	@Override
+	public Status setInReplyToStatus(Status status) {
+		return null;
+	}
+	
+	@Override
+	public String setPostText(String text) {
+		return null;
+	}
+	
+	@Override
+	public String setPostText(String text, int selectingStart, int selectingEnd) {
+		return null;
+	}
+	
+	@Override
+	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
+		return null;
+	}
+	
+	@Override
+	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
+			String createdAtToolTip, Icon icon) {
+	}
+	
+	@Override
+	public void updatePostLength(String length, Color color, String tooltip) {
 	}
 }
 

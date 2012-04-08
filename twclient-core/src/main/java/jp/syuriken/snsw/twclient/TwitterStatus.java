@@ -214,7 +214,7 @@ public class TwitterStatus implements Status {
 				newEntities[i] = constructor.newInstance(entity, start, end);
 			} catch (Exception e) {
 				logger.error("#getEntities got Exception: entity={}, start={}, end={}",
-					Utility.toArray(entity, start, end));
+						Utility.toArray(entity, start, end));
 				throw new AssertionError(e);
 			}
 		}
@@ -299,7 +299,9 @@ public class TwitterStatus implements Status {
 		userMentionEntities = originalStatus.getUserMentionEntities();
 		text = originalStatus.getText();
 		
-		if (originalStatus instanceof TwitterStatus == false) {
+		if (originalStatus instanceof TwitterStatus) {
+			escapedText = originalStatus.getText();
+		} else {
 			String json = DataObjectFactory.getRawJSON(originalStatus);
 			if (json == null) {
 				escapedText = HTMLEntity.escape(originalStatus.getText());
@@ -366,6 +368,9 @@ public class TwitterStatus implements Status {
 									replacedList, UserMentionEntityImpl.class.getConstructor(UserMentionEntity.class,
 											int.class, int.class));
 				}
+			} catch (AssertionError error) {
+				logger.error("caught error on preparing entities", error);
+				logger.error("original={}, json={}", originalStatus, json);
 			} catch (Exception e) {
 				logger.error("Exception on converting entity", e);
 				throw new AssertionError(e);

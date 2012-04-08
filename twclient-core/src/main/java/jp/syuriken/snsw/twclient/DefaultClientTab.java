@@ -35,8 +35,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
-import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,7 +259,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	};
 	
 	
-
 	/**
 	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
 	 * 
@@ -344,6 +342,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
 	
 	private JPopupMenu tweetPopupMenu;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -612,7 +611,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage());
 			nl2br(stringBuilder, 0);
 			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
-				dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		} else {
 			frameApi.setTweetViewText(statusData.data.getText(), statusData.sentBy.getName(), null, dateFormat.get()
 				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());

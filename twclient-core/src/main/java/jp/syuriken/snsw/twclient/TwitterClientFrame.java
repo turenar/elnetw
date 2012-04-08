@@ -12,17 +12,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -56,6 +48,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
@@ -145,78 +138,6 @@ import twitter4j.User;
 			statusData = statusMap.get(selectingPost.getStatusData().id);
 			} */
 			handleAction(e.getActionCommand(), null);
-		}
-	}
-	
-	public class ConfigData implements PropertyChangeListener {
-		
-		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
-		
-		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
-		
-		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
-		
-		private static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
-		
-		private static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
-		
-		private static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
-		
-		private static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
-		
-		private static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
-		
-		private static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
-		
-		public int intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
-		
-		public int intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
-		
-		public Color colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
-		
-		public Paging pagingOfGettingTimeline = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_TIMELINE));
-		
-		public Paging pagingOfGettingInitialTimeline = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
-		
-		public boolean mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
-		
-		public int scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
-		
-		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
-		
-		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
-		
-		
-		public ConfigData() {
-			configProperties.addPropertyChangedListener(this);
-		}
-		
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			String name = evt.getPropertyName();
-			if (Utility.equalString(name, PROPERTY_INTERVAL_POSTLIST_UPDATE)) {
-				intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
-			} else if (Utility.equalString(name, PROPERTY_INTERVAL_TIMELINE)) {
-				intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
-			} else if (Utility.equalString(name, PROPERTY_COLOR_FOCUS_LIST)) {
-				colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
-			} else if (Utility.equalString(name, PROPERTY_PAGING_TIMELINE)) {
-				pagingOfGettingTimeline = new Paging().count(configProperties.getInteger(PROPERTY_PAGING_TIMELINE));
-			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_TIMELINE)) {
-				pagingOfGettingInitialTimeline =
-						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
-			} else if (Utility.equalString(name, PROPERTY_ID_STRICT_MATCH)) {
-				mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
-			} else if (Utility.equalString(name, PROPERTY_LIST_SCROLL)) {
-				scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
-			} else if (Utility.equalString(name, PROPERTY_INFO_SURVIVE_TIME)) {
-				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
-			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_MENTION)) {
-				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
-			}
 		}
 	}
 	
@@ -573,7 +494,7 @@ import twitter4j.User;
 	private ConfigData configData;
 	
 	private FilterService rootFilterService;
-
+	
 	private JLabel postLengthLabel;
 	
 	protected ClientTab selectingTab;
@@ -598,7 +519,7 @@ import twitter4j.User;
 		rootFilterService = configuration.getRootFilterService();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
-		configData = new ConfigData();
+		configData = configuration.getConfigData();
 		timer = new Timer("timer");
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		initActionHandlerTable();
@@ -1420,7 +1341,6 @@ import twitter4j.User;
 		return oldCalculator;
 	}
 	
-
 	@Override
 	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
 			String createdAtToolTip, Icon icon) {
@@ -1450,16 +1370,11 @@ import twitter4j.User;
 			@Override
 			protected void access() throws TwitterException {
 				ResponseList<Status> homeTimeline;
-				try {
-					Paging paging = configData.pagingOfGettingInitialTimeline;
-					homeTimeline = twitterForRead.getHomeTimeline(paging);
-					for (Status status : homeTimeline) {
-						rootFilterService.onStatus(status);
-					}
-				} catch (TwitterException e) {
-					handleException(e);
+				Paging paging = configData.pagingOfGettingInitialTimeline;
+				homeTimeline = twitterForRead.getHomeTimeline(paging);
+				for (Status status : homeTimeline) {
+					rootFilterService.onStatus(status);
 				}
-				configuration.setInitializing(false);
 			}
 			
 			@Override
@@ -1507,13 +1422,9 @@ import twitter4j.User;
 					protected void access() throws TwitterException {
 						Paging paging = configData.pagingOfGettingTimeline;
 						ResponseList<Status> timeline;
-						try {
-							timeline = twitterForRead.getHomeTimeline(paging);
-							for (Status status : timeline) {
-								rootFilterService.onStatus(status);
-							}
-						} catch (TwitterException e) {
-							handleException(e);
+						timeline = twitterForRead.getHomeTimeline(paging);
+						for (Status status : timeline) {
+							rootFilterService.onStatus(status);
 						}
 					}
 					

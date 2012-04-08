@@ -1,6 +1,9 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Color;
 import java.awt.TrayIcon;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import twitter4j.Paging;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -29,6 +33,88 @@ import twitter4j.conf.ConfigurationBuilder;
  * @author $Author$
  */
 public class ClientConfiguration {
+	
+	public class ConfigData implements PropertyChangeListener {
+		
+		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
+		
+		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
+		
+		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
+		
+		private static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
+		
+		private static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
+		
+		private static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
+		
+		private static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
+		
+		private static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
+		
+		private static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
+		
+		/** UI更新間隔 */
+		public int intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
+		
+		/** タイムライン取得間隔 */
+		public int intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
+		
+		/** フォーカスしたポストの色 */
+		public Color colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
+		
+		/** タイムライン取得のページング */
+		public Paging pagingOfGettingTimeline = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_TIMELINE));
+		
+		/** タイムライン初期取得のページング */
+		public Paging pagingOfGettingInitialTimeline = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
+		
+		/** メンション判定の厳密な比較 */
+		public boolean mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
+		
+		/** スクロール量 */
+		public int scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
+		
+		/** 情報の生存時間 */
+		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
+		
+		/** メンション初期取得のページング */
+		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
+		
+		
+		/*package*/ConfigData() {
+			configProperties.addPropertyChangedListener(this);
+		}
+		
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			String name = evt.getPropertyName();
+			if (Utility.equalString(name, PROPERTY_INTERVAL_POSTLIST_UPDATE)) {
+				intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
+			} else if (Utility.equalString(name, PROPERTY_INTERVAL_TIMELINE)) {
+				intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
+			} else if (Utility.equalString(name, PROPERTY_COLOR_FOCUS_LIST)) {
+				colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
+			} else if (Utility.equalString(name, PROPERTY_PAGING_TIMELINE)) {
+				pagingOfGettingTimeline = new Paging().count(configProperties.getInteger(PROPERTY_PAGING_TIMELINE));
+			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_TIMELINE)) {
+				pagingOfGettingInitialTimeline =
+						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
+			} else if (Utility.equalString(name, PROPERTY_ID_STRICT_MATCH)) {
+				mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
+			} else if (Utility.equalString(name, PROPERTY_LIST_SCROLL)) {
+				scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
+			} else if (Utility.equalString(name, PROPERTY_INFO_SURVIVE_TIME)) {
+				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
+			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_MENTION)) {
+				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
+			}
+		}
+	}
+	
 	
 	private TrayIcon trayIcon;
 	
@@ -55,6 +141,8 @@ public class ClientConfiguration {
 	private final FilterService rootFilterService;
 	
 	private ImageCacher imageCacher;
+	
+	private ConfigData configData;
 	
 	
 	/**
@@ -143,6 +231,13 @@ public class ClientConfiguration {
 		} else {
 			return list.split(" ");
 		}
+	}
+	
+	public ConfigData getConfigData() {
+		if (configData == null) {
+			configData = new ConfigData();
+		}
+		return configData;
 	}
 	
 	/**
