@@ -99,6 +99,9 @@ public class TwitterStatusTest {
 			Status status = DataObjectFactory.createStatus(test.json);
 			DataObjectFactoryUtil.registerJSONObject(status, test.json);
 			status = new TwitterStatus(status);
+			if (status.isRetweet()) {
+				status = status.getRetweetedStatus();
+			}
 			assertEquals(test.text, status.getText());
 			
 			int i = 0;
