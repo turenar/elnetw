@@ -8,6 +8,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +47,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -82,6 +84,8 @@ import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.MomemtumScroller;
+import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
@@ -341,6 +345,7 @@ import twitter4j.UserMentionEntity;
 		@Override
 		public void focusGained(FocusEvent e) {
 			focusGainOfLinePanel(e);
+			kineticScroller.scrollTo(selectingPost);
 		}
 		
 		@Override
@@ -577,6 +582,8 @@ import twitter4j.UserMentionEntity;
 	
 	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 	
+	private MomemtumScroller kineticScroller;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -630,6 +637,13 @@ import twitter4j.UserMentionEntity;
 		ICON_SIZE = new Dimension(64, fontHeight < POSTLIST_MIN_SIZE ? POSTLIST_MIN_SIZE : fontHeight);
 		logger.debug("{}", linePanelSizeOfSentBy);
 		logger.info("initialized");
+		kineticScroller = new MomemtumScroller(getPostListScrollPane(), new BoundsTranslator() {
+			
+			@Override
+			public Rectangle translate(JComponent component) {
+				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
+			}
+		});
 	}
 	
 	@Override

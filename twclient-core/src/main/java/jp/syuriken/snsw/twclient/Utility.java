@@ -318,7 +318,7 @@ public class Utility {
 		return builder;
 	}
 	
-	/*package*/static Object[] toArray(Object... obj) {
+	public static Object[] toArray(Object... obj) {
 		return obj;
 	}
 	

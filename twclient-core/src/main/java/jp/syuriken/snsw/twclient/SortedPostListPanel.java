@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -278,6 +279,32 @@ public class SortedPostListPanel extends JPanel {
 	@Override
 	public Component add(String name, Component comp) {
 		return this.add(comp);
+	}
+	
+	/**
+	 * 親コンポーネント(={@link SortedPostListPanel}) に対する絶対位置を取得する。
+	 * 指定されたコンポーネントがこのパネルに追加されていない場合の動作は保証されません。
+	 * 
+	 * @param panel 調べるコンポーネント
+	 * @return 絶対位置情報
+	 */
+	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
+		Rectangle bounds = panel.getBounds();
+		if (compareDate(panel, firstBranch.peekLast()) >= 0) {
+			Rectangle branchBounds = firstPanel.getBounds();
+			bounds.y += branchBounds.y;
+		} else {
+			for (JPanel branch : branches) {
+				StatusPanel lastComponent = (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
+				if (compareDate(panel, lastComponent) >= 0) {
+					Rectangle branchBounds = branch.getBounds();
+					// bounds.x += branchBounds.x;
+					bounds.y += branchBounds.y;
+					break;
+				}
+			}
+		}
+		return bounds;
 	}
 	
 	/**
