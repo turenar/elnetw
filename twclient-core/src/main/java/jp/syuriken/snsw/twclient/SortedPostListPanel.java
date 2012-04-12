@@ -12,6 +12,9 @@ import java.util.ListIterator;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 日時でソートするポストリスト。
  * 
@@ -99,6 +102,9 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 	}
+	
+	
+	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
 	
 	
 	/**
@@ -373,7 +379,7 @@ public class SortedPostListPanel extends JPanel {
 					continue;
 				}
 				Component[] components = next.getComponents();
-				for (int i = 0; i < components.length; i++) {
+				for (int i = 0; i < components.length - 1; i++) {
 					StatusPanel statusPanel = (StatusPanel) components[i];
 					if (compareDate(panel, statusPanel) == 0) {
 						return components[i + 1].requestFocusInWindow();
@@ -391,7 +397,7 @@ public class SortedPostListPanel extends JPanel {
 	 * @return フォーカスが成功しそうかどうか
 	 */
 	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
-		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasNext();) {
+		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasPrevious();) {
 			JPanel previous = iterator.previous();
 			if (compareDate(panel, (StatusPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
 				return previous.getComponent(previous.getComponentCount() - 1).requestFocusInWindow();
@@ -400,12 +406,15 @@ public class SortedPostListPanel extends JPanel {
 				continue;
 			}
 			Component[] components = previous.getComponents();
-			for (int i = components.length - 1; i >= 0; i--) {
+			for (int i = components.length - 1; i > 0; i--) {
 				StatusPanel statusPanel = (StatusPanel) components[i];
 				if (compareDate(panel, statusPanel) == 0) {
 					return components[i - 1].requestFocusInWindow();
 				}
 			}
+		}
+		if (compareDate(panel, firstBranch.peekLast()) < 0) { // panelがsecondBranchの最初
+			return firstBranch.peekLast().requestFocusInWindow();
 		}
 		int indexOf = firstBranch.indexOf(panel);
 		if (indexOf <= 0) { // not found OR first
