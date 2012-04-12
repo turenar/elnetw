@@ -328,7 +328,7 @@ public class SortedPostListPanel extends JPanel {
 			return true;
 		} else {
 			for (JPanel container : branches) {
-				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount()), value) < 0) {
+				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
 					container.remove(value);
 					container.invalidate();
 					size--;
