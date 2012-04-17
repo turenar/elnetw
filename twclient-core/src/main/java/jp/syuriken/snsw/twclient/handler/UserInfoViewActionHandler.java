@@ -2,6 +2,9 @@ package jp.syuriken.snsw.twclient.handler;
 
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -9,10 +12,12 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -21,11 +26,12 @@ import javax.swing.JPanel;
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.DefaultClientTab;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TabRenderer;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,6 +228,10 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		private StringBuilder stringBuilder = new StringBuilder();
 		
+		private JCheckBox muteCheckBox;
+		
+		private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
+		
 		
 		/**
 		 * インスタンスを生成する。
@@ -284,12 +294,53 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return componentLocation;
 		}
 		
+		private JCheckBox getComponentMuteCheckBox() {
+			if (muteCheckBox == null) {
+				String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
+				String[] ids = idsString.split(" ");
+				String userIdString = String.valueOf(user.getId());
+				boolean filtered = false;
+				for (String id : ids) {
+					if (id.equals(userIdString)) {
+						filtered = true;
+						break;
+					}
+				}
+				muteCheckBox = new JCheckBox("ミュート", filtered);
+				if (frameApi.getLoginUser().getId() == user.getId()) {
+					muteCheckBox.setEnabled(false);
+					muteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
+				}
+				muteCheckBox.setFont(operationFont);
+				muteCheckBox.addActionListener(new ActionListener() {
+					
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						ClientProperties configProperties = configuration.getConfigProperties();
+						String idsString = configProperties.getProperty("core.filter.user.ids");
+						if (muteCheckBox.isSelected()) {
+							idsString =
+									idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
+											: idsString + " " + user.getId();
+						} else {
+							idsString = idsString == null ? "" : idsString.replace(String.valueOf(user.getId()), "");
+						}
+						configProperties.setProperty("core.filter.user.ids", idsString);
+					}
+				});
+			}
+			return muteCheckBox;
+		}
+		
 		private Component getComponentOperationsPanel() {
 			if (componentOperationsPanel == null) {
 				componentOperationsPanel = new JPanel(); //TODO
+				componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 				try {
-					JLabel closeIcon =
+					final JLabel closeIcon =
 							new JLabel(new ImageIcon(ImageIO.read(getClass().getResource("../close16.png"))));
+					closeIcon.setText("閉じる");
+					closeIcon.setFont(operationFont);
 					closeIcon.addMouseListener(new MouseAdapter() {
 						
 						@Override
@@ -301,6 +352,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				} catch (IOException e) {
 					logger.warn("#getComponentOperationsPanel: Failed load resource");
 				}
+				
+				componentOperationsPanel.add(getComponentMuteCheckBox());
 			}
 			return componentOperationsPanel;
 		}
@@ -341,8 +394,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			// 
 				.addGap(4, 4, 4).addGroup(layout.createParallelGroup()
 				//
-					.addGroup(layout.createSequentialGroup().addComponent(getComponentUserIcon(), 48, 48, 48)) //
-					.addComponent(getComponentOperationsPanel(), 48, 48, 48)) //
+					.addComponent(getComponentUserIcon(), Alignment.CENTER, 48, 48, 48) //
+					.addComponent(getComponentOperationsPanel())) //
 				.addGap(4, 4, 4).addGroup(layout.createParallelGroup()
 				// 
 					.addGroup(layout.createSequentialGroup()
@@ -444,20 +497,31 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	@Override
 	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
-			final User user = ((Status) statusData.tag).getUser();
+			Status status = (Status) statusData.tag;
+			if (status.isRetweet()) {
+				status = status.getRetweetedStatus();
+			}
+			final User user = status.getUser();
 			final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
-			api.addJob(new ParallelRunnable() {
+			api.addJob(new TwitterRunnable() {
 				
 				@Override
-				public void run() {
-					try {
-						ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(user.getId());
-						for (Status status : timeline) {
-							tab.getRenderer().onStatus(status);
-						}
-					} catch (TwitterException e) {
-						api.handleException(e);
+				protected void access() throws TwitterException {
+					ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(user.getId());
+					for (Status status : timeline) {
+						tab.getRenderer().onStatus(status);
 					}
+					
+				}
+				
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return api.getClientConfiguration();
+				}
+				
+				@Override
+				protected void handleException(TwitterException ex) {
+					getConfiguration().getRootFilterService().onException(ex);
 				}
 			});
 			api.getClientConfiguration().addFrameTab(tab);

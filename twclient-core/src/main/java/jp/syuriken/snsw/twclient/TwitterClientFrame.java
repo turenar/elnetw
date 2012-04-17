@@ -2,6 +2,8 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -56,6 +58,7 @@ import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
+import jp.syuriken.snsw.twclient.handler.MuteActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
 import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
@@ -155,7 +158,9 @@ import twitter4j.User;
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			if (Utility.equalString(actionName, "core!focusinput")) {
+			if (Utility.equalString(actionName, "core!submenu")) {
+				return;
+			} else if (Utility.equalString(actionName, "core!focusinput")) {
 				getPostBox().requestFocusInWindow();
 			} else if (Utility.equalString(actionName, "core!focuslist")) {
 				getSelectingTab().getRenderer()
@@ -176,6 +181,20 @@ import twitter4j.User;
 		
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+			if (menuItem.getActionCommand().equals("core!submenu")) {
+				if (menuItem instanceof JMenu == false) {
+					logger.error("\"core!submenu\" argued menuItem not as JMenu");
+					throw new AssertionError();
+				}
+				Component[] subItems = ((JMenu) menuItem).getMenuComponents();
+				for (Component subItem : subItems) {
+					if (subItem instanceof JMenuItem) {
+						JMenuItem subMenuItem = (JMenuItem) subItem;
+						String actionCommand = subMenuItem.getActionCommand();
+						getActionHandler(actionCommand).popupMenuWillBecomeVisible(subMenuItem, statusData, api);
+					}
+				}
+			}
 		}
 		
 	}
@@ -661,10 +680,19 @@ import twitter4j.User;
 	
 	JPopupMenu generatePopupMenu(ActionListener actionListener) {
 		JPopupMenu popupMenu = new JPopupMenu();
-		
+		Container nowProcessingMenu = popupMenu;
 		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
 		
 		for (String actionCommand : popupMenus) {
+			if (actionCommand.trim().isEmpty()) {
+				continue;
+			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
+				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
+				jMenu.setActionCommand("core!submenu");
+				nowProcessingMenu = jMenu;
+				popupMenu.add(nowProcessingMenu);
+				continue;
+			}
 			ActionHandler handler = getActionHandler(actionCommand);
 			if (handler == null) {
 				logger.warn("handler {} is not found.", actionCommand); //TODO
@@ -672,7 +700,11 @@ import twitter4j.User;
 				JMenuItem menuItem = handler.createJMenuItem(actionCommand);
 				menuItem.setActionCommand(actionCommand);
 				menuItem.addActionListener(actionListener);
-				popupMenu.add(menuItem);
+				if (nowProcessingMenu instanceof JPopupMenu) {
+					((JPopupMenu) nowProcessingMenu).add(menuItem);
+				} else {
+					((JMenu) nowProcessingMenu).add(menuItem);
+				}
 			}
 		}
 		return popupMenu;
@@ -1190,6 +1222,7 @@ import twitter4j.User;
 		addActionHandler("clear", new ClearPostBoxActionHandler());
 		addActionHandler("post", new PostActionHandler());
 		addActionHandler("core", new CoreFrameActionHandler());
+		addActionHandler("mute", new MuteActionHandler());
 		addActionHandler("menu_quit", new MenuQuitActionHandler());
 		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		addActionHandler("menu_account_verify", new AccountVerifierActionHandler());

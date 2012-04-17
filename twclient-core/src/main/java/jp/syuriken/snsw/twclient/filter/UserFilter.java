@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -11,13 +13,16 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * ユーザー設定によりフィルタを行うフィルタクラス
  * 
  * @author $Author$
  */
-public class UserFilter implements MessageFilter {
+public class UserFilter implements MessageFilter, PropertyChangeListener {
+	
+	private static final String CORE_FILTER_USER_IDS = "core.filter.user.ids";
 	
 	private TreeSet<Long> filterIds;
 	
@@ -50,7 +55,7 @@ public class UserFilter implements MessageFilter {
 	}
 	
 	private void initFilterIds() {
-		String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
+		String idsString = configuration.getConfigProperties().getProperty(CORE_FILTER_USER_IDS);
 		if (idsString == null) {
 			return;
 		}
@@ -155,6 +160,13 @@ public class UserFilter implements MessageFilter {
 		if (filtered == false && status.getInReplyToUserId() != -1) {
 			filtered = filterUser(status.getInReplyToUserId());
 		}
+		UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+		if (filtered == false && userMentionEntities != null) {
+			final int length = userMentionEntities.length;
+			for (int i = 0; filtered == false && i < length; i++) {
+				filtered = filterUser(userMentionEntities[i].getId());
+			}
+		}
 		return filtered ? null : status;
 	}
 	
@@ -189,5 +201,12 @@ public class UserFilter implements MessageFilter {
 			filtered = onStatus(unfavoritedStatus) == null;
 		}
 		return filtered;
+	}
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (evt.getPropertyName().equals(CORE_FILTER_USER_IDS)) {
+			initFilterIds();
+		}
 	}
 }

@@ -20,7 +20,7 @@ import twitter4j.UserList;
  * なおこのクラスは並列的にフィルタを呼び出すため、フィルタのマルチスレッド対応が必要です。
  * @author $Author$
  */
-/*package*/class FilterService implements ClientMessageListener {
+public class FilterService implements ClientMessageListener {
 	
 	/**
 	 * FilterDispatch元クラス。内部的に用いられる。
@@ -369,7 +369,8 @@ import twitter4j.UserList;
 	
 	@Override
 	public void onStatus(Status originalStatus) {
-		final Status status = (originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(originalStatus);
+		final Status status =
+				(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(originalStatus);
 		filter(new FilterDispatcher() {
 			
 			private Status obj = status;

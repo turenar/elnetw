@@ -91,20 +91,20 @@ public class ClientProperties extends Properties {
 			if (o instanceof Properties && listeners == null && storeFile == null) {
 				return super.equals(o);
 			} else {
-			return false;
-		}
+				return false;
+			}
 		}
 		if (super.equals(o) == false) {
 			return false;
 		}
 		ClientProperties c = (ClientProperties) o;
 		synchronized (c) {
-		if (listeners.equals(c.listeners) == false) {
-			return false;
-		}
-		if (storeFile.equals(c.storeFile) == false) {
-			return false;
-		}
+			if (listeners.equals(c.listeners) == false) {
+				return false;
+			}
+			if (storeFile.equals(c.storeFile) == false) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -134,8 +134,8 @@ public class ClientProperties extends Properties {
 		Boolean boolean1 = getCachedValue(key, Boolean.class);
 		if (boolean1 != null) {
 			return boolean1;
-	}
-	
+		}
+		
 		String value = getProperty(key);
 		boolean1 = Boolean.parseBoolean(value);
 		cacheValue(key, boolean1);
@@ -184,7 +184,7 @@ public class ClientProperties extends Properties {
 		if (rgba.length == 4) {
 			color =
 					new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
-					Integer.parseInt(rgba[3]));
+							Integer.parseInt(rgba[3]));
 		} else if (rgba.length == 3) {
 			color = new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
 		} else {
@@ -233,8 +233,8 @@ public class ClientProperties extends Properties {
 		Integer integer = getCachedValue(key, Integer.class);
 		if (integer != null) {
 			return integer;
-	}
-	
+		}
+		
 		String value = getProperty(key);
 		integer = Integer.valueOf(value);
 		cacheValue(key, integer);
@@ -252,8 +252,8 @@ public class ClientProperties extends Properties {
 		Long long1 = getCachedValue(key, Long.class);
 		if (long1 != null) {
 			return long1;
-	}
-	
+		}
+		
 		String value = getProperty(key);
 		long1 = Long.valueOf(value);
 		cacheValue(key, long1);
@@ -266,6 +266,12 @@ public class ClientProperties extends Properties {
 		hashCode += 19 * listeners.hashCode();
 		hashCode += 19 * storeFile.hashCode();
 		return hashCode;
+	}
+	
+	@Override
+	public synchronized Object remove(Object key) {
+		firePropetyChanged((String) key, getProperty((String) key), null);
+		return super.remove(key);
 	}
 	
 	/**

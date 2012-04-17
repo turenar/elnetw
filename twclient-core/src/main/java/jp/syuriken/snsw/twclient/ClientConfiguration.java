@@ -135,7 +135,7 @@ public class ClientConfiguration {
 	private boolean isInitializing = true;
 	
 	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
-
+	
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	
 	private final FilterService rootFilterService;
@@ -233,13 +233,6 @@ public class ClientConfiguration {
 		}
 	}
 	
-	public ConfigData getConfigData() {
-		if (configData == null) {
-			configData = new ConfigData();
-		}
-		return configData;
-	}
-	
 	/**
 	 * コンフィグビルダーを取得する。
 	 * 
@@ -247,6 +240,18 @@ public class ClientConfiguration {
 	 */
 	public ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
+	}
+	
+	/**
+	 * 設定のデータを格納するクラスを取得する
+	 * 
+	 * @return データクラス
+	 */
+	public ConfigData getConfigData() {
+		if (configData == null) {
+			configData = new ConfigData();
+		}
+		return configData;
 	}
 	
 	/**
@@ -394,7 +399,8 @@ public class ClientConfiguration {
 		return new ConfigurationBuilder() //
 			.setOAuthConsumerKey(consumerKey) //
 			.setOAuthConsumerSecret(consumerSecret) //
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"));
+			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")) //
+			.setJSONStoreEnabled(true);
 	}
 	
 	/**
