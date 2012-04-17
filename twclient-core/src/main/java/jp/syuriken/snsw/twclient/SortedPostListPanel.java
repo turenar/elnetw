@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,6 +11,9 @@ import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 日時でソートするポストリスト。
@@ -98,6 +102,9 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 	}
+	
+	
+	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
 	
 	
 	/**
@@ -300,6 +307,32 @@ public class SortedPostListPanel extends JPanel {
 	}
 	
 	/**
+	 * 親コンポーネント(={@link SortedPostListPanel}) に対する絶対位置を取得する。
+	 * 指定されたコンポーネントがこのパネルに追加されていない場合の動作は保証されません。
+	 * 
+	 * @param panel 調べるコンポーネント
+	 * @return 絶対位置情報
+	 */
+	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
+		Rectangle bounds = panel.getBounds();
+		if (compareDate(panel, firstBranch.peekLast()) >= 0) {
+			Rectangle branchBounds = firstPanel.getBounds();
+			bounds.y += branchBounds.y;
+		} else {
+			for (JPanel branch : branches) {
+				StatusPanel lastComponent = (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
+				if (compareDate(panel, lastComponent) >= 0) {
+					Rectangle branchBounds = branch.getBounds();
+					// bounds.x += branchBounds.x;
+					bounds.y += branchBounds.y;
+					break;
+				}
+			}
+		}
+		return bounds;
+	}
+	
+	/**
 	 * valueをこのパネルから削除する。
 	 * 
 	 * @param value 削除するStatusPanel
@@ -314,7 +347,7 @@ public class SortedPostListPanel extends JPanel {
 			return true;
 		} else {
 			for (JPanel container : branches) {
-				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount()), value) < 0) {
+				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
 					container.remove(value);
 					container.invalidate();
 					size--;
@@ -365,7 +398,7 @@ public class SortedPostListPanel extends JPanel {
 					continue;
 				}
 				Component[] components = next.getComponents();
-				for (int i = 0; i < components.length; i++) {
+				for (int i = 0; i < components.length - 1; i++) {
 					StatusPanel statusPanel = (StatusPanel) components[i];
 					if (compareDate(panel, statusPanel) == 0) {
 						return components[i + 1].requestFocusInWindow();
@@ -383,7 +416,7 @@ public class SortedPostListPanel extends JPanel {
 	 * @return フォーカスが成功しそうかどうか
 	 */
 	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
-		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasNext();) {
+		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasPrevious();) {
 			JPanel previous = iterator.previous();
 			if (compareDate(panel, (StatusPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
 				return previous.getComponent(previous.getComponentCount() - 1).requestFocusInWindow();
@@ -392,12 +425,15 @@ public class SortedPostListPanel extends JPanel {
 				continue;
 			}
 			Component[] components = previous.getComponents();
-			for (int i = components.length - 1; i >= 0; i--) {
+			for (int i = components.length - 1; i > 0; i--) {
 				StatusPanel statusPanel = (StatusPanel) components[i];
 				if (compareDate(panel, statusPanel) == 0) {
 					return components[i - 1].requestFocusInWindow();
 				}
 			}
+		}
+		if (compareDate(panel, firstBranch.peekLast()) < 0) { // panelがsecondBranchの最初
+			return firstBranch.peekLast().requestFocusInWindow();
 		}
 		int indexOf = firstBranch.indexOf(panel);
 		if (indexOf <= 0) { // not found OR first

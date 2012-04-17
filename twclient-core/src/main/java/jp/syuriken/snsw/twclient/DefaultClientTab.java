@@ -36,6 +36,10 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
+import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
+import jp.syuriken.snsw.twclient.internal.MomemtumScroller;
+import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +113,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		@Override
 		public void focusGained(FocusEvent e) {
 			focusGainOfLinePanel(e);
+			kineticScroller.scrollTo(selectingPost);
 		}
 		
 		@Override
@@ -343,6 +348,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private JPopupMenu tweetPopupMenu;
 	
+	private MomemtumScroller kineticScroller;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -364,6 +371,13 @@ public abstract class DefaultClientTab implements ClientTab {
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+		kineticScroller = new MomemtumScroller(getPostListScrollPane(), new BoundsTranslator() {
+			
+			@Override
+			public Rectangle translate(JComponent component) {
+				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
+			}
+		});
 	}
 	
 	/**
