@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -36,10 +37,8 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
-import jp.syuriken.snsw.twclient.TwitterClientFrame.ConfigData;
 import jp.syuriken.snsw.twclient.internal.MomemtumScroller;
 import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
-import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -371,7 +370,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
-		kineticScroller = new MomemtumScroller(getPostListScrollPane(), new BoundsTranslator() {
+		kineticScroller = new MomemtumScroller(getScrollPane(), new BoundsTranslator() {
 			
 			@Override
 			public Rectangle translate(JComponent component) {
