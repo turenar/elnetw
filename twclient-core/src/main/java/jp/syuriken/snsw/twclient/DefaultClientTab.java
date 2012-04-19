@@ -700,6 +700,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		return getScrollPane();
 	}
 	
+	@Override
+	public void handleAction(String command) {
+		frameApi.handleAction(command, selectingPost.getStatusData());
+	}
+	
 	/**
 	 * IDが呼ばれたかどうかを判定する
 	 * 

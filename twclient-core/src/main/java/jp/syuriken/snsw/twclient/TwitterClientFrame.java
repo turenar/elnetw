@@ -977,7 +977,7 @@ import twitter4j.User;
 	
 	@Override
 	public ClientTab getSelectingTab() {
-		return configuration.getFrameTab(getViewTab().getSelectedIndex());
+		return selectingTab;
 	}
 	
 	private JSplitPane getSplitPane1() {
@@ -1040,7 +1040,7 @@ import twitter4j.User;
 						String url = e.getURL().toString();
 						if (url.startsWith("http://command/")) {
 							String command = url.substring("http://command/".length());
-							handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
+							selectingTab.handleAction(command);
 						} else {
 							try {
 								configuration.getUtility().openBrowser(url);

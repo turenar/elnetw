@@ -496,37 +496,57 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	
 	@Override
 	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
+		User user = null;
+		if (actionName.contains("!")) {
+			for (int i = 10; i > 0; i--) {
+				try {
+					user = api.getTwitterForRead().showUser(actionName.substring(actionName.indexOf('!') + 1)); //TODO
+					break;
+				} catch (TwitterException e) {
+					if (e.getStatusCode() == TwitterException.SERVICE_UNAVAILABLE) {
+						if (i != 1) { //not last
+							continue;
+						}
+					}
+					throw new RuntimeException("Failed Twitter#showUser", e);
+				}
+			}
+		} else if (statusData != null && statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}
-			final User user = status.getUser();
-			final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
-			api.addJob(new TwitterRunnable() {
-				
-				@Override
-				protected void access() throws TwitterException {
-					ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(user.getId());
-					for (Status status : timeline) {
-						tab.getRenderer().onStatus(status);
-					}
-					
-				}
-				
-				@Override
-				protected ClientConfiguration getConfiguration() {
-					return api.getClientConfiguration();
-				}
-				
-				@Override
-				protected void handleException(TwitterException ex) {
-					getConfiguration().getRootFilterService().onException(ex);
-				}
-			});
-			api.getClientConfiguration().addFrameTab(tab);
-			api.getClientConfiguration().focusFrameTab(tab);
+			user = status.getUser();
+		} else {
+			throw new IllegalArgumentException(
+					"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
 		}
+		
+		final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
+		final long userId = user.getId();
+		api.addJob(new TwitterRunnable() {
+			
+			@Override
+			protected void access() throws TwitterException {
+				ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
+				for (Status status : timeline) {
+					tab.getRenderer().onStatus(status);
+				}
+				
+			}
+			
+			@Override
+			protected ClientConfiguration getConfiguration() {
+				return api.getClientConfiguration();
+			}
+			
+			@Override
+			protected void handleException(TwitterException ex) {
+				getConfiguration().getRootFilterService().onException(ex);
+			}
+		});
+		api.getClientConfiguration().addFrameTab(tab);
+		api.getClientConfiguration().focusFrameTab(tab);
 	}
 	
 	@Override

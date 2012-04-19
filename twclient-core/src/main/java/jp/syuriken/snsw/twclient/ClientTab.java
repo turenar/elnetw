@@ -57,4 +57,14 @@ public interface ClientTab {
 	 */
 	String getToolTip();
 	
+	/**
+	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
+	 * <p>
+	 * {@link TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * ハイパーリンクのクリック時などに使用される。
+	 * </p>
+	 * @param command コマンド名
+	 */
+	void handleAction(String command);
+	
 }
