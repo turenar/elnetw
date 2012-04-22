@@ -69,12 +69,10 @@ import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
-import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -1308,6 +1306,7 @@ import twitter4j.User;
 	}
 	
 	private void reloginForRead(String accountId) {
+		rootFilterService.onChangeAccount(false);
 		twitterForRead = new TwitterFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
 		loginUser = null;
 		if (stream != null) {
@@ -1326,6 +1325,7 @@ import twitter4j.User;
 	}
 	
 	private void reloginForWrite(String accountId) {
+		rootFilterService.onChangeAccount(true);
 		twitterForWrite = new TwitterFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
 	}
 	
@@ -1398,81 +1398,6 @@ import twitter4j.User;
 			}
 		});
 		stream.user();
-		jobQueue.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> homeTimeline;
-				Paging paging = configData.pagingOfGettingInitialTimeline;
-				homeTimeline = twitterForRead.getHomeTimeline(paging);
-				for (Status status : homeTimeline) {
-					rootFilterService.onStatus(status);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-			
-			@Override
-			protected void handleException(TwitterException ex) {
-				TwitterClientFrame.this.handleException(ex);
-			}
-		});
-		jobQueue.addJob(new TwitterRunnable() {
-			
-			@Override
-			public void access() throws TwitterException {
-				try {
-					Paging paging = configData.pagingOfGettingInitialMentions;
-					ResponseList<Status> mentions = twitterForRead.getMentions(paging);
-					for (Status status : mentions) {
-						rootFilterService.onStatus(status);
-					}
-				} finally {
-					configuration.setInitializing(false);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-			
-			@Override
-			protected void handleException(TwitterException ex) {
-				TwitterClientFrame.this.handleException(ex);
-			}
-		});
-		timer.schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				jobQueue.addJob(new TwitterRunnable() {
-					
-					@Override
-					protected void access() throws TwitterException {
-						Paging paging = configData.pagingOfGettingTimeline;
-						ResponseList<Status> timeline;
-						timeline = twitterForRead.getHomeTimeline(paging);
-						for (Status status : timeline) {
-							rootFilterService.onStatus(status);
-						}
-					}
-					
-					@Override
-					protected ClientConfiguration getConfiguration() {
-						return configuration;
-					}
-					
-					@Override
-					protected void handleException(TwitterException ex) {
-						TwitterClientFrame.this.handleException(ex);
-					}
-				});
-			}
-		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
 		if (SystemTray.isSupported()) {
 			try {
 				SystemTray.getSystemTray().add(configuration.getTrayIcon());

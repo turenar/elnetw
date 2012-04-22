@@ -236,7 +236,7 @@ public class TwitterStatus implements Status {
 				newEntities[i] = constructor.newInstance(entity, start, end);
 			} catch (Exception e) {
 				logger.error("#getEntities got Exception: entity={}, start={}, end={}",
-					Utility.toArray(entity, start, end));
+						Utility.toArray(entity, start, end));
 				throw new AssertionError(e);
 			}
 		}
@@ -299,6 +299,8 @@ public class TwitterStatus implements Status {
 	private HashtagEntity[] hashtagEntities;
 	
 	private String text;
+	
+	private boolean loadedInitialization;
 	
 	
 	/**
@@ -550,6 +552,15 @@ public class TwitterStatus implements Status {
 		return favorited;
 	}
 	
+	/**
+	 * このステータスが起動時に読み込まれたものかどうかを調べる
+	 * 
+	 * @return 起動時に読み込まれたならtrue
+	 */
+	public boolean isLoadedInitialization() {
+		return loadedInitialization;
+	}
+	
 	@Override
 	public boolean isRetweet() {
 		return originalStatus.isRetweet();
@@ -572,6 +583,14 @@ public class TwitterStatus implements Status {
 	 */
 	public void setFavorited(boolean favorited) {
 		this.favorited = favorited;
+	}
+	
+	/**
+	 * このステータスは起動時に読み込まれたものです
+	 * @param loadedInitialization 起動時に読み込まれたならtrue 
+	 */
+	public void setLoadedInitialization(boolean loadedInitialization) {
+		this.loadedInitialization = loadedInitialization;
 	}
 	
 	/**

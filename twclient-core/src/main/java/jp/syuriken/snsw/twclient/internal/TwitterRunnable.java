@@ -31,7 +31,9 @@ public abstract class TwitterRunnable implements ParallelRunnable {
 	 * 
 	 * @param ex 例外
 	 */
-	protected abstract void handleException(TwitterException ex);
+	protected void handleException(TwitterException ex) {
+		getConfiguration().getFrameApi().handleException(ex);
+	}
 	
 	@Override
 	public void run() {

@@ -4,6 +4,7 @@ import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.TwitterStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,8 @@ public class RootFilter extends MessageFilterAdapter {
 				return null;
 			} else {
 				Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
-				if (configuration.isMentioned(status.getUserMentionEntities())) {
+				if ((status instanceof TwitterStatus ? ((TwitterStatus) status).isLoadedInitialization() == false
+						: true) && configuration.isMentioned(status.getUserMentionEntities())) {
 					configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
 							imageCacher.getImageFile(originalStatus.getUser()));
 				}
