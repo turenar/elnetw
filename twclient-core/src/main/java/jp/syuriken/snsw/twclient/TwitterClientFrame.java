@@ -78,9 +78,6 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
 
 /**
@@ -321,12 +318,9 @@ import twitter4j.User;
 		public void handleAction(String actionName, StatusData ignore, ClientFrameApi frameInstance) {
 			String accountId = actionName.substring(actionName.indexOf('!') + 1);
 			if (forWrite) {
-				reloginForWrite(accountId);
-				rootFilterService.onChangeAccount(true);
+				configuration.setAccountIdForWrite(accountId);
 			} else {
-				reloginForRead(accountId);
-				stream.user();
-				rootFilterService.onChangeAccount(false);
+				configuration.setAccountIdForRead(accountId);
 			}
 		}
 		
@@ -402,7 +396,7 @@ import twitter4j.User;
 						ids[i] = Long.parseLong(accountList[offset + i]);
 					}
 					
-					ResponseList<User> users = twitterForRead.lookupUsers(ids);
+					ResponseList<User> users = configuration.getTwitterForRead().lookupUsers(ids);
 					
 					int finish = offset + lookupUsersSize;
 					for (User user : users) {
@@ -454,13 +448,7 @@ import twitter4j.User;
 	
 	private JTextArea postBox;
 	
-	private TwitterStream stream;
-	
 	private JTabbedPane viewTab;
-	
-	private Twitter twitterForRead;
-	
-	private Twitter twitterForWrite;
 	
 	/** デフォルトフォント: TODO from config */
 	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
@@ -542,8 +530,6 @@ import twitter4j.User;
 		initActionHandlerTable();
 		initShortcutKey();
 		
-		reloginForRead(configuration.getDefaultAccountId());
-		twitterForWrite = twitterForRead; // On initializing, reader is also writer.
 		getLoginUser();
 		generatePopupMenu(new ActionListenerImplementation());
 		initComponents();
@@ -607,7 +593,6 @@ import twitter4j.User;
 	 */
 	public void cleanUp() {
 		configuration.setShutdownPhase(true);
-		stream.shutdown();
 		timer.cancel();
 		jobWorkerThread.cleanUp();
 	}
@@ -634,7 +619,7 @@ import twitter4j.User;
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
-						twitterForWrite.updateStatus(statusUpdate);
+						configuration.getTwitterForWrite().updateStatus(statusUpdate);
 						postBox.setText("");
 						updatePostLength();
 						inReplyToStatus = null;
@@ -844,7 +829,7 @@ import twitter4j.User;
 	public User getLoginUser() {
 		if (loginUser == null) {
 			try {
-				loginUser = twitterForRead.verifyCredentials();
+				loginUser = configuration.getTwitterForRead().verifyCredentials();
 			} catch (TwitterException e) {
 				handleException(e);
 			}
@@ -1125,17 +1110,19 @@ import twitter4j.User;
 	@Deprecated
 	@Override
 	public Twitter getTwitter() {
-		return twitterForRead;
+		return getTwitterForRead();
 	}
 	
+	@Deprecated
 	@Override
 	public Twitter getTwitterForRead() {
-		return twitterForRead;
+		return configuration.getTwitterForRead();
 	}
 	
+	@Deprecated
 	@Override
 	public Twitter getTwitterForWrite() {
-		return twitterForWrite;
+		return configuration.getTwitterForWrite();
 	}
 	
 	@Override
@@ -1305,30 +1292,6 @@ import twitter4j.User;
 		tabbedPane.setToolTipTextAt(indexOf, tab.getToolTip());
 	}
 	
-	private void reloginForRead(String accountId) {
-		rootFilterService.onChangeAccount(false);
-		twitterForRead = new TwitterFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
-		loginUser = null;
-		if (stream != null) {
-			final TwitterStream oldStream = stream;
-			new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					oldStream.cleanUp();
-				}
-			}, "stream disconnector").start();
-		}
-		stream = new TwitterStreamFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
-		stream.addConnectionLifeCycleListener(rootFilterService);
-		stream.addListener(rootFilterService);
-	}
-	
-	private void reloginForWrite(String accountId) {
-		rootFilterService.onChangeAccount(true);
-		twitterForWrite = new TwitterFactory(configuration.getTwitterConfiguration(accountId)).getInstance();
-	}
-	
 	/**
 	 * フレームタブを削除するよ♪
 	 * @param indexOf インデックス 
@@ -1397,7 +1360,6 @@ import twitter4j.User;
 				logger.info("visibled");
 			}
 		});
-		stream.user();
 		if (SystemTray.isSupported()) {
 			try {
 				SystemTray.getSystemTray().add(configuration.getTrayIcon());

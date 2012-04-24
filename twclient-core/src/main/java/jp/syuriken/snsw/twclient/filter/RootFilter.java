@@ -39,6 +39,12 @@ public class RootFilter extends MessageFilterAdapter {
 	}
 	
 	@Override
+	public boolean onChangeAccount(boolean forWrite) {
+		configuration.getFetchScheduler().onChangeAccount(forWrite);
+		return false;
+	}
+	
+	@Override
 	public boolean onException(Exception ex) {
 		logger.warn("handling onException", ex);
 		return false;

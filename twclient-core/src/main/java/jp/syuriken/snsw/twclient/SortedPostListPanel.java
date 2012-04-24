@@ -12,9 +12,6 @@ import java.util.ListIterator;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 日時でソートするポストリスト。
  * 
@@ -102,9 +99,6 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 	}
-	
-	
-	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
 	
 	
 	/**

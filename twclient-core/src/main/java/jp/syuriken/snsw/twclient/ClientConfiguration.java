@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.imageio.ImageIO;
@@ -34,7 +35,14 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class ClientConfiguration {
 	
+	/**
+	 * よく使いそうな設定をキャッシュしておくクラス
+	 * 
+	 * @author $Author$
+	 */
 	public class ConfigData implements PropertyChangeListener {
+		
+		private static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
 		
 		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
 		
@@ -84,9 +92,27 @@ public class ClientConfiguration {
 		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
 			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
 		
+		/** アカウントリスト */
+		public String[] accountList = initAccountList();
+		
 		
 		/*package*/ConfigData() {
 			configProperties.addPropertyChangedListener(this);
+		}
+		
+		/**
+		 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
+		 * 
+		 * @return アカウントリスト。
+		 */
+		private String[] initAccountList() {
+			cachedTwitterInstances.clear();
+			String accountListString = configProperties.getProperty(PROPERTY_ACCOUNT_LIST);
+			if (accountListString == null) {
+				return new String[] {};
+			} else {
+				return accountListString.split(" ");
+			}
 		}
 		
 		@Override
@@ -111,6 +137,8 @@ public class ClientConfiguration {
 				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
 			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_MENTION)) {
 				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
+			} else if (Utility.equalString(name, PROPERTY_ACCOUNT_LIST)) {
+				accountList = initAccountList();
 			}
 		}
 	}
@@ -143,6 +171,14 @@ public class ClientConfiguration {
 	private ImageCacher imageCacher;
 	
 	private ConfigData configData;
+	
+	private ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+	
+	private String accountIdForRead;
+	
+	private String accountIdForWrite;
+	
+	private TwitterDataFetchScheduler fetchScheduler;
 	
 	
 	/**
@@ -201,6 +237,15 @@ public class ClientConfiguration {
 		return result;
 	}
 	
+	private boolean checkValidAccountId(String accountId) {
+		for (String account : getAccountList()) {
+			if (Utility.equalString(account, accountId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * 指定されたタブをフォーカスする。
 	 * 
@@ -220,17 +265,36 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 読み込み用アカウントのIDを取得する。
+	 * 
+	 * @return アカウントID (ユニーク)
+	 */
+	public String getAccountIdForRead() {
+		if (accountIdForRead == null) {
+			accountIdForRead = getDefaultAccountId();
+		}
+		return accountIdForRead;
+	}
+	
+	/**
+	 * 書き込み用アカウントのIDを取得する。
+	 * 
+	 * @return アカウントID (ユニーク)
+	 */
+	public String getAccountIdForWrite() {
+		if (accountIdForWrite == null) {
+			accountIdForWrite = getAccountIdForRead();
+		}
+		return accountIdForWrite;
+	}
+	
+	/**
 	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
 	 * 
 	 * @return アカウントリスト。
 	 */
 	public String[] getAccountList() {
-		String list = configProperties.getProperty("twitter.oauth.access_token.list");
-		if (list == null) {
-			return new String[] {};
-		} else {
-			return list.split(" ");
-		}
+		return getConfigData().initAccountList();
 	}
 	
 	/**
@@ -283,6 +347,15 @@ public class ClientConfiguration {
 			accountId = getAccountList()[0];
 		}
 		return accountId;
+	}
+	
+	/**
+	 * 情報取得のスケジューラを取得する。
+	 * 
+	 * @return スケジューラ
+	 */
+	public TwitterDataFetchScheduler getFetchScheduler() {
+		return fetchScheduler;
 	}
 	
 	/**
@@ -365,6 +438,21 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 指定したアカウントのTwitterインスタンスを取得する。
+	 * 
+	 * @param accountId アカウントID
+	 * @return Twitterインスタンス
+	 */
+	public Twitter getTwitter(String accountId) {
+		Twitter twitter = cachedTwitterInstances.get(accountId);
+		if (twitter == null) {
+			twitter = new TwitterFactory(getTwitterConfiguration(accountId)).getInstance();
+			cachedTwitterInstances.put(accountId, twitter);
+		}
+		return twitter;
+	}
+	
+	/**
 	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 * 
 	* @return Twitter Configuration
 	*/
@@ -372,7 +460,8 @@ public class ClientConfiguration {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
 	
-	/**	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
+	/**
+	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
 	 * @param accountId アカウントID 
 	 * @return Twitter Configuration
 	 */
@@ -401,6 +490,24 @@ public class ClientConfiguration {
 			.setOAuthConsumerSecret(consumerSecret) //
 			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")) //
 			.setJSONStoreEnabled(true);
+	}
+	
+	/**
+	 * 読み込み用Twitterインスタンスを取得する。
+	 * 
+	 * @return 読み込み用Twitterインスタンス
+	 */
+	public Twitter getTwitterForRead() {
+		return getTwitter(getAccountIdForRead());
+	}
+	
+	/**
+	 * 書き込み用Twitterインスタンスを取得する。
+	 * 
+	 * @return 読み込み用Twitterインスタンス。
+	 */
+	public Twitter getTwitterForWrite() {
+		return getTwitter(getAccountIdForWrite());
 	}
 	
 	/**
@@ -512,6 +619,42 @@ public class ClientConfiguration {
 	}
 	
 	/**
+	 * 読み込み用アカウントを設定する
+	 * 
+	 * @param accountId アカウントID。ユニーク。
+	 * @return 古い読み込み用アカウントID。
+	 */
+	public String setAccountIdForRead(String accountId) {
+		if (checkValidAccountId(accountId) == false) {
+			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
+		}
+		String old = getAccountIdForWrite();
+		if (old.equals(accountId) == false) {
+			accountIdForRead = accountId;
+			getRootFilterService().onChangeAccount(false);
+		}
+		return old;
+	}
+	
+	/**
+	 * 書き込み用アカウントを設定する。
+	 * 
+	 * @param accountId アカウントID。ユニーク
+	 * @return 古い書き込み用アカウントID。
+	 */
+	public String setAccountIdForWrite(String accountId) {
+		if (checkValidAccountId(accountId) == false) {
+			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
+		}
+		String old = getAccountIdForWrite();
+		if (old.equals(accountId) == false) {
+			accountIdForWrite = accountId;
+			getRootFilterService().onChangeAccount(true);
+		}
+		return old;
+	}
+	
+	/**
 	 * デフォルト設定を格納するプロパティを設定する。
 	 * 
 	 * @param configDefaultProperties the configDefaultProperties to set
@@ -527,6 +670,10 @@ public class ClientConfiguration {
 	 */
 	public void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
+	}
+	
+	/*package*/void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
+		this.fetchScheduler = fetchScheduler;
 	}
 	
 	/**

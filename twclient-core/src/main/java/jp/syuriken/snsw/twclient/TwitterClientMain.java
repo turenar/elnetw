@@ -4,22 +4,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
-import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.Paging;
-import twitter4j.ResponseList;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -111,7 +105,8 @@ public class TwitterClientMain {
 		configuration.addFilter(new UserFilter(configuration));
 		configuration.addFrameTab(new TimelineViewTab(configuration));
 		configuration.addFrameTab(new MentionViewTab(configuration));
-		scheduleTwitterDataLoader();
+		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
+		configuration.setFetchScheduler(fetchScheduler);
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			
 			@Override
@@ -132,80 +127,9 @@ public class TwitterClientMain {
 		}
 		logger.info("Exiting twclient...");
 		frame.cleanUp();
+		fetchScheduler.cleanUp();
 		
 		return 0;
-	}
-	
-	private void scheduleTwitterDataLoader() {
-		final ClientFrameApi frameApi = configuration.getFrameApi();
-		final ConfigData configData = configuration.getConfigData();
-		final Twitter twitterForRead = frameApi.getTwitterForRead();
-		final FilterService rootFilterService = configuration.getRootFilterService();
-		
-		frameApi.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> homeTimeline;
-				Paging paging = configData.pagingOfGettingInitialTimeline;
-				homeTimeline = twitterForRead.getHomeTimeline(paging);
-				for (Status status : homeTimeline) {
-					TwitterStatus twitterStatus = new TwitterStatus(status);
-					twitterStatus.setLoadedInitialization(true);
-					rootFilterService.onStatus(twitterStatus);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-		});
-		frameApi.addJob(new TwitterRunnable() {
-			
-			@Override
-			public void access() throws TwitterException {
-				try {
-					Paging paging = configData.pagingOfGettingInitialMentions;
-					ResponseList<Status> mentions = twitterForRead.getMentions(paging);
-					for (Status status : mentions) {
-						TwitterStatus twitterStatus = new TwitterStatus(status);
-						twitterStatus.setLoadedInitialization(true);
-						rootFilterService.onStatus(twitterStatus);
-					}
-				} finally {
-					configuration.setInitializing(false);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-		});
-		frameApi.getTimer().schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				frameApi.addJob(new TwitterRunnable() {
-					
-					@Override
-					protected void access() throws TwitterException {
-						Paging paging = configData.pagingOfGettingTimeline;
-						ResponseList<Status> timeline;
-						timeline = twitterForRead.getHomeTimeline(paging);
-						for (Status status : timeline) {
-							rootFilterService.onStatus(status);
-						}
-					}
-					
-					@Override
-					protected ClientConfiguration getConfiguration() {
-						return configuration;
-					}
-				});
-			}
-		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
 	}
 	
 	/**

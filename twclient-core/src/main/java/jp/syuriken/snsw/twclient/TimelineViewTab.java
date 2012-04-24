@@ -36,20 +36,27 @@ public class TimelineViewTab extends DefaultClientTab {
 		
 		@Override
 		public void onChangeAccount(boolean forWrite) {
-			// TODO Auto-generated method stub
-			
+			StatusData statusData = new StatusData(null, new Date());
+			statusData.backgroundColor = Color.LIGHT_GRAY;
+			statusData.foregroundColor = Color.BLACK;
+			statusData.image = new JLabel();
+			statusData.sentBy = new JLabel(TwitterClientFrame.APPLICATION_NAME);
+			if (forWrite) {
+				statusData.sentBy.setName("!core.change.account!write");
+				statusData.data = new JLabel("書き込み用アカウントを変更しました。");
+			} else {
+				statusData.sentBy.setName("!core.change.account!read");
+				statusData.data = new JLabel("読み込み用アカウントを変更しました。");
+			}
+			addStatus(statusData, frameApi.getInfoSurviveTime());
 		}
 		
 		@Override
 		public void onCleanUp() {
-			// TODO Auto-generated method stub
-			
 		}
 		
 		@Override
 		public void onConnect() {
-			// TODO Auto-generated method stub
-			
 		}
 		
 		@Override
@@ -102,8 +109,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		
 		@Override
 		public void onDisconnect() {
-			// TODO Auto-generated method stub
-			
 		}
 		
 		@Override
@@ -164,9 +169,9 @@ public class TimelineViewTab extends DefaultClientTab {
 				statusData.foregroundColor = Color.YELLOW;
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
-			statusData.sentBy.setName("!follow." + source.getScreenName());
-			String message = "@" + followedUser.getScreenName() + " をフォローしました";
-			statusData.data = new JLabel(message);
+				statusData.sentBy.setName("!follow." + source.getScreenName());
+				String message = "@" + followedUser.getScreenName() + " をフォローしました";
+				statusData.data = new JLabel(message);
 				addStatus(statusData);
 				configuration.getUtility().sendNotify(
 						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,

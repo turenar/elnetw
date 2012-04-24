@@ -318,6 +318,12 @@ public class Utility {
 		return builder;
 	}
 	
+	/**
+	 * 単にobjを配列として返すだけの
+	 * 
+	 * @param obj オブジェクト
+	 * @return 配列
+	 */
 	public static Object[] toArray(Object... obj) {
 		return obj;
 	}

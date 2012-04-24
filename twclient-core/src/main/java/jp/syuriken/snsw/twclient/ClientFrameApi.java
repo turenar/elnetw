@@ -147,6 +147,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * Twitterインスタンスを取得する
 	 * 
 	 * @return Twitterインスタンス
+	 * @deprecated use {@link ClientConfiguration#getTwitterForRead()}
 	 */
 	@Deprecated
 	Twitter getTwitter();
@@ -155,6 +156,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * 読み込み用のTwitterインスタンスを取得する。
 	 * 
 	 * @return 読み込み用Twitterインスタンス
+	 * @see ClientConfiguration#getTwitterForRead()
 	 */
 	Twitter getTwitterForRead();
 	
@@ -162,6 +164,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * 書き込み用のTwitterインスタンスを取得する。
 	 * 
 	 * @return 書き込み用のTwitterインスタンス
+	 * @see ClientConfiguration#getTwitterForWrite()
 	 */
 	Twitter getTwitterForWrite();
 	
