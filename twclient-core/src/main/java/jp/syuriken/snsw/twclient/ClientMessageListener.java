@@ -46,6 +46,27 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	/** フォーカス要請: タブコンポーネント (arg: なし) */
 	public static final String REQUEST_FOCUS_TAB_COMPONENT = "request focus tabComponent";
 	
+	/** 選択しているポストをコピー (arg: なし) */
+	public static final String REQUEST_COPY = "copy";
+	
+	/** 選択しているポストのURLをコピー (arg: なし) */
+	public static final String REQUEST_COPY_URL = "copy url";
+	
+	/** 選択しているポストのユーザーIDをコピー (arg: なし) */
+	public static final String REQUEST_COPY_USERID = "copy userid";
+	
+	/** 選択しているポストのユーザーホームをブラウザーで開く (arg: なし) */
+	public static final String REQUEST_BROWSER_USER_HOME = "browser user home";
+	
+	/** 選択しているポストをブラウザーで開く (arg: なし) */
+	public static final String REQUEST_BROWSER_STATUS = "browser status";
+	
+	/** 選択しているポストのリプライ先をブラウザーで開く (arg: なし) */
+	public static final String REQUEST_BROWSER_IN_REPLY_TO = "broser inReplyTo";
+	
+	/** 選択しているポストに含まれるURLをすべて開く (arg: なし) */
+	public static final String REQUEST_BROWSER_OPENURLS = "browser urls";
+	
 	
 	/**
 	 * アカウント変更

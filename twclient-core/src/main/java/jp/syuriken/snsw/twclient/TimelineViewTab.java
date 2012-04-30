@@ -42,10 +42,10 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.image = new JLabel();
 			statusData.sentBy = new JLabel(TwitterClientFrame.APPLICATION_NAME);
 			if (forWrite) {
-				statusData.sentBy.setName("!core.change.account!write");
+				statusData.user = "!core.change.account!write";
 				statusData.data = new JLabel("書き込み用アカウントを変更しました。");
 			} else {
-				statusData.sentBy.setName("!core.change.account!read");
+				statusData.user = "!core.change.account!read";
 				statusData.data = new JLabel("読み込み用アカウントを変更しました。");
 			}
 			addStatus(statusData, frameApi.getInfoSurviveTime());
@@ -78,8 +78,8 @@ public class TimelineViewTab extends DefaultClientTab {
 				deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
 				deletionStatusData.foregroundColor = Color.RED;
 				deletionStatusData.image = new JLabel();
-				deletionStatusData.sentBy = new JLabel(((JLabel) (statusData.sentBy)).getText()); // TODO
-				deletionStatusData.sentBy.setName("!twdel." + statusDeletionNotice.getUserId());
+				deletionStatusData.sentBy = new JLabel();
+				deletionStatusData.user = "!twdel." + statusDeletionNotice.getUserId();
 				deletionStatusData.data = new JLabel("DELETED: " + status.getText());
 				addStatus(deletionStatusData, getInfoSurviveTime() * 2);
 				removeStatus(statusData, getInfoSurviveTime() * 2);
@@ -95,7 +95,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.foregroundColor = Color.CYAN;
 			statusData.image = new JLabel();
 			statusData.sentBy = new JLabel(directMessage.getSenderScreenName());
-			statusData.sentBy.setName("!dm." + directMessage.getSenderScreenName());
+			statusData.user = "!dm." + directMessage.getSenderScreenName();
 			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
@@ -118,7 +118,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.foregroundColor = Color.RED;
 			statusData.image = new JLabel();
 			statusData.sentBy = new JLabel("!ERROR!");
-			statusData.sentBy.setName("!ex." + ex.getClass().getName());
+			statusData.user = "!ex." + ex.getClass().getName();
 			String exString;
 			if (ex instanceof TwitterException) {
 				TwitterException twex = (TwitterException) ex;
@@ -143,7 +143,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				statusData.foregroundColor = Color.YELLOW;
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!fav." + source.getScreenName());
+				statusData.user = "!fav." + source.getScreenName();
 				String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
@@ -169,7 +169,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				statusData.foregroundColor = Color.YELLOW;
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!follow." + source.getScreenName());
+				statusData.user = "!follow." + source.getScreenName();
 				String message = "@" + followedUser.getScreenName() + " をフォローしました";
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
@@ -211,7 +211,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.foregroundColor = Color.LIGHT_GRAY;
 			statusData.image = new JLabel();
 			statusData.sentBy = new JLabel();
-			statusData.sentBy.setName("!stream.overlimit");
+			statusData.user = "!stream.overlimit";
 			statusData.data =
 					new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
 			addStatus(statusData, getInfoSurviveTime() * 2);
@@ -234,7 +234,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				statusData.foregroundColor = Color.LIGHT_GRAY;
 				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
 				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.sentBy.setName("!unfav." + source.getScreenName());
+				statusData.user = "!unfav." + source.getScreenName();
 				String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
 				statusData.data = new JLabel(message);
 				addStatus(statusData);

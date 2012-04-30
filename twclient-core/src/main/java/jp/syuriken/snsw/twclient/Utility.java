@@ -1,14 +1,12 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
-import java.awt.HeadlessException;
 import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -445,41 +443,49 @@ public class Utility {
 	 * browserを表示する。
 	 * 
 	 * @param url 開くURL
-	 * @throws HeadlessException GUIを使用できない
-	 * @throws InvocationTargetException 関数のinvokeに失敗 (Mac OS)
-	 * @throws IllegalAccessException アクセスに失敗
-	 * @throws IllegalArgumentException 正しくない引数
-	 * @throws IOException IOエラーが発生
-	 * @throws NoSuchMethodException 関数のinvokeに失敗 (Mac OS)
-	 * @throws SecurityException セキュリティ例外
-	 * @throws ClassNotFoundException クラスのinvokeに失敗 (Mac OS)
+	 * @return
+	 * 		<dl>
+	 * 		<dt>HeadlessException</dt><dd>GUIを使用できない</dd>
+	 * 		<dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 * 		<dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
+	 * 		<dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
+	 * 		<dt>IOException</dt><dd>IOエラーが発生</dd>
+	 * 		<dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 * 		<dt>SecurityException</dt><dd>セキュリティ例外</dd>
+	 * 		<dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
+	 * 		</dl> 	
 	 */
-	public void openBrowser(String url) throws HeadlessException, IllegalArgumentException, IllegalAccessException,
-			InvocationTargetException, IOException, SecurityException, NoSuchMethodException, ClassNotFoundException {
+	public Exception openBrowser(String url) {
 		detectOS();
-		switch (ostype) {
-			case WINDOWS:
-				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
-				break;
-			case MAC:
-				Class<?> fileMgr = null;
-				fileMgr = Class.forName("com.apple.eio.FileManager");
-				
-				Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {
-					String.class
-				});
-				openURL.invoke(null, new Object[] {
-					url.trim()
-				});
-				break;
-			case OTHER:
-				String browser = detectBrowser();
-				Runtime.getRuntime().exec(new String[] {
-					browser,
-					url.trim()
-				});
-			default:
-				break;
+		try {
+			switch (ostype) {
+				case WINDOWS:
+					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
+					break;
+				case MAC:
+					Class<?> fileMgr = null;
+					fileMgr = Class.forName("com.apple.eio.FileManager");
+					
+					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {
+						String.class
+					});
+					openURL.invoke(null, new Object[] {
+						url.trim()
+					});
+					break;
+				case OTHER:
+					String browser = detectBrowser();
+					Runtime.getRuntime().exec(new String[] {
+						browser,
+						url.trim()
+					});
+				default:
+					break;
+			}
+			return null;
+		} catch (Exception ex) {
+			logger.warn("Failed opening browser", ex);
+			return ex;
 		}
 	}
 	

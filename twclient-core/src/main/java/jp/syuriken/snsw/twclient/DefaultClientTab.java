@@ -7,6 +7,9 @@ import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
@@ -32,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -92,6 +97,136 @@ public abstract class DefaultClientTab implements ClientTab {
 				} else {
 					getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
 				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT)) {
+				if (selectingPost == null) {
+					getSortedPostListPanel().requestFocusInWindow();
+				} else {
+					ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
+					int indexOf = arrayList.indexOf(selectingPost);
+					if (indexOf >= 0 && indexOf < arrayList.size() - 1) {
+						arrayList.get(indexOf + 1).requestFocusInWindow();
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
+				if (selectingPost == null) {
+					getSortedPostListPanel().requestFocusInWindow();
+				} else {
+					ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
+					int indexOf = arrayList.indexOf(selectingPost);
+					if (indexOf > 0) {
+						arrayList.get(indexOf - 1).requestFocusInWindow();
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT)) {
+				getSortedPostListPanel().requestFocusFirstComponent();
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
+				getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
+					.requestFocusInWindow();
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
+				JViewport viewport = getScrollPane().getViewport();
+				getSortedPostListPanel().getComponentAt(0, viewport.getViewPosition().y + viewport.getHeight())
+					.requestFocusInWindow();
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST)) {
+				if (selectingPost == null) {
+					getSortedPostListPanel().requestFocusInWindow();
+				} else {
+					Rectangle bounds = getSortedPostListPanel().getBoundsOf(selectingPost);
+					JViewport viewport = getScrollPane().getViewport();
+					int x = viewport.getViewPosition().x;
+					int y = bounds.y - (viewport.getHeight() - bounds.height);
+					viewport.setViewPosition(new Point(x, y));
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO)) {
+				if (selectingPost == null) {
+					getSortedPostListPanel().requestFocusInWindow();
+				} else {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status tag = (Status) statusData.tag;
+						inReplyToStack.push(selectingPost);
+						statusMap.get(tag.getInReplyToStatusId()).requestFocusInWindow();
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY)) {
+				if (selectingPost == null) {
+					getSortedPostListPanel().requestFocusInWindow();
+				} else {
+					if (inReplyToStack.isEmpty() == false) {
+						inReplyToStack.pop().requestFocusInWindow();
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					/* TODO: StringSelection is not copied into gnome-terminal */
+					StringSelection stringSelection = new StringSelection(statusData.data.getText());
+					clipboard.setContents(stringSelection, stringSelection);
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_URL)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						status = status.isRetweet() ? status.getRetweetedStatus() : status;
+						String url =
+								"http://twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId();
+						/* TODO: StringSelection is not copied into gnome-terminal */
+						StringSelection stringSelection = new StringSelection(url);
+						clipboard.setContents(stringSelection, stringSelection);
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_USERID)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					/* TODO: StringSelection is not copied into gnome-terminal */
+					StringSelection stringSelection = new StringSelection(statusData.user);
+					clipboard.setContents(stringSelection, stringSelection);
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_USER_HOME)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						status = status.isRetweet() ? status.getRetweetedStatus() : status;
+						String url = "http://twitter.com/" + status.getUser().getScreenName();
+						utility.openBrowser(url);
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_STATUS)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						status = status.isRetweet() ? status.getRetweetedStatus() : status;
+						String url =
+								"http://twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId();
+						utility.openBrowser(url);
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_IN_REPLY_TO)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						if (status.getInReplyToStatusId() != -1) {
+							String url =
+									"http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
+											+ status.getInReplyToStatusId();
+							utility.openBrowser(url);
+						}
+					}
+				}
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_OPENURLS)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						URLEntity[] urlEntities = status.getURLEntities();
+						for (URLEntity urlEntity : urlEntities) {
+							utility.openBrowser(urlEntity.getURL().toString());
+						}
+					}
+				}
 			}
 		}
 		
@@ -99,7 +234,6 @@ public abstract class DefaultClientTab implements ClientTab {
 		public void onStatus(Status originalStatus) {
 			addStatus(originalStatus);
 		}
-		
 	}
 	
 	/**
@@ -250,6 +384,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	
+	private static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	
+	private Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
+	
 	/** TODO Megumi */
 	private static final int PADDING_OF_POSTLIST = 1;
 	
@@ -331,10 +469,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected final PostListListener postListListenerSingleton = new PostListListener();
 	
 	/** <K=ユーザーID, V=ユーザーのツイートなど> */
-	protected TreeMap<String, ArrayList<StatusData>> listItems = new TreeMap<String, ArrayList<StatusData>>();
+	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<String, ArrayList<StatusPanel>>();
 	
 	/** <K=ステータスID, V=ツイートなど> */
-	protected TreeMap<Long, StatusData> statusMap = new TreeMap<Long, StatusData>();
+	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<Long, StatusPanel>();
 	
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
@@ -349,6 +487,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private MomemtumScroller kineticScroller;
 	
+	private Utility utility;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -358,8 +498,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected DefaultClientTab(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		imageCacher = configuration.getImageCacher();
-		sortedPostListPanel = new SortedPostListPanel();
 		frameApi = configuration.getFrameApi();
+		utility = configuration.getUtility();
+		sortedPostListPanel = new SortedPostListPanel();
 		configData = frameApi.getConfigData();
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
@@ -412,11 +553,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		statusData.image = icon;
 		
 		String screenName = user.getScreenName();
+		statusData.user = screenName;
 		if (screenName.length() > 11) {
 			screenName = screenName.substring(0, 9) + "..";
 		}
 		JLabel sentBy = new JLabel(screenName);
-		sentBy.setName(user.getScreenName());
 		sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
 		statusData.sentBy = sentBy;
 		
@@ -495,13 +636,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		statusData.data.setForeground(statusData.foregroundColor);
 		
 		synchronized (listItems) {
-			statusMap.put(statusData.id, statusData);
-			ArrayList<StatusData> list = listItems.get(statusData.sentBy.getName());
+			statusMap.put(statusData.id, linePanel);
+			ArrayList<StatusPanel> list = listItems.get(statusData.user);
 			if (list == null) {
-				list = new ArrayList<StatusData>();
-				listItems.put(statusData.sentBy.getName(), list);
+				list = new ArrayList<StatusPanel>();
+				listItems.put(statusData.user, list);
 			}
-			list.add(statusData);
+			list.add(linePanel);
 		}
 		synchronized (postListAddQueue) {
 			postListAddQueue.add(linePanel);
@@ -626,8 +767,8 @@ public abstract class DefaultClientTab implements ClientTab {
 			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
 					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		} else {
-			frameApi.setTweetViewText(statusData.data.getText(), statusData.sentBy.getName(), null, dateFormat.get()
-				.format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+			frameApi.setTweetViewText(statusData.data.getText(), statusData.user, null,
+					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
 		}
 	}
 	
@@ -692,7 +833,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @return ステータスデータ
 	 */
 	public StatusData getStatus(long statusId) {
-		return statusMap.get(statusId);
+		StatusPanel statusPanel = statusMap.get(statusId);
+		return statusPanel == null ? null : statusPanel.getStatusData();
 	}
 	
 	@Override

@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
@@ -324,6 +325,15 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 		return bounds;
+	}
+	
+	@Override
+	public StatusPanel getComponentAt(int x, int y) {
+		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
+		Point bounds = componentAt.getLocation();
+		x -= bounds.x;
+		y -= bounds.y;
+		return (StatusPanel) componentAt.getComponentAt(x, y);
 	}
 	
 	/**

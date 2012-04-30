@@ -39,6 +39,9 @@ public class StatusData {
 	/** ツールチップ */
 	public String tooltip = null;
 	
+	/** このクラスのインスタンスが作られる原因を作ったユーザー名 (Twitterユーザーじゃなくてもおk) */
+	public String user = null;
+	
 	/** このクラスのインスタンスが作られる原因の発生日時 */
 	public final Date date;
 	
@@ -78,6 +81,6 @@ public class StatusData {
 	 * @return sentBy.getName()が"!"で始まるかどうか
 	 */
 	public boolean isSystemNotify() {
-		return sentBy.getName().startsWith("!");
+		return user.startsWith("!");
 	}
 }

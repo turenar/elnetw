@@ -180,6 +180,10 @@ public class ClientConfiguration {
 	
 	private TwitterDataFetchScheduler fetchScheduler;
 	
+	private boolean portabledConfiguration;
+	
+	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -334,6 +338,10 @@ public class ClientConfiguration {
 	 */
 	public ClientProperties getConfigProperties() {
 		return configProperties;
+	}
+	
+	public String getConfigRootDir() {
+		return portabledConfiguration ? "." : HOME_BASE_DIR;
 	}
 	
 	/**
@@ -692,6 +700,10 @@ public class ClientConfiguration {
 	 */
 	/*package*/void setInitializing(boolean isInitializing) {
 		this.isInitializing = isInitializing;
+	}
+	
+	/*package*/void setPortabledConfiguration(boolean portable) {
+		portabledConfiguration = portable;
 	}
 	
 	/**

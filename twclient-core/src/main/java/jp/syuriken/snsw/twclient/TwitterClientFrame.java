@@ -14,6 +14,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -64,6 +67,7 @@ import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.ReplyActionHandler;
 import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.TweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
@@ -155,28 +159,59 @@ import twitter4j.User;
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 			if (Utility.equalString(actionName, "core!submenu")) {
 				return;
-			} else if (Utility.equalString(actionName, "core!focusinput")) {
-				getPostBox().requestFocusInWindow();
-			} else if (Utility.equalString(actionName, "core!focuslist")) {
-				getSelectingTab().getRenderer()
-					.onClientMessage(ClientMessageListener.REQUEST_FOCUS_TAB_COMPONENT, null);
-			} else if (Utility.equalString(actionName, "core!postnext")) {
-				getSelectingTab().getRenderer().onClientMessage(ClientMessageListener.REQUEST_FOCUS_NEXT_COMPONENT,
-						null);
-			} else if (Utility.equalString(actionName, "core!postprev")) {
-				getSelectingTab().getRenderer().onClientMessage(ClientMessageListener.REQUEST_FOCUS_PREV_COMPONENT,
-						null);
 			} else if (Utility.equalString(actionName, "core!version")) {
 				VersionInfoFrame frame = new VersionInfoFrame();
 				frame.setVisible(true);
+			} else if (Utility.equalString(actionName, "core!focusinput")) {
+				getPostBox().requestFocusInWindow();
+			} else if (Utility.equalString(actionName, "core!tabswitch_prev")) {
+				JTabbedPane tab = getViewTab();
+				int selectedIndex = tab.getSelectedIndex();
+				if (selectedIndex > 0) {
+					tab.setSelectedIndex(selectedIndex - 1);
+				}
+			} else if (Utility.equalString(actionName, "core!tabswitch_next")) {
+				JTabbedPane tab = getViewTab();
+				int selectedIndex = tab.getSelectedIndex();
+				if (selectedIndex < tab.getTabCount() - 1) {
+					tab.setSelectedIndex(selectedIndex + 1);
+				}
 			} else {
-				logger.warn("[core] {} is not command", actionName);
+				String messageName;
+				Object arg = null;
+				if (Utility.equalString(actionName, "core!focuslist")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_TAB_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postnext")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_NEXT_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postprev")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_PREV_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postuserprev")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postusernext")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postfirst")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postwindowfirst")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postwindowlast")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!scroll_as_windowlast")) {
+					messageName = ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST;
+				} else if (Utility.equalString(actionName, "core!jump_inReplyTo")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO;
+				} else if (Utility.equalString(actionName, "core!jump_inReplyToBack")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY;
+				} else {
+					logger.warn("[core AH] {} is not command", actionName);
+					return;
+				}
+				getSelectingTab().getRenderer().onClientMessage(messageName, arg);
 			}
 		}
 		
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			if (menuItem.getActionCommand().equals("core!submenu")) {
+			if (Utility.equalString(menuItem.getActionCommand(), "core!submenu")) {
 				if (menuItem instanceof JMenu == false) {
 					logger.error("\"core!submenu\" argued menuItem not as JMenu");
 					throw new AssertionError();
@@ -1208,6 +1243,7 @@ import twitter4j.User;
 		addActionHandler("post", new PostActionHandler());
 		addActionHandler("core", new CoreFrameActionHandler());
 		addActionHandler("mute", new MuteActionHandler());
+		addActionHandler("tweet", new TweetActionHandler());
 		addActionHandler("menu_quit", new MenuQuitActionHandler());
 		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
@@ -1268,12 +1304,25 @@ import twitter4j.User;
 	 * ショートカットキーテーブルを初期化する。
 	 */
 	protected void initShortcutKey() {
+		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
 		Properties shortcutkeyProperties = new Properties();
-		try {
-			shortcutkeyProperties.load(getClass().getClassLoader().getResourceAsStream(
-					"jp/syuriken/snsw/twclient/ui_main_shortcutkey.properties"));
-		} catch (IOException e) {
-			logger.error("ショートカットキーの読み込みに失敗", e);
+		if (parentConfigName.trim().isEmpty() == false) {
+			try {
+				shortcutkeyProperties.load(getClass().getClassLoader().getResourceAsStream(
+						"jp/syuriken/snsw/twclient/shortcutkey/" + parentConfigName + ".properties"));
+			} catch (IOException e) {
+				logger.error("ショートカットキーの読み込みに失敗", e);
+			}
+		}
+		File file = new File(configuration.getConfigRootDir(), "shortcutkey.cfg");
+		if (file.exists()) {
+			try {
+				shortcutkeyProperties.load(new FileReader(file));
+			} catch (FileNotFoundException e) {
+				logger.error("ショートカットキーファイルのオープンに失敗", e);
+			} catch (IOException e) {
+				logger.error("ショートカットキーの読み込みに失敗", e);
+			}
 		}
 		for (Object obj : shortcutkeyProperties.keySet()) {
 			String key = (String) obj;

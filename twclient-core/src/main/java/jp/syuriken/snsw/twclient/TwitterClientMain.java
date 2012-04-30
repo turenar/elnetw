@@ -29,8 +29,6 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	private static final String CONFIG_FILE_NAME = "twclient.cfg";
 	
-	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
-	
 	/** 設定データ */
 	protected ClientProperties configProperties;
 	
@@ -64,30 +62,30 @@ public class TwitterClientMain {
 	 */
 	public int run() {
 		boolean portable = Boolean.getBoolean("config.portable");
-		File homeBaseDirFile = new File(HOME_BASE_DIR);
-		if (portable == false && homeBaseDirFile.exists() == false) {
-			if (homeBaseDirFile.mkdirs()) {
-				homeBaseDirFile.setReadable(false, false);
-				homeBaseDirFile.setWritable(false, false);
-				homeBaseDirFile.setExecutable(false, false);
-				homeBaseDirFile.setReadable(true, true);
-				homeBaseDirFile.setWritable(true, true);
-				homeBaseDirFile.setExecutable(true, true);
+		configuration.setPortabledConfiguration(portable);
+		File configRootDir = new File(configuration.getConfigRootDir());
+		if (portable == false && configRootDir.exists() == false) {
+			if (configRootDir.mkdirs()) {
+				configRootDir.setReadable(false, false);
+				configRootDir.setWritable(false, false);
+				configRootDir.setExecutable(false, false);
+				configRootDir.setReadable(true, true);
+				configRootDir.setWritable(true, true);
+				configRootDir.setExecutable(true, true);
 			} else {
-				logger.warn("ディレクトリの作成ができませんでした: {}", homeBaseDirFile.getPath());
+				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
 			}
 		}
 		
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
-			defaultConfig.load(getClass().getClassLoader().getResourceAsStream(
-					"jp/syuriken/snsw/twclient/config.properties"));
+			defaultConfig.load(getClass().getResourceAsStream("config.properties"));
 		} catch (IOException e) {
 			logger.error("デフォルト設定が読み込めません", e);
 		}
 		configuration.setConfigDefaultProperties(defaultConfig);
 		configProperties = new ClientProperties(defaultConfig);
-		File configFile = new File(portable ? "." : HOME_BASE_DIR, CONFIG_FILE_NAME);
+		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
 		configProperties.setStoreFile(configFile);
 		if (configFile.exists()) {
 			logger.debug(CONFIG_FILE_NAME + " is found.");
