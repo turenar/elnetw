@@ -130,8 +130,6 @@ public class VersionInfoFrame extends JFrame {
 	
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
 	
-	private ClientConfiguration configuration;
-	
 	private static List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
 	
 	static {

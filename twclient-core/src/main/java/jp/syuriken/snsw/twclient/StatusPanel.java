@@ -5,7 +5,7 @@ import java.awt.LayoutManager;
 import javax.swing.JPanel;
 
 /**
- * TODO snsoftware
+ * StatusDataを格納するだけのなんちゃら
  * 
  * @author $Author$
  */
@@ -37,17 +37,19 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	}
 	
 	/**
-	 * 元になる情報が作成された日時で比較する。
-	 * 
-	 * <p><code>o1.getStatusData.date.compareTo(o2.getStatusData.date)</code></p>
+	 * 元になる情報が作成された日時で比較する。同じ場合はidを比較する。
 	 */
 	@Override
 	public int compareTo(StatusPanel o) {
-		return statusData.date.compareTo(o.statusData.date);
+		int result = statusData.date.compareTo(o.statusData.date);
+		if (result == 0) {
+			result = (statusData.id < o.statusData.id ? -1 : (statusData.id == o.statusData.id ? 0 : 1));
+		}
+		return result;
 	}
 	
 	/**
-	 * TODO snsoftware
+	 * statusData
 	 * 
 	 * @return the statusData
 	 */

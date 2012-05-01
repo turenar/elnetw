@@ -46,7 +46,7 @@ public class StatusData {
 	public final Date date;
 	
 	/** ユニークなID */
-	public final Long id;
+	public final long id;
 	
 	private static AtomicLong uniqueLong = new AtomicLong(0xffffffff00000000L);
 	
@@ -69,7 +69,7 @@ public class StatusData {
 	 * @param id ユニークなID
 	 * 
 	 */
-	public StatusData(Object tag, Date date, Long id) {
+	public StatusData(Object tag, Date date, long id) {
 		this.tag = tag;
 		this.id = id;
 		this.date = (Date) date.clone();
