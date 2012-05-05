@@ -111,7 +111,7 @@ public class VersionInfoFrame extends JFrame {
 				try {
 					bufferedReader.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					logger.warn("Failed close reader", e);
 				}
 			}
 		}
@@ -134,9 +134,12 @@ public class VersionInfoFrame extends JFrame {
 	
 	static {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("twclient-core: version");
+		stringBuilder.append("turetwcl: version");
 		stringBuilder.append(VersionInfo.getUniqueVersion());
-		stringBuilder.append("\n\nThis software included library of:\n - twitter4j (");
+		stringBuilder.append("\nTwitter Client for hitobasira");
+		stringBuilder.append("\n\n開発元: Turenai Project (@ture7)");
+		stringBuilder.append("\n配布元: http://code.google.com/p/turetwcl");
+		stringBuilder.append("\n\nThis software included library:\n - twitter4j (");
 		stringBuilder.append(twitter4j.Version.getVersion());
 		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
 		
