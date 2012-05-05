@@ -33,6 +33,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				@Override
 				public void run() {
 					Status status = (Status) statusData.tag;
+					if (status.isRetweet()) {
+						status = status.getRetweetedStatus();
+					}
 					try {
 						api.getUtility().openBrowser("http://twitter.com/" + status.getUser().getScreenName());
 					} catch (Exception e) {
