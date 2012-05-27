@@ -233,8 +233,8 @@ public class ClientConfiguration {
 		boolean result;
 		try {
 			tabsListLock.writeLock().lock();
+			frameApi.addTab(tab); //例外が発生したときはtabsListに追加しない
 			result = tabsList.add(tab);
-			frameApi.addTab(tab);
 		} finally {
 			tabsListLock.writeLock().unlock();
 		}
@@ -598,7 +598,7 @@ public class ClientConfiguration {
 		try {
 			tabsListLock.readLock().lock();
 			final int indexOf = tabsList.indexOf(tab);
-			frameApi.refreashTab(indexOf, tab);
+			frameApi.refreshTab(indexOf, tab);
 		} finally {
 			tabsListLock.readLock().unlock();
 		}

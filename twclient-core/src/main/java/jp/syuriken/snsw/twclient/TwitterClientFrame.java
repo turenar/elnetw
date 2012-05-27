@@ -1334,7 +1334,7 @@ import twitter4j.User;
 		return getViewTab().getSelectedIndex() == index;
 	}
 	
-	/*package*/void refreashTab(int indexOf, ClientTab tab) {
+	/*package*/void refreshTab(int indexOf, ClientTab tab) {
 		JTabbedPane tabbedPane = getViewTab();
 		tabbedPane.setIconAt(indexOf, tab.getIcon());
 		tabbedPane.setTitleAt(indexOf, tab.getTitle());
