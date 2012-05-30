@@ -48,10 +48,13 @@ import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserList;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -75,6 +78,18 @@ public abstract class DefaultClientTab implements ClientTab {
 		 */
 		protected int getInfoSurviveTime() {
 			return frameApi.getInfoSurviveTime();
+		}
+		
+		@Override
+		public void onBlock(User source, User blockedUser) {
+		}
+		
+		@Override
+		public void onChangeAccount(boolean forWrite) {
+		}
+		
+		@Override
+		public void onCleanUp() {
 		}
 		
 		@Override
@@ -231,8 +246,96 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		
 		@Override
+		public void onConnect() {
+		}
+		
+		@Override
+		public void onDeletionNotice(long directMessageId, long userId) {
+		}
+		
+		@Override
+		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		}
+		
+		@Override
+		public void onDirectMessage(DirectMessage directMessage) {
+		}
+		
+		@Override
+		public void onDisconnect() {
+		}
+		
+		@Override
+		public void onException(Exception ex) {
+		}
+		
+		@Override
+		public void onFavorite(User source, User target, Status favoritedStatus) {
+		}
+		
+		@Override
+		public void onFollow(User source, User followedUser) {
+		}
+		
+		@Override
+		public void onFriendList(long[] friendIds) {
+		}
+		
+		@Override
+		public void onRetweet(User source, User target, Status retweetedStatus) {
+		}
+		
+		@Override
+		public void onScrubGeo(long userId, long upToStatusId) {
+		}
+		
+		@Override
 		public void onStatus(Status originalStatus) {
 			addStatus(originalStatus);
+		}
+		
+		@Override
+		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+		}
+		
+		@Override
+		public void onUnblock(User source, User unblockedUser) {
+		}
+		
+		@Override
+		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
+		}
+		
+		@Override
+		public void onUserListCreation(User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListDeletion(User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserListUpdate(User listOwner, UserList list) {
+		}
+		
+		@Override
+		public void onUserProfileUpdate(User updatedUser) {
 		}
 	}
 	
@@ -460,7 +563,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** フォントの高さ */
 	protected int fontHeight;
 	
-	private Dimension linePanelSizeOfSentBy;
+	/** 送信元ラベルのサイズ */
+	protected Dimension linePanelSizeOfSentBy;
 	
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
@@ -479,15 +583,19 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private final ConfigData configData;
+	/** {@link ClientConfiguration#getConfigData()} */
+	protected final ConfigData configData;
 	
 	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
 	
-	private JPopupMenu tweetPopupMenu;
+	/** ポップアップメニュー */
+	protected JPopupMenu tweetPopupMenu;
 	
-	private MomemtumScroller kineticScroller;
+	/** 慣性スクローラー */
+	protected MomemtumScroller kineticScroller;
 	
-	private Utility utility;
+	/** {@link ClientConfiguration#getUtility()} */
+	protected Utility utility;
 	
 	
 	/**

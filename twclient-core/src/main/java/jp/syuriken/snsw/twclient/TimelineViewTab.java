@@ -88,8 +88,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		
 		@Override
 		public void onDirectMessage(DirectMessage directMessage) {
-			logger.trace("onDirectMessage: {}", directMessage);
-			
 			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
 			statusData.backgroundColor = Color.LIGHT_GRAY;
 			statusData.foregroundColor = Color.CYAN;
@@ -100,11 +98,6 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
 			User sender = directMessage.getSender();
-			configuration
-				.getFrameApi()
-				.getUtility()
-				.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()), message,
-						imageCacher.getImageFile(sender));
 		}
 		
 		@Override
@@ -135,8 +128,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		
 		@Override
 		public void onFavorite(User source, User target, Status favoritedStatus) {
-			logger.trace("onFavorite: {}", favoritedStatus);
-			
 			if (target.getId() == frameApi.getLoginUser().getId()) {
 				StatusData statusData = new StatusData(favoritedStatus, new Date());
 				statusData.backgroundColor = Color.GRAY;
@@ -162,7 +153,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		
 		@Override
 		public void onFollow(User source, User followedUser) {
-			logger.trace("onFollow: {} {}", source, followedUser);
 			if (followedUser.getId() == frameApi.getLoginUser().getId()) {
 				StatusData statusData = new StatusData(null, new Date());
 				statusData.backgroundColor = Color.GRAY;

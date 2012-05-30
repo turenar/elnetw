@@ -1,15 +1,19 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import java.text.MessageFormat;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ImageCacher;
 import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.internal.InitialMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import twitter4j.DirectMessage;
 import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * ルートフィルター
@@ -42,6 +46,19 @@ public class RootFilter extends MessageFilterAdapter {
 	public boolean onChangeAccount(boolean forWrite) {
 		configuration.getFetchScheduler().onChangeAccount(forWrite);
 		return false;
+	}
+	
+	@Override
+	public DirectMessage onDirectMessage(DirectMessage message) {
+		if (message instanceof InitialMessage == false) {
+			User sender = message.getSender();
+			configuration
+				.getFrameApi()
+				.getUtility()
+				.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()),
+						"DMを受信しました：" + message.getText(), imageCacher.getImageFile(sender));
+		}
+		return message;
 	}
 	
 	@Override

@@ -42,6 +42,8 @@ public class ClientConfiguration {
 	 */
 	public class ConfigData implements PropertyChangeListener {
 		
+		private static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
+		
 		private static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
 		
 		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
@@ -95,6 +97,10 @@ public class ClientConfiguration {
 		/** アカウントリスト */
 		public String[] accountList = initAccountList();
 		
+		/** ダイレクトメッセージ初期取得のページング */
+		public Paging pagingOfGettingInitialDirectMessage = new Paging().count(configProperties
+			.getInteger(PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
+		
 		
 		/*package*/ConfigData() {
 			configProperties.addPropertyChangedListener(this);
@@ -139,6 +145,9 @@ public class ClientConfiguration {
 				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
 			} else if (Utility.equalString(name, PROPERTY_ACCOUNT_LIST)) {
 				accountList = initAccountList();
+			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_DIRECTMESSAGE)) {
+				pagingOfGettingInitialDirectMessage =
+						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
 			}
 		}
 	}
@@ -233,8 +242,11 @@ public class ClientConfiguration {
 		boolean result;
 		try {
 			tabsListLock.writeLock().lock();
-			frameApi.addTab(tab); //例外が発生したときはtabsListに追加しない
 			result = tabsList.add(tab);
+			frameApi.addTab(tab);
+		} catch (RuntimeException e) {
+			tabsList.remove(tab); //例外が発生したときはtabsListに追加しない
+			throw e;
 		} finally {
 			tabsListLock.writeLock().unlock();
 		}

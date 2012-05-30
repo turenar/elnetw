@@ -103,6 +103,7 @@ public class TwitterClientMain {
 		configuration.addFilter(new UserFilter(configuration));
 		configuration.addFrameTab(new TimelineViewTab(configuration));
 		configuration.addFrameTab(new MentionViewTab(configuration));
+		configuration.addFrameTab(new DirectMessageViewTab(configuration));
 		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
 		configuration.setFetchScheduler(fetchScheduler);
 		java.awt.EventQueue.invokeLater(new Runnable() {

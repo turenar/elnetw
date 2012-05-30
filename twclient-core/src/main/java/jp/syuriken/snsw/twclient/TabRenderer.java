@@ -1,7 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 /**
- * TODO Megumi
+ * タブレンダラ
  * 
  * @author $Author$
  */

@@ -3,7 +3,9 @@ package jp.syuriken.snsw.twclient;
 import java.util.TimerTask;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
+import jp.syuriken.snsw.twclient.internal.InitialMessage;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -46,6 +48,7 @@ public class TwitterDataFetchScheduler {
 		
 		scheduleFirstTimeline();
 		scheduleFirstMentions();
+		scheduleFirstDirectMessage();
 		scheduleGettingTimeline();
 		onChangeAccount(true);
 		onChangeAccount(false);
@@ -93,21 +96,38 @@ public class TwitterDataFetchScheduler {
 		// do nothing
 	}
 	
+	private void scheduleFirstDirectMessage() {
+		frameApi.addJob(new TwitterRunnable() {
+			
+			@Override
+			protected void access() throws TwitterException {
+				ResponseList<DirectMessage> directMessages;
+				Paging paging = configData.pagingOfGettingInitialDirectMessage;
+				directMessages = twitterForRead.getDirectMessages(paging);
+				for (DirectMessage directMessage : directMessages) {
+					rootFilterService.onDirectMessage(new InitialMessage(directMessage));
+				}
+				configuration.setInitializing(false);
+			}
+			
+			@Override
+			protected ClientConfiguration getConfiguration() {
+				return configuration;
+			}
+		});
+	}
+	
 	private void scheduleFirstMentions() {
 		frameApi.addJob(new TwitterRunnable() {
 			
 			@Override
 			public void access() throws TwitterException {
-				try {
-					Paging paging = configData.pagingOfGettingInitialMentions;
-					ResponseList<Status> mentions = twitterForRead.getMentions(paging);
-					for (Status status : mentions) {
-						TwitterStatus twitterStatus = new TwitterStatus(status);
-						twitterStatus.setLoadedInitialization(true);
-						rootFilterService.onStatus(twitterStatus);
-					}
-				} finally {
-					configuration.setInitializing(false);
+				Paging paging = configData.pagingOfGettingInitialMentions;
+				ResponseList<Status> mentions = twitterForRead.getMentions(paging);
+				for (Status status : mentions) {
+					TwitterStatus twitterStatus = new TwitterStatus(status);
+					twitterStatus.setLoadedInitialization(true);
+					rootFilterService.onStatus(twitterStatus);
 				}
 			}
 			
