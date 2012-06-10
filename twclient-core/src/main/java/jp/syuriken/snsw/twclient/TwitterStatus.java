@@ -107,6 +107,11 @@ public class TwitterStatus implements Status {
 		public Map<Integer, Size> getSizes() {
 			return base.getSizes();
 		}
+		
+		@Override
+		public String getType() {
+			return base.getType();
+		}
 	}
 	
 	/*package*/static class URLEntityImpl extends EntityImplBase implements URLEntity {
