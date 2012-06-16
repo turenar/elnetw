@@ -354,12 +354,12 @@ import twitter4j.UserMentionEntity;
 		
 		@Override
 		public void keyPressed(KeyEvent e) {
-			handleShortcutKey("list", e, false);
+			handleShortcutKey("list", e);
 		}
 		
 		@Override
 		public void keyReleased(KeyEvent e) {
-			handleShortcutKey("list", e, true);
+			handleShortcutKey("list", e);
 		}
 		
 		@Override
@@ -1189,13 +1189,13 @@ import twitter4j.UserMentionEntity;
 				
 				@Override
 				public void keyPressed(KeyEvent e) {
-					handleShortcutKey("postbox", e, false);
+					handleShortcutKey("postbox", e);
 				}
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
-					handleShortcutKey("postbox", e, true);
+					handleShortcutKey("postbox", e);
 				}
 			});
 		}
@@ -1523,9 +1523,13 @@ import twitter4j.UserMentionEntity;
 		addStatus(information);
 	}
 	
-	/*package*/void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+	/*package*/void handleShortcutKey(String component, KeyEvent e) {
+		int id = e.getID();
+		if (id == KeyEvent.KEY_TYPED) {
+			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
+		}
 		synchronized (shortcutKeyMap) {
-			String keyString = Utility.toKeyString(e, isReleased);
+			String keyString = Utility.toKeyString(e);
 			String actionCommandName = shortcutKeyMap.get(component + "." + keyString);
 			if (actionCommandName == null) {
 				actionCommandName = shortcutKeyMap.get("all." + keyString);
