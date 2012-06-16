@@ -913,13 +913,13 @@ import twitter4j.User;
 				
 				@Override
 				public void keyPressed(KeyEvent e) {
-					handleShortcutKey("postbox", e, false);
+					handleShortcutKey("postbox", e);
 				}
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
-					handleShortcutKey("postbox", e, true);
+					handleShortcutKey("postbox", e);
 				}
 			});
 		}
@@ -1239,8 +1239,12 @@ import twitter4j.User;
 	
 	@Override
 	public void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+		int id = e.getID();
+		if (id == KeyEvent.KEY_TYPED) {
+			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
+		}
 		synchronized (shortcutKeyMap) {
-			String keyString = Utility.toKeyString(e, isReleased);
+			String keyString = Utility.toKeyString(e);
 			String actionCommandName = getActionCommandByShortcutKey(component, keyString);
 			if (actionCommandName != null) {
 				getSelectingTab().handleAction(actionCommandName);

@@ -357,11 +357,13 @@ public class Utility {
 	 * キーをキー文字列に変換する
 	 * 
 	 * @param e キーイベント
-	 * @param isReleased keyReleased等のイベントでコールされたかどうか
 	 * @return キー文字列
 	 */
-	public static String toKeyString(KeyEvent e, boolean isReleased) {
-		return toKeyString(e.getKeyCode(), e.getModifiersEx(), isReleased);
+	public static String toKeyString(KeyEvent e) {
+		if (e.getID() == KeyEvent.KEY_TYPED) {
+			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
+		}
+		return toKeyString(e.getKeyCode(), e.getModifiersEx(), e.getID() == KeyEvent.KEY_RELEASED);
 	}
 	
 	

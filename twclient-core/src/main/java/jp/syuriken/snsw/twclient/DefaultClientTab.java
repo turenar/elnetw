@@ -358,12 +358,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void keyPressed(KeyEvent e) {
-			frameApi.handleShortcutKey("list", e, false);
+			frameApi.handleShortcutKey("list", e);
 		}
 		
 		@Override
 		public void keyReleased(KeyEvent e) {
-			frameApi.handleShortcutKey("list", e, true);
+			frameApi.handleShortcutKey("list", e);
 		}
 		
 		@Override
