@@ -354,18 +354,12 @@ import twitter4j.UserMentionEntity;
 		
 		@Override
 		public void keyPressed(KeyEvent e) {
+			handleShortcutKey("list", e, false);
 		}
 		
 		@Override
 		public void keyReleased(KeyEvent e) {
-			synchronized (shortcutKeyMap) {
-				String keyString = Utility.toKeyString(e.getKeyCode(), e.getModifiersEx());
-				String actionCommandName = shortcutKeyMap.get(keyString);
-				if (actionCommandName != null) {
-					handleAction(actionCommandName, selectingPost.getStatusData());
-					e.consume();
-				}
-			}
+			handleShortcutKey("list", e, true);
 		}
 		
 		@Override
@@ -1194,19 +1188,14 @@ import twitter4j.UserMentionEntity;
 			postBox.addKeyListener(new KeyAdapter() {
 				
 				@Override
+				public void keyPressed(KeyEvent e) {
+					handleShortcutKey("postbox", e, false);
+				}
+				
+				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
-					if (e.isControlDown()) {
-						switch (e.getKeyCode()) {
-							case KeyEvent.VK_ENTER:
-								getPostActionButton().doClick();
-								break;
-							case KeyEvent.VK_L:
-								handleAction("core!focuslist", null);
-							default:
-								break;
-						}
-					}
+					handleShortcutKey("postbox", e, true);
 				}
 			});
 		}
@@ -1532,6 +1521,20 @@ import twitter4j.UserMentionEntity;
 		information.data =
 				new JLabel(errorMessage == null ? e.getLocalizedMessage() : errorMessage + ": " + postBox.getText());
 		addStatus(information);
+	}
+	
+	/*package*/void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+		synchronized (shortcutKeyMap) {
+			String keyString = Utility.toKeyString(e, isReleased);
+			String actionCommandName = shortcutKeyMap.get(component + "." + keyString);
+			if (actionCommandName == null) {
+				actionCommandName = shortcutKeyMap.get("all." + keyString);
+			}
+			if (actionCommandName != null) {
+				handleAction(actionCommandName, selectingPost.getStatusData());
+				e.consume();
+			}
+		}
 	}
 	
 	/**
