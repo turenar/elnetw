@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.util.Timer;
 
 import javax.swing.Icon;
@@ -66,10 +67,14 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * ショートカットキーを用いてアクションコマンドを取得する。
 	 * 
+	 * 指定したコンポーネント名に関連付けられたアクションコマンドがない場合、
+	 * allに関連付けられたアクションコマンドの検索を試します。
+	 * 
+	 * @param component コンポーネント名。
 	 * @param keyString キー文字列。
 	 * @return アクションコマンド名
 	 */
-	String getActionCommandByShortcutKey(String keyString);
+	String getActionCommandByShortcutKey(String component, String keyString);
 	
 	/**
 	 * 指定されたアクションコマンド名で呼び出されるアクションハンドラを取得する。
@@ -202,6 +207,17 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @param ex 例外
 	 */
 	void handleException(TwitterException ex);
+	
+	/**
+	 * ショートカットキーを処理する。
+	 * 
+	 * これは {@link #getActionCommandByShortcutKey(String, String)}のラッパです。
+	 * 
+	 * @param component コンポーネント
+	 * @param e イベント
+	 * @param isReleased keyRelease系のイベントでコールされたかどうか
+	 */
+	void handleShortcutKey(String component, KeyEvent e, boolean isReleased);
 	
 	/**
 	 * inReplyToStatusを付加する。

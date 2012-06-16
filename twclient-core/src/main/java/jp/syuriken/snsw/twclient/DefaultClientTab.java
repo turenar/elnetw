@@ -358,16 +358,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void keyPressed(KeyEvent e) {
+			frameApi.handleShortcutKey("list", e, false);
 		}
 		
 		@Override
 		public void keyReleased(KeyEvent e) {
-			String keyString = Utility.toKeyString(e.getKeyCode(), e.getModifiersEx());
-			String actionCommandName = frameApi.getActionCommandByShortcutKey(keyString);
-			if (actionCommandName != null) {
-				frameApi.handleAction(actionCommandName, selectingPost.getStatusData());
-				e.consume();
-			}
+			frameApi.handleShortcutKey("list", e, true);
 		}
 		
 		@Override

@@ -160,6 +160,14 @@ import twitter4j.User;
 		
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
+			if (Utility.equalString(actionName, "core!move_between_list_and_postbox")) {
+				if (getPostBox().isFocusOwner()) {
+					actionName = "core!focuslist";
+				} else {
+					actionName = "core!focusinput";
+				}
+			}
+			
 			if (Utility.equalString(actionName, "core!submenu")) {
 				return;
 			} else if (Utility.equalString(actionName, "core!version")) {
@@ -748,9 +756,13 @@ import twitter4j.User;
 	}
 	
 	@Override
-	public String getActionCommandByShortcutKey(String keyString) {
+	public String getActionCommandByShortcutKey(String component, String keyString) {
 		synchronized (shortcutKeyMap) {
-			return shortcutKeyMap.get(keyString);
+			String actionCommand = shortcutKeyMap.get(component + "." + keyString);
+			if (actionCommand == null) {
+				actionCommand = shortcutKeyMap.get("all" + "." + keyString);
+			}
+			return actionCommand;
 		}
 	}
 	
@@ -900,19 +912,14 @@ import twitter4j.User;
 			postBox.addKeyListener(new KeyAdapter() {
 				
 				@Override
+				public void keyPressed(KeyEvent e) {
+					handleShortcutKey("postbox", e, false);
+				}
+				
+				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
-					if (e.isControlDown()) {
-						switch (e.getKeyCode()) {
-							case KeyEvent.VK_ENTER:
-								getPostActionButton().doClick();
-								break;
-							case KeyEvent.VK_L:
-								handleAction("core!focuslist", null);
-							default:
-								break;
-						}
-					}
+					handleShortcutKey("postbox", e, true);
 				}
 			});
 		}
@@ -1228,6 +1235,18 @@ import twitter4j.User;
 	@Override
 	public void handleException(TwitterException e) {
 		handleException((Exception) e);
+	}
+	
+	@Override
+	public void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+		synchronized (shortcutKeyMap) {
+			String keyString = Utility.toKeyString(e, isReleased);
+			String actionCommandName = getActionCommandByShortcutKey(component, keyString);
+			if (actionCommandName != null) {
+				getSelectingTab().handleAction(actionCommandName);
+				e.consume();
+			}
+		}
 	}
 	
 	/**

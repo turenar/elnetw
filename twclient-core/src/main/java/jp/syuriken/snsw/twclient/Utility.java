@@ -331,11 +331,13 @@ public class Utility {
 	 * 
 	 * @param code キー
 	 * @param modifiers キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
+	 * @param isReleased keyReleased等のイベントでコールされたかどうか
 	 * @return キー文字列
 	 */
-	public static String toKeyString(int code, int modifiers) {
+	public static String toKeyString(int code, int modifiers, boolean isReleased) {
 		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
 		stringBuilder.setLength(0);
+		stringBuilder.append(isReleased ? "release(" : "press(");
 		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
 			stringBuilder.append('^');
 		}
@@ -347,7 +349,19 @@ public class Utility {
 		}
 		String key = keyMap.get(code);
 		stringBuilder.append(key != null ? key : (char) code);
+		stringBuilder.append(')');
 		return stringBuilder.toString();
+	}
+	
+	/**
+	 * キーをキー文字列に変換する
+	 * 
+	 * @param e キーイベント
+	 * @param isReleased keyReleased等のイベントでコールされたかどうか
+	 * @return キー文字列
+	 */
+	public static String toKeyString(KeyEvent e, boolean isReleased) {
+		return toKeyString(e.getKeyCode(), e.getModifiersEx(), isReleased);
 	}
 	
 	

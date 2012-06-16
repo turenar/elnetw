@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.Timer;
 
@@ -112,7 +113,7 @@ class TestFrameApi implements ClientFrameApi {
 	}
 	
 	@Override
-	public String getActionCommandByShortcutKey(String keyString) {
+	public String getActionCommandByShortcutKey(String component, String keyString) {
 		return null;
 	}
 	
@@ -203,6 +204,10 @@ class TestFrameApi implements ClientFrameApi {
 	
 	@Override
 	public void handleException(TwitterException ex) {
+	}
+	
+	@Override
+	public void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
 	}
 	
 	@Override
