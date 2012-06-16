@@ -207,7 +207,7 @@ class TestFrameApi implements ClientFrameApi {
 	}
 	
 	@Override
-	public void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+	public void handleShortcutKey(String component, KeyEvent e) {
 	}
 	
 	@Override
