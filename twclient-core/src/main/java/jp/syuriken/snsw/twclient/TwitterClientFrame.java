@@ -1238,7 +1238,7 @@ import twitter4j.User;
 	}
 	
 	@Override
-	public void handleShortcutKey(String component, KeyEvent e, boolean isReleased) {
+	public void handleShortcutKey(String component, KeyEvent e) {
 		int id = e.getID();
 		if (id == KeyEvent.KEY_TYPED) {
 			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");

@@ -215,9 +215,8 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * 
 	 * @param component コンポーネント
 	 * @param e イベント
-	 * @param isReleased keyRelease系のイベントでコールされたかどうか
 	 */
-	void handleShortcutKey(String component, KeyEvent e, boolean isReleased);
+	void handleShortcutKey(String component, KeyEvent e);
 	
 	/**
 	 * inReplyToStatusを付加する。
