@@ -1,0 +1,4 @@
+Version 0.0.1 (Sun, 17 Jun 2012 16:23:00 +0900)
+
+	* Initial Release
+
