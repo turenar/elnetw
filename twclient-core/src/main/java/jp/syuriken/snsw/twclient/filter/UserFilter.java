@@ -2,9 +2,11 @@ package jp.syuriken.snsw.twclient.filter;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 		this.configuration = configuration;
 		filterIds = new TreeSet<Long>();
 		initFilterIds();
+		initFilterQueries();
 	}
 	
 	private boolean filterUser(long userId) {
@@ -72,6 +75,21 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 			}
 			offset = end + 1;
 		}
+	}
+	
+	private void initFilterQueries() {
+		String queries = configuration.getConfigProperties().getProperty("core.filter.queries");
+		String[] queryArray = queries.split(" ");
+		ArrayList<FilterDispatcherBase> fiterList = new ArrayList<FilterDispatcherBase>();
+		for (String queryName : queryArray) {
+			String query = configuration.getConfigProperties().getProperty("core.filter.query." + queryName);
+			try {
+				fiterList.add(FilterCompiler.getCompiledObject(query));
+			} catch (IllegalSyntaxException e) {
+				logger.warn("#initFilterQueries()", e);
+			}
+		}
+		new OrFilterFunction("or", fiterList.toArray(new FilterDispatcherBase[fiterList.size()]));
 	}
 	
 	@Override
