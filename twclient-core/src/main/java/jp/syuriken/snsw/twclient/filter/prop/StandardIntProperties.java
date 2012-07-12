@@ -20,6 +20,10 @@ public class StandardIntProperties implements FilterProperty {
 	
 	private static final byte PROPERTY_ID_USERID = 1;
 	
+	private static final byte PROPERTY_ID_IN_REPLY_TO_USERID = 2;
+	
+	private static final byte PROPERTY_ID_RT_COUNT = 3;
+	
 	private FilterOperator operatorType;
 	
 	private long value;
@@ -55,6 +59,10 @@ public class StandardIntProperties implements FilterProperty {
 		// name 処理
 		if (Utility.equalString(name, "userid")) {
 			propertyId = PROPERTY_ID_USERID;
+		} else if (Utility.equalString(name, "in_reply_to_userid")) {
+			propertyId = PROPERTY_ID_IN_REPLY_TO_USERID;
+		} else if (Utility.equalString(name, "rtcount")) {
+			propertyId = PROPERTY_ID_RT_COUNT;
 		} else {
 			throw new IllegalSyntaxException("[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
@@ -66,7 +74,7 @@ public class StandardIntProperties implements FilterProperty {
 		if (operatorType == null) {
 			throw new IllegalSyntaxException("[" + name + "] 正しくないint演算子です: " + operator);
 		}
-		// value 処理
+		// value 処理: 整数は必ず指定しないとダメ。
 		try {
 			this.value = Long.parseLong(value);
 		} catch (NumberFormatException e) {
@@ -79,8 +87,13 @@ public class StandardIntProperties implements FilterProperty {
 		long target;
 		switch (propertyId) {
 			case PROPERTY_ID_USERID:
+				target = directMessage.getSenderId();
+				break;
+			case PROPERTY_ID_IN_REPLY_TO_USERID:
 				target = directMessage.getRecipientId();
 				break;
+			case PROPERTY_ID_RT_COUNT:
+				return true; // DM is not supported
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");
 		}
@@ -93,6 +106,15 @@ public class StandardIntProperties implements FilterProperty {
 		switch (propertyId) {
 			case PROPERTY_ID_USERID:
 				target = status.getUser().getId();
+				break;
+			case PROPERTY_ID_IN_REPLY_TO_USERID:
+				target = status.getInReplyToUserId();
+				if (target == -1) {
+					return false;
+				}
+				break;
+			case PROPERTY_ID_RT_COUNT:
+				target = status.getRetweetCount();
 				break;
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,14 +81,19 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 		String[] queryArray = queries.split(" ");
 		ArrayList<FilterDispatcherBase> fiterList = new ArrayList<FilterDispatcherBase>();
 		for (String queryName : queryArray) {
+			if (queryName.isEmpty()) {
+				continue;
+			}
 			String query = configuration.getConfigProperties().getProperty("core.filter.query." + queryName);
+			if (query == null) {
+				logger.warn(queryName + " is not valid filterName");
+			}
 			try {
 				fiterList.add(FilterCompiler.getCompiledObject(query));
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
 			}
 		}
-		new OrFilterFunction("or", fiterList.toArray(new FilterDispatcherBase[fiterList.size()]));
 	}
 	
 	@Override

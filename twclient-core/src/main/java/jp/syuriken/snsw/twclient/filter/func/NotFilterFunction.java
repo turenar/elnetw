@@ -13,15 +13,15 @@ import twitter4j.Status;
  * 
  * @author $Author$
  */
-public class OrFilterFunction implements FilterFunction {
+public class NotFilterFunction implements FilterFunction {
 	
-	private static Constructor<OrFilterFunction> constructor;
+	private static Constructor<NotFilterFunction> constructor;
 	
-	private final FilterDispatcherBase[] child;
+	private final FilterDispatcherBase child;
 	
 	static {
 		try {
-			constructor = OrFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
+			constructor = NotFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -33,7 +33,7 @@ public class OrFilterFunction implements FilterFunction {
 	 * 
 	 * @return コンストラクタ
 	 */
-	public static Constructor<OrFilterFunction> getFactory() {
+	public static Constructor<NotFilterFunction> getFactory() {
 		return constructor;
 	}
 	
@@ -44,31 +44,20 @@ public class OrFilterFunction implements FilterFunction {
 	 * @param child 子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
-	public OrFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
-		if (child.length == 0) {
-			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");
+	public NotFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+		if (child.length != 1) {
+			throw new IllegalSyntaxException("func<" + functionName + "> の引数は一つでなければなりません");
 		}
-		this.child = child;
+		this.child = child[0];
 	}
 	
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		for (FilterDispatcherBase operator : child) {
-			if (operator.filter(directMessage)) {
-				return true;
-			}
-		}
-		return false;
+		return child.filter(directMessage) == false;
 	}
 	
 	@Override
 	public boolean filter(Status status) {
-		for (FilterDispatcherBase operator : child) {
-			if (operator.filter(status)) {
-				return true;
-			}
-		}
-		return false;
+		return child.filter(status) == false;
 	}
-	
 }

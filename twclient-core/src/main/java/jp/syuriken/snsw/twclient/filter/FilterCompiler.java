@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
@@ -29,12 +32,16 @@ public class FilterCompiler {
 		filterFunctionFactories = new HashMap<String, Constructor<? extends FilterFunction>>();
 		filterFunctionFactories.put("or", OrFilterFunction.getFactory());
 		filterFunctionFactories.put("exactly_one_of", OneOfFilterFunction.getFactory());
-		//filterOperatorFactories.put("&&", AndFilterOperator.getFactory());
-		//filterOperatorFactories.put("!", NotFilterOperator.getFactory());
+		filterFunctionFactories.put("and", AndFilterFunction.getFactory());
+		filterFunctionFactories.put("not", NotFilterFunction.getFactory());
+		filterFunctionFactories.put("inrt", InRetweetFilterFunction.getFactory());
 		
 		filterPropetyFactories = new HashMap<String, Constructor<? extends FilterProperty>>();
-		Constructor<? extends FilterProperty> properties = StandardIntProperties.getFactory();
+		Constructor<? extends FilterProperty> properties;
+		properties = StandardIntProperties.getFactory();
 		filterPropetyFactories.put("userid", properties);
+		filterPropetyFactories.put("in_reply_to_userid", properties);
+		filterPropetyFactories.put("rtcount", properties);
 	}
 	
 	
@@ -402,14 +409,15 @@ public class FilterCompiler {
 					if (charAt == ')') {
 						if (tokenStart == i) {
 							queryNextTokenType = TokenType.FUNC_END;
+							i++;
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
 						}
-						i++;
 						break LOOP;
 					} else if (charAt == ',') {
 						if (tokenStart == i) {
 							queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
+							i++;
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
 						}
@@ -434,7 +442,7 @@ public class FilterCompiler {
 					break;
 				case PROPERTY_OPERATOR:
 					if (isNumeric(charAt)) {
-						while (isNotEod(charAt) && isNumeric(query.charAt(++i))) {
+						while (isNotEod(charAt) && isNumeric(charAt(++i))) {
 							// valid token
 						}
 						queryNextTokenType = TokenType.SCALAR_INT;

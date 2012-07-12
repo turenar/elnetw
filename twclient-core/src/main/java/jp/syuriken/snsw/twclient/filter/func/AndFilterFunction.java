@@ -9,19 +9,19 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * 一つしかマッチしないことを確認するフィルタ関数。
+ * すべてマッチするかどうかを判断するフィルタクラス
  * 
  * @author $Author$
  */
-public class OneOfFilterFunction implements FilterFunction {
+public class AndFilterFunction implements FilterFunction {
 	
-	private static Constructor<OneOfFilterFunction> constructor;
+	private FilterDispatcherBase[] child;
 	
-	private final FilterDispatcherBase[] child;
+	private static Constructor<AndFilterFunction> constructor;
 	
 	static {
 		try {
-			constructor = OneOfFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
+			constructor = AndFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -33,7 +33,7 @@ public class OneOfFilterFunction implements FilterFunction {
 	 * 
 	 * @return コンストラクタ
 	 */
-	public static Constructor<OneOfFilterFunction> getFactory() {
+	public static Constructor<AndFilterFunction> getFactory() {
 		return constructor;
 	}
 	
@@ -44,7 +44,7 @@ public class OneOfFilterFunction implements FilterFunction {
 	 * @param child 子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
-	public OneOfFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+	public AndFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length == 0) {
 			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");
 		}
@@ -53,24 +53,22 @@ public class OneOfFilterFunction implements FilterFunction {
 	
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		int i = 0;
 		for (FilterDispatcherBase operator : child) {
-			if (operator.filter(directMessage)) {
-				i++;
+			if (operator.filter(directMessage) == false) {
+				return false;
 			}
 		}
-		return i == 1;
+		return true;
 	}
 	
 	@Override
 	public boolean filter(Status status) {
-		int i = 0;
 		for (FilterDispatcherBase operator : child) {
-			if (operator.filter(status)) {
-				i++;
+			if (operator.filter(status) == false) {
+				return false;
 			}
 		}
-		return i == 1;
+		return true;
 	}
 	
 }
