@@ -75,10 +75,10 @@
 
 	<!-- SVNの設定 -->
 	<scm>
-		<connection>scm:svn:http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</connection>
-		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</developerConnection>
-		<tag>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/tags</tag>
-		<url>http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</url>
+		<connection>scm:svn:http://turetwcl.googlecode.com/svn/app/branches/0.1.x</connection>
+		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/app/branches/0.1.x</developerConnection>
+		<tag>scm:svn:https://turetwcl.googlecode.com/svn/app/tags</tag>
+		<url>http://turetwcl.googlecode.com/svn/app/branches/0.1.x</url>
 	</scm>
 
 	<!-- 開発者のリストを記述(省略可能) -->

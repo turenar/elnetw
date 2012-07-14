@@ -121,10 +121,10 @@
 
 	<!-- SVNの設定 -->
 	<scm>
-		<connection>scm:svn:http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</connection>
-		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</developerConnection>
-		<tag>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/tags</tag>
-		<url>http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</url>
+		<connection>scm:svn:http://turetwcl.googlecode.com/svn/app/branches/0.1.x</connection>
+		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/app/branches/0.1.x</developerConnection>
+		<tag>scm:svn:https://turetwcl.googlecode.com/svn/app/tags</tag>
+		<url>http://turetwcl.googlecode.com/svn/app/branches/0.1.x</url>
 	</scm>
 
 	<!-- 開発者のリストを記述(省略可能) -->
@@ -139,12 +139,12 @@
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
-			<version>2.2.5</version>
+			<version>2.2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-stream</artifactId>
-			<version>2.2.5</version>
+			<version>2.2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
