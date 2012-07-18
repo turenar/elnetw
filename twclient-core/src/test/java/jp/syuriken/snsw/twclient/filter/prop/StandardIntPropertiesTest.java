@@ -19,11 +19,12 @@ import twitter4j.Status;
  */
 public class StandardIntPropertiesTest extends FilterConstants {
 	
-	private boolean testEqual(String propName, long target, DirectMessage directMessage) throws IllegalSyntaxException {
+	private static boolean testEqual(String propName, long target, DirectMessage directMessage)
+			throws IllegalSyntaxException {
 		return new StandardIntProperties(propName, ":", String.valueOf(target)).filter(directMessage);
 	}
 	
-	private boolean testEqual(String propName, long target, Status status) throws IllegalSyntaxException {
+	private static boolean testEqual(String propName, long target, Status status) throws IllegalSyntaxException {
 		return new StandardIntProperties(propName, ":", String.valueOf(target)).filter(status);
 	}
 	

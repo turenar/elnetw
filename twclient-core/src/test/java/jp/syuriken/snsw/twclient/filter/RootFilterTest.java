@@ -43,7 +43,7 @@ public class RootFilterTest {
 		
 		
 		/*package*/MyClientConfiguration() {
-			super(true);
+			super(false);
 		}
 		
 		@Override

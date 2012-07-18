@@ -11,6 +11,8 @@ import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
+import jp.syuriken.snsw.twclient.filter.prop.AccountIsMineProperty;
+import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
 
 /**
@@ -42,12 +44,15 @@ public class FilterCompiler {
 		filterPropetyFactories.put("userid", properties);
 		filterPropetyFactories.put("in_reply_to_userid", properties);
 		filterPropetyFactories.put("rtcount", properties);
+		properties = StandardBooleanProperties.getFactory();
+		filterPropetyFactories.put("is_retweet", properties);
+		
+		filterPropetyFactories.put("mine", AccountIsMineProperty.getFactory());
 	}
 	
 	
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
-	 * 
 	 * @param query クエリ
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
@@ -126,7 +131,6 @@ public class FilterCompiler {
 	
 	/**
 	 * インスタンスを生成する。
-	 * 
 	 * @param query クエリ
 	 */
 	public FilterCompiler(String query) {

@@ -23,6 +23,7 @@ import twitter4j.Paging;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.UserMentionEntity;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
@@ -153,9 +154,20 @@ public class ClientConfiguration {
 	}
 	
 	
+	private static void init(ClientConfiguration instance, boolean b) {
+		synchronized (ClientConfiguration.class) {
+			if (ClientConfiguration.instance == null) {
+				ClientConfiguration.instance = instance;
+			} else if (b) {
+				logger.error("ClientConfigurationが複数インスタンス生成されようとしています。");
+			}
+		}
+	}
+	
+	
 	private TrayIcon trayIcon;
 	
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
 	
 	private ClientProperties configProperties;
 	
@@ -193,12 +205,24 @@ public class ClientConfiguration {
 	
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
 	
+	private static ClientConfiguration instance;
+	
+	
+	/**
+	 * {@link ClientConfiguration} インスタンスを返す。一度もインスタンスが生成されていないときは <code>null</code>
+	 * 
+	 * @return インスタンス
+	 */
+	public static ClientConfiguration getInstance() {
+		return instance;
+	}
 	
 	/**
 	 * インスタンスを生成する。
 	 * 
 	 */
 	protected ClientConfiguration() {
+		init(this, true);
 		rootFilterService = new FilterService(this);
 		try {
 			trayIcon =
@@ -211,11 +235,12 @@ public class ClientConfiguration {
 	}
 	
 	/**
-	 * <strong>テスト用</strong>インスタンスを生成する。HeadlessExceptionを無視
+	 * <b style="color:red;">テスト用</b>インスタンスを生成する。HeadlessExceptionを無視
 	 * 
-	 * @param isTestMethod テストメソッドですよ。悪用（？）禁止
+	 * @param register {@link ClientConfiguration#getInstance()}で取得できるようにするかどうか
 	 */
-	protected ClientConfiguration(boolean isTestMethod) {
+	protected ClientConfiguration(boolean register) {
+		init(this, register);
 		rootFilterService = new FilterService(this);
 	}
 	
@@ -586,6 +611,33 @@ public class ClientConfiguration {
 				if (userMentionEntity.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
 					return true;
 				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * 自分のアカウントなのかを調べる
+	 * 
+	 * @param id ユーザーユニークID ({@link User#getId()})
+	 * @return 自分のアカウントかどうか
+	 * @see #isMyAccount(String)
+	 */
+	public boolean isMyAccount(long id) {
+		return isMyAccount(String.valueOf(id));
+	}
+	
+	/**
+	 * 自分のアカウントなのかを調べる
+	 * @param accountId ユーザーユニークID
+	 * @return 自分のアカウントかどうか
+	 * @see #isMyAccount(long)
+	 */
+	public boolean isMyAccount(String accountId) {
+		String[] accountList = getAccountList();
+		for (String account : accountList) {
+			if (Utility.equalString(accountId, account)) {
+				return true;
 			}
 		}
 		return false;
