@@ -18,6 +18,8 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserList;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * タイムラインビュー
@@ -25,6 +27,8 @@ import twitter4j.UserList;
  * @author $Author$
  */
 public class TimelineViewTab extends DefaultClientTab {
+	
+	private static final String TAB_ID = "timeline";
 	
 	private DefaultRenderer renderer = new DefaultRenderer() {
 		
@@ -97,7 +101,6 @@ public class TimelineViewTab extends DefaultClientTab {
 			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
-			User sender = directMessage.getSender();
 		}
 		
 		@Override
@@ -304,8 +307,19 @@ public class TimelineViewTab extends DefaultClientTab {
 	 * 
 	 * @param configuration 設定
 	 */
-	protected TimelineViewTab(ClientConfiguration configuration) {
+	public TimelineViewTab(ClientConfiguration configuration) {
 		super(configuration);
+	}
+	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 * @param configuration 設定
+	 * @param data 保存されたデータ
+	 * @throws JSONException JSON例外
+	 */
+	public TimelineViewTab(ClientConfiguration configuration, String data) throws JSONException {
+		super(configuration, data);
 	}
 	
 	@Override
@@ -330,13 +344,23 @@ public class TimelineViewTab extends DefaultClientTab {
 	}
 	
 	@Override
+	public DefaultRenderer getActualRenderer() {
+		return renderer;
+	}
+	
+	@Override
 	public Icon getIcon() {
 		return null; // TODO
 	}
 	
 	@Override
-	public DefaultRenderer getRenderer() {
-		return renderer;
+	protected Object getSerializedExtendedData() {
+		return JSONObject.NULL;
+	}
+	
+	@Override
+	public String getTabId() {
+		return TAB_ID;
 	}
 	
 	@Override
@@ -348,4 +372,5 @@ public class TimelineViewTab extends DefaultClientTab {
 	public String getToolTip() {
 		return "HomeTimeline";
 	}
+	
 }

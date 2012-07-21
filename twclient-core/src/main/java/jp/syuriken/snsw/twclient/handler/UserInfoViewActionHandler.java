@@ -31,6 +31,7 @@ import jp.syuriken.snsw.twclient.DefaultClientTab;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TabRenderer;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import org.slf4j.Logger;
@@ -43,6 +44,8 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserList;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ユーザー情報を表示するアクションハンドラ
@@ -200,8 +203,10 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 		
 		
+		private static final String TAB_ID = "userinfo";
+		
 		/** 指定されたユーザー */
-		protected final User user;
+		protected User user;
 		
 		/** レンダラ */
 		protected TabRenderer renderer = new UserInfoTweetsRenderer();
@@ -237,9 +242,71 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		 * インスタンスを生成する。
 		 * 
 		 * @param clientConfiguration 設定
-		 * @param user ユーザー
+		 * @param jsonObject 設定が格納されたJSONオブジェクト
+		 * @throws JSONException JSON例外
+		 * @throws IllegalSyntaxException クエリエラー
 		 */
-		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) {
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, JSONObject jsonObject) throws JSONException,
+				IllegalSyntaxException {
+			super(clientConfiguration, jsonObject);
+			final long userId = jsonObject.getJSONObject("extended").getLong("userId");
+			new TwitterRunnable() {
+				
+				@Override
+				protected void access() throws TwitterException {
+					user = configuration.getFrameApi().getTwitterForRead().showUser(userId); // TODO use cache
+				}
+				
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return configuration;
+				}
+			}.run();
+			configuration.getFrameApi().addJob(new TwitterRunnable() {
+				
+				@Override
+				protected void access() throws TwitterException {
+					ResponseList<Status> timeline =
+							configuration.getFrameApi().getTwitterForRead().getUserTimeline(userId);
+					for (Status status : timeline) {
+						getRenderer().onStatus(status);
+					}
+					
+				}
+				
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return configuration;
+				}
+				
+				@Override
+				protected void handleException(TwitterException ex) {
+					getConfiguration().getRootFilterService().onException(ex);
+				}
+			});
+		}
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param clientConfiguration 設定
+		 * @param jsonString シリアル化されたデータ
+		 * @throws JSONException JSON例外
+		 * @throws IllegalSyntaxException クエリエラー
+		 */
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, String jsonString) throws JSONException,
+				IllegalSyntaxException {
+			this(clientConfiguration, new JSONObject(jsonString));
+		}
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param clientConfiguration 設定
+		 * @param user ユーザー
+		 * @throws IllegalSyntaxException クエリエラー
+		 */
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) throws IllegalSyntaxException {
 			super(clientConfiguration);
 			this.user = user;
 		}
@@ -263,6 +330,11 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public void focusLost() {
 			focusGained = false;
+		}
+		
+		@Override
+		public TabRenderer getActualRenderer() {
+			return renderer;
 		}
 		
 		private Component getComponentBio() {
@@ -338,7 +410,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 				try {
 					final JLabel closeIcon =
-							new JLabel(new ImageIcon(ImageIO.read(getClass().getResource("../close16.png"))));
+							new JLabel(new ImageIcon(ImageIO.read(getClass().getResource(
+									"/jp/syuriken/snsw/twclient/close16.png"))));
 					closeIcon.setText("閉じる");
 					closeIcon.setFont(operationFont);
 					closeIcon.addMouseListener(new MouseAdapter() {
@@ -445,8 +518,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 		
 		@Override
-		public TabRenderer getRenderer() {
-			return renderer;
+		protected Object getSerializedExtendedData() throws JSONException {
+			return new JSONObject().put("userId", user.getId());
 		}
 		
 		@Override
@@ -466,6 +539,11 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				.addComponent(getComponentUserInfo(), 96, GroupLayout.DEFAULT_SIZE, 512) // 
 				.addComponent(getComponentTweetsScrollPane()));
 			return tabComponent;
+		}
+		
+		@Override
+		public String getTabId() {
+			return TAB_ID;
 		}
 		
 		@Override
@@ -522,31 +600,37 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
 		}
 		
-		final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
-		final long userId = user.getId();
-		api.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
-				for (Status status : timeline) {
-					tab.getRenderer().onStatus(status);
+		try {
+			final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
+			final long userId = user.getId();
+			api.addJob(new TwitterRunnable() {
+				
+				@Override
+				protected void access() throws TwitterException {
+					ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
+					for (Status status : timeline) {
+						tab.getRenderer().onStatus(status);
+					}
+					
 				}
 				
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return api.getClientConfiguration();
-			}
-			
-			@Override
-			protected void handleException(TwitterException ex) {
-				getConfiguration().getRootFilterService().onException(ex);
-			}
-		});
-		api.getClientConfiguration().addFrameTab(tab);
-		api.getClientConfiguration().focusFrameTab(tab);
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return api.getClientConfiguration();
+				}
+				
+				@Override
+				protected void handleException(TwitterException ex) {
+					getConfiguration().getRootFilterService().onException(ex);
+				}
+			});
+			api.getClientConfiguration().addFrameTab(tab);
+			api.getClientConfiguration().focusFrameTab(tab);
+		} catch (IllegalSyntaxException e) {
+			RuntimeException wrapper = new RuntimeException("タブを開くことができません", e);
+			api.handleException(wrapper);
+			return;
+		}
 	}
 	
 	@Override

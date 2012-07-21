@@ -1467,6 +1467,15 @@ import twitter4j.User;
 	@Override
 	public void windowClosed(WindowEvent e) {
 		logger.debug("closing main-window...");
+		StringBuilder tabs = new StringBuilder();
+		for (ClientTab tab : configuration.getFrameTabs()) {
+			String tabId = tab.getTabId();
+			String uniqId = tab.getUniqId();
+			tabs.append(tabId).append(':').append(uniqId).append(' ');
+			configProperties.setProperty("gui.tabs.data." + uniqId, tab.getSerializedData());
+		}
+		configProperties.setProperty("gui.tabs.list", tabs.toString().trim());
+		
 		configProperties.setDimension("gui.main.size", getSize());
 		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
 		configProperties.store();

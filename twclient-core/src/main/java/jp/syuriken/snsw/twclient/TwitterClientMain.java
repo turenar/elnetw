@@ -3,13 +3,17 @@ package jp.syuriken.snsw.twclient;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
+import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,9 +105,49 @@ public class TwitterClientMain {
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		configuration.addFilter(new RootFilter(configuration));
 		configuration.addFilter(new UserFilter(configuration));
-		configuration.addFrameTab(new TimelineViewTab(configuration));
-		configuration.addFrameTab(new MentionViewTab(configuration));
-		configuration.addFrameTab(new DirectMessageViewTab(configuration));
+		
+		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
+		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
+		ClientConfiguration.putClientTabConstructor("directmessage", DirectMessageViewTab.class);
+		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
+		
+		String tabsList = configProperties.getProperty("gui.tabs.list");
+		if (tabsList == null) {
+			try {
+				configuration.addFrameTab(new TimelineViewTab(configuration));
+				configuration.addFrameTab(new MentionViewTab(configuration));
+				configuration.addFrameTab(new DirectMessageViewTab(configuration));
+			} catch (IllegalSyntaxException e) {
+				throw new AssertionError(e); // This can't happen: because no query
+			}
+		} else {
+			String[] tabs = tabsList.split(" ");
+			for (String tabIndetifier : tabs) {
+				int separatorPosition = tabIndetifier.indexOf(':');
+				String tabId = tabIndetifier.substring(0, separatorPosition);
+				String uniqId = tabIndetifier.substring(separatorPosition + 1);
+				Constructor<? extends ClientTab> tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
+				if (tabConstructor == null) {
+					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
+				} else {
+					try {
+						ClientTab tab =
+								tabConstructor.newInstance(configuration,
+										configProperties.getProperty("gui.tabs.data." + uniqId));
+						configuration.addFrameTab(tab);
+					} catch (IllegalArgumentException e) {
+						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
+					} catch (InstantiationException e) {
+						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
+					} catch (IllegalAccessException e) {
+						logger.error("タブが復元できません: 正しくないアクセス指定子です。tabId=" + tabId, e);
+					} catch (InvocationTargetException e) {
+						logger.error("タブが復元できません: 初期化中にエラーが発生しました。tabId=" + tabId, e);
+					}
+				}
+			}
+		}
+		
 		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
 		configuration.setFetchScheduler(fetchScheduler);
 		java.awt.EventQueue.invokeLater(new Runnable() {

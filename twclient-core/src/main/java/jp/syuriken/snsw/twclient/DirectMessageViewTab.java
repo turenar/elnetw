@@ -8,10 +8,14 @@ import java.util.regex.Matcher;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+
 import com.twitter.Regex;
 
 import twitter4j.DirectMessage;
 import twitter4j.User;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ダイレクトメッセージを表示するタブ
@@ -19,6 +23,9 @@ import twitter4j.User;
  * @author $Author$
  */
 public class DirectMessageViewTab extends DefaultClientTab {
+	
+	private static final String TAB_ID = "directmessage";
+	
 	
 	private static void nl2br(StringBuffer stringBuffer) {
 		int start = stringBuffer.length();
@@ -96,9 +103,23 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 * 
 	 * @param configuration 設定
+	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	protected DirectMessageViewTab(ClientConfiguration configuration) {
+	public DirectMessageViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
 		super(configuration);
+	}
+	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 * @param configuration 設定
+	 * @param data 保存されたデータ
+	 * @throws JSONException JSON例外
+	 * @throws IllegalSyntaxException クエリエラー
+	 */
+	public DirectMessageViewTab(ClientConfiguration configuration, String data) throws JSONException,
+			IllegalSyntaxException {
+		super(configuration, data);
 	}
 	
 	@Override
@@ -200,13 +221,23 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	}
 	
 	@Override
+	public DefaultRenderer getActualRenderer() {
+		return renderer;
+	}
+	
+	@Override
 	public Icon getIcon() {
 		return null; // TODO
 	}
 	
 	@Override
-	public DefaultRenderer getRenderer() {
-		return renderer;
+	protected Object getSerializedExtendedData() {
+		return JSONObject.NULL;
+	}
+	
+	@Override
+	public String getTabId() {
+		return TAB_ID;
 	}
 	
 	@Override

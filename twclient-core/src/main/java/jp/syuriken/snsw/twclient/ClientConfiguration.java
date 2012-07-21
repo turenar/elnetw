@@ -5,8 +5,10 @@ import java.awt.TrayIcon;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -154,6 +156,22 @@ public class ClientConfiguration {
 	}
 	
 	
+	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
+			new HashMap<String, Constructor<? extends ClientTab>>();
+	
+	private static final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
+	
+	
+	/**
+	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
+	 * 
+	 * @param id タブID
+	 * @return コンストラクタ。idに関連付けられたコンストラクタがない場合 <code>null</code>
+	 */
+	public static Constructor<? extends ClientTab> getClientTabConstructor(String id) {
+		return clientTabConstructorsMap.get(id);
+	}
+	
 	private static void init(ClientConfiguration instance, boolean b) {
 		synchronized (ClientConfiguration.class) {
 			if (ClientConfiguration.instance == null) {
@@ -164,10 +182,43 @@ public class ClientConfiguration {
 		}
 	}
 	
+	/**
+	 * タブ復元時に使用するコンストラクタを追加する。
+	 * この関数は {@link #putClientTabConstructor(String, Constructor)} を内部で呼び出します。
+	 * {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタがあるクラスである必要があります。
+	 * @param id タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
+	 * @return 以前 id に関連付けられていたコンストラクタ
+	 * @see #putClientTabConstructor(String, Constructor)
+	 */
+	public static Constructor<? extends ClientTab> putClientTabConstructor(String id, Class<? extends ClientTab> class1) {
+		try {
+			return putClientTabConstructor(id, class1.getConstructor(ClientConfiguration.class, String.class));
+		} catch (Exception e) {
+			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(ClientConfiguration, String)を持ちません", e);
+		}
+	}
+	
+	/**
+	 * タブ復元時に使用するコンストラクタを追加する。
+	 * コンストラクタは {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタである必要があります。
+	 * @param id タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 * @param constructor タブ復元時に呼ばれるコンストラクタ
+	 * @return 以前 id に関連付けられていたコンストラクタ
+	 */
+	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
+			Constructor<? extends ClientTab> constructor) {
+		Class<?>[] parameterTypes = constructor.getParameterTypes();
+		if (parameterTypes.length == 2 && parameterTypes[0].isAssignableFrom(ClientConfiguration.class)
+				&& parameterTypes[1].isAssignableFrom(String.class)) {
+			return clientTabConstructorsMap.put(id, constructor);
+		} else {
+			throw new IllegalArgumentException("ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
+		}
+	}
+	
 	
 	private TrayIcon trayIcon;
-	
-	private static final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
 	
 	private ClientProperties configProperties;
 	

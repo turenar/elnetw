@@ -37,11 +37,25 @@ public interface ClientTab {
 	TabRenderer getRenderer();
 	
 	/**
+	 * このデータ文字列を使ってあとで復帰できるようなデータ文字列を取得する。javaの直列化機能を使う必要はありません。
+	 * 
+	 * @return データ文字列
+	 */
+	String getSerializedData();
+	
+	/**
 	 * タブで表示するコンポーネントを取得する
 	 * 
 	 * @return 表示するコンポーネント。JScrollPaneでラップしておくといいかも。
 	 */
 	Component getTabComponent();
+	
+	/**
+	 * タブを復元するために使うID。
+	 * 
+	 * @return タブを復元するために使うID。
+	 */
+	String getTabId();
 	
 	/**
 	 * タブタイトルを取得する。"Timeline"とか
@@ -58,6 +72,13 @@ public interface ClientTab {
 	String getToolTip();
 	
 	/**
+	 * 他のタブとはかぶらないユニークなIDを返す。
+	 * 
+	 * @return ユニークID
+	 */
+	String getUniqId();
+	
+	/**
 	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
 	 * <p>
 	 * {@link TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
@@ -66,5 +87,4 @@ public interface ClientTab {
 	 * @param command コマンド名
 	 */
 	void handleAction(String command);
-	
 }

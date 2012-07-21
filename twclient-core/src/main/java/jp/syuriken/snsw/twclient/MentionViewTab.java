@@ -2,11 +2,14 @@ package jp.syuriken.snsw.twclient;
 
 import javax.swing.Icon;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
 import twitter4j.UserList;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * メンション表示用タブ
@@ -162,6 +165,8 @@ public class MentionViewTab extends DefaultClientTab {
 	}
 	
 	
+	private static final String TAB_ID = "mention";
+	
 	/** レンダラ */
 	protected TabRenderer renderer = new MentionRenderer();
 	
@@ -174,9 +179,22 @@ public class MentionViewTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 * 
 	 * @param configuration 設定
+	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public MentionViewTab(ClientConfiguration configuration) {
+	public MentionViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
 		super(configuration);
+	}
+	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 * @param configuration 設定
+	 * @param data 保存されたデータ
+	 * @throws JSONException JSON例外
+	 * @throws IllegalSyntaxException クエリエラー
+	 */
+	public MentionViewTab(ClientConfiguration configuration, String data) throws JSONException, IllegalSyntaxException {
+		super(configuration, data);
 	}
 	
 	@Override
@@ -201,13 +219,23 @@ public class MentionViewTab extends DefaultClientTab {
 	}
 	
 	@Override
+	public TabRenderer getActualRenderer() {
+		return renderer;
+	}
+	
+	@Override
 	public Icon getIcon() {
 		return null;
 	}
 	
 	@Override
-	public TabRenderer getRenderer() {
-		return renderer;
+	protected Object getSerializedExtendedData() {
+		return JSONObject.NULL;
+	}
+	
+	@Override
+	public String getTabId() {
+		return TAB_ID;
 	}
 	
 	@Override
@@ -219,4 +247,5 @@ public class MentionViewTab extends DefaultClientTab {
 	public String getToolTip() {
 		return "@関連";
 	}
+	
 }

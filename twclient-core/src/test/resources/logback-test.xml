@@ -21,7 +21,7 @@
 	</logger>
 
 	<root>
-		<level value="TRACE" />
+		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>

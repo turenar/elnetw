@@ -2,7 +2,6 @@ package jp.syuriken.snsw.twclient.filter;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -30,6 +29,8 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	private final ClientConfiguration configuration;
 	
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
+	
+	private FilterDispatcherBase query;
 	
 	
 	/**
@@ -77,19 +78,12 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	private void initFilterQueries() {
-		String queries = configuration.getConfigProperties().getProperty("core.filter.queries");
-		String[] queryArray = queries.split(" ");
-		ArrayList<FilterDispatcherBase> fiterList = new ArrayList<FilterDispatcherBase>();
-		for (String queryName : queryArray) {
-			if (queryName.isEmpty()) {
-				continue;
-			}
-			String query = configuration.getConfigProperties().getProperty("core.filter.query." + queryName);
-			if (query == null) {
-				logger.warn(queryName + " is not valid filterName");
-			}
+		String query = configuration.getConfigProperties().getProperty("core.filter._global");
+		if (query == null || query.trim().isEmpty()) {
+			this.query = NullFilter.getInstance();
+		} else {
 			try {
-				fiterList.add(FilterCompiler.getCompiledObject(query));
+				this.query = FilterCompiler.getCompiledObject(query);
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
 			}
@@ -122,6 +116,9 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 		filtered = filterUser(message.getSenderId());
 		if (filtered == false) {
 			filtered = filterUser(message.getRecipientId());
+		}
+		if (filtered == false) {
+			filtered = query.filter(message);
 		}
 		return filtered ? null : message;
 	}
@@ -169,6 +166,9 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 		if (filtered == false) {
 			filtered = onStatus(retweetedStatus) == null;
 		}
+		if (filtered == false) {
+			filtered = query.filter(retweetedStatus);
+		}
 		return filtered;
 	}
 	
@@ -188,6 +188,9 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 			for (int i = 0; filtered == false && i < length; i++) {
 				filtered = filterUser(userMentionEntities[i].getId());
 			}
+		}
+		if (filtered == false) {
+			filtered = query.filter(status);
 		}
 		return filtered ? null : status;
 	}
