@@ -1,9 +1,11 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import twitter4j.DirectMessage;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * フィルタクラス。
@@ -100,6 +102,23 @@ public interface MessageFilter {
 	boolean onRetweet(User source, User target, Status retweetedStatus);
 	
 	/**
+	 * ロケーション削除の通知をフィルタ。
+	 * 
+	 * @param userId ロケーション削除した人
+	 * @param upToStatusId IDの上限
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onScrubGeo(long userId, long upToStatusId);
+	
+	/**
+	 * StallWarningの通知をフィルタ
+	 * 
+	 * @param warning 警告詳細
+	 * @return null=フィルタ中止, それ以外は次のフィルタは返り値をフィルタしようとします
+	 */
+	boolean onStallWarning(StallWarning warning);
+	
+	/**
 	 * ステータスをフィルタ
 	 * 
 	 * @param status ステータス
@@ -137,6 +156,15 @@ public interface MessageFilter {
 	boolean onTrackLimitationNotice(int numberOfLimitedStatuses);
 	
 	/**
+	 * ブロックを解除したことをフィルタ
+	 * 
+	 * @param source 自分
+	 * @param unblockedUser ブロック解除されたユーザー
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUnblock(User source, User unblockedUser);
+	
+	/**
 	 * ふぁぼやめられたことの通知をフィルタ
 	 * 
 	 * @param source ふぁぼやめた人
@@ -145,5 +173,80 @@ public interface MessageFilter {
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUnfavorite(User source, User target, Status unfavoritedStatus);
+	
+	/**
+	 * リスト作成をフィルタ
+	 * 
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListCreation(User listOwner, UserList list);
+	
+	/**
+	 * リスト削除をフィルタ
+	 * 
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListDeletion(User listOwner, UserList list);
+	
+	/**
+	 * リストにメンバーを追加したことをフィルタ
+	 * 
+	 * @param addedMember 追加されたユーザー
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list);
+	
+	/**
+	 * リストからメンバーを削除したことをフィルタ
+	 * 
+	 * @param deletedMember 削除されたユーザー
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list);
+	
+	/**
+	 * リストの購読をフィルタ
+	 * 
+	 * @param subscriber 購読者
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListSubscription(User subscriber, User listOwner, UserList list);
+	
+	/**
+	 * リストの購読解除をフィルタ
+	 * 
+	 * @param subscriber 購読してた人
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list);
+	
+	/**
+	 * リストの更新をフィルタ
+	 * 
+	 * @param listOwner リスト作成者
+	 * @param list リスト
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserListUpdate(User listOwner, UserList list);
+	
+	/**
+	 * ユーザープロフィールの更新をフィルタ
+	 * 
+	 * @param updatedUser 更新したユーザー
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUserProfileUpdate(User updatedUser);
 	
 }

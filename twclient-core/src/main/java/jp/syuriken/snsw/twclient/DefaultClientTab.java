@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.URLEntity;
@@ -287,6 +288,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
+		}
+		
+		@Override
+		public void onStallWarning(StallWarning warning) {
 		}
 		
 		@Override
