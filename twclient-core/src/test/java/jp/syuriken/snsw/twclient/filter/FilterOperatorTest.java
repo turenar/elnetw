@@ -16,6 +16,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.regex.Pattern;
+
+import com.twitter.Regex;
+
 import org.junit.Test;
 
 /**
@@ -24,6 +28,75 @@ import org.junit.Test;
  * @author $Author$
  */
 public class FilterOperatorTest {
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 */
+	@Test
+	public void compareStringObject() {
+		assertFalse(EQ.compare("abcdefghijk", FilterOperator.compileValueString("aiueo")));
+		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdef")));
+		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdefghijk")));
+		assertTrue(EQ.compare("http://twitter.com/ture7", Regex.VALID_URL));
+		assertTrue(EQ.compare("turenar died.", FilterOperator.compileValueString("/turenar.died\\.")));
+		assertTrue(EQ.compare("addd", FilterOperator.compileValueString("/^ad")));
+		assertFalse(EQ.compare("turenar died.", FilterOperator.compileValueString("/^[^t]")));
+		
+		assertTrue(NE.compare("abcdefghijk", FilterOperator.compileValueString("aiueo")));
+		assertFalse(NE.compare("abcdefghijk", FilterOperator.compileValueString("abcdef")));
+		assertFalse(NE.compare("abcdefghijk", FilterOperator.compileValueString("abcdefghijk")));
+		assertFalse(NE.compare("http://twitter.com/ture7", Regex.VALID_URL));
+		assertFalse(NE.compare("turenar died.", FilterOperator.compileValueString("/turenar.died\\.")));
+		assertFalse(NE.compare("addd", FilterOperator.compileValueString("/^ad")));
+		assertTrue(NE.compare("turenar died.", FilterOperator.compileValueString("/^[^t]")));
+		
+		try {
+			IS.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+		try {
+			IS_NOT.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+		try {
+			LT.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+		try {
+			LTE.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+		try {
+			GT.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+		try {
+			GTE.compare("aiueo", "aiueo");
+			fail();
+		} catch (RuntimeException e) {
+			// success
+		}
+	}
+	
+	/**
+	 * {@link FilterOperator#compileValueString(String)} のためのテスト・メソッド
+	 */
+	@Test
+	public void compileValueString() {
+		assertTrue(FilterOperator.compileValueString("") instanceof String);
+		assertTrue(FilterOperator.compileValueString("aiueo") instanceof String);
+		assertTrue(FilterOperator.compileValueString("/.+") instanceof Pattern);
+	}
 	
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(boolean, boolean)} のためのテスト・メソッド。

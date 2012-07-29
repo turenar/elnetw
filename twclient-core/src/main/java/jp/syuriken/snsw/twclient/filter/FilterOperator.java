@@ -1,6 +1,8 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jp.syuriken.snsw.twclient.Utility;
 
@@ -91,6 +93,45 @@ public enum FilterOperator {
 		return null;
 	}
 	
+	/**
+	 * 文字列を扱う演算子をFilterOperatorに変換する
+	 * 
+	 * @param operator string演算子文字列
+	 * @return 演算子
+	 */
+	public static FilterOperator compileOperatorString(String operator) {
+		if (operator.length() == 1) {
+			switch (operator.charAt(0)) {
+				case ':':
+				case '=':
+					return FilterOperator.EQ;
+				case '!':
+					return FilterOperator.NE;
+				default:
+					return null;
+			}
+		} else if (Utility.equalString("==", operator)) {
+			return FilterOperator.EQ;
+		} else if (Utility.equalString("!=", operator) || Utility.equalString("!:", operator)) {
+			return FilterOperator.NE;
+		}
+		return null;
+	}
+	
+	/**
+	 * 値を使いやすいように変換する
+	 * 
+	 * @param value 値
+	 * @return {@link #compare(String, Object)} に渡すことのできるObject
+	 */
+	public static Object compileValueString(String value) {
+		if (value.length() >= 1 && value.charAt(0) == '/') {
+			return Pattern.compile(value.substring(1));
+		} else {
+			return value;
+		}
+	}
+	
 	private FilterOperator() {
 	}
 	
@@ -141,6 +182,31 @@ public enum FilterOperator {
 				return a >= b;
 			default:
 				throw new RuntimeException("longの比較では対応していない演算子です");
+		}
+		
+	}
+	
+	/**
+	 * stringを比較する。
+	 * 
+	 * @param target 被比較値
+	 * @param value 比較値
+	 * @return 演算子が成り立つときはtrue、それ以外はfalse
+	 * @throws RuntimeException 比較失敗
+	 */
+	public boolean compare(String target, Object value) throws RuntimeException {
+		if (this == EQ || this == NE) {
+			if (value instanceof Pattern) {
+				Matcher matcher = ((Pattern) value).matcher(target);
+				return matcher.find() == (this == EQ);
+			} else if (value instanceof String) {
+				boolean contains = target.contains((String) value);
+				return contains == (this == EQ);
+			} else {
+				throw new RuntimeException("stringの被比較値が正しくありません");
+			}
+		} else {
+			throw new RuntimeException("stringの比較では対応していない演算子です");
 		}
 	}
 	

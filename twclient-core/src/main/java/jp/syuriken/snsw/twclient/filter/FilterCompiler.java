@@ -11,9 +11,9 @@ import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
-import jp.syuriken.snsw.twclient.filter.prop.AccountIsMineProperty;
 import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
+import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
 
 /**
  * フィルタをコンパイルするクラス。
@@ -47,8 +47,10 @@ public class FilterCompiler {
 		filterPropetyFactories.put("rtcount", properties);
 		properties = StandardBooleanProperties.getFactory();
 		filterPropetyFactories.put("retweeted", properties);
-		
-		filterPropetyFactories.put("mine", AccountIsMineProperty.getFactory());
+		filterPropetyFactories.put("mine", properties);
+		properties = StandardStringProperties.getFactory();
+		filterPropetyFactories.put("user", properties);
+		filterPropetyFactories.put("text", properties);
 	}
 	
 	

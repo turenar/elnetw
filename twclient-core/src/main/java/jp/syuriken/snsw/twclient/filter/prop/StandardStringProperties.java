@@ -1,9 +1,7 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.lang.reflect.Constructor;
-import java.util.Locale;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
@@ -16,21 +14,19 @@ import twitter4j.Status;
  * 
  * @author $Author$
  */
-public class StandardBooleanProperties implements FilterProperty {
+public class StandardStringProperties implements FilterProperty {
 	
 	private static Constructor<? extends FilterProperty> factory;
 	
-	private static final byte PROPERTY_ID_RETWEETED = 1;
+	private static final byte PROPERTY_ID_USER = 1;
 	
-	private static final byte PROPERTY_ID_MINE = 2;
+	private static final byte PROPERTY_ID_TEXT = 2;
 	
 	private FilterOperator operatorType;
 	
-	private boolean value;
+	private Object value;
 	
 	private byte propertyId;
-	
-	private ClientConfiguration configuration;
 	
 	static {
 		try {
@@ -57,46 +53,36 @@ public class StandardBooleanProperties implements FilterProperty {
 	 * @param value 比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public StandardBooleanProperties(String name, String operator, String value) throws IllegalSyntaxException {
-		configuration = ClientConfiguration.getInstance();
+	public StandardStringProperties(String name, String operator, String value) throws IllegalSyntaxException {
 		// name 処理
-		if (Utility.equalString(name, "retweeted")) {
-			propertyId = PROPERTY_ID_RETWEETED;
-		} else if (Utility.equalString(name, "mine")) {
-			propertyId = PROPERTY_ID_MINE;
+		if (Utility.equalString(name, "user")) {
+			propertyId = PROPERTY_ID_USER;
+		} else if (Utility.equalString(name, "text")) {
+			propertyId = PROPERTY_ID_TEXT;
 		} else {
-			throw new IllegalSyntaxException("[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+			throw new IllegalSyntaxException("[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {
-			operatorType = FilterOperator.IS;
-		} else {
-			operatorType = FilterOperator.compileOperatorBool(operator);
+			throw new IllegalSyntaxException("[" + name + "] string演算子が必要です");
 		}
+		operatorType = FilterOperator.compileOperatorString(operator);
 		if (operatorType == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しくないbool演算子です: " + operator);
+			throw new IllegalSyntaxException("[" + name + "] 正しくないstring演算子です: " + operator);
 		}
 		// value 処理
-		if ((operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT) == false) {
-			String lowerValue = value.toLowerCase(Locale.ENGLISH);
-			if (Utility.equalString(lowerValue, "false") || Utility.equalString(lowerValue, "no")) {
-				this.value = false;
-			} else if (Utility.equalString(lowerValue, "true") || Utility.equalString(lowerValue, "yes")) {
-				this.value = true;
-			} else {
-				throw new IllegalSyntaxException("[" + name + "] 値がbool型ではありません");
-			}
-		}
+		this.value = FilterOperator.compileValueString(value);
 	}
 	
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		boolean target;
+		String target;
 		switch (propertyId) {
-			case PROPERTY_ID_RETWEETED:
-				return true;
-			case PROPERTY_ID_MINE:
-				target = configuration.isMyAccount(directMessage.getSenderId());
+			case PROPERTY_ID_USER:
+				target = directMessage.getSenderScreenName();
+				break;
+			case PROPERTY_ID_TEXT:
+				target = directMessage.getText();
 				break;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");
@@ -106,13 +92,13 @@ public class StandardBooleanProperties implements FilterProperty {
 	
 	@Override
 	public boolean filter(Status status) {
-		boolean target;
+		String target;
 		switch (propertyId) {
-			case PROPERTY_ID_RETWEETED:
-				target = status.isRetweet();
+			case PROPERTY_ID_USER:
+				target = status.getUser().getScreenName();
 				break;
-			case PROPERTY_ID_MINE:
-				target = configuration.isMyAccount(status.getUser().getId());
+			case PROPERTY_ID_TEXT:
+				target = status.getText();
 				break;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");
