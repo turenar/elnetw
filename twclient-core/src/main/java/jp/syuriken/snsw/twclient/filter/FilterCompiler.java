@@ -30,6 +30,7 @@ public class FilterCompiler {
 	
 	/** constructor ( String, String, String) */
 	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropetyFactories;
+	
 	static {
 		filterFunctionFactories = new HashMap<String, Constructor<? extends FilterFunction>>();
 		filterFunctionFactories.put("or", OrFilterFunction.getFactory());
@@ -45,7 +46,7 @@ public class FilterCompiler {
 		filterPropetyFactories.put("in_reply_to_userid", properties);
 		filterPropetyFactories.put("rtcount", properties);
 		properties = StandardBooleanProperties.getFactory();
-		filterPropetyFactories.put("is_retweet", properties);
+		filterPropetyFactories.put("retweeted", properties);
 		
 		filterPropetyFactories.put("mine", AccountIsMineProperty.getFactory());
 	}
@@ -60,6 +61,26 @@ public class FilterCompiler {
 	public static FilterDispatcherBase getCompiledObject(String query) throws IllegalSyntaxException {
 		FilterCompiler filterCompiler = new FilterCompiler(query);
 		return filterCompiler.compile();
+	}
+	
+	/**
+	 * 指定した名前のフィルタ関数を取得する
+	 * 
+	 * @param functionName 関数名
+	 * @return {@link FilterFunction} の ({@link String}, {@link FilterDispatcherBase}) コンストラクタ
+	 */
+	public static Constructor<? extends FilterFunction> getFilterFunction(String functionName) {
+		return filterFunctionFactories.get(functionName);
+	}
+	
+	/**
+	 * フィルタプロパティを追加する
+	 * 
+	 * @param propertyName プロパティ名
+	 * @return {@link FilterProperty} の ({@link String}, {@link String}, {@link String})コンストラクタ
+	 */
+	public static Constructor<? extends FilterProperty> getFilterProperty(String propertyName) {
+		return filterPropetyFactories.get(propertyName);
 	}
 	
 	private static final boolean isAlphabet(char charAt) {
@@ -113,6 +134,30 @@ public class FilterCompiler {
 			}
 			System.out.print("> ");
 		}
+	}
+	
+	/**
+	 * フィルタ関数を追加する
+	 * 
+	 * @param functionName 関数名
+	 * @param constructor ({@link String}, {@link FilterDispatcherBase})コンストラクタ
+	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
+	 */
+	public static Constructor<? extends FilterFunction> putFilterFunction(String functionName,
+			Constructor<? extends FilterFunction> constructor) {
+		return filterFunctionFactories.put(functionName, constructor);
+	}
+	
+	/**
+	 * フィルタプロパティを追加する
+	 * 
+	 * @param propertyName プロパティ名
+	 * @param constructor ({@link String}, {@link String}, {@link String})コンストラクタ
+	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
+	 */
+	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
+			Constructor<? extends FilterProperty> constructor) {
+		return filterPropetyFactories.put(propertyName, constructor);
 	}
 	
 	
@@ -262,7 +307,11 @@ public class FilterCompiler {
 					throwUnexpectedToken();
 				}
 			} else if (queryNextTokenType != TokenType.SCALAR_INT) {
-				throwUnexpectedToken();
+				if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR || queryNextTokenType == TokenType.FUNC_END) {
+					ungetToken();
+				} else {
+					throwUnexpectedToken();
+				}
 			}
 		}
 		

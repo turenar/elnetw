@@ -40,6 +40,8 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	 */
 	public UserFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		configuration.getConfigBuilder().getGroup("フィルタ")
+			.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
 		filterIds = new TreeSet<Long>();
 		initFilterIds();
 		initFilterQueries();
