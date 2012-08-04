@@ -55,4 +55,6 @@ public enum TokenType {
 	SCALAR_STRING_END,
 	/** 予期しない状態 (正しくない状態で EndOfData に達した時など) */
 	UNEXPECTED,
+	/** データの終わり */
+	EOD,
 }

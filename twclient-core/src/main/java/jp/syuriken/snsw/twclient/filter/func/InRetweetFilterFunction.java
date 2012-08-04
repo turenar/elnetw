@@ -48,7 +48,7 @@ public class InRetweetFilterFunction implements FilterFunction {
 	 */
 	public InRetweetFilterFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length != 1) {
-			throw new IllegalSyntaxException("func<inrt> の引数は一つでなければなりません");
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_FUNC_ARGS, "func<inrt> の引数は一つでなければなりません");
 		}
 		this.child = child[0];
 	}

@@ -64,21 +64,25 @@ public class StandardIntProperties implements FilterProperty {
 		} else if (Utility.equalString(name, "rtcount")) {
 			propertyId = PROPERTY_ID_RT_COUNT;
 		} else {
-			throw new IllegalSyntaxException("[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
+					"[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しいint演算子が必要です");
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
+					+ "] 正しいint演算子が必要です");
 		}
 		operatorType = FilterOperator.compileOperatorInt(operator);
 		if (operatorType == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しくないint演算子です: " + operator);
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
+					+ "] 正しくないint演算子です: " + operator);
 		}
 		// value 処理: 整数は必ず指定しないとダメ。
 		try {
 			this.value = Long.parseLong(value);
 		} catch (NumberFormatException e) {
-			throw new IllegalSyntaxException("[" + name + "] 値を整数型に変換できません", e);
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name + "] 値を整数型に変換できません",
+					e);
 		}
 	}
 	

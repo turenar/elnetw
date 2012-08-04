@@ -30,7 +30,7 @@ public class StandardStringProperties implements FilterProperty {
 	
 	static {
 		try {
-			factory = StandardBooleanProperties.class.getConstructor(String.class, String.class, String.class);
+			factory = StandardStringProperties.class.getConstructor(String.class, String.class, String.class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -60,15 +60,18 @@ public class StandardStringProperties implements FilterProperty {
 		} else if (Utility.equalString(name, "text")) {
 			propertyId = PROPERTY_ID_TEXT;
 		} else {
-			throw new IllegalSyntaxException("[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
+					"[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {
-			throw new IllegalSyntaxException("[" + name + "] string演算子が必要です");
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
+					+ "] string演算子が必要です");
 		}
 		operatorType = FilterOperator.compileOperatorString(operator);
 		if (operatorType == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しくないstring演算子です: " + operator);
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
+					+ "] 正しくないstring演算子です: " + operator);
 		}
 		// value 処理
 		this.value = FilterOperator.compileValueString(value);

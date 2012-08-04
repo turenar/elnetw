@@ -46,7 +46,8 @@ public class AndFilterFunction implements FilterFunction {
 	 */
 	public AndFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length == 0) {
-			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_FUNC_ARGS, "func<" + functionName
+					+ ">: 子要素の個数が0です");
 		}
 		this.child = child;
 	}

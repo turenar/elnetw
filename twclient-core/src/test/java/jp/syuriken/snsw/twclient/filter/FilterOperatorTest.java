@@ -31,9 +31,11 @@ public class FilterOperatorTest {
 	
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
 	 */
 	@Test
-	public void compareStringObject() {
+	public void compareStringObject() throws RuntimeException, IllegalSyntaxException {
 		assertFalse(EQ.compare("abcdefghijk", FilterOperator.compileValueString("aiueo")));
 		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdef")));
 		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdefghijk")));
@@ -90,9 +92,10 @@ public class FilterOperatorTest {
 	
 	/**
 	 * {@link FilterOperator#compileValueString(String)} のためのテスト・メソッド
+	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
-	public void compileValueString() {
+	public void compileValueString() throws IllegalSyntaxException {
 		assertTrue(FilterOperator.compileValueString("") instanceof String);
 		assertTrue(FilterOperator.compileValueString("aiueo") instanceof String);
 		assertTrue(FilterOperator.compileValueString("/.+") instanceof Pattern);

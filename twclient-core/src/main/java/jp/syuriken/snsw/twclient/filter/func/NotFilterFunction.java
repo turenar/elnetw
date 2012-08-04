@@ -46,7 +46,8 @@ public class NotFilterFunction implements FilterFunction {
 	 */
 	public NotFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length != 1) {
-			throw new IllegalSyntaxException("func<" + functionName + "> の引数は一つでなければなりません");
+			throw new IllegalSyntaxException(child.length == 0 ? IllegalSyntaxException.ID_FUNC_ARGS : 2, "func<"
+					+ functionName + "> の引数は一つでなければなりません");
 		}
 		this.child = child[0];
 	}

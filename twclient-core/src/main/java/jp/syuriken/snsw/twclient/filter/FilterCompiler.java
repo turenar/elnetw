@@ -191,18 +191,35 @@ public class FilterCompiler {
 	/**
 	 * コンパイルする。
 	 * 
-	 * <p>一度使用すると、 {@link #reset()} を呼び出すまでこのクラスの状態を変更するような
-	 * 操作はできなくなります。再利用する際は {@link #reset()} を呼び出してください。</p>
+	 * <p>この関数では処理前に {@link #reset()} を呼び出します。</p>
 	 * @return コンパイル済みのオブジェクト。中身は単なるツリー。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ 
 	 */
 	public FilterDispatcherBase compile() throws IllegalSyntaxException {
+		reset();
+		
 		String token = getToken();
 		switch (queryNextTokenType) {
 			case FUNC_NAME:
-				return compileFunction(token);
+				try {
+					return compileFunction(token);
+				} catch (IllegalSyntaxException e) {
+					e.setQuery(query);
+					if (e.getTokenType() == IllegalSyntaxException.ID_FUNC_NAME && e.getTokenPosition() < 0) {
+						e.setTokenPostion(0);
+					}
+					throw e;
+				}
 			case PROPERTY_NAME:
-				return compileProperty(token);
+				try {
+					return compileProperty(token);
+				} catch (IllegalSyntaxException e) {
+					e.setQuery(query);
+					if (e.getTokenType() == IllegalSyntaxException.ID_PROPERTY_NAME) {
+						e.setTokenPostion(0);
+					}
+					throw e;
+				}
 			default:
 				throwUnexpectedToken();
 				return null; // orphaned
@@ -223,18 +240,29 @@ public class FilterCompiler {
 		}
 		
 		ArrayList<FilterDispatcherBase> argsList = new ArrayList<FilterDispatcherBase>();
+		ArrayList<Integer> argsTokenIndexList = new ArrayList<Integer>();
 		
+		argsTokenIndexList.add(compilingIndex);
 		getToken();
 		if (queryNextTokenType != TokenType.FUNC_END) {
-			ungetToken();
-			while (getToken() != null) {
-				if (queryNextTokenType == TokenType.PROPERTY_NAME) {
-					argsList.add(compileProperty(queryToken));
-				} else if (queryNextTokenType == TokenType.FUNC_NAME) {
-					argsList.add(compileFunction(queryToken));
-				} else {
-					throwUnexpectedToken();
+			do {
+				try {
+					if (queryNextTokenType == TokenType.PROPERTY_NAME) {
+						argsList.add(compileProperty(queryToken));
+					} else if (queryNextTokenType == TokenType.FUNC_NAME) {
+						argsList.add(compileFunction(queryToken));
+					} else {
+						throwUnexpectedToken();
+					}
+				} catch (IllegalSyntaxException e) {
+					int tokenType = e.getTokenType();
+					if (e.getTokenPosition() < 0
+							&& (tokenType == IllegalSyntaxException.ID_PROPERTY_NAME || tokenType == IllegalSyntaxException.ID_FUNC_NAME)) {
+						e.setTokenPostion(argsTokenIndexList.get(argsTokenIndexList.size() - 1));
+					}
+					throw e;
 				}
+				argsTokenIndexList.add(compilingIndex);
 				
 				getToken();
 				if (queryNextTokenType == TokenType.FUNC_END) {
@@ -244,16 +272,36 @@ public class FilterCompiler {
 				} else {
 					throwUnexpectedToken();
 				}
-			}
+				argsTokenIndexList.add(compilingIndex);
+			} while (getToken() != null);
 		}
 		FilterDispatcherBase[] args = argsList.toArray(new FilterDispatcherBase[argsList.size()]);
 		try {
 			Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(functionName);
 			if (factory == null) {
-				throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName + ">は見つかりません");
+				throw new IllegalSyntaxException(IllegalSyntaxException.ID_FUNC_NAME,
+						"フィルタのコンパイル中にエラーが発生しました: function<" + functionName + ">は見つかりません");
 			} else {
-				return filterFunctionFactories.get(functionName).newInstance(functionName, args);
+				try {
+					return factory.newInstance(functionName, args);
+				} catch (InvocationTargetException e) {
+					Throwable cause = e.getCause();
+					if (cause instanceof IllegalSyntaxException) {
+						throw (IllegalSyntaxException) cause;
+					} else {
+						throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + functionName
+								+ "をインスタンス化中にエラーが発生しました", cause);
+					}
+				}
 			}
+		} catch (IllegalSyntaxException e) {
+			int tokenType = e.getTokenType();
+			if (tokenType > 0) {
+				e.setTokenPostion(argsTokenIndexList.get(tokenType - 1));
+			} else if (tokenType == IllegalSyntaxException.ID_FUNC_ARGS) {
+				e.setTokenPostion(argsTokenIndexList.get(0));
+			}
+			throw e;
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
 					+ ">に関連付けられたConstructorは正しくありません", e);
@@ -263,14 +311,6 @@ public class FilterCompiler {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
 					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			if (cause instanceof IllegalSyntaxException) {
-				throw (IllegalSyntaxException) cause;
-			} else {
-				throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + functionName + "をインスタンス化中にエラーが発生しました",
-						cause);
-			}
 		}
 	}
 	
@@ -281,21 +321,30 @@ public class FilterCompiler {
 	 * @return コンパイル済みのプロパティオブジェクト
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	private FilterDispatcherBase compileProperty(String propertyName) throws IllegalSyntaxException {
-		String propertyOperator = getToken();
+	private FilterDispatcherBase compileProperty(String propertyName) throws IllegalSyntaxException
+	
+	{
+		String propertyOperator;
+		int propertyOperatorPostion = compilingIndex;
 		String compareValue = null;
+		int compareValuePostion;
+		getToken();
 		if (queryNextTokenType != TokenType.PROPERTY_OPERATOR) {
 			ungetToken();
 			propertyOperator = null;
+			compareValuePostion = propertyOperatorPostion;
 		} else {
-			compareValue = getToken();
+			propertyOperator = queryToken;
+			compareValuePostion = compilingIndex;
+			
+			getToken();
 			if (queryNextTokenType == TokenType.SCALAR_STRING_START) {
-				compareValue = getToken();
+				getToken();
 				if (queryNextTokenType != TokenType.SCALAR_STRING) {
 					throwUnexpectedToken();
 				}
 				
-				StringBuilder stringBuilder = new StringBuilder(getToken());
+				StringBuilder stringBuilder = new StringBuilder(queryToken);
 				int index = 0;
 				int indexOf;
 				while ((indexOf = stringBuilder.indexOf("\\", index)) != -1) {
@@ -309,7 +358,8 @@ public class FilterCompiler {
 					throwUnexpectedToken();
 				}
 			} else if (queryNextTokenType != TokenType.SCALAR_INT) {
-				if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR || queryNextTokenType == TokenType.FUNC_END) {
+				if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR || queryNextTokenType == TokenType.FUNC_END
+						|| queryNextTokenType == TokenType.EOD) {
 					ungetToken();
 				} else {
 					throwUnexpectedToken();
@@ -320,10 +370,29 @@ public class FilterCompiler {
 		try {
 			Constructor<? extends FilterProperty> factory = filterPropetyFactories.get(propertyName);
 			if (factory == null) {
-				throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName + ">は見つかりません");
+				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
+						"フィルタのコンパイル中にエラーが発生しました: property<" + propertyName + ">は見つかりません");
 			} else {
-				return factory.newInstance(propertyName, propertyOperator, compareValue);
+				try {
+					return factory.newInstance(propertyName, propertyOperator, compareValue);
+				} catch (InvocationTargetException e) {
+					Throwable cause = e.getCause();
+					if (cause instanceof IllegalSyntaxException) {
+						throw (IllegalSyntaxException) cause;
+					} else {
+						throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + propertyName
+								+ "をインスタンス化中にエラーが発生しました", cause);
+					}
+				}
 			}
+		} catch (IllegalSyntaxException e) {
+			int tokenType = e.getTokenType();
+			if (tokenType == IllegalSyntaxException.ID_PROPERTY_OPERATOR) {
+				e.setTokenPostion(propertyOperatorPostion);
+			} else if (tokenType == IllegalSyntaxException.ID_PROPERTY_VALUE) {
+				e.setTokenPostion(compareValuePostion);
+			}
+			throw e;
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
 					+ ">に関連付けられたConstructorは正しくありません", e);
@@ -333,14 +402,6 @@ public class FilterCompiler {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
 					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			if (cause instanceof IllegalSyntaxException) {
-				throw (IllegalSyntaxException) cause;
-			} else {
-				throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + propertyName + "をインスタンス化中にエラーが発生しました",
-						cause);
-			}
 		}
 	}
 	
@@ -410,6 +471,8 @@ public class FilterCompiler {
 			}
 		}
 		if (i >= length) { // no valid token
+			queryNextTokenType = TokenType.EOD;
+			queryToken = null;
 			return null;
 		}
 		int tokenStart = i;
@@ -578,8 +641,18 @@ public class FilterCompiler {
 	}
 	
 	private void throwUnexpectedToken() throws IllegalSyntaxException {
-		throw new IllegalSyntaxException("Unexpected token: \"" + queryToken + "\" (index:"
-				+ (compilingIndex - queryToken.length()) + ")");
+		StringBuilder stringBuilder = new StringBuilder("Unexpected token: ");
+		if (queryToken == null) {
+			stringBuilder.append("null");
+		} else {
+			stringBuilder.append('"').append(queryToken).append('"');
+		}
+		stringBuilder.append(" (").append(queryNextTokenType).append(')');
+		
+		IllegalSyntaxException exception = new IllegalSyntaxException(stringBuilder.toString());
+		exception.setQuery(query);
+		exception.setTokenPostion(queryToken == null ? compilingIndex : (compilingIndex - queryToken.length()));
+		throw exception;
 	}
 	
 	private final void ungetToken() {
