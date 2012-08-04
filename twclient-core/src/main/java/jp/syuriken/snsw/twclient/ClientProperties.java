@@ -4,10 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -375,19 +375,26 @@ public class ClientProperties extends Properties {
 	* @param comments ファイルのコメント
 	*/
 	public synchronized void store(String comments) {
-		FileWriter fileWriter = null;
-		BufferedWriter bufferedWriter = null;
+		FileOutputStream stream = null;
+		OutputStreamWriter writer = null;
 		try {
-			fileWriter = new FileWriter(storeFile);
-			bufferedWriter = new BufferedWriter(fileWriter);
-			store(bufferedWriter, comments);
+			stream = new FileOutputStream(storeFile);
+			writer = new OutputStreamWriter(stream, "UTF-8");
+			store(writer, comments);
 		} catch (IOException e) {
 			logger.warn("Propertiesファイルの保存中にエラー", e);
 		} finally {
-			if (bufferedWriter != null) {
+			if (writer != null) {
 				try {
-					bufferedWriter.flush();
-					bufferedWriter.close();
+					writer.flush();
+					writer.close();
+				} catch (IOException e) {
+					logger.warn("Propertiesファイルのクローズ中にエラー", e);
+				}
+			} else if (stream != null) { // writer.close()によりstreamは自動的に閉じられる
+				try {
+					stream.flush();
+					stream.close();
 				} catch (IOException e) {
 					logger.warn("Propertiesファイルのクローズ中にエラー", e);
 				}
