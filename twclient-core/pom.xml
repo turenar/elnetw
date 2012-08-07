@@ -171,6 +171,11 @@
 			<artifactId>twitter-text-regex</artifactId>
 			<version>1.4.10</version>
 		</dependency>
+		<dependency>
+			<groupId>findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<organization>
@@ -180,11 +185,6 @@
 
 	<build>
 		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-webdav</artifactId>
-				<version>1.0-beta-2</version>
-			</extension>
 			<extension>
 				<groupId>org.jvnet.wagon-svn</groupId>
 				<artifactId>wagon-svn</artifactId>
@@ -247,17 +247,22 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+		</plugins>
+	</build>
+	<reporting>
+		<plugins>
 			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.7.1</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.5.1</version>
 				<configuration>
-					<includes>
-						<include>**/*Test.java</include>
-					</includes>
+					<excludeFilterFile>.settings/findbugs-exclude.xml</excludeFilterFile>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</reporting>
 	<properties>
 		<twitter4j.version>3.0.0-SNAPSHOT</twitter4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
