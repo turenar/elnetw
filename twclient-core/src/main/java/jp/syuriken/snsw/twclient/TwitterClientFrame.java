@@ -552,7 +552,7 @@ import twitter4j.UserMentionEntity;
 	
 	private JLabel tweetViewDateLabel;
 	
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	
 	private FontMetrics fontMetrics;
 	

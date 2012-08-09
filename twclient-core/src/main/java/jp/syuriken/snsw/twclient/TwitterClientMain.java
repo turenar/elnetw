@@ -1,11 +1,15 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 
 import javax.swing.JOptionPane;
@@ -62,6 +66,21 @@ public class TwitterClientMain {
 	}
 	
 	/**
+	 * 環境チェック
+	 * 
+	 */
+	private void checkEnvironment() {
+		if (Charset.isSupported("UTF-8")) {
+			throw new AssertionError("UTF-8 エンコードがサポートされていないようです。UTF-8 エンコードがサポートされていない環境では"
+					+ "このソフトを動かすことはできません。Java VMの開発元に問い合わせてみてください。");
+		}
+		if (GraphicsEnvironment.isHeadless()) {
+			throw new AssertionError("お使いのJava VMないし環境ではGUI出力がサポートされていないようです。GUIモードにするか、Java VMにGUIサポートを組み込んでください");
+		}
+	}
+	
+	/**
+	 * 起動する。
 	 * TwitterConfigurationを作成する。
 	 * @return 認証済み Configuration インスタンス
 	 */
@@ -96,6 +115,8 @@ public class TwitterClientMain {
 	 * 
 	 */
 	public int run() {
+		checkEnvironment();
+		
 		boolean portable = Boolean.getBoolean("config.portable");
 		File homeBaseDirFile = new File(HOME_BASE_DIR);
 		if (portable == false && homeBaseDirFile.exists() == false) {
@@ -113,8 +134,13 @@ public class TwitterClientMain {
 		
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
-			defaultConfig.load(getClass().getClassLoader().getResourceAsStream(
-					"jp/syuriken/snsw/twclient/config.properties"));
+			InputStream stream = getClass().getResourceAsStream("config.properties");
+			if (stream == null) {
+				logger.error("リソース(default) config.properties を読み込めません");
+			} else {
+				InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+				defaultConfig.load(reader);
+			}
 		} catch (IOException e) {
 			logger.error("デフォルト設定が読み込めません", e);
 		}
@@ -125,7 +151,8 @@ public class TwitterClientMain {
 		if (configFile.exists()) {
 			logger.debug(CONFIG_FILE_NAME + " is found.");
 			try {
-				configProperties.load(new FileReader(configFile));
+				InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+				configProperties.load(reader);
 			} catch (IOException e) {
 				logger.warn("設定ファイルの読み込み中にエラー", e);
 			}
