@@ -10,6 +10,10 @@ set TURETWCL_JAVA_ARGS=
 
 REM  ↓javaの起動に使用するコマンド。おすすめは"javaw.exe"。起動に失敗するときは"java.exe"を指定して下さい。
 set TURETWCL_JAVA_COMMAND=javaw.exe
+
+REM  ↓コマンドプロンプトを閉じないようにするときは1にする。
+set TURETWCL_VIEW_LOG=0
+
 REM ===== 設定おわり =====
 
 REM +-----------------------
@@ -27,7 +31,7 @@ if "%TURETWCL_FORCE_PORTABLE%"=="1" (
 )
 
 REM JAVA_HOMEがある
-if not "%JAVA_HOME%"=="" goto FoundJhomeENV
+if defined JAVA_HOME goto FoundJhomeENV
 
 REM PATH環境変数の中にjava.exeが存在する
 for %%i in (%TURETWCL_JAVA_COMMAND%) do (
@@ -60,7 +64,7 @@ goto error
 
 
 :FoundJhomeENVbin
-set JAVA_BIN=%JAVA_HOME%\bin\javaw.exe
+set JAVA_BIN=%JAVA_HOME%\bin\%TURETWCL_JAVA_COMMAND%
 goto init
 
 
@@ -108,7 +112,12 @@ goto error
 :ttstart
 set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% %TURETWCL_JAVA_ARGS%
 
-start "Astarotte" "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" %*
+if "%TURETWCL_VIEW_LOG%"=="1" (
+  "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" %*
+  pause
+) else (
+  start "Astarotte" "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" %*
+)
 if not errorlevel 0 goto error
 goto end
 
@@ -120,3 +129,4 @@ exit /B 1
 
 :end
 endlocal
+exit /B
