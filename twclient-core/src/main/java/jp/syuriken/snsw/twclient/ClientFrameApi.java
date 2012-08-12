@@ -50,7 +50,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * 
 	 * @param keyCode キー文字列。
 	 * @param actionName アクションコマンド名
-	 * @see Utility#toKeyString(int, int)
+	 * @see Utility#toKeyString(int, int, boolean)
 	 */
 	void addShortcutKey(String keyCode, String actionName);
 	

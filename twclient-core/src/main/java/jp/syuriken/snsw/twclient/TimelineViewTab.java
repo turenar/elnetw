@@ -97,7 +97,6 @@ public class TimelineViewTab extends DefaultClientTab {
 			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
-			User sender = directMessage.getSender();
 		}
 		
 		@Override

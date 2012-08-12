@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -90,15 +93,21 @@ public class TwitterStatusTest {
 	}
 	
 	/**
-	 * {@link TwitterStatus#TwitterStatus(twitter4j.Status)} のためのテスト・メソッド。
+	 * {@link TwitterStatus#TwitterStatus(ClientConfiguration, Status)} のためのテスト・メソッド。
 	 * @throws TwitterException json例外
+	 * @throws IOException IO例外
+	 * @throws UnsupportedEncodingException UTF-8がサポートされていない 
 	 */
 	@Test
-	public void testTwitterStatus() throws TwitterException {
+	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
+		ClientConfiguration configuration = new ClientConfiguration(true);
+		ClientProperties clientProperties = new ClientProperties();
+		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("twclient.properties"),
+				"UTF-8"));
 		for (TestObj test : tests) {
 			Status status = DataObjectFactory.createStatus(test.json);
 			DataObjectFactoryUtil.registerJSONObject(status, test.json);
-			status = new TwitterStatus(status);
+			status = new TwitterStatus(configuration, status);
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}

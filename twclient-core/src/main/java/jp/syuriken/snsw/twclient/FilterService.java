@@ -92,6 +92,8 @@ public class FilterService implements ClientMessageListener {
 	/** タブを管理するためのリストロック */
 	protected final ReentrantReadWriteLock tabsListLock;
 	
+	private CacheManager cacheManager;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -100,6 +102,7 @@ public class FilterService implements ClientMessageListener {
 	 */
 	public FilterService(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		cacheManager = configuration.getCacheManager();
 		filterList = new ArrayList<MessageFilter>();
 		filterListLock = new ReentrantReadWriteLock();
 		tabsList = configuration.getFrameTabs();
@@ -112,9 +115,12 @@ public class FilterService implements ClientMessageListener {
 	 * @param messageFilter フィルタ
 	 */
 	public void addFilter(MessageFilter messageFilter) {
-		filterListLock.writeLock().lock();
-		filterList.add(messageFilter);
-		filterListLock.writeLock().unlock();
+		try {
+			filterListLock.writeLock().lock();
+			filterList.add(messageFilter);
+		} finally {
+			filterListLock.writeLock().unlock();
+		}
 	}
 	
 	/**
@@ -133,6 +139,24 @@ public class FilterService implements ClientMessageListener {
 	 */
 	protected void filter(FilterDispatcher filterDispatcher) {
 		addJob(filterDispatcher);
+	}
+	
+	private Status getTwitterStatus(Status originalStatus) {
+		if (originalStatus instanceof TwitterStatus) {
+			return originalStatus;
+		}
+		
+		Status cachedStatus = cacheManager.getCachedStatus(originalStatus.getId());
+		if (cachedStatus == null) {
+			Status status =
+					(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(configuration,
+							originalStatus);
+			cachedStatus = cacheManager.cacheStatusIfAbsent(status);
+			if (cachedStatus == null) {
+				cachedStatus = status;
+			}
+		}
+		return cachedStatus;
 	}
 	
 	@Override
@@ -397,8 +421,8 @@ public class FilterService implements ClientMessageListener {
 	
 	@Override
 	public void onStatus(Status originalStatus) {
-		final Status status =
-				(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(originalStatus);
+		final Status status = getTwitterStatus(originalStatus);
+		
 		filter(new FilterDispatcher() {
 			
 			private Status obj = status;

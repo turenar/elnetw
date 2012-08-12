@@ -64,7 +64,7 @@ public class TwitterClientMain {
 	 * 
 	 */
 	private void checkEnvironment() {
-		if (Charset.isSupported("UTF-8")) {
+		if (Charset.isSupported("UTF-8") == false) {
 			throw new AssertionError("UTF-8 エンコードがサポートされていないようです。UTF-8 エンコードがサポートされていない環境では"
 					+ "このソフトを動かすことはできません。Java VMの開発元に問い合わせてみてください。");
 		}

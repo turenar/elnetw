@@ -488,9 +488,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	
-	private static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	protected static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	
-	private Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
+	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 	
 	/** TODO Megumi */
 	private static final int PADDING_OF_POSTLIST = 1;
@@ -635,7 +635,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		Status twitterStatus = new TwitterStatus(originalStatus);
+		Status twitterStatus = new TwitterStatus(configuration, originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
@@ -794,11 +794,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
-			HashtagEntity[] hashtagEntities = status.getOriginalStatus().getHashtagEntities();
+			HashtagEntity[] hashtagEntities = status.getEscapedHashtagEntities();
 			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
-			URLEntity[] urlEntities = status.getOriginalStatus().getURLEntities();
+			URLEntity[] urlEntities = status.getEscapedURLEntities();
 			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
-			UserMentionEntity[] mentionEntities = status.getOriginalStatus().getUserMentionEntities();
+			UserMentionEntity[] mentionEntities = status.getEscapedUserMentionEntities();
 			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
 			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
 			

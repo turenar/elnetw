@@ -21,6 +21,83 @@ import twitter4j.TwitterStreamFactory;
  */
 public class TwitterDataFetchScheduler {
 	
+	private final class FirstDirectMessageFetcher extends TwitterRunnable implements ParallelRunnable {
+		
+		@Override
+		protected void access() throws TwitterException {
+			ResponseList<DirectMessage> directMessages;
+			Paging paging = configData.pagingOfGettingInitialDirectMessage;
+			directMessages = twitterForRead.getDirectMessages(paging);
+			for (DirectMessage directMessage : directMessages) {
+				rootFilterService.onDirectMessage(new InitialMessage(directMessage));
+			}
+			configuration.setInitializing(false);
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+	}
+	
+	private final class FirstMentionFetcher extends TwitterRunnable implements ParallelRunnable {
+		
+		@Override
+		public void access() throws TwitterException {
+			Paging paging = configData.pagingOfGettingInitialMentions;
+			ResponseList<Status> mentions = twitterForRead.getMentions(paging);
+			for (Status status : mentions) {
+				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
+				twitterStatus.setLoadedInitialization(true);
+				rootFilterService.onStatus(twitterStatus);
+			}
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+	}
+	
+	private final class FirstTimelineFetcher extends TwitterRunnable {
+		
+		@Override
+		protected void access() throws TwitterException {
+			ResponseList<Status> homeTimeline;
+			Paging paging = configData.pagingOfGettingInitialTimeline;
+			homeTimeline = twitterForRead.getHomeTimeline(paging);
+			for (Status status : homeTimeline) {
+				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
+				twitterStatus.setLoadedInitialization(true);
+				rootFilterService.onStatus(twitterStatus);
+			}
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+	}
+	
+	private final class HomeTimelineFetcher extends TwitterRunnable implements ParallelRunnable {
+		
+		@Override
+		protected void access() throws TwitterException {
+			Paging paging = configData.pagingOfGettingTimeline;
+			ResponseList<Status> timeline;
+			timeline = twitterForRead.getHomeTimeline(paging);
+			for (Status status : timeline) {
+				rootFilterService.onStatus(status);
+			}
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+	}
+	
+	
 	private final ClientFrameApi frameApi;
 	
 	private final ConfigData configData;
@@ -97,67 +174,15 @@ public class TwitterDataFetchScheduler {
 	}
 	
 	private void scheduleFirstDirectMessage() {
-		frameApi.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<DirectMessage> directMessages;
-				Paging paging = configData.pagingOfGettingInitialDirectMessage;
-				directMessages = twitterForRead.getDirectMessages(paging);
-				for (DirectMessage directMessage : directMessages) {
-					rootFilterService.onDirectMessage(new InitialMessage(directMessage));
-				}
-				configuration.setInitializing(false);
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-		});
+		frameApi.addJob(new FirstDirectMessageFetcher());
 	}
 	
 	private void scheduleFirstMentions() {
-		frameApi.addJob(new TwitterRunnable() {
-			
-			@Override
-			public void access() throws TwitterException {
-				Paging paging = configData.pagingOfGettingInitialMentions;
-				ResponseList<Status> mentions = twitterForRead.getMentions(paging);
-				for (Status status : mentions) {
-					TwitterStatus twitterStatus = new TwitterStatus(status);
-					twitterStatus.setLoadedInitialization(true);
-					rootFilterService.onStatus(twitterStatus);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-		});
+		frameApi.addJob(new FirstMentionFetcher());
 	}
 	
 	private void scheduleFirstTimeline() {
-		frameApi.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> homeTimeline;
-				Paging paging = configData.pagingOfGettingInitialTimeline;
-				homeTimeline = twitterForRead.getHomeTimeline(paging);
-				for (Status status : homeTimeline) {
-					TwitterStatus twitterStatus = new TwitterStatus(status);
-					twitterStatus.setLoadedInitialization(true);
-					rootFilterService.onStatus(twitterStatus);
-				}
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return configuration;
-			}
-		});
+		frameApi.addJob(new FirstTimelineFetcher());
 	}
 	
 	private void scheduleGettingTimeline() {
@@ -165,23 +190,7 @@ public class TwitterDataFetchScheduler {
 			
 			@Override
 			public void run() {
-				frameApi.addJob(new TwitterRunnable() {
-					
-					@Override
-					protected void access() throws TwitterException {
-						Paging paging = configData.pagingOfGettingTimeline;
-						ResponseList<Status> timeline;
-						timeline = twitterForRead.getHomeTimeline(paging);
-						for (Status status : timeline) {
-							rootFilterService.onStatus(status);
-						}
-					}
-					
-					@Override
-					protected ClientConfiguration getConfiguration() {
-						return configuration;
-					}
-				});
+				frameApi.addJob(new HomeTimelineFetcher());
 			}
 		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
 	}

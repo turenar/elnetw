@@ -26,20 +26,23 @@ import org.slf4j.LoggerFactory;
 	
 	private static final AtomicInteger threadNumber = new AtomicInteger();
 	
-	private static final int JOB_PER_A_WORKER = 5;
+	private final int jobPerWorker;
+	
+	private final int threadsCount;
 	
 	private final boolean isParent;
 	
 	private final JobWorkerThread parent;
 	
-	private Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
 	
 	
-	public JobWorkerThread(JobQueue jobQueue) {
-		this(jobQueue, null, new Object());
+	public JobWorkerThread(JobQueue jobQueue, ClientConfiguration configuration) {
+		this(jobQueue, null, new Object(), configuration);
 	}
 	
-	private JobWorkerThread(JobQueue jobQueue, JobWorkerThread parent, Object threadHolder) {
+	private JobWorkerThread(JobQueue jobQueue, JobWorkerThread parent, Object threadHolder,
+			ClientConfiguration configuration) {
 		super("jobworker-" + threadNumber.getAndIncrement());
 		setDaemon(true);
 		this.parent = parent;
@@ -48,9 +51,14 @@ import org.slf4j.LoggerFactory;
 		isParent = parent == null;
 		
 		if (isParent) {
+			ClientProperties properties = configuration.getConfigProperties();
+			threadsCount = properties.getInteger("core.jobqueue.threads");
+			jobPerWorker = properties.getInteger("core.jobqueue.job_per_worker");
 			childThreads = new ArrayList<JobWorkerThread>();
 			serializeQueue = new ConcurrentLinkedQueue<Runnable>();
 		} else {
+			threadsCount = parent.threadsCount;
+			jobPerWorker = parent.jobPerWorker;
 			serializeQueue = parent.serializeQueue;
 		}
 		
@@ -71,20 +79,18 @@ import org.slf4j.LoggerFactory;
 	public void run() {
 		if (isParent) {
 			jobQueue.setJobWorkerThread(threadHolder);
-		}
-		
-		while (isCanceled == false) {
-			int queueSize = jobQueue.size();
-			// no synchronizing
-			if (isParent && queueSize > childThreads.size() * JOB_PER_A_WORKER) {
-				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder);
+			
+			// 設定された数だけワーカーを追加
+			for (int i = 1; i < threadsCount; i++) {
+				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder, null);
 				synchronized (childThreads) {
 					childThreads.add(workerThread);
 				}
 				workerThread.start();
-			} else if (isParent == false && queueSize == 0) {
-				return; // if i am child thread and what have to do is nothing, exit thread.
 			}
+		}
+		
+		while (isCanceled == false) {
 			Runnable job = null;
 			if (isParent) { // check serializeQueue
 				job = serializeQueue.poll();

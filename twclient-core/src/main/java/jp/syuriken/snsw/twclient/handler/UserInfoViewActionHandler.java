@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
@@ -67,6 +68,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		 * @author $Author$
 		 */
 		public class UserInfoTweetsRenderer extends DefaultRenderer {
+			
+			private final TreeSet<Long> treeSet = new TreeSet<Long>();
+			
 			
 			@Override
 			public void onBlock(User source, User blockedUser) {
@@ -141,6 +145,13 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			@Override
 			public void onStatus(Status originalStatus) {
 				if (originalStatus.getUser().getId() == user.getId()) {
+					synchronized (treeSet) {
+						if (treeSet.contains(originalStatus.getId())) {
+							return;
+						}
+						
+						treeSet.add(originalStatus.getId());
+					}
 					addStatus(originalStatus);
 				}
 			}
@@ -539,6 +550,50 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 	}
 	
+	/**
+	 * ユーザータイムラインfetcher
+	 * 
+	 * @author $Author$
+	 */
+	private final class UserTimelineFetcher extends TwitterRunnable {
+		
+		private final UserInfoFrameTab tab;
+		
+		private final long userId;
+		
+		private final ClientFrameApi api;
+		
+		
+		private UserTimelineFetcher(UserInfoFrameTab tab, long userId, ClientFrameApi api) {
+			this.tab = tab;
+			this.userId = userId;
+			this.api = api;
+		}
+		
+		@Override
+		protected void access() throws TwitterException {
+			ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
+			for (Status status : timeline) {
+				tab.getRenderer().onStatus(status);
+			}
+			for (Status status : getConfiguration().getCacheManager().getStatusSet()) {
+				if (status.getUser().getId() == userId) {
+					tab.getRenderer().onStatus(status);
+				}
+			}
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return api.getClientConfiguration();
+		}
+		
+		@Override
+		protected void handleException(TwitterException ex) {
+			getConfiguration().getRootFilterService().onException(ex);
+		}
+	}
+	
 	
 	private static Logger logger = LoggerFactory.getLogger(UserInfoViewActionHandler.class);
 	
@@ -579,27 +634,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
 		final long userId = user.getId();
-		api.addJob(new TwitterRunnable() {
-			
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
-				for (Status status : timeline) {
-					tab.getRenderer().onStatus(status);
-				}
-				
-			}
-			
-			@Override
-			protected ClientConfiguration getConfiguration() {
-				return api.getClientConfiguration();
-			}
-			
-			@Override
-			protected void handleException(TwitterException ex) {
-				getConfiguration().getRootFilterService().onException(ex);
-			}
-		});
+		api.addJob(new UserTimelineFetcher(tab, userId, api));
 		api.getClientConfiguration().addFrameTab(tab);
 		api.getClientConfiguration().focusFrameTab(tab);
 	}

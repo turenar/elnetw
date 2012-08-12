@@ -223,6 +223,44 @@ public class ClientProperties extends Properties {
 	}
 	
 	/**
+	 * keyに関連付けられた値を利用して、doubleを取得する。
+	 * 
+	 * 書式：double
+	 * @param key キー 
+	 * @return keyに関連付けられたdouble
+	 */
+	public double getDouble(String key) {
+		Double double1 = getCachedValue(key, Double.class);
+		if (double1 != null) {
+			return double1;
+		}
+		
+		String value = getProperty(key);
+		double1 = Double.valueOf(value);
+		cacheValue(key, double1);
+		return double1;
+	}
+	
+	/**
+	 * keyに関連付けられた値を利用して、floatを取得する。
+	 * 
+	 * 書式：float
+	 * @param key キー 
+	 * @return keyに関連付けられたfloat
+	 */
+	public float getFloat(String key) {
+		Float float1 = getCachedValue(key, Float.class);
+		if (float1 != null) {
+			return float1;
+		}
+		
+		String value = getProperty(key);
+		float1 = Float.valueOf(value);
+		cacheValue(key, float1);
+		return float1;
+	}
+	
+	/**
 	 * keyに関連付けられた値を利用して、intを取得する。
 	 * 
 	 * 書式：int
@@ -318,6 +356,28 @@ public class ClientProperties extends Properties {
 	public synchronized void setDimension(String key, Dimension dimension) {
 		clearCachedValue(key);
 		setProperty(key, dimension.width + "," + dimension.height);
+	}
+	
+	/**
+	 * keyにdoubleを関連付ける。
+	 * 
+	 * @param key キー
+	 * @param value 値
+	 */
+	public void setDouble(String key, double value) {
+		clearCachedValue(key);
+		setProperty(key, String.valueOf(value));
+	}
+	
+	/**
+	 * keyにfloatを関連付ける
+	 * 
+	 * @param key キー
+	 * @param value 値
+	 */
+	public void setFloat(String key, float value) {
+		clearCachedValue(key);
+		setProperty(key, String.valueOf(value));
 	}
 	
 	/**
