@@ -114,12 +114,16 @@ public class TimelineViewTab extends DefaultClientTab {
 			String exString;
 			if (ex instanceof TwitterException) {
 				TwitterException twex = (TwitterException) ex;
-				exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
+				if (twex.isCausedByNetworkIssue()) {
+					exString = twex.getCause().toString();
+				} else {
+					exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
+				}
 			} else {
 				exString = ex.toString();
-				if (exString.length() > 256) {
-					exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
-				}
+			}
+			if (exString.length() > 256) {
+				exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
 			}
 			statusData.data = new JLabel(exString);
 			addStatus(statusData);

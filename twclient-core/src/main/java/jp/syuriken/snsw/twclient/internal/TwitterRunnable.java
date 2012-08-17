@@ -4,7 +4,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import twitter4j.TwitterException;
 
 /**
- * 503のときに再試行するユーティリティクラス。
+ * Twitterがダウンしてる時か過負荷のときに再試行するユーティリティクラス。
  * 
  * @author $Author$
  */
@@ -58,7 +58,9 @@ public abstract class TwitterRunnable implements Runnable {
 		try {
 			access();
 		} catch (TwitterException ex) {
-			if (ex.getStatusCode() == 503 && life >= 0) {
+			int statusCode = ex.getStatusCode();
+			if ((502 <= statusCode && statusCode <= 504) && life >= 0) {
+				// Twitter is down or overloaded
 				if (intoQueue) {
 					getConfiguration().getFrameApi().addJob(this);
 				} else {

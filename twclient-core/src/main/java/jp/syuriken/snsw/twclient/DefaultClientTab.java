@@ -428,7 +428,7 @@ public abstract class DefaultClientTab implements ClientTab {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
+									new Point(viewPosition.x, viewPosition.y + (iconSize.height + 3) * size));
 						}
 					}
 				}
@@ -617,8 +617,9 @@ public abstract class DefaultClientTab implements ClientTab {
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
-		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
-		iconSize = new Dimension(64, fontHeight);
+		int height = Math.max(18, fontHeight);
+		linePanelSizeOfSentBy = new Dimension(str12width, height);
+		iconSize = new Dimension(64, height);
 		frameApi.getTimer().schedule(new PostListUpdater(), configData.intervalOfPostListUpdate,
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
@@ -708,20 +709,20 @@ public abstract class DefaultClientTab implements ClientTab {
 		linePanel.setLayout(layout);
 		linePanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 		statusData.image.setInheritsPopupMenu(true);
-		statusData.image.setFocusable(true);
+		statusData.image.setFocusable(false);
 		statusData.image.setMinimumSize(iconSize);
 		statusData.image.setMaximumSize(iconSize);
 		linePanel.add(statusData.image);
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.sentBy.setInheritsPopupMenu(true);
-		statusData.sentBy.setFocusable(true);
+		statusData.sentBy.setFocusable(false);
 		statusData.sentBy.setMinimumSize(linePanelSizeOfSentBy);
 		statusData.sentBy.setMaximumSize(linePanelSizeOfSentBy);
 		statusData.sentBy.setFont(frameApi.getDefaultFont());
 		linePanel.add(statusData.sentBy);
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.data.setInheritsPopupMenu(true);
-		statusData.data.setFocusable(true);
+		statusData.data.setFocusable(false);
 		statusData.data.setFont(frameApi.getDefaultFont());
 		int dataWidth = fontMetrics.stringWidth(statusData.data.getText());
 		
@@ -732,12 +733,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		} */
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
-		Dimension minSize =
-				new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
-						+ PADDING_OF_POSTLIST);
+		int height = iconSize.height + PADDING_OF_POSTLIST;
+		Dimension minSize = new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, height);
 		linePanel.setMinimumSize(minSize);
 		linePanel.setPreferredSize(minSize);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
@@ -887,7 +887,11 @@ public abstract class DefaultClientTab implements ClientTab {
 					((JLabel) statusData.image).getIcon());
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
-			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage());
+			Throwable handlingException = ex;
+			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage()).append("<br><br>");
+			while (null != (handlingException = handlingException.getCause())) {
+				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
+			}
 			nl2br(stringBuilder, 0);
 			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
 					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
@@ -983,14 +987,31 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
-	 * ステータスを削除する (未実装)
+	 * ステータスを削除する
 	 * 
 	 * @param statusData ステータスデータ
-	 * @param delay 遅延秒
 	 */
-	public void removeStatus(StatusData statusData, int delay) {
-		// TODO Auto-generated method stub
-		
+	public void removeStatus(StatusData statusData) {
+		StatusPanel panel = statusMap.get(statusData.id);
+		if (panel != null) {
+			getSortedPostListPanel().remove(panel);
+		}
+	}
+	
+	/**
+	 * ステータスを削除する
+	 * 
+	 * @param statusData ステータスデータ
+	 * @param delay 遅延ミリ秒
+	 */
+	public void removeStatus(final StatusData statusData, int delay) {
+		frameApi.getTimer().schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				removeStatus(statusData);
+			}
+		}, delay);
 	}
 	
 }

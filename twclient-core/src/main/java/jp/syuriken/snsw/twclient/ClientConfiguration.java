@@ -193,6 +193,9 @@ public class ClientConfiguration {
 	
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
 	
+	/** 環境依存の改行コード */
+	public static final String NEW_LINE = System.getProperty("line.separator");
+	
 	private volatile CacheManager cacheManager;
 	
 	private Object lockObject = new Object();
