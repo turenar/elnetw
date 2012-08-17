@@ -92,6 +92,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -927,21 +928,34 @@ import twitter4j.UserMentionEntity;
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
+			int entitiesLen;
 			HashtagEntity[] hashtagEntities = status.getOriginalStatus().getHashtagEntities();
-			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
+			entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
 			URLEntity[] urlEntities = status.getOriginalStatus().getURLEntities();
-			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
+			entitiesLen += urlEntities == null ? 0 : urlEntities.length;
+			MediaEntity[] mediaEntities = status.getOriginalStatus().getMediaEntities();
+			entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
 			UserMentionEntity[] mentionEntities = status.getOriginalStatus().getUserMentionEntities();
-			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
-			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
+			entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
+			Object[] entities = new Object[entitiesLen];
 			
-			if (entities.length != 0) {
+			if (entitiesLen != 0) {
 				int copyOffset = 0;
-				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
-				copyOffset += hashtagEntities.length;
-				System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
-				copyOffset += urlEntities.length;
-				System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+				if (hashtagEntities != null) {
+					System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
+					copyOffset += hashtagEntities.length;
+				}
+				if (urlEntities != null) {
+					System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
+					copyOffset += urlEntities.length;
+				}
+				if (mediaEntities != null) {
+					System.arraycopy(mediaEntities, 0, entities, copyOffset, mediaEntities.length);
+					copyOffset += mediaEntities.length;
+				}
+				if (mentionEntities != null) {
+					System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+				}
 			}
 			Arrays.sort(entities, new Comparator<Object>() {
 				
@@ -962,7 +976,7 @@ import twitter4j.UserMentionEntity;
 					end = TwitterStatus.getEntityEnd(hashtagEntity);
 					replaceText = null;
 					url = "http://command/hashtag!" + hashtagEntity.getText();
-				} else if (entity instanceof URLEntity) {
+				} else if (entity instanceof URLEntity) { // MediaEntity is URLEntity's subclass
 					URLEntity urlEntity = (URLEntity) entity;
 					url = urlEntity.getURL().toExternalForm();
 					start = TwitterStatus.getEntityStart(urlEntity);
