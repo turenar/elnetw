@@ -188,7 +188,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 						.getName());
 			String createdAt = dateFormat.get().format(directMessage.getCreatedAt());
 			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, null,
-					((JLabel) statusData.image).getIcon());
+					((JLabel) statusData.image).getIcon(), null);
 		} else {
 			throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
 		}

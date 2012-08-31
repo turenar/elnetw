@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Timer;
 
 import javax.swing.Icon;
+import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -232,7 +233,7 @@ class TestFrameApi implements ClientFrameApi {
 	
 	@Override
 	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon) {
+			String createdAtToolTip, Icon icon, JPanel panel) {
 	}
 	
 	@Override

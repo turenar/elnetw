@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -238,6 +240,64 @@ import twitter4j.User;
 			}
 		}
 		
+	}
+	
+	/**
+	 * JLabel および JEditorPane用
+	 * 
+	 * @author $Author$
+	 */
+	private final class DefaultHyperlinkListener implements HyperlinkListener, MouseListener {
+		
+		@Override
+		public void hyperlinkUpdate(HyperlinkEvent e) {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				String url = e.getURL().toString();
+				if (url.startsWith("http://command/")) {
+					String command = url.substring("http://command/".length());
+					selectingTab.handleAction(command);
+				} else {
+					try {
+						configuration.getUtility().openBrowser(url);
+					} catch (Exception e1) {
+						e1.printStackTrace(); //TODO
+					}
+				}
+			}
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (tweetViewingTab != null) {
+				tweetViewingTab.getRenderer().onClientMessage(ClientMessageListener.REQUEST_BROWSER_PERMALINK, null);
+			}
+		}
+		
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			Component component = e.getComponent();
+			if (component instanceof JLabel) {
+				JLabel label = (JLabel) e.getComponent();
+				label.setForeground(Color.BLUE);
+			}
+		}
+		
+		@Override
+		public void mouseExited(MouseEvent e) {
+			Component component = e.getComponent();
+			if (component instanceof JLabel) {
+				JLabel label = (JLabel) e.getComponent();
+				label.setForeground(Color.BLACK);
+			}
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
+		}
 	}
 	
 	/**
@@ -552,6 +612,12 @@ import twitter4j.User;
 	
 	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 	
+	private DefaultHyperlinkListener tweetViewListener = new DefaultHyperlinkListener();
+	
+	private ClientTab tweetViewingTab;
+	
+	private JPanel operationPanelContainer;
+	
 	
 	/** 
 	 * Creates new form TwitterClientFrame 
@@ -834,7 +900,7 @@ import twitter4j.User;
 							layout.createSequentialGroup()
 								.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(getTweetViewPanel(), 64, 64, Short.MAX_VALUE)));
+								.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
 			
 		}
 		return editPanel;
@@ -1024,6 +1090,7 @@ import twitter4j.User;
 		if (tweetViewDateLabel == null) {
 			tweetViewDateLabel = new JLabel();
 			tweetViewDateLabel.setText("2012/1/1 00:00:00");
+			tweetViewDateLabel.addMouseListener(tweetViewListener);
 		}
 		return tweetViewDateLabel;
 	}
@@ -1046,27 +1113,16 @@ import twitter4j.User;
 					return viewFactory;
 				}
 			});
-			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
-				
-				@Override
-				public void hyperlinkUpdate(HyperlinkEvent e) {
-					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						String url = e.getURL().toString();
-						if (url.startsWith("http://command/")) {
-							String command = url.substring("http://command/".length());
-							selectingTab.handleAction(command);
-						} else {
-							try {
-								configuration.getUtility().openBrowser(url);
-							} catch (Exception e1) {
-								e1.printStackTrace(); //TODO
-							}
-						}
-					}
-				}
-			});
+			tweetViewEditorPane.addHyperlinkListener(tweetViewListener);
 		}
 		return tweetViewEditorPane;
+	}
+	
+	private JPanel getTweetViewOperationPanelContainer() {
+		if (operationPanelContainer == null) {
+			operationPanelContainer = new JPanel();
+		}
+		return operationPanelContainer;
 	}
 	
 	private JPanel getTweetViewPanel() {
@@ -1076,36 +1132,46 @@ import twitter4j.User;
 			tweetViewPanel.setLayout(layout);
 			layout.setVerticalGroup( //
 				layout
-					.createSequentialGroup()
-					.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
-						.addComponent(getTweetViewSourceLabel(), Alignment.LEADING) //
-						.addComponent(getTweetViewDateLabel(), Alignment.LEADING))
-					.addContainerGap()
-					.addGroup(
-							layout
-								.createParallelGroup(Alignment.LEADING)
-								.addGroup(
-										layout.createSequentialGroup()
-										
-										.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
-												GroupLayout.PREFERRED_SIZE))
-								.addComponent(getTweetViewScrollPane(), Alignment.LEADING)));
-			layout.setHorizontalGroup( //
-				layout
-					.createParallelGroup(Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup() // 
-						.addComponent(getTweetViewSourceLabel()) //
-						.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
-						.addComponent(getTweetViewDateLabel()))
+					.createParallelGroup()
 					.addGroup(
 							layout
 								.createSequentialGroup()
-								.addGap(4, 4, 4)
-								.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(4, 4, 4)
-								.addComponent(getTweetViewScrollPane(), GroupLayout.PREFERRED_SIZE, 200,
-										Short.MAX_VALUE)));
+								.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
+									.addComponent(getTweetViewSourceLabel(), Alignment.LEADING) //
+									.addComponent(getTweetViewDateLabel(), Alignment.LEADING))
+								.addContainerGap()
+								.addGroup(
+										layout
+											.createParallelGroup(Alignment.LEADING)
+											.addGroup(
+													layout.createSequentialGroup()
+													
+													.addComponent(getTweetViewUserIconLabel(),
+															GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE))
+											.addComponent(getTweetViewScrollPane(), Alignment.LEADING)))
+					.addComponent(getTweetViewOperationPanelContainer(), Alignment.CENTER, 0,
+							GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE));
+			layout.setHorizontalGroup( //
+				layout
+					.createSequentialGroup()
+					.addGroup(
+							layout
+								.createParallelGroup(Alignment.LEADING)
+								.addGroup(layout.createSequentialGroup() // 
+									.addComponent(getTweetViewSourceLabel()) //
+									.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
+									.addComponent(getTweetViewDateLabel()))
+								.addGroup(
+										layout
+											.createSequentialGroup()
+											.addGap(4, 4, 4)
+											.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
+													GroupLayout.PREFERRED_SIZE)
+											.addGap(4, 4, 4)
+											.addComponent(getTweetViewScrollPane(), GroupLayout.PREFERRED_SIZE, 200,
+													Short.MAX_VALUE)))
+					.addComponent(getTweetViewOperationPanelContainer(), 0, GroupLayout.PREFERRED_SIZE,
+							GroupLayout.PREFERRED_SIZE));
 		}
 		return tweetViewPanel;
 	}
@@ -1403,13 +1469,20 @@ import twitter4j.User;
 	
 	@Override
 	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon) {
+			String createdAtToolTip, Icon icon, JPanel operationPanel) {
+		tweetViewingTab = selectingTab;
 		getTweetViewEditorPane().setText(tweetData);
 		getTweetViewSourceLabel().setText(createdBy);
 		getTweetViewSourceLabel().setToolTipText(createdByToolTip);
 		getTweetViewDateLabel().setText(createdAt);
 		getTweetViewDateLabel().setToolTipText(createdAtToolTip);
 		getTweetViewUserIconLabel().setIcon(icon);
+		logger.debug("operationPanelContainer size={}", operationPanelContainer.getSize());
+		operationPanelContainer.removeAll();
+		if (operationPanel != null) {
+			operationPanelContainer.add(operationPanel);
+		}
+		getTweetViewPanel().revalidate();
 	}
 	
 	/**

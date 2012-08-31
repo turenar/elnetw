@@ -67,6 +67,12 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	/** 選択しているポストに含まれるURLをすべて開く (arg: なし) */
 	public static final String REQUEST_BROWSER_OPENURLS = "browser urls";
 	
+	/** 
+	 * 選択しているポストの一意URLを開く (arg: なし) 
+	 * ツイートビューから呼ばれる。
+	 */
+	public static final String REQUEST_BROWSER_PERMALINK = "browser permalink";
+	
 	
 	/**
 	 * アカウント変更
@@ -76,7 +82,7 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	void onChangeAccount(boolean forWrite);
 	
 	/**
-	 * core等が発する情報をキャッチする。この関数は自由に使えますが、間違ってもあらゆる情報をキャッチするようにはしないでください。
+	 * core等が発する情報をキャッチする。この関数は自由に使えます。
 	 * 
 	 * @param name リクエスト名。この名前で区別するのでできるだけFQCNなどで記述すると衝突の可能性が少なくなります。
 	 * @param arg 引数。Stringが投げられると過信してはいけません。

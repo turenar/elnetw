@@ -16,8 +16,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,8 +30,11 @@ import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -38,6 +43,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
@@ -209,7 +218,8 @@ public abstract class DefaultClientTab implements ClientTab {
 						utility.openBrowser(url);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_STATUS)) {
+			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_STATUS)
+					|| Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_PERMALINK)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -601,6 +611,37 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
 	
+	private JPanel tweetViewOperationPanel;
+	
+	private JLabel tweetViewFavoriteButton;
+	
+	private JLabel tweetViewRetweetButton;
+	
+	private JLabel tweetViewReplyButton;
+	
+	private JLabel tweetViewOtherButton;
+	
+	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
+	public static final ImageIcon IMG_FAV_OFF;
+	
+	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_ON;
+	
+	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_HOVER;
+	
+	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+	
+	static {
+		try {
+			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
+			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
+			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が正常に読み込めませんでした");
+		}
+	}
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -624,6 +665,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+		
 		kineticScroller = new MomemtumScroller(getScrollPane(), new BoundsTranslator() {
 			
 			@Override
@@ -639,7 +681,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		Status twitterStatus = new TwitterStatus(configuration, originalStatus);
+		Status twitterStatus =
+				originalStatus instanceof TwitterStatus ? originalStatus : new TwitterStatus(configuration,
+						originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
@@ -792,8 +836,8 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof TwitterStatus) {
-			TwitterStatus status = (TwitterStatus) statusData.tag;
-			status = status.isRetweet() ? status.getRetweetedStatus() : status;
+			TwitterStatus originalStatus = (TwitterStatus) statusData.tag;
+			TwitterStatus status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
@@ -874,8 +918,18 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 			nl2br(stringBuilder, escapedText.substring(offset));
 			String tweetText = stringBuilder.toString();
-			String createdBy =
-					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
+			String createdBy;
+			if (originalStatus.isRetweet()) {
+				createdBy =
+						MessageFormat.format(
+								"<html>@{0} ({1}) <small style='color:#33cc33;'>[Retweeted by @{2} ({3})]</small>",
+								status.getUser().getScreenName(), status.getUser().getName(), originalStatus.getUser()
+									.getScreenName(), originalStatus.getUser().getName());
+			} else {
+				createdBy =
+						MessageFormat
+							.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
+			}
 			String source = status.getSource();
 			int tagIndexOf = source.indexOf('>');
 			int tagLastIndexOf = source.lastIndexOf('<');
@@ -883,8 +937,14 @@ public abstract class DefaultClientTab implements ClientTab {
 					MessageFormat.format("from {0}",
 							source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
 			String createdAt = dateFormat.get().format(status.getCreatedAt());
+			
+			if (status.isFavorited()) {
+				getTweetViewFavoriteButton().setIcon(IMG_FAV_ON);
+			} else {
+				getTweetViewFavoriteButton().setIcon(IMG_FAV_OFF);
+			}
 			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, createdAtToolTip,
-					((JLabel) statusData.image).getIcon());
+					((JLabel) statusData.image).getIcon(), getTweetViewOperationPanel());
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
 			Throwable handlingException = ex;
@@ -894,10 +954,10 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 			nl2br(stringBuilder, 0);
 			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon(), null);
 		} else {
 			frameApi.setTweetViewText(statusData.data.getText(), statusData.user, null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon(), null);
 		}
 	}
 	
@@ -969,6 +1029,173 @@ public abstract class DefaultClientTab implements ClientTab {
 	@Override
 	public JComponent getTabComponent() {
 		return getScrollPane();
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するふぁぼボタン
+	 * 
+	 * @return ふぁぼボタン
+	 */
+	protected JLabel getTweetViewFavoriteButton() {
+		if (tweetViewFavoriteButton == null) {
+			tweetViewFavoriteButton = new JLabel(IMG_FAV_OFF, SwingConstants.CENTER);
+			tweetViewFavoriteButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewFavoriteButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.addAncestorListener(new AncestorListener() {
+				
+				@Override
+				public void ancestorAdded(AncestorEvent event) {
+					ancestorMoved(event);
+				}
+				
+				@Override
+				public void ancestorMoved(AncestorEvent event) {
+					if (selectingPost != null && selectingPost.getStatusData().tag instanceof Status) {
+						Status status = (Status) selectingPost.getStatusData().tag;
+						if (status.isFavorited()) {
+							tweetViewFavoriteButton.setIcon(IMG_FAV_ON);
+						} else {
+							tweetViewFavoriteButton.setIcon(IMG_FAV_OFF);
+						}
+					}
+				}
+				
+				@Override
+				public void ancestorRemoved(AncestorEvent event) {
+					ancestorMoved(event);
+				}
+			});
+			tweetViewFavoriteButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					mouseExited(e);
+					handleAction("fav");
+				}
+				
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					tweetViewFavoriteButton.setIcon(IMG_FAV_HOVER);
+				}
+				
+				@Override
+				public void mouseExited(MouseEvent e) {
+					Status status = (Status) selectingPost.getStatusData().tag;
+					if (status.isFavorited()) {
+						tweetViewFavoriteButton.setIcon(IMG_FAV_ON);
+					} else {
+						tweetViewFavoriteButton.setIcon(IMG_FAV_OFF);
+					}
+				}
+			});
+			
+		}
+		return tweetViewFavoriteButton;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するボタンの集まり
+	 * 
+	 * @return ボタンの集まり
+	 */
+	protected JPanel getTweetViewOperationPanel() {
+		if (tweetViewOperationPanel == null) {
+			tweetViewOperationPanel = new JPanel();
+			tweetViewOperationPanel.setPreferredSize(new Dimension(76, 76));
+			tweetViewOperationPanel.setMinimumSize(new Dimension(76, 76));
+			GroupLayout layout = new GroupLayout(tweetViewOperationPanel);
+			layout.setHorizontalGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+				.addGroup(
+						layout.createSequentialGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+			layout.setVerticalGroup(layout
+				.createSequentialGroup()
+				.addGroup(
+						layout.createParallelGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+				.addGroup(
+						layout.createParallelGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+		}
+		return tweetViewOperationPanel;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するその他用ボタン
+	 * 
+	 * @return その他用ボタン
+	 */
+	protected JLabel getTweetViewOtherButton() {
+		if (tweetViewOtherButton == null) {
+			tweetViewOtherButton = new JLabel("？", SwingConstants.CENTER);
+			tweetViewOtherButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewOtherButton.setToolTipText("ユーザー情報を見る");
+			tweetViewOtherButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("userinfo");
+				}
+			});
+		}
+		return tweetViewOtherButton;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するリプライボタン
+	 * 
+	 * @return リプライボタン
+	 */
+	protected JLabel getTweetViewReplyButton() {
+		if (tweetViewReplyButton == null) {
+			tweetViewReplyButton = new JLabel("Re", SwingConstants.CENTER);
+			tweetViewReplyButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewReplyButton.setToolTipText("@返信を行う");
+			tweetViewReplyButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("reply");
+				}
+			});
+		}
+		return tweetViewReplyButton;
+	}
+	
+	/**
+	* ツイートビューの隣に表示するリツイートボタン
+	* 
+	* @return リツイートボタン
+	*/
+	protected JLabel getTweetViewRetweetButton() {
+		if (tweetViewRetweetButton == null) {
+			tweetViewRetweetButton = new JLabel("RT", SwingConstants.CENTER);
+			tweetViewRetweetButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewRetweetButton.setToolTipText("公式リツイート");
+			tweetViewRetweetButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("rt");
+				}
+			});
+		}
+		return tweetViewRetweetButton;
 	}
 	
 	@Override

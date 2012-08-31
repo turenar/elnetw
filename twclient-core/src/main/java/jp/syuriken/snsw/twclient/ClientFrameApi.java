@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.util.Timer;
 
 import javax.swing.Icon;
+import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
@@ -252,8 +253,9 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @param createdAt 作成日時等
 	 * @param createdAtToolTip 作成日時のLabelのTooltip
 	 * @param icon アイコン 
+	 * @param operationPanel 操作用パネル
 	 */
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon);
+			String createdAtToolTip, Icon icon, JPanel operationPanel);
 	
 }
