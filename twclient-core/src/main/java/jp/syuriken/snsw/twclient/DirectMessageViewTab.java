@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.text.MessageFormat;
@@ -75,9 +77,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			JLabel statusText =
 					new JLabel("(to @" + directMessage.getRecipientScreenName() + ") " + directMessage.getText());
 			statusData.data = statusText;
-			
 			statusData.popupMenu = tweetPopupMenu;
-			
 			addStatus(statusData);
 		}
 		
@@ -183,12 +183,15 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			nl2br(newBuffer);
 			String tweetText = newBuffer.toString();
 			String createdBy =
-					MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSenderScreenName(), directMessage
-						.getSender().getName(), directMessage.getRecipientScreenName(), directMessage.getRecipient()
-						.getName());
+					MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSender().getScreenName(),
+							directMessage.getSender().getName(), directMessage.getRecipient().getScreenName(),
+							directMessage.getRecipient().getName());
 			String createdAt = dateFormat.get().format(directMessage.getCreatedAt());
-			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, null,
-					((JLabel) statusData.image).getIcon(), null);
+			frameApi.clearTweetView();
+			frameApi.setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), createdBy, null,
+					DO_NOTHING_WHEN_POINTED);
 		} else {
 			throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
 		}

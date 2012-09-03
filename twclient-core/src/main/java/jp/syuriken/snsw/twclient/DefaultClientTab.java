@@ -1,5 +1,9 @@
 package jp.syuriken.snsw.twclient;
 
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -34,6 +38,7 @@ import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -123,7 +128,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				} else {
 					getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_PREV_COMPONENT)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -133,7 +138,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						arrayList.get(indexOf + 1).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -143,16 +148,16 @@ public abstract class DefaultClientTab implements ClientTab {
 						arrayList.get(indexOf - 1).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_FIRST_COMPONENT)) {
 				getSortedPostListPanel().requestFocusFirstComponent();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
 				getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
 					.requestFocusInWindow();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
 				JViewport viewport = getScrollPane().getViewport();
 				getSortedPostListPanel().getComponentAt(0, viewport.getViewPosition().y + viewport.getHeight())
 					.requestFocusInWindow();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST)) {
+			} else if (Utility.equalString(name, REQUEST_SCROLL_AS_WINDOW_LAST)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -162,7 +167,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					int y = bounds.y - (viewport.getHeight() - bounds.height);
 					viewport.setViewPosition(new Point(x, y));
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_IN_REPLY_TO)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -173,7 +178,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						statusMap.get(tag.getInReplyToStatusId()).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_BACK_REPLIED_BY)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -181,14 +186,14 @@ public abstract class DefaultClientTab implements ClientTab {
 						inReplyToStack.pop().requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY)) {
+			} else if (Utility.equalString(name, REQUEST_COPY)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
 					StringSelection stringSelection = new StringSelection(statusData.data.getText());
 					clipboard.setContents(stringSelection, stringSelection);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_URL)) {
+			} else if (Utility.equalString(name, REQUEST_COPY_URL)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -201,14 +206,14 @@ public abstract class DefaultClientTab implements ClientTab {
 						clipboard.setContents(stringSelection, stringSelection);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_USERID)) {
+			} else if (Utility.equalString(name, REQUEST_COPY_USERID)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
 					StringSelection stringSelection = new StringSelection(statusData.user);
 					clipboard.setContents(stringSelection, stringSelection);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_USER_HOME)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_USER_HOME)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -218,8 +223,9 @@ public abstract class DefaultClientTab implements ClientTab {
 						utility.openBrowser(url);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_STATUS)
-					|| Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_PERMALINK)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_STATUS)
+					|| Utility.equalString(name, REQUEST_BROWSER_PERMALINK)
+					|| Utility.equalString(name, EVENT_CLICKED_CREATED_AT)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -230,7 +236,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						utility.openBrowser(url);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_IN_REPLY_TO)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_IN_REPLY_TO)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -243,7 +249,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						}
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_OPENURLS)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_OPENURLS)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -251,6 +257,27 @@ public abstract class DefaultClientTab implements ClientTab {
 						URLEntity[] urlEntities = status.getURLEntities();
 						for (URLEntity urlEntity : urlEntities) {
 							utility.openBrowser(urlEntity.getURL().toString());
+						}
+					}
+				}
+			} else if (Utility.equalString(name, EVENT_CLICKED_CREATED_BY)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						if (status.isRetweet()) {
+							status = status.getRetweetedStatus();
+						}
+						handleAction("userinfo!" + status.getUser().getScreenName());
+					}
+				}
+			} else if (Utility.equalString(name, EVENT_CLICKED_OVERLAY_LABEL)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						if (status.isRetweet()) {
+							handleAction("userinfo!" + status.getUser().getScreenName());
 						}
 					}
 				}
@@ -536,11 +563,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			stringBuilder.replace(position, position + 1, "&nbsp;");
 			offset = position + 1;
 		}
-		offset = start;
+		/*offset = start;
 		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
 			stringBuilder.replace(position, position + 5, "&amp;amp;");
 			offset = position + 9;
-		}
+		}*/
 	}
 	
 	/**
@@ -919,17 +946,8 @@ public abstract class DefaultClientTab implements ClientTab {
 			nl2br(stringBuilder, escapedText.substring(offset));
 			String tweetText = stringBuilder.toString();
 			String createdBy;
-			if (originalStatus.isRetweet()) {
-				createdBy =
-						MessageFormat.format(
-								"<html>@{0} ({1}) <small style='color:#33cc33;'>[Retweeted by @{2} ({3})]</small>",
-								status.getUser().getScreenName(), status.getUser().getName(), originalStatus.getUser()
-									.getScreenName(), originalStatus.getUser().getName());
-			} else {
-				createdBy =
-						MessageFormat
-							.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
-			}
+			createdBy =
+					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 			String source = status.getSource();
 			int tagIndexOf = source.indexOf('>');
 			int tagLastIndexOf = source.lastIndexOf('<');
@@ -937,14 +955,25 @@ public abstract class DefaultClientTab implements ClientTab {
 					MessageFormat.format("from {0}",
 							source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
 			String createdAt = dateFormat.get().format(status.getCreatedAt());
-			
+			String overlayString;
+			if (originalStatus.isRetweet()) {
+				overlayString =
+						"<html><span style='color:#33cc33;'>Retweeted by @" + originalStatus.getUser().getScreenName()
+								+ " (" + originalStatus.getUser().getName() + ")</span>";
+			} else {
+				overlayString = null;
+			}
 			if (status.isFavorited()) {
 				getTweetViewFavoriteButton().setIcon(IMG_FAV_ON);
 			} else {
 				getTweetViewFavoriteButton().setIcon(IMG_FAV_OFF);
 			}
-			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, createdAtToolTip,
-					((JLabel) statusData.image).getIcon(), getTweetViewOperationPanel());
+			Icon userProfileIcon = ((JLabel) statusData.image).getIcon();
+			frameApi.clearTweetView();
+			frameApi.setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+			frameApi.setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+			frameApi.setTweetViewText(tweetText, overlayString, UNDERLINE);
+			frameApi.setTweetViewOperationPanel(getTweetViewOperationPanel());
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
 			Throwable handlingException = ex;
@@ -953,11 +982,17 @@ public abstract class DefaultClientTab implements ClientTab {
 				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 			}
 			nl2br(stringBuilder, 0);
-			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon(), null);
+			frameApi.clearTweetView();
+			frameApi.setTweetViewText(stringBuilder.toString(), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(dateFormat.get().format(statusData.date), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), ex.getClass().getName(), null,
+					DO_NOTHING_WHEN_POINTED);
 		} else {
-			frameApi.setTweetViewText(statusData.data.getText(), statusData.user, null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon(), null);
+			frameApi.clearTweetView();
+			frameApi.setTweetViewText(statusData.data.getText(), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(dateFormat.get().format(statusData.date), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), statusData.user, null,
+					DO_NOTHING_WHEN_POINTED);
 		}
 	}
 	
@@ -1200,7 +1235,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	@Override
 	public void handleAction(String command) {
-		frameApi.handleAction(command, selectingPost.getStatusData());
+		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
 	}
 	
 	/**

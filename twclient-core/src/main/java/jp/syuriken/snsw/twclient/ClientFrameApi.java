@@ -22,6 +22,16 @@ import twitter4j.User;
  */
 public interface ClientFrameApi extends TweetLengthUpdater {
 	
+	/** ポインタ時にはforegroundをblueに設定する */
+	public static final int SET_FOREGROUND_COLOR_BLUE = 1;
+	
+	/** ポインタ時にはunderlineを引く */
+	public static final int UNDERLINE = (1 << 1);
+	
+	/** ポインタ時に何もしない */
+	public static final int DO_NOTHING_WHEN_POINTED = 0;
+	
+	
 	/**
 	 * アクションハンドラを追加する
 	 * 
@@ -54,6 +64,11 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @see Utility#toKeyString(int, int, boolean)
 	 */
 	void addShortcutKey(String keyCode, String actionName);
+	
+	/**
+	 * ツイートビューをクリアする。
+	 */
+	void clearTweetView();
 	
 	/**
 	 * すでに入力されている内容を用いて投稿を行う。
@@ -245,6 +260,47 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	String setPostText(String text, int selectingStart, int selectingEnd);
 	
 	/**
+	 * ツイートビューの右上のJLabelに表示する
+	 * 
+	 * @param createdAt 作成日時等
+	 * @param toolTip 作成日時のLabelのTooltip
+	 * @param pointedAction ポインタ時の動作。
+	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *   ないしこれらのビット和で表してください。
+	 */
+	void setTweetViewCreatedAt(String createdAt, String toolTip, int pointedAction);
+	
+	/**
+	 * ツイートビューの左上のJLabelに表示する
+	 * 
+	 * @param createdBy 作成者
+	 * @param toolTip 作成者のLabelのTooltip
+	 * @param icon アイコン 
+	 * @param pointedAction ポインタ時の動作。
+	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *   ないしこれらのビット和で表してください。
+	 */
+	void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int pointedAction);
+	
+	/**
+	 * ツイートビューの右に操作用パネルを表示する
+	 * 
+	 * @param operationPanel 操作用パネル
+	 */
+	void setTweetViewOperationPanel(JPanel operationPanel);
+	
+	/**
+	 * ツイートビューに文字列を表示する
+	 * 
+	 * @param tweetData ツイートビューのテキスト
+	 * @param overlayString 右下右揃えで表示するオーバーレイ文字列
+	 * @param pointedAction ポインタ時の動作。
+	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *   ないしこれらのビット和で表してください。
+	 */
+	void setTweetViewText(String tweetData, String overlayString, int pointedAction);
+	
+	/**
 	 * ツイートビューに文字列を表示する
 	 * 
 	 * @param tweetData ツイートビューのテキスト
@@ -254,7 +310,14 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @param createdAtToolTip 作成日時のLabelのTooltip
 	 * @param icon アイコン 
 	 * @param operationPanel 操作用パネル
+	 * @deprecated use
+	 *   {@link #clearTweetView()} 
+	 *   {@link #setTweetViewCreatedAt(String, String, int)} 
+	 *   {@link #setTweetViewCreatedBy(Icon, String, String, int)} 
+	 *   {@link #setTweetViewOperationPanel(JPanel)} 
+	 *   {@link #setTweetViewText(String, String, int)}
 	 */
+	@Deprecated
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
 			String createdAtToolTip, Icon icon, JPanel operationPanel);
 	

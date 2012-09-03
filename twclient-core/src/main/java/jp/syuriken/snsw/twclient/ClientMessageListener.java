@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.event.MouseEvent;
+
 import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.UserStreamListener;
 
@@ -72,6 +74,27 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	 * ツイートビューから呼ばれる。
 	 */
 	public static final String REQUEST_BROWSER_PERMALINK = "browser permalink";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewText(String, String, int)}で設定された
+	 * オーバーレイラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent})
+	 */
+	public static final String EVENT_CLICKED_OVERLAY_LABEL = "event overlaylabel clicked";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewCreatedBy(javax.swing.Icon, String, String, int)}で設定された
+	 * createdByラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent}) 
+	 */
+	public static final String EVENT_CLICKED_CREATED_BY = "event createdBy clicked";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewCreatedAt(String, String, int)}で設定された
+	 * createdAtラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent}) 
+	 */
+	public static final String EVENT_CLICKED_CREATED_AT = "event createdAt clicked";
 	
 	
 	/**

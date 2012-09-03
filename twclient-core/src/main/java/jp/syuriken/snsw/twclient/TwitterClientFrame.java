@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
+import static java.lang.Math.max;
+
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
@@ -7,6 +9,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Insets;
+import java.awt.LayoutManager2;
 import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +33,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -36,6 +41,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -247,29 +253,38 @@ import twitter4j.User;
 	 * 
 	 * @author $Author$
 	 */
-	private final class DefaultHyperlinkListener implements HyperlinkListener, MouseListener {
+	private final class DefaultMouseListener implements MouseListener {
 		
-		@Override
-		public void hyperlinkUpdate(HyperlinkEvent e) {
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				String url = e.getURL().toString();
-				if (url.startsWith("http://command/")) {
-					String command = url.substring("http://command/".length());
-					selectingTab.handleAction(command);
-				} else {
-					try {
-						configuration.getUtility().openBrowser(url);
-					} catch (Exception e1) {
-						e1.printStackTrace(); //TODO
-					}
-				}
-			}
-		}
+		private static final String DEL_FTAG = "<!-- del -->";
+		
+		private static final String DEL_ETAG = "<!-- /del -->";
+		
+		private static final String DEL_ALL = "<!-- delbefthis -->";
+		
+		private static final String UNDERLINE_TAG = DEL_FTAG
+				+ "<span style='text-decoration:underline' class='autoinserted'>" + DEL_ETAG;
+		
+		private static final String HTML_UNDERLINE_TAG =
+				"<html><span style='text-decoration:underline' class='autohtmled'>" + DEL_ALL;
+		
+		private static final String END_TAG = DEL_FTAG + "</span>" + DEL_ETAG;
+		
 		
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (tweetViewingTab != null) {
-				tweetViewingTab.getRenderer().onClientMessage(ClientMessageListener.REQUEST_BROWSER_PERMALINK, null);
+				Component component = e.getComponent();
+				String messageName;
+				if (component == tweetViewCreatedAtLabel) {
+					messageName = ClientMessageListener.EVENT_CLICKED_CREATED_AT;
+				} else if (component == tweetViewCreatedByLabel) {
+					messageName = ClientMessageListener.EVENT_CLICKED_CREATED_BY;
+				} else if (component == tweetViewTextOverlayLabel) {
+					messageName = ClientMessageListener.EVENT_CLICKED_OVERLAY_LABEL;
+				} else {
+					return;
+				}
+				tweetViewingTab.getRenderer().onClientMessage(messageName, e);
 			}
 		}
 		
@@ -277,8 +292,32 @@ import twitter4j.User;
 		public void mouseEntered(MouseEvent e) {
 			Component component = e.getComponent();
 			if (component instanceof JLabel) {
-				JLabel label = (JLabel) e.getComponent();
-				label.setForeground(Color.BLUE);
+				JLabel label = (JLabel) component;
+				int flag;
+				if (label == tweetViewCreatedAtLabel) {
+					flag = tweetViewCreatedAtFlag;
+				} else if (label == tweetViewCreatedByLabel) {
+					flag = tweetViewCreatedByFlag;
+				} else if (label == tweetViewTextOverlayLabel) {
+					flag = tweetViewTextOverlayFlag;
+				} else {
+					return;
+				}
+				
+				if ((flag & SET_FOREGROUND_COLOR_BLUE) != 0) {
+					label.setForeground(Color.BLUE);
+				}
+				if ((flag & UNDERLINE) != 0) {
+					StringBuilder stringBuilder = new StringBuilder(label.getText());
+					if (stringBuilder.indexOf("<html>") == 0) {
+						stringBuilder.insert("<html>".length(), UNDERLINE_TAG);
+						stringBuilder.append(END_TAG);
+					} else {
+						stringBuilder.insert(0, HTML_UNDERLINE_TAG);
+						stringBuilder.append(END_TAG);
+					}
+					label.setText(stringBuilder.toString());
+				}
 			}
 		}
 		
@@ -287,7 +326,41 @@ import twitter4j.User;
 			Component component = e.getComponent();
 			if (component instanceof JLabel) {
 				JLabel label = (JLabel) e.getComponent();
-				label.setForeground(Color.BLACK);
+				int flag;
+				if (label == getTweetViewCreatedAtLabel()) {
+					flag = tweetViewCreatedAtFlag;
+				} else if (label == getTweetViewCreatedByLabel()) {
+					flag = tweetViewCreatedByFlag;
+				} else if (label == getTweetViewTextOverlayLabel()) {
+					flag = tweetViewTextOverlayFlag;
+				} else {
+					return;
+				}
+				
+				if ((flag & SET_FOREGROUND_COLOR_BLUE) != 0) {
+					label.setForeground(Color.BLACK);
+				}
+				if ((flag & UNDERLINE) != 0) {
+					StringBuilder stringBuilder = new StringBuilder(label.getText());
+					while (true) {
+						int indexOf = stringBuilder.indexOf(DEL_FTAG);
+						if (indexOf == -1) {
+							break;
+						}
+						int etagStart = stringBuilder.indexOf(DEL_ETAG, indexOf);
+						if (etagStart == -1) {
+							break;
+						}
+						stringBuilder.delete(indexOf, etagStart + DEL_ETAG.length());
+					}
+					{
+						int indexOf = stringBuilder.indexOf(DEL_ALL);
+						if (indexOf != -1) {
+							stringBuilder.delete(0, indexOf + DEL_ALL.length());
+						}
+					}
+					label.setText(stringBuilder.toString());
+				}
 			}
 		}
 		
@@ -586,9 +659,9 @@ import twitter4j.User;
 	
 	private JEditorPane tweetViewEditorPane;
 	
-	private JLabel tweetViewSourceLabel;
+	private JLabel tweetViewCreatedByLabel;
 	
-	private JLabel tweetViewDateLabel;
+	private JLabel tweetViewCreatedAtLabel;
 	
 	private final Object mainThreadHolder;
 	
@@ -612,11 +685,21 @@ import twitter4j.User;
 	
 	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 	
-	private DefaultHyperlinkListener tweetViewListener = new DefaultHyperlinkListener();
+	private DefaultMouseListener tweetViewListener = new DefaultMouseListener();
 	
 	private ClientTab tweetViewingTab;
 	
 	private JPanel operationPanelContainer;
+	
+	private JLayeredPane tweetViewTextLayeredPane;
+	
+	private JLabel tweetViewTextOverlayLabel;
+	
+	private int tweetViewCreatedByFlag;
+	
+	private int tweetViewCreatedAtFlag;
+	
+	private int tweetViewTextOverlayFlag;
 	
 	
 	/** 
@@ -693,6 +776,14 @@ import twitter4j.User;
 		configuration.setShutdownPhase(true);
 		timer.cancel();
 		jobWorkerThread.cleanUp();
+	}
+	
+	@Override
+	public void clearTweetView() {
+		setTweetViewText(null, null, DO_NOTHING_WHEN_POINTED);
+		setTweetViewCreatedAt(null, null, DO_NOTHING_WHEN_POINTED);
+		setTweetViewCreatedBy(null, null, null, DO_NOTHING_WHEN_POINTED);
+		setTweetViewOperationPanel(null);
 	}
 	
 	@Override
@@ -1086,13 +1177,25 @@ import twitter4j.User;
 		return timer;
 	}
 	
-	private JLabel getTweetViewDateLabel() {
-		if (tweetViewDateLabel == null) {
-			tweetViewDateLabel = new JLabel();
-			tweetViewDateLabel.setText("2012/1/1 00:00:00");
-			tweetViewDateLabel.addMouseListener(tweetViewListener);
+	private JLabel getTweetViewCreatedAtLabel() {
+		if (tweetViewCreatedAtLabel == null) {
+			tweetViewCreatedAtLabel = new JLabel();
+			tweetViewCreatedAtLabel.setText("2012/1/1 00:00:00");
+			tweetViewCreatedAtLabel.setHorizontalAlignment(JLabel.RIGHT);
+			tweetViewCreatedAtLabel.setAlignmentX(RIGHT_ALIGNMENT);
+			tweetViewCreatedAtLabel.addMouseListener(tweetViewListener);
 		}
-		return tweetViewDateLabel;
+		return tweetViewCreatedAtLabel;
+	}
+	
+	private JLabel getTweetViewCreatedByLabel() {
+		if (tweetViewCreatedByLabel == null) {
+			tweetViewCreatedByLabel = new JLabel();
+			tweetViewCreatedByLabel.setText("@twclient (仮の名前＠だれか名前考えて)");
+			tweetViewCreatedByLabel.setToolTipText("from 暗黒の調和師");
+			tweetViewCreatedByLabel.addMouseListener(tweetViewListener);
+		}
+		return tweetViewCreatedByLabel;
 	}
 	
 	private JEditorPane getTweetViewEditorPane() {
@@ -1102,7 +1205,6 @@ import twitter4j.User;
 			tweetViewEditorPane.setContentType("text/html");
 			tweetViewEditorPane.setFont(UI_FONT);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
 			tweetViewEditorPane.setEditorKit(new HTMLEditorKit() {
 				
 				private HTMLFactory viewFactory = new HTMLFactoryDelegator();
@@ -1113,7 +1215,26 @@ import twitter4j.User;
 					return viewFactory;
 				}
 			});
-			tweetViewEditorPane.addHyperlinkListener(tweetViewListener);
+			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
+				
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+						String url = e.getURL().toString();
+						if (url.startsWith("http://command/")) {
+							String command = url.substring("http://command/".length());
+							selectingTab.handleAction(command);
+						} else {
+							try {
+								configuration.getUtility().openBrowser(url);
+							} catch (Exception e1) {
+								e1.printStackTrace(); //TODO
+							}
+						}
+					}
+				}
+			});
 		}
 		return tweetViewEditorPane;
 	}
@@ -1137,18 +1258,17 @@ import twitter4j.User;
 							layout
 								.createSequentialGroup()
 								.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
-									.addComponent(getTweetViewSourceLabel(), Alignment.LEADING) //
-									.addComponent(getTweetViewDateLabel(), Alignment.LEADING))
+									.addComponent(getTweetViewCreatedByLabel(), Alignment.LEADING) //
+									.addComponent(getTweetViewCreatedAtLabel(), Alignment.LEADING))
 								.addContainerGap()
 								.addGroup(
 										layout
 											.createParallelGroup(Alignment.LEADING)
 											.addGroup(
-													layout.createSequentialGroup()
-													
-													.addComponent(getTweetViewUserIconLabel(),
-															GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE))
-											.addComponent(getTweetViewScrollPane(), Alignment.LEADING)))
+													layout.createSequentialGroup().addComponent(
+															getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE,
+															48, GroupLayout.PREFERRED_SIZE))
+											.addComponent(getTweetViewTextLayeredPane(), Alignment.LEADING)))
 					.addComponent(getTweetViewOperationPanelContainer(), Alignment.CENTER, 0,
 							GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE));
 			layout.setHorizontalGroup( //
@@ -1158,9 +1278,9 @@ import twitter4j.User;
 							layout
 								.createParallelGroup(Alignment.LEADING)
 								.addGroup(layout.createSequentialGroup() // 
-									.addComponent(getTweetViewSourceLabel()) //
+									.addComponent(getTweetViewCreatedByLabel()) //
 									.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
-									.addComponent(getTweetViewDateLabel()))
+									.addComponent(getTweetViewCreatedAtLabel()))
 								.addGroup(
 										layout
 											.createSequentialGroup()
@@ -1168,30 +1288,175 @@ import twitter4j.User;
 											.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
 													GroupLayout.PREFERRED_SIZE)
 											.addGap(4, 4, 4)
-											.addComponent(getTweetViewScrollPane(), GroupLayout.PREFERRED_SIZE, 200,
-													Short.MAX_VALUE)))
+											.addComponent(getTweetViewTextLayeredPane(), GroupLayout.PREFERRED_SIZE,
+													200, Short.MAX_VALUE)))
 					.addComponent(getTweetViewOperationPanelContainer(), 0, GroupLayout.PREFERRED_SIZE,
 							GroupLayout.PREFERRED_SIZE));
 		}
 		return tweetViewPanel;
 	}
 	
-	private JScrollPane getTweetViewScrollPane() {
+	private JLayeredPane getTweetViewTextLayeredPane() {
+		if (tweetViewTextLayeredPane == null) {
+			tweetViewTextLayeredPane = new JLayeredPane();
+			tweetViewTextLayeredPane.setLayout(new LayoutManager2() {
+				
+				Dimension minimumSize;
+				
+				Dimension prefferedSize;
+				
+				Dimension maximumSize;
+				
+				final Dimension MAXIMUM_SIZE = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+				
+				
+				@Override
+				public void addLayoutComponent(Component comp, Object constraints) {
+					invalidateLayout();
+				}
+				
+				@Override
+				public void addLayoutComponent(String name, Component comp) {
+					if (tweetViewTextLayeredPane != comp.getParent()) {
+						throw new IllegalArgumentException("parent is already setted");
+					}
+					invalidateLayout();
+				}
+				
+				private void calculateLayout(Container parent) {
+					if (minimumSize != null && prefferedSize != null && maximumSize != null) {
+						return;
+					}
+					int minw = 0, minh = 0;
+					int prefw = 0, prefh = 0;
+					int maxw = 0, maxh = 0;
+					int count = parent.getComponentCount();
+					for (int i = 0; i < count; i++) {
+						Component component = parent.getComponent(i);
+						Dimension size = component.getMinimumSize();
+						minw = max(minw, size.width);
+						minh = max(minh, size.height);
+						size = component.getPreferredSize();
+						prefw = max(prefw, size.width);
+						prefh = max(prefh, size.height);
+						size = component.getMaximumSize();
+						maxw = max(maxw, size.width);
+						maxh = max(maxh, size.height);
+					}
+					minimumSize = new Dimension(minw, minh);
+					prefferedSize = new Dimension(prefw, prefh);
+					maximumSize = new Dimension(maxh, maxw);
+					logger.debug("min={}, pref={}", minimumSize, prefferedSize);
+				}
+				
+				@Override
+				public float getLayoutAlignmentX(Container target) {
+					return 0;
+				}
+				
+				@Override
+				public float getLayoutAlignmentY(Container target) {
+					return 0;
+				}
+				
+				private void invalidateLayout() {
+					minimumSize = null;
+					prefferedSize = null;
+					maximumSize = null;
+				}
+				
+				@Override
+				public void invalidateLayout(Container target) {
+					invalidateLayout();
+				}
+				
+				@Override
+				public void layoutContainer(Container parent) {
+					final Insets insets = parent.getInsets();
+					final Dimension size = parent.getSize();
+					final int width = size.width - insets.left - insets.right;
+					final int height = size.height - insets.top - insets.bottom;
+					final int count = parent.getComponentCount();
+					logger.debug("width={}, height={}", width, height);
+					for (int i = 0; i < count; i++) {
+						Component comp = parent.getComponent(i);
+						Dimension prefSize = comp.getPreferredSize();
+						Dimension minSize = comp.getMinimumSize();
+						int compw, x;
+						int comph, y;
+						if (comp.getAlignmentX() == Component.CENTER_ALIGNMENT) {
+							compw = width;
+							x = 0;
+						} else {
+							compw =
+									width < prefSize.width ? ((width > minSize.width) ? width : minSize.width)
+											: prefSize.width;
+							x = (int) ((width - compw) * comp.getAlignmentX());
+						}
+						if (comp.getAlignmentY() == Component.CENTER_ALIGNMENT) {
+							comph = height;
+							y = 0;
+						} else {
+							comph =
+									height < prefSize.height ? ((height > minSize.height) ? height : minSize.height)
+											: prefSize.height;
+							y = (int) ((height - comph) * comp.getAlignmentY());
+						}
+						comp.setBounds(x, y, compw, comph);
+						logger.debug("setted x={},y={},w={},h={} to {}", Utility.toArray(x, y, compw, comph, comp));
+					}
+				}
+				
+				@Override
+				public Dimension maximumLayoutSize(Container target) {
+					/*calculateLayout(target);
+					return maximumSize;*/
+					return MAXIMUM_SIZE;
+				}
+				
+				@Override
+				public Dimension minimumLayoutSize(Container parent) {
+					calculateLayout(parent);
+					return minimumSize;
+				}
+				
+				@Override
+				public Dimension preferredLayoutSize(Container parent) {
+					calculateLayout(parent);
+					return prefferedSize;
+				}
+				
+				@Override
+				public void removeLayoutComponent(Component comp) {
+					invalidateLayout();
+				}
+			});
+			tweetViewTextLayeredPane.add(getTweetViewTextOverlayLabel(), JLayeredPane.MODAL_LAYER);
+			tweetViewTextLayeredPane.add(getTweetViewTextScrollPane(), JLayeredPane.DEFAULT_LAYER);
+		}
+		return tweetViewTextLayeredPane;
+	}
+	
+	private JLabel getTweetViewTextOverlayLabel() {
+		if (tweetViewTextOverlayLabel == null) {
+			tweetViewTextOverlayLabel = new JLabel();
+			tweetViewTextOverlayLabel.setAlignmentX(JLabel.RIGHT_ALIGNMENT);
+			tweetViewTextOverlayLabel.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
+			tweetViewTextOverlayLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 24));
+			tweetViewTextOverlayLabel.addMouseListener(tweetViewListener);
+		}
+		return tweetViewTextOverlayLabel;
+	}
+	
+	private JScrollPane getTweetViewTextScrollPane() {
 		if (tweetViewScrollPane == null) {
 			tweetViewScrollPane = new JScrollPane();
 			tweetViewScrollPane.getViewport().setView(getTweetViewEditorPane());
 			tweetViewScrollPane.getVerticalScrollBar().setUnitIncrement(configData.scrollAmount);
+			tweetViewScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+			tweetViewScrollPane.setAlignmentY(Component.CENTER_ALIGNMENT);
 		}
 		return tweetViewScrollPane;
-	}
-	
-	private JLabel getTweetViewSourceLabel() {
-		if (tweetViewSourceLabel == null) {
-			tweetViewSourceLabel = new JLabel();
-			tweetViewSourceLabel.setText("@twclient (仮の名前＠だれか名前考えて)");
-			tweetViewSourceLabel.setToolTipText("from 暗黒の調和師");
-		}
-		return tweetViewSourceLabel;
 	}
 	
 	private JLabel getTweetViewUserIconLabel() {
@@ -1468,21 +1733,46 @@ import twitter4j.User;
 	}
 	
 	@Override
-	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon, JPanel operationPanel) {
-		tweetViewingTab = selectingTab;
-		getTweetViewEditorPane().setText(tweetData);
-		getTweetViewSourceLabel().setText(createdBy);
-		getTweetViewSourceLabel().setToolTipText(createdByToolTip);
-		getTweetViewDateLabel().setText(createdAt);
-		getTweetViewDateLabel().setToolTipText(createdAtToolTip);
+	public void setTweetViewCreatedAt(String createdAt, String toolTip, int actionFlag) {
+		getTweetViewCreatedAtLabel().setText(createdAt);
+		getTweetViewCreatedAtLabel().setToolTipText(toolTip);
+		tweetViewCreatedAtFlag = actionFlag;
+	}
+	
+	@Override
+	public void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int actionFlag) {
 		getTweetViewUserIconLabel().setIcon(icon);
-		logger.debug("operationPanelContainer size={}", operationPanelContainer.getSize());
+		getTweetViewCreatedByLabel().setText(createdBy);
+		getTweetViewCreatedByLabel().setToolTipText(toolTip);
+		tweetViewCreatedByFlag = actionFlag;
+	}
+	
+	@Override
+	public void setTweetViewOperationPanel(JPanel operationPanel) {
 		operationPanelContainer.removeAll();
 		if (operationPanel != null) {
 			operationPanelContainer.add(operationPanel);
 		}
-		getTweetViewPanel().revalidate();
+	}
+	
+	@Override
+	public void setTweetViewText(String tweetData, String overlayString, int actionFlag) {
+		tweetViewingTab = selectingTab;
+		getTweetViewEditorPane().setText(tweetData);
+		getTweetViewTextOverlayLabel().setText(overlayString);
+		tweetViewTextOverlayFlag = actionFlag;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@Deprecated
+	@Override
+	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
+			String createdAtToolTip, Icon icon, JPanel operationPanel) {
+		clearTweetView();
+		setTweetViewText(tweetData, null, DO_NOTHING_WHEN_POINTED);
+		setTweetViewCreatedAt(createdAt, createdAtToolTip, DO_NOTHING_WHEN_POINTED);
+		setTweetViewCreatedBy(icon, createdBy, createdByToolTip, DO_NOTHING_WHEN_POINTED);
+		setTweetViewOperationPanel(operationPanel);
 	}
 	
 	/**
