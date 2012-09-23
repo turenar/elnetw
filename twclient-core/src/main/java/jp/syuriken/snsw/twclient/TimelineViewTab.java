@@ -322,6 +322,7 @@ public class TimelineViewTab extends DefaultClientTab {
 	
 	@Override
 	public void focusGained() {
+		super.focusGained();
 		focusGained = true;
 		isDirty = false;
 		configuration.refreshTab(this);

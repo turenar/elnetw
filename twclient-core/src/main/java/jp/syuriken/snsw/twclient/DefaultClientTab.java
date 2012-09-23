@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Stack;
 import java.util.TimerTask;
@@ -459,14 +460,17 @@ public abstract class DefaultClientTab implements ClientTab {
 					synchronized (postListAddQueue) {
 						int size = postListAddQueue.size();
 						
-						getSortedPostListPanel().add(postListAddQueue);
+						postListScrollPane.invalidate();
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
 						if (viewPosition.y < fontHeight) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (iconSize.height + 3) * size));
+									new Point(viewPosition.x, viewPosition.y + (iconSize.height + PADDING_OF_POSTLIST)
+											* size));
 						}
+						getSortedPostListPanel().add(postListAddQueue);
+						postListScrollPane.validate();
 					}
 				}
 			});
@@ -659,15 +663,26 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
 	
+	/** Twitterのロゴ (青背景に白) */
+	public static final ImageIcon IMG_TWITTER_LOGO;
 	static {
 		try {
 			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
 			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
 			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
 		} catch (IOException e) {
-			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が正常に読み込めませんでした");
+			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
+		}
+		try {
+			IMG_TWITTER_LOGO =
+					new ImageIcon(ImageIO.read(DefaultClientTab.class
+						.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
 	}
+	
+	private boolean isInitted;
 	
 	
 	/**
@@ -844,6 +859,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		final StatusPanel status = addStatus(statusData);
 		removeStatus(statusData, deletionDelay);
 		return status;
+	}
+	
+	@Override
+	public void focusGained() {
+		if (selectingPost != null) {
+			selectingPost.requestFocusInWindow();
+		}
 	}
 	
 	/**
@@ -1063,6 +1085,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	@Override
 	public JComponent getTabComponent() {
+		if (isInitted == false) {
+			initTimeline();
+		}
 		return getScrollPane();
 	}
 	
@@ -1236,6 +1261,26 @@ public abstract class DefaultClientTab implements ClientTab {
 	@Override
 	public void handleAction(String command) {
 		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
+	}
+	
+	/**
+	 * <p>
+	 * タイムラインの初期化。Display Requirements用にあります。
+	 * 他にDisplay Requirementsに準拠できる方法があるのならばこのメソッドをオーバーライドして無効化しても構いません。
+	 * </p><p>
+	 * この関数は処理の都合から {@link #getTabComponent()} 呼び出し時に呼び出されます。
+	 * </p>
+	 */
+	protected void initTimeline() {
+		// for Display Requirements
+		StatusData statusData = new StatusData(null, new Date(0x7fffffffffffffffL));
+		statusData.user = "!twitter";
+		statusData.backgroundColor = Color.DARK_GRAY;
+		statusData.foregroundColor = Color.WHITE;
+		statusData.image = new JLabel(IMG_TWITTER_LOGO);
+		statusData.sentBy = new JLabel();
+		statusData.data = new JLabel("All data is from twitter...");
+		addStatus(statusData);
 	}
 	
 	/**

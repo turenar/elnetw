@@ -193,7 +193,8 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), createdBy, null,
 					DO_NOTHING_WHEN_POINTED);
 		} else {
-			throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
+			// for DisplayRequirements...
+			//throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
 		}
 	}
 	

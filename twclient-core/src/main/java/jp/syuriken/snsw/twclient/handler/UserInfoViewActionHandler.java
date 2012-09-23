@@ -3,7 +3,9 @@ package jp.syuriken.snsw.twclient.handler;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -280,6 +282,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
 		
+		private JLabel componentTwitterLogo;
+		
 		
 		/**
 		 * インスタンスを生成する。
@@ -303,6 +307,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		@Override
 		public void focusGained() {
+			super.focusGained();
 			focusGained = true;
 			isDirty = false;
 			configuration.refreshTab(this);
@@ -348,7 +353,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 								try {
 									configuration.getUtility().openBrowser(url);
 								} catch (Exception e1) {
-									e1.printStackTrace(); //TODO
+									getRenderer().onException(e1);
 								}
 							}
 						}
@@ -500,6 +505,15 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return getScrollPane();
 		}
 		
+		private Component getComponentTwitterLogo() {
+			if (componentTwitterLogo == null) {
+				Image scaledInstance = IMG_TWITTER_LOGO.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+				componentTwitterLogo = new JLabel(new ImageIcon(scaledInstance));
+				componentTwitterLogo.setMaximumSize(new Dimension(16, 16));
+			}
+			return componentTwitterLogo;
+		}
+		
 		private Component getComponentUserIcon() {
 			if (componentUserIcon == null) {
 				componentUserIcon = new JLabel();
@@ -519,13 +533,18 @@ public class UserInfoViewActionHandler implements ActionHandler {
 						.addComponent(getComponentUserIcon(), 48, 48, 48).addContainerGap(4, 4) // 
 						.addComponent(getComponentOperationsPanel()))
 					.addGroup(
-							layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup().addComponent(getComponentUserName()) //
-									.addComponent(getComponentLocation()))
+							layout
+								.createSequentialGroup()
+								.addGroup(
+										layout.createParallelGroup()
+											.addComponent(getComponentTwitterLogo(), Alignment.CENTER, 16, 16, 16)
+											.addComponent(getComponentUserName()) //
+											.addComponent(getComponentLocation()))
 								//
 								.addGap(4, 4, 4).addComponent(getComponentUserURL())
 								//
 								.addGap(4, 4, 4).addComponent(getComponentBio())));
+				
 				layout.setHorizontalGroup(layout
 					.createSequentialGroup()
 					.addGap(4, 4, 4)
@@ -540,6 +559,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 								.addGroup(
 										layout
 											.createSequentialGroup()
+											.addComponent(getComponentTwitterLogo(), 16, 16, 16)
 											.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE,
 													GroupLayout.PREFERRED_SIZE)
 											.addGap(16, 128, 128)
@@ -622,6 +642,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public String getToolTip() {
 			return user.getName() + " のユーザー情報";
+		}
+		
+		@Override
+		protected void initTimeline() {
+			// use other way for display requirements...
+			//super.initTimeline();
 		}
 	}
 	
