@@ -539,14 +539,12 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** ポストリストの間のパディング */
 	private static final int PADDING_OF_POSTLIST = 1;
 	
-	/** DateFormatを管理する */
-	protected static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
-		
-		@Override
-		protected SimpleDateFormat initialValue() {
-			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		}
-	};
+	/** 
+	 * DateFormatを管理する
+	 * @deprecated use {@link Utility#getDateFormat()}
+	 */
+	@Deprecated
+	protected static final ThreadLocal<SimpleDateFormat> dateFormat = null;
 	
 	
 	/**
@@ -681,8 +679,6 @@ public abstract class DefaultClientTab implements ClientTab {
 			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
 	}
-	
-	private boolean isInitted;
 	
 	
 	/**
@@ -976,7 +972,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			String createdAtToolTip =
 					MessageFormat.format("from {0}",
 							source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
-			String createdAt = dateFormat.get().format(status.getCreatedAt());
+			String createdAt = Utility.getDateString(status.getCreatedAt(), true);
 			String overlayString;
 			if (originalStatus.isRetweet()) {
 				overlayString =
@@ -1006,13 +1002,15 @@ public abstract class DefaultClientTab implements ClientTab {
 			nl2br(stringBuilder, 0);
 			frameApi.clearTweetView();
 			frameApi.setTweetViewText(stringBuilder.toString(), null, DO_NOTHING_WHEN_POINTED);
-			frameApi.setTweetViewCreatedAt(dateFormat.get().format(statusData.date), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(Utility.getDateFormat().format(statusData.date), null,
+					DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), ex.getClass().getName(), null,
 					DO_NOTHING_WHEN_POINTED);
 		} else {
 			frameApi.clearTweetView();
 			frameApi.setTweetViewText(statusData.data.getText(), null, DO_NOTHING_WHEN_POINTED);
-			frameApi.setTweetViewCreatedAt(dateFormat.get().format(statusData.date), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(Utility.getDateFormat().format(statusData.date), null,
+					DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), statusData.user, null,
 					DO_NOTHING_WHEN_POINTED);
 		}
@@ -1085,9 +1083,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	@Override
 	public JComponent getTabComponent() {
-		if (isInitted == false) {
-			initTimeline();
-		}
 		return getScrollPane();
 	}
 	
@@ -1271,7 +1266,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * この関数は処理の都合から {@link #getTabComponent()} 呼び出し時に呼び出されます。
 	 * </p>
 	 */
-	protected void initTimeline() {
+	@Override
+	public void initTimeline() {
 		// for Display Requirements
 		StatusData statusData = new StatusData(null, new Date(0x7fffffffffffffffL));
 		statusData.user = "!twitter";

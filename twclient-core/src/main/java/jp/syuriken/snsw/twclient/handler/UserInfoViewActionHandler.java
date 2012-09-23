@@ -645,7 +645,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 		
 		@Override
-		protected void initTimeline() {
+		public void initTimeline() {
 			// use other way for display requirements...
 			//super.initTimeline();
 		}

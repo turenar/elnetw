@@ -186,7 +186,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 					MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSender().getScreenName(),
 							directMessage.getSender().getName(), directMessage.getRecipient().getScreenName(),
 							directMessage.getRecipient().getName());
-			String createdAt = dateFormat.get().format(directMessage.getCreatedAt());
+			String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
 			frameApi.clearTweetView();
 			frameApi.setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);

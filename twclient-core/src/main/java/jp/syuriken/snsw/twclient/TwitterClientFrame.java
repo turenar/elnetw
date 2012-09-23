@@ -767,6 +767,7 @@ import twitter4j.User;
 	
 	protected void addTab(ClientTab tab) {
 		getViewTab().add(tab.getTitle(), tab.getTabComponent());
+		tab.initTimeline();
 	}
 	
 	/**
