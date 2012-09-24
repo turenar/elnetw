@@ -22,7 +22,9 @@ import twitter4j.UserMentionEntity;
  */
 public class UserFilter implements MessageFilter, PropertyChangeListener {
 	
-	private static final String CORE_FILTER_USER_IDS = "core.filter.user.ids";
+	private static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
+	
+	private static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 	
 	private TreeSet<Long> filterIds;
 	
@@ -42,6 +44,7 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 		this.configuration = configuration;
 		configuration.getConfigBuilder().getGroup("フィルタ")
 			.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
+		configuration.getConfigProperties().addPropertyChangedListener(this);
 		filterIds = new TreeSet<Long>();
 		initFilterIds();
 		initFilterQueries();
@@ -60,7 +63,7 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	private void initFilterIds() {
-		String idsString = configuration.getConfigProperties().getProperty(CORE_FILTER_USER_IDS);
+		String idsString = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_IDS);
 		if (idsString == null) {
 			return;
 		}
@@ -80,7 +83,7 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	private void initFilterQueries() {
-		String query = configuration.getConfigProperties().getProperty("core.filter._global");
+		String query = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 		if (query == null || query.trim().isEmpty()) {
 			this.query = NullFilter.getInstance();
 		} else {
@@ -232,8 +235,10 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(CORE_FILTER_USER_IDS)) {
+		if (evt.getPropertyName().equals(PROPERTY_KEY_FILTER_IDS)) {
 			initFilterIds();
+		} else if (evt.getPropertyName().equals(PROPERTY_KEY_FILTER_GLOBAL_QUERY)) {
+			initFilterQueries();
 		}
 	}
 }
