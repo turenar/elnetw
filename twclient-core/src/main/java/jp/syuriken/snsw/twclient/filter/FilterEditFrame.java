@@ -59,13 +59,11 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 						switch (tokenType) {
 							case PROPERTY_OPERATOR:
 							case SCALAR_INT:
-							case SCALAR_STRING_START:
+							case SCALAR_STRING:
 								stringBuilder.append(' ');
 							case DEFAULT:
 							case FUNC_NAME:
 							case PROPERTY_NAME:
-							case SCALAR_STRING:
-							case SCALAR_STRING_END:
 								stringBuilder.append(token);
 								break;
 							case FUNC_START:
@@ -126,7 +124,6 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		setExtendedState(NORMAL);
 		try {
 			while ((token = filterCompiler.nextToken()) != null) {
-				logger.trace("{}, {}", token, filterCompiler.getNextTokenType());
 				if (filterCompiler.getNextTokenType() == TokenType.UNEXPECTED) {
 					throw new IllegalSyntaxException("got UNEXPECTED as token");
 				}

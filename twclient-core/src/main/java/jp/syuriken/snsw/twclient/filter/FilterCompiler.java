@@ -338,13 +338,8 @@ public class FilterCompiler {
 			compareValuePostion = compilingIndex;
 			
 			getToken();
-			if (queryNextTokenType == TokenType.SCALAR_STRING_START) {
-				getToken();
-				if (queryNextTokenType != TokenType.SCALAR_STRING) {
-					throwUnexpectedToken();
-				}
-				
-				StringBuilder stringBuilder = new StringBuilder(queryToken);
+			if (queryNextTokenType == TokenType.SCALAR_STRING) {
+				StringBuilder stringBuilder = new StringBuilder(queryToken.substring(1, queryToken.length() - 1));
 				int index = 0;
 				int indexOf;
 				while ((indexOf = stringBuilder.indexOf("\\", index)) != -1) {
@@ -352,11 +347,6 @@ public class FilterCompiler {
 					index = indexOf + 1;
 				}
 				compareValue = stringBuilder.toString();
-				// check quote ended
-				getToken();
-				if (queryNextTokenType != TokenType.SCALAR_STRING_END) {
-					throwUnexpectedToken();
-				}
 			} else if (queryNextTokenType != TokenType.SCALAR_INT) {
 				if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR || queryNextTokenType == TokenType.FUNC_END
 						|| queryNextTokenType == TokenType.EOD) {
@@ -459,43 +449,44 @@ public class FilterCompiler {
 	public String nextToken() throws IllegalSyntaxException {
 		queryTokenType = queryNextTokenType;
 		queryNextTokenType = TokenType.UNEXPECTED;
-		
+		char charAt = EOD_CHAR;
 		int length = query.length();
-		int i = compilingIndex;
-		for (; i < length; i++) {
-			char charAt = query.charAt(i);
+		int index = compilingIndex;
+		for (; index < length; index++) {
+			charAt = query.charAt(index);
 			if (isSpace(charAt)) { // skip space
 				continue;
 			} else {
 				break;
 			}
 		}
-		if (i >= length) { // no valid token
+		
+		if (index >= length) { // no valid token
 			queryNextTokenType = TokenType.EOD;
 			queryToken = null;
 			return null;
 		}
-		int tokenStart = i;
-		LOOP: for (; i < length; i++) {
-			char charAt = query.charAt(i);
+		int tokenStart = index;
+		LOOP: for (; index < length; index++) {
+			charAt = query.charAt(index);
 			switch (queryTokenType) {
 				case FUNC_START:
 					if (charAt == ')') {
 						queryNextTokenType = TokenType.FUNC_END;
-						i++;
+						index++;
 						break LOOP;
 					}
 					// fall-through
 				case DEFAULT:
 				case FUNC_ARG_SEPARATOR:
 					while (isNotEod(charAt) && (isAlphabet(charAt) || isNumeric(charAt) || (charAt == '_'))) {
-						i++;// valid token
-						charAt = charAt(i);
+						index++;// valid token
+						charAt = charAt(index);
 					}
-					if (i == tokenStart) {
+					if (index == tokenStart) {
 						throw new IllegalSyntaxException("FUNC_NAME", charAt, queryTokenType.toString());
 					}
-					int j = i;
+					int j = index;
 					while (isNotEod(charAt) && isSpace(charAt)) {
 						j++;
 						charAt = charAt(j);
@@ -514,41 +505,41 @@ public class FilterCompiler {
 					} else {
 						throw new IllegalSyntaxException("TERMINATOR", charAt, "FUNC_END");
 					}
-					i++; // this char is already parsed
+					index++; // this char is already parsed
 					break LOOP;
 				case FUNC_NAME:
 					if (charAt != '(') {
 						throw new IllegalSyntaxException('(', charAt, "FUNC_NAME");
 					}
 					queryNextTokenType = TokenType.FUNC_START;
-					i++;
+					index++;
 					break LOOP;
 				case PROPERTY_NAME:
 					if (charAt == ')') {
-						if (tokenStart == i) {
+						if (tokenStart == index) {
 							queryNextTokenType = TokenType.FUNC_END;
-							i++;
+							index++;
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
 						}
 						break LOOP;
 					} else if (charAt == ',') {
-						if (tokenStart == i) {
+						if (tokenStart == index) {
 							queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
-							i++;
+							index++;
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
 						}
 						break LOOP;
 					} else if (isNumeric(charAt) || isQuote(charAt)) {
-						if (tokenStart == i) {
+						if (tokenStart == index) {
 							throw new IllegalSyntaxException("PROP_OP", charAt, "PROPERTY_NAME");
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
 							break LOOP;
 						}
 					} else if (isAlphabet(charAt)) {
-						if (tokenStart == i) {
+						if (tokenStart == index) {
 							throw new IllegalSyntaxException("PROP_OP or TERMINATOR", charAt, "PROPERTY_NAME");
 						} else {
 							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
@@ -560,14 +551,23 @@ public class FilterCompiler {
 					break;
 				case PROPERTY_OPERATOR:
 					if (isNumeric(charAt)) {
-						while (isNotEod(charAt) && isNumeric(charAt(++i))) {
+						while (isNotEod(charAt) && isNumeric(charAt(++index))) {
 							// valid token
 						}
 						queryNextTokenType = TokenType.SCALAR_INT;
 						break LOOP;
 					} else {
 						if (isQuote(charAt)) {
-							queryNextTokenType = TokenType.SCALAR_STRING_START;
+							charAt = charAt(++index);
+							while (isNotEod(charAt) && isQuote(charAt) == false) {
+								if (charAt == '\\') {
+									++index;
+								}
+								charAt = charAt(++index);
+							}
+							queryNextTokenType = TokenType.SCALAR_STRING;
+							index++; // '"' is already parsed
+							break LOOP;
 						} else {
 							if (charAt == ',') {
 								queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
@@ -577,11 +577,11 @@ public class FilterCompiler {
 								throw new IllegalSyntaxException("SCALAR or TERMINATOR", charAt, "PROPERTY_OPERATOR");
 							}
 						}
-						i++; // this char is already parsed
+						index++; // this char is already parsed
 						break LOOP;
 					}
 				case SCALAR_INT:
-				case SCALAR_STRING_END:
+				case SCALAR_STRING:
 					if (charAt == ',') {
 						queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
 					} else if (charAt == ')') {
@@ -589,30 +589,14 @@ public class FilterCompiler {
 					} else {
 						throw new IllegalSyntaxException("TERMINATOR", charAt, "SCALAR_INT");
 					}
-					i++; // this char is already parsed
-					break LOOP;
-				case SCALAR_STRING_START:
-					while (isNotEod(charAt) && isQuote(charAt) == false) {
-						if (charAt == '\\') {
-							++i;
-						}
-						charAt = charAt(++i);
-					}
-					queryNextTokenType = TokenType.SCALAR_STRING;
-					break LOOP;
-				case SCALAR_STRING:
-					if (isQuote(charAt) == false) {
-						throw new IllegalSyntaxException('"', charAt, "SCALAR_STRING");
-					}
-					queryNextTokenType = TokenType.SCALAR_STRING_END;
-					i++; // this char is already parsed
+					index++; // this char is already parsed
 					break LOOP;
 				default:
 					throw new AssertionError("not catched enum");
 			}
 		}
-		compilingIndex = i;
-		queryToken = query.substring(tokenStart, i).trim();
+		compilingIndex = index;
+		queryToken = query.substring(tokenStart, index).trim();
 		return queryToken;
 	}
 	

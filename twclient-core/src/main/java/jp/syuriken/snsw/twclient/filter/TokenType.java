@@ -47,12 +47,14 @@ public enum TokenType {
 	PROPERTY_OPERATOR,
 	/** 数値 */
 	SCALAR_INT,
-	/** 文字列のはじめの '"' */
-	SCALAR_STRING_START,
-	/** 文字列の中身 */
+	
+	// SCALAR_STRING_START,
+	
+	/** 文字列 ("を両端に含む) */
 	SCALAR_STRING,
-	/** 文字列の終わりの '"' */
-	SCALAR_STRING_END,
+	
+	//	SCALAR_STRING_END,
+	
 	/** 予期しない状態 (正しくない状態で EndOfData に達した時など) */
 	UNEXPECTED,
 	/** データの終わり */

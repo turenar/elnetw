@@ -59,17 +59,13 @@ public class FilterCompilerTest {
 		FilterCompiler filterCompiler = new FilterCompiler("hoge:\"aaaa\"");
 		assertToken(filterCompiler, "hoge", TokenType.PROPERTY_NAME);
 		assertToken(filterCompiler, ":", TokenType.PROPERTY_OPERATOR);
-		assertToken(filterCompiler, "\"", TokenType.SCALAR_STRING_START);
-		assertToken(filterCompiler, "aaaa", TokenType.SCALAR_STRING);
-		assertToken(filterCompiler, "\"", TokenType.SCALAR_STRING_END);
+		assertToken(filterCompiler, "\"aaaa\"", TokenType.SCALAR_STRING);
 		assertNoValidToken(filterCompiler);
 		
-		filterCompiler = new FilterCompiler("hoge:\"\"");
+		filterCompiler = new FilterCompiler("hoge:\" \"");
 		assertToken(filterCompiler, "hoge", TokenType.PROPERTY_NAME);
 		assertToken(filterCompiler, ":", TokenType.PROPERTY_OPERATOR);
-		assertToken(filterCompiler, "\"", TokenType.SCALAR_STRING_START);
-		assertToken(filterCompiler, "", TokenType.SCALAR_STRING);
-		assertToken(filterCompiler, "\"", TokenType.SCALAR_STRING_END);
+		assertToken(filterCompiler, "\" \"", TokenType.SCALAR_STRING);
 		assertNoValidToken(filterCompiler);
 	}
 	
