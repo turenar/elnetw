@@ -303,7 +303,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 	
 	
-	private final ClientConfiguration configuration;
+	private transient final ClientConfiguration configuration;
 	
 	private final long[] contributors;
 	

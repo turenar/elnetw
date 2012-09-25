@@ -57,8 +57,8 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
-import jp.syuriken.snsw.twclient.internal.MomemtumScroller;
-import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -392,8 +392,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void focusGained(FocusEvent e) {
+			// should scroll? if focus-window changed, i skip scrolling
+			boolean scroll = (e.getOppositeComponent() == null && selectingPost != null);
 			focusGainOfLinePanel(e);
-			kineticScroller.scrollTo(selectingPost);
+			if (scroll == false) {
+				scroller.scrollTo(selectingPost);
+			}
 		}
 		
 		@Override
@@ -635,7 +639,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected JPopupMenu tweetPopupMenu;
 	
 	/** 慣性スクローラー */
-	protected MomemtumScroller kineticScroller;
+	protected ScrollUtility scroller;
 	
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
@@ -704,13 +708,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
 		
-		kineticScroller = new MomemtumScroller(getScrollPane(), new BoundsTranslator() {
+		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
 			
 			@Override
 			public Rectangle translate(JComponent component) {
 				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
 			}
-		});
+		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
 	}
 	
 	/**

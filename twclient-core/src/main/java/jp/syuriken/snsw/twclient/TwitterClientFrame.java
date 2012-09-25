@@ -605,8 +605,6 @@ import twitter4j.User;
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "Astarotte";
 	
-	private StatusPanel selectingPost;
-	
 	private Hashtable<String, ActionHandler> actionHandlerTable;
 	
 	private Status inReplyToStatus = null;
@@ -790,9 +788,6 @@ import twitter4j.User;
 	@Override
 	public void doPost() {
 		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
-			if (selectingPost != null) {
-				selectingPost.requestFocusInWindow();
-			}
 			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);

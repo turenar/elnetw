@@ -11,17 +11,12 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 
-import jp.syuriken.snsw.twclient.Utility;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * y軸方向の慣性スクロールを実現させるためのクラス
  * 
  * @author $Author$
  */
-public class MomemtumScroller {
+public class ScrollUtility {
 	
 	/**
 	 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換するためのクラス。
@@ -40,8 +35,6 @@ public class MomemtumScroller {
 	}
 	
 	
-	private static final Logger logger = LoggerFactory.getLogger(MomemtumScroller.class);
-	
 	private final JScrollPane scrollPane;
 	
 	private int deltaY;
@@ -54,41 +47,55 @@ public class MomemtumScroller {
 	
 	private final BoundsTranslator translator;
 	
+	private boolean momemtumEnabled;
+	
 	
 	/**
 	 * インスタンスを生成する。
 	 * 
 	 * @param scrollPane スクロールペーン
 	 * @param translator 位置情報を変換するクラス
+	 * @param momemtumEnabled 慣性スクロールするかどうか
 	 */
-	public MomemtumScroller(final JScrollPane scrollPane, BoundsTranslator translator) {
+	public ScrollUtility(final JScrollPane scrollPane, BoundsTranslator translator, boolean momemtumEnabled) {
 		this.scrollPane = scrollPane;
 		this.translator = translator;
-		scrollTimer = new Timer(10, new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isInside(target)) {
-					deltaY = 0;
-					scrollTimer.stop();
-					return;
+		this.momemtumEnabled = momemtumEnabled;
+		if (momemtumEnabled) {
+			scrollTimer = new Timer(10, new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (isInside(target)) {
+						deltaY = 0;
+						scrollTimer.stop();
+						return;
+					}
+					Point viewPosition = scrollPane.getViewport().getViewPosition();
+					int vectorY = getVectorY(viewPosition);
+					momemtumTranslate(vectorY);
+					viewPosition.translate(0, deltaY);
+					scrollPane.getViewport().setViewPosition(viewPosition);
 				}
-				Point viewPosition = scrollPane.getViewport().getViewPosition();
-				Rectangle bounds = MomemtumScroller.this.translator.translate(target);
-				int vectorY;
-				if (viewPosition.y > bounds.y) {
-					vectorY = (bounds.y) - (viewPosition.y);
-				} else {
-					vectorY = (bounds.y + bounds.height) - (viewPosition.y + scrollPane.getViewport().getHeight());
-				}
-				momemtumTranslate(vectorY);
-				logger.debug("vp.y={}, bounds.y={}, vp.bottom={}, bounds.bottom={}", Utility.toArray(viewPosition.y,
-						bounds.y, viewPosition.y + scrollPane.getViewport().getHeight(), bounds.y + bounds.height));
-				logger.debug("vectorY={}, deltaY={}", vectorY, deltaY);
-				viewPosition.translate(0, deltaY);
-				scrollPane.getViewport().setViewPosition(viewPosition);
-			}
-		});
+			});
+		}
+	}
+	
+	/**
+	 * 指定したコンポーネントを表示するためのy距離を取得する
+	 * 
+	 * @param viewPosition スクロールペーンの表示位置
+	 * @return y距離
+	 */
+	protected int getVectorY(Point viewPosition) {
+		Rectangle bounds = translator.translate(target);
+		int vectorY;
+		if (viewPosition.y > bounds.y) {
+			vectorY = (bounds.y) - (viewPosition.y);
+		} else {
+			vectorY = (bounds.y + bounds.height) - (viewPosition.y + scrollPane.getViewport().getHeight());
+		}
+		return vectorY;
 	}
 	
 	/**
@@ -127,12 +134,22 @@ public class MomemtumScroller {
 	 * @return スクロールされるかどうか。
 	 */
 	public boolean scrollTo(final JComponent target) {
-		this.target = target;
-		scrollTimer.stop();
-		if (isInside(target)) {
-			return false;
+		if (momemtumEnabled) {
+			this.target = target;
+			scrollTimer.stop();
+			if (isInside(target)) {
+				return false;
+			}
+			scrollTimer.start();
+			return true;
+		} else {
+			this.target = target;
+			if (isInside(target)) {
+				return false;
+			}
+			Point viewPosition = scrollPane.getViewport().getViewPosition();
+			scrollPane.getViewport().setViewPosition(new Point(0, viewPosition.y + getVectorY(viewPosition)));
+			return true;
 		}
-		scrollTimer.start();
-		return true;
 	}
 }

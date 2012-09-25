@@ -10,7 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -29,37 +28,6 @@ import twitter4j.User;
  * @author $Author$
  */
 public class ImageCacher {
-	
-	/**
-	 * 画像をフェッチするためのエントリ
-	 * 
-	 * @author $Author$
-	 */
-	protected class FetchEntry {
-		
-		/** イメージエントリ */
-		public final ImageEntry entry;
-		
-		/** イメージアイコンを設定するJLabel */
-		public final JLabel label;
-		
-		
-		/**
-		 * インスタンスを生成する。
-		 * 
-		 * @param imageEntry イメージエントリ
-		 * @param label イメージアイコンを設定するラベル
-		 */
-		public FetchEntry(ImageEntry imageEntry, JLabel label) {
-			entry = imageEntry;
-			this.label = label;
-		}
-		
-		@Override
-		public String toString() {
-			return "FetchEntry{entry=" + entry.toString() + ",label=" + label.toString() + "}";
-		}
-	}
 	
 	/**
 	 * 画像情報を保存するエントリ。
@@ -130,45 +98,66 @@ public class ImageCacher {
 	 * 
 	 * @author $Author$
 	 */
-	protected class ImageFetcher implements Runnable {
+	protected class ImageFetcher implements ParallelRunnable {
 		
-		private void fetch() {
-			FetchEntry fetchEntry = fetchQueue.poll();
-			if (fetchEntry == null) {
-				return;
-			}
-			ImageEntry entry = fetchEntry.entry;
+		/** イメージエントリ */
+		public final ImageEntry entry;
+		
+		/** イメージアイコンを設定するJLabel */
+		public final JLabel label;
+		
+		
+		/**
+		 * インスタンスを生成する。
+		 * 
+		 * @param entry イメージエントリ
+		 * @param label イメージアイコンを設定するJLabel
+		 */
+		public ImageFetcher(ImageEntry entry, JLabel label) {
+			this.entry = entry;
+			this.label = label;
+		}
+		
+		@Override
+		public void run() {
+			ImageEntry entry = this.entry;
 			if (cacheManager.containsKey(entry.imageKey)) {
 				synchronized (entry) {
-					fetchEntry.label.setIcon(getImageIcon(cacheManager.get(entry.imageKey).image));
+					label.setIcon(getImageIcon(cacheManager.get(entry.imageKey).image));
 					incrementAppearCount(entry);
 				}
 				return;
 			}
 			
-			fetchImage(fetchEntry.entry);
-			if (fetchEntry.label != null) {
-				fetchEntry.label.setIcon(getImageIcon(entry.image));
+			fetchImage(entry);
+			if (label != null) {
+				label.setIcon(getImageIcon(entry.image));
 				incrementAppearCount(entry);
 			}
 		}
+	}
+	
+	/**
+	 * イメージを恒久的保存するジョブ
+	 * 
+	 * @author $Author$
+	 */
+	protected class ImageFlusher implements ParallelRunnable {
 		
-		private void flush() {
-			ImageEntry entry = flushQueue.poll();
-			if (entry == null) {
-				return;
-			}
-			flushImage(entry);
+		private ImageEntry entry;
+		
+		
+		/**
+		 * インスタンスを生成する。
+		 * @param entry イメージエントリ
+		 */
+		public ImageFlusher(ImageEntry entry) {
+			this.entry = entry;
 		}
 		
 		@Override
 		public void run() {
-			fetch();
-			flush();
-			if ((flushQueue.isEmpty() && fetchQueue.isEmpty()) == false) {
-				configuration.getFrameApi().addJob(Priority.LOW, this);
-			}
-			
+			flushImage(entry);
 		}
 	}
 	
@@ -182,14 +171,8 @@ public class ImageCacher {
 	
 	private ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
 	
-	private ConcurrentLinkedQueue<FetchEntry> fetchQueue = new ConcurrentLinkedQueue<FetchEntry>();
-	
-	private ConcurrentLinkedQueue<ImageEntry> flushQueue = new ConcurrentLinkedQueue<ImageEntry>();
-	
-	private ImageFetcher imageFetcher = new ImageFetcher();
-	
 	/** キャッシュ有効時間 */
-	private long cacheExpire = 604800000;
+	private long cacheExpire;
 	
 	/** キャッシュ出力先ディレクトリ */
 	public final File CACHE_DIR;
@@ -199,6 +182,10 @@ public class ImageCacher {
 	
 	private int flushThreshold;
 	
+	private ClientFrameApi frameApi;
+	
+	private int flushResetInterval;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -206,8 +193,10 @@ public class ImageCacher {
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		frameApi = configuration.getFrameApi();
 		cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
 		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
+		flushResetInterval = configuration.getConfigProperties().getInteger("core.cache.icon.flush_reset_interval");
 		
 		switch (Utility.getOstype()) {
 			case WINDOWS:
@@ -219,7 +208,7 @@ public class ImageCacher {
 		}
 		USER_ICON_CACHE_DIR = new File(CACHE_DIR, "user");
 		
-		loadUserIconFromCaches();
+		loadUserIconFromCaches(USER_ICON_CACHE_DIR);
 	}
 	
 	/**
@@ -345,8 +334,9 @@ public class ImageCacher {
 	 */
 	protected File getImageFilename(User user) {
 		String fileName = getProfileImageName(user);
-		
-		return new File(USER_ICON_CACHE_DIR, MessageFormat.format("{0}-{1}", Long.toString(user.getId()), fileName));
+		long id = user.getId();
+		String subdir = Integer.toHexString((int) (id & 0xff));
+		return new File(USER_ICON_CACHE_DIR, MessageFormat.format("{0}/{1}-{2}", subdir, Long.toString(id), fileName));
 	}
 	
 	/**
@@ -399,24 +389,29 @@ public class ImageCacher {
 			return;
 		}
 		if (entry.countEndTime < System.currentTimeMillis()) { // reset
-			entry.countEndTime = System.currentTimeMillis() + 60 * 60 * 1000;
+			entry.countEndTime = System.currentTimeMillis() + flushResetInterval;
 			entry.appearCount = 0;
 		}
 		int appearCount = ++entry.appearCount;
 		if (appearCount > flushThreshold) {
-			flushQueue.add(entry);
+			configuration.getFrameApi().addJob(Priority.LOW, new ImageFlusher(entry));
 		}
 	}
 	
 	/**
 	 * ディスクキャッシュからユーザーアイコンを読み込む。
+	 * @param directory 再起対象ディレクトリ
 	 */
-	private void loadUserIconFromCaches() {
-		File[] listFiles = USER_ICON_CACHE_DIR.listFiles();
+	private void loadUserIconFromCaches(File directory) {
+		File[] listFiles = directory.listFiles();
 		if (listFiles == null) {
 			return;
 		}
 		for (File file : listFiles) {
+			if (file.isDirectory()) {
+				loadUserIconFromCaches(file);
+			}
+			
 			long lastModified = file.lastModified();
 			if (lastModified == 0) {
 				continue;
@@ -441,12 +436,11 @@ public class ImageCacher {
 			logger.debug("loadCache: file={}", name);
 			try {
 				ImageEntry imageEntry = new ImageEntry(file.toURI().toURL(), getImageKey(userId, fileName));
-				fetchQueue.add(new FetchEntry(imageEntry, null));
+				frameApi.addJob(new ImageFetcher(imageEntry, null));
 			} catch (MalformedURLException e) {
 				logger.error("#loadFromCaches", e);
 			}
 		}
-		configuration.getFrameApi().addJob(imageFetcher);
 	}
 	
 	/**
@@ -460,8 +454,7 @@ public class ImageCacher {
 	public boolean setImageIcon(JLabel label, URL url) {
 		ImageEntry entry = cacheManager.get(url.toString());
 		if (entry == null) {
-			fetchQueue.add(new FetchEntry(new ImageEntry(url), label));
-			configuration.getFrameApi().addJob(Priority.LOW, imageFetcher);
+			frameApi.addJob(new ImageFetcher(new ImageEntry(url), label));
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
@@ -485,8 +478,7 @@ public class ImageCacher {
 		if (entry == null) {
 			entry = new ImageEntry(url, imageKey);
 			entry.cacheFile = getImageFilename(user);
-			fetchQueue.add(new FetchEntry(entry, label));
-			configuration.getFrameApi().addJob(Priority.LOW, imageFetcher);
+			frameApi.addJob(new ImageFetcher(entry, label));
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
