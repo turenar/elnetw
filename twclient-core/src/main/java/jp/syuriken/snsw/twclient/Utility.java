@@ -214,14 +214,6 @@ public class Utility {
 		};
 	}
 	
-	/*package*/static final ThreadLocal<StringBuilder> stringBuilderThreadLocal = new ThreadLocal<StringBuilder>() {
-		
-		@Override
-		protected StringBuilder initialValue() {
-			return new StringBuilder();
-		}
-	};
-	
 	/** DateFormatを管理する */
 	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
 		
@@ -322,8 +314,7 @@ public class Utility {
 			// date is fortune or older than 24hours
 			return dateFormatted;
 		} else {
-			StringBuilder stringBuilder = stringBuilderThreadLocal.get();
-			stringBuilder.setLength(0);
+			StringBuilder stringBuilder = new StringBuilder();
 			if (html) {
 				stringBuilder.append("<html>");
 			}
@@ -406,8 +397,7 @@ public class Utility {
 	 * @return キー文字列
 	 */
 	public static String toKeyString(int code, int modifiers, boolean isReleased) {
-		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
-		stringBuilder.setLength(0);
+		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(isReleased ? "release(" : "press(");
 		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
 			stringBuilder.append('^');

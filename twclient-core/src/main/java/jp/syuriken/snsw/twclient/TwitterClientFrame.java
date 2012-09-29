@@ -1342,7 +1342,6 @@ import twitter4j.User;
 					minimumSize = new Dimension(minw, minh);
 					prefferedSize = new Dimension(prefw, prefh);
 					maximumSize = new Dimension(maxh, maxw);
-					logger.debug("min={}, pref={}", minimumSize, prefferedSize);
 				}
 				
 				@Override
@@ -1373,7 +1372,6 @@ import twitter4j.User;
 					final int width = size.width - insets.left - insets.right;
 					final int height = size.height - insets.top - insets.bottom;
 					final int count = parent.getComponentCount();
-					logger.debug("width={}, height={}", width, height);
 					for (int i = 0; i < count; i++) {
 						Component comp = parent.getComponent(i);
 						Dimension prefSize = comp.getPreferredSize();
@@ -1399,7 +1397,6 @@ import twitter4j.User;
 							y = (int) ((height - comph) * comp.getAlignmentY());
 						}
 						comp.setBounds(x, y, compw, comph);
-						logger.debug("setted x={},y={},w={},h={} to {}", Utility.toArray(x, y, compw, comph, comp));
 					}
 				}
 				
@@ -1780,7 +1777,6 @@ import twitter4j.User;
 			@Override
 			public void run() {
 				setVisible(true);
-				logger.info("visibled");
 			}
 		});
 		if (SystemTray.isSupported()) {

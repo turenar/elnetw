@@ -1041,8 +1041,6 @@ public abstract class DefaultClientTab implements ClientTab {
 				
 				@Override
 				protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-					logger.trace("jscrollpane#processKeyBinding: keyStroke={}, Event={}, condition={}, pressed={}",
-							Utility.toArray(ks, e, condition, pressed));
 					switch (ks.getKeyCode()) {
 						case KeyEvent.VK_DOWN:
 						case KeyEvent.VK_UP:

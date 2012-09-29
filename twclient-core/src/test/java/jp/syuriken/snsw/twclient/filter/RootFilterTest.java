@@ -70,6 +70,11 @@ public class RootFilterTest {
 		public ImageCacher getImageCacher() {
 			return new TestImageCacher(this);
 		}
+		
+		@Override
+		public Twitter getTwitterForRead() {
+			return null;
+		}
 	}
 	
 	

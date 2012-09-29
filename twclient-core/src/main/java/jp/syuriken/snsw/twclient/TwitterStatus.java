@@ -353,7 +353,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	
 	private final transient RateLimitStatus rateLimitStatus;
 	
-	private String json;
+	private final String json;
 	
 	private final UserMentionEntity[] escapedUserMentionEntities;
 	
