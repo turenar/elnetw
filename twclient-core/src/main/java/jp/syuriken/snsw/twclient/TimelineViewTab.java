@@ -78,7 +78,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
 				deletionStatusData.foregroundColor = Color.RED;
 				deletionStatusData.image = new JLabel();
-				deletionStatusData.sentBy = new JLabel();
+				deletionStatusData.sentBy = new JLabel(status.getUser().getScreenName());
 				deletionStatusData.user = "!twdel." + statusDeletionNotice.getUserId();
 				deletionStatusData.data = new JLabel("DELETED: " + status.getText());
 				addStatus(deletionStatusData, getInfoSurviveTime() * 2);
