@@ -204,7 +204,22 @@ public enum FilterOperator {
 				Matcher matcher = ((Pattern) value).matcher(target);
 				return matcher.find() == (this == EQ);
 			} else if (value instanceof String) {
-				boolean contains = target.contains((String) value);
+				String str = (String) value;
+				boolean contains;
+				int len = str.length();
+				if (len > 0 && str.charAt(0) == '*') { // start-wildcard
+					if (/*len>0 && */str.charAt(len - 1) == '*') { // start+end-wildcard
+						contains = target.contains(str.substring(1, len - 1));
+					} else {
+						contains = target.endsWith(str.substring(1));
+					}
+				} else {
+					if (len > 0 && str.charAt(len - 1) == '*') { // end-wildcard
+						contains = target.startsWith(str.substring(0, len - 1));
+					} else {
+						contains = Utility.equalString(target, str);
+					}
+				}
 				return contains == (this == EQ);
 			} else {
 				throw new RuntimeException("stringの被比較値が正しくありません");

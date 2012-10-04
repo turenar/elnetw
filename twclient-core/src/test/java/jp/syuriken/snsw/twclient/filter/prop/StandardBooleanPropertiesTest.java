@@ -56,6 +56,22 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	}
 	
 	/**
+	* status のテスト
+	* 
+	* @throws IllegalSyntaxException エラー
+	*/
+	@Test
+	public void testFilterDirectMessage() throws IllegalSyntaxException {
+		assertFalse(testIs("dm", STATUS_1));
+		assertFalse(testIs("dm", STATUS_2));
+		assertFalse(testIs("dm", STATUS_3));
+		assertFalse(testIs("dm", STATUS_4));
+		assertFalse(testIs("dm", STATUS_5));
+		
+		assertTrue(testIs("dm", DM_1));
+	}
+	
+	/**
 	 * mine のテスト
 	 * 
 	 * @throws IllegalSyntaxException エラー
@@ -71,6 +87,22 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	}
 	
 	/**
+	 * protected のテスト
+	 * 
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterProtected() throws IllegalSyntaxException {
+		assertFalse(testIs("protected", STATUS_1));
+		assertFalse(testIs("protected", STATUS_2));
+		assertFalse(testIs("protected", STATUS_3));
+		assertFalse(testIs("protected", STATUS_4));
+		assertTrue(testIs("protected", STATUS_5));
+		
+		assertFalse(testIs("protected", DM_1));
+	}
+	
+	/**
 	 * retweeted のテスト
 	 * 
 	 * @throws IllegalSyntaxException エラー
@@ -78,11 +110,27 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	@Test
 	public void testFilterRetweeted() throws IllegalSyntaxException {
 		assertFalse(testIs("retweeted", STATUS_1));
-		assertFalse(testIs("retweeted", STATUS_1));
 		assertFalse(testIs("retweeted", STATUS_2));
+		assertFalse(testIs("retweeted", STATUS_3));
 		assertTrue(testIs("retweeted", STATUS_4));
 		
-		assertTrue(testIs("retweeted", DM_1));
+		assertFalse(testIs("retweeted", DM_1));
+	}
+	
+	/**
+	 * status のテスト
+	 * 
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterStatus() throws IllegalSyntaxException {
+		assertTrue(testIs("status", STATUS_1));
+		assertTrue(testIs("status", STATUS_2));
+		assertTrue(testIs("status", STATUS_3));
+		assertTrue(testIs("status", STATUS_4));
+		assertTrue(testIs("status", STATUS_5));
+		
+		assertFalse(testIs("status", DM_1));
 	}
 	
 	/**
@@ -98,4 +146,19 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 		}
 	}
 	
+	/**
+	 * verified のテスト
+	 * 
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterVerified() throws IllegalSyntaxException {
+		assertFalse(testIs("verified", STATUS_1));
+		assertFalse(testIs("verified", STATUS_2));
+		assertFalse(testIs("verified", STATUS_3));
+		assertFalse(testIs("verified", STATUS_4));
+		assertTrue(testIs("verified", STATUS_5));
+		
+		assertFalse(testIs("verified", DM_1));
+	}
 }

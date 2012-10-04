@@ -29,29 +29,97 @@ import org.junit.Test;
  */
 public class FilterOperatorTest {
 	
+	private void check(boolean expected, String haystack, String needle) throws RuntimeException,
+			IllegalSyntaxException {
+		assertTrue(expected == EQ.compare(haystack, FilterOperator.compileValueString(needle)));
+		assertFalse(expected == NE.compare(haystack, FilterOperator.compileValueString(needle)));
+	}
+	
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 完全一致
 	 * @throws IllegalSyntaxException エラー
 	 * @throws RuntimeException エラー
 	 */
 	@Test
-	public void compareStringObject() throws RuntimeException, IllegalSyntaxException {
-		assertFalse(EQ.compare("abcdefghijk", FilterOperator.compileValueString("aiueo")));
-		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdef")));
-		assertTrue(EQ.compare("abcdefghijk", FilterOperator.compileValueString("abcdefghijk")));
+	public void compareStringExactlyMatch() throws RuntimeException, IllegalSyntaxException {
+		check(false, "abcdefghijk", "aiueo");
+		check(true, "abcdefghijk", "abcdefghijk");
+		check(false, "abcdefghijk", "abcdef");
+		check(false, "abcdefghijk", "fghijk");
+		check(false, "abcdefghijk", "def");
+	}
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 先頭一致
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
+	 */
+	@Test
+	public void compareStringFirstMatch() throws RuntimeException, IllegalSyntaxException {
+		check(false, "abcdefghijk", "aiueo*");
+		check(true, "abcdefghijk", "abcdefghijk*");
+		check(true, "abcdefghijk", "abcdef*");
+		check(false, "abcdefghijk", "fghijk*");
+		check(false, "abcdefghijk", "def*");
+	}
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 末尾一致
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
+	 */
+	@Test
+	public void compareStringLastMatch() throws RuntimeException, IllegalSyntaxException {
+		check(false, "abcdefghijk", "*aiueo");
+		check(true, "abcdefghijk", "*abcdefghijk");
+		check(false, "abcdefghijk", "*abcdef");
+		check(true, "abcdefghijk", "*fghijk");
+		check(false, "abcdefghijk", "*def");
+	}
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 部分一致
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
+	 */
+	@Test
+	public void compareStringPartialMatch() throws RuntimeException, IllegalSyntaxException {
+		check(false, "abcdefghijk", "*aiueo*");
+		check(true, "abcdefghijk", "*abcdefghijk*");
+		check(true, "abcdefghijk", "*abcdef*");
+		check(true, "abcdefghijk", "*fghijk*");
+		check(true, "abcdefghijk", "*def*");
+	}
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 正規表現
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
+	 */
+	@Test
+	public void compareStringRegexMatch() throws RuntimeException, IllegalSyntaxException {
 		assertTrue(EQ.compare("http://twitter.com/ture7", Regex.VALID_URL));
-		assertTrue(EQ.compare("turenar died.", FilterOperator.compileValueString("/turenar.died\\.")));
-		assertTrue(EQ.compare("addd", FilterOperator.compileValueString("/^ad")));
-		assertFalse(EQ.compare("turenar died.", FilterOperator.compileValueString("/^[^t]")));
-		
-		assertTrue(NE.compare("abcdefghijk", FilterOperator.compileValueString("aiueo")));
-		assertFalse(NE.compare("abcdefghijk", FilterOperator.compileValueString("abcdef")));
-		assertFalse(NE.compare("abcdefghijk", FilterOperator.compileValueString("abcdefghijk")));
 		assertFalse(NE.compare("http://twitter.com/ture7", Regex.VALID_URL));
-		assertFalse(NE.compare("turenar died.", FilterOperator.compileValueString("/turenar.died\\.")));
-		assertFalse(NE.compare("addd", FilterOperator.compileValueString("/^ad")));
-		assertTrue(NE.compare("turenar died.", FilterOperator.compileValueString("/^[^t]")));
 		
+		check(true, "turenar died.", "/turenar.died\\.");
+		check(true, "addd", "/^ad");
+		check(true, "addd", "/dd$");
+		check(false, "turenar died.", "/^[^t]");
+	}
+	
+	/**
+	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * 予期しない演算子
+	 * @throws IllegalSyntaxException エラー
+	 * @throws RuntimeException エラー
+	 */
+	@Test
+	public void compareStringUnexpectedOperator() throws RuntimeException, IllegalSyntaxException {
 		try {
 			IS.compare("aiueo", "aiueo");
 			fail();

@@ -24,13 +24,21 @@ public class StandardBooleanProperties implements FilterProperty {
 	
 	private static final byte PROPERTY_ID_MINE = 2;
 	
-	private FilterOperator operatorType;
+	private static final byte PROPERTY_ID_PROTECTED = 3;
 	
-	private boolean value;
+	private static final byte PROPERTY_ID_VERIFIED = 4;
 	
-	private byte propertyId;
+	private static final byte PROPERTY_ID_DM = 5;
 	
-	private ClientConfiguration configuration;
+	private static final byte PROPERTY_ID_STATUS = 6;
+	
+	private final FilterOperator operatorType;
+	
+	private final boolean value;
+	
+	private final byte propertyId;
+	
+	private final ClientConfiguration configuration;
 	
 	static {
 		try {
@@ -64,6 +72,14 @@ public class StandardBooleanProperties implements FilterProperty {
 			propertyId = PROPERTY_ID_RETWEETED;
 		} else if (Utility.equalString(name, "mine")) {
 			propertyId = PROPERTY_ID_MINE;
+		} else if (Utility.equalString(name, "protected")) {
+			propertyId = PROPERTY_ID_PROTECTED;
+		} else if (Utility.equalString(name, "verified")) {
+			propertyId = PROPERTY_ID_VERIFIED;
+		} else if (Utility.equalString(name, "dm")) {
+			propertyId = PROPERTY_ID_DM;
+		} else if (Utility.equalString(name, "status")) {
+			propertyId = PROPERTY_ID_STATUS;
 		} else {
 			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
 					"[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
@@ -89,6 +105,8 @@ public class StandardBooleanProperties implements FilterProperty {
 				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name
 						+ "] 値がbool型ではありません");
 			}
+		} else {
+			this.value = false; // init because this field is final
 		}
 	}
 	
@@ -96,10 +114,19 @@ public class StandardBooleanProperties implements FilterProperty {
 	public boolean filter(DirectMessage directMessage) {
 		boolean target;
 		switch (propertyId) {
-			case PROPERTY_ID_RETWEETED:
+			case PROPERTY_ID_DM:
 				return true;
+			case PROPERTY_ID_STATUS:
+			case PROPERTY_ID_RETWEETED:
+				return false;
 			case PROPERTY_ID_MINE:
 				target = configuration.isMyAccount(directMessage.getSenderId());
+				break;
+			case PROPERTY_ID_VERIFIED:
+				target = directMessage.getSender().isVerified();
+				break;
+			case PROPERTY_ID_PROTECTED:
+				target = directMessage.getSender().isProtected();
 				break;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");
@@ -111,11 +138,21 @@ public class StandardBooleanProperties implements FilterProperty {
 	public boolean filter(Status status) {
 		boolean target;
 		switch (propertyId) {
+			case PROPERTY_ID_DM:
+				return false;
+			case PROPERTY_ID_STATUS:
+				return true;
 			case PROPERTY_ID_RETWEETED:
 				target = status.isRetweet();
 				break;
 			case PROPERTY_ID_MINE:
 				target = configuration.isMyAccount(status.getUser().getId());
+				break;
+			case PROPERTY_ID_PROTECTED:
+				target = status.getUser().isProtected();
+				break;
+			case PROPERTY_ID_VERIFIED:
+				target = status.getUser().isVerified();
 				break;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");

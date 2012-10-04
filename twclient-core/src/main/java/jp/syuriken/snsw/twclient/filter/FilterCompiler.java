@@ -29,28 +29,38 @@ public class FilterCompiler {
 	protected static HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories;
 	
 	/** constructor ( String, String, String) */
-	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropetyFactories;
+	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories;
 	
 	static {
-		filterFunctionFactories = new HashMap<String, Constructor<? extends FilterFunction>>();
-		filterFunctionFactories.put("or", OrFilterFunction.getFactory());
-		filterFunctionFactories.put("exactly_one_of", OneOfFilterFunction.getFactory());
-		filterFunctionFactories.put("and", AndFilterFunction.getFactory());
-		filterFunctionFactories.put("not", NotFilterFunction.getFactory());
-		filterFunctionFactories.put("inrt", InRetweetFilterFunction.getFactory());
+		HashMap<String, Constructor<? extends FilterFunction>> ffMap =
+				new HashMap<String, Constructor<? extends FilterFunction>>();
+		FilterCompiler.filterFunctionFactories = ffMap;
+		ffMap.put("or", OrFilterFunction.getFactory());
+		ffMap.put("exactly_one_of", OneOfFilterFunction.getFactory());
+		ffMap.put("and", AndFilterFunction.getFactory());
+		ffMap.put("not", NotFilterFunction.getFactory());
+		ffMap.put("inrt", InRetweetFilterFunction.getFactory());
 		
-		filterPropetyFactories = new HashMap<String, Constructor<? extends FilterProperty>>();
+		HashMap<String, Constructor<? extends FilterProperty>> pfMap =
+				new HashMap<String, Constructor<? extends FilterProperty>>();
+		FilterCompiler.filterPropertyFactories = pfMap;
 		Constructor<? extends FilterProperty> properties;
 		properties = StandardIntProperties.getFactory();
-		filterPropetyFactories.put("userid", properties);
-		filterPropetyFactories.put("in_reply_to_userid", properties);
-		filterPropetyFactories.put("rtcount", properties);
+		pfMap.put("userid", properties);
+		pfMap.put("in_reply_to_userid", properties);
+		pfMap.put("rtcount", properties);
+		pfMap.put("timediff", properties);
 		properties = StandardBooleanProperties.getFactory();
-		filterPropetyFactories.put("retweeted", properties);
-		filterPropetyFactories.put("mine", properties);
+		pfMap.put("retweeted", properties);
+		pfMap.put("mine", properties);
+		pfMap.put("protected", properties);
+		pfMap.put("verified", properties);
+		pfMap.put("status", properties);
+		pfMap.put("dm", properties);
 		properties = StandardStringProperties.getFactory();
-		filterPropetyFactories.put("user", properties);
-		filterPropetyFactories.put("text", properties);
+		pfMap.put("user", properties);
+		pfMap.put("text", properties);
+		pfMap.put("client", properties);
 	}
 	
 	
@@ -82,7 +92,7 @@ public class FilterCompiler {
 	 * @return {@link FilterProperty} の ({@link String}, {@link String}, {@link String})コンストラクタ
 	 */
 	public static Constructor<? extends FilterProperty> getFilterProperty(String propertyName) {
-		return filterPropetyFactories.get(propertyName);
+		return filterPropertyFactories.get(propertyName);
 	}
 	
 	private static final boolean isAlphabet(char charAt) {
@@ -159,7 +169,7 @@ public class FilterCompiler {
 	 */
 	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
 			Constructor<? extends FilterProperty> constructor) {
-		return filterPropetyFactories.put(propertyName, constructor);
+		return filterPropertyFactories.put(propertyName, constructor);
 	}
 	
 	
@@ -358,7 +368,7 @@ public class FilterCompiler {
 		}
 		
 		try {
-			Constructor<? extends FilterProperty> factory = filterPropetyFactories.get(propertyName);
+			Constructor<? extends FilterProperty> factory = filterPropertyFactories.get(propertyName);
 			if (factory == null) {
 				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
 						"フィルタのコンパイル中にエラーが発生しました: property<" + propertyName + ">は見つかりません");

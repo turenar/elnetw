@@ -2,7 +2,9 @@ package jp.syuriken.snsw.twclient.filter;
 
 import static junit.framework.Assert.assertEquals;
 
-import java.util.Scanner;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -76,6 +78,11 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	public static final Status STATUS_4;
 	
 	/**
+	 * {@link #STATUS_2}とほとんど同じだが、verifiedおよびprotectedがtrueになってる実在しないデータ
+	 */
+	public static final Status STATUS_5;
+	
+	/**
 	 * API Documentに記述されているダイレクトメッセージのテスト用データ
 	 */
 	public static final DirectMessage DM_1;
@@ -86,8 +93,11 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			STATUS_2 = loadStatus("222978973305544704.json");
 			STATUS_3 = loadStatus("222979122341752833.json");
 			STATUS_4 = loadStatus("21947795900469248.json");
+			STATUS_5 = loadStatus("st_test.json");
 			DM_1 = loadDirectMessage("dm.json");
 		} catch (TwitterException e) {
+			throw new AssertionError(e);
+		} catch (IOException e) {
 			throw new AssertionError(e);
 		}
 	}
@@ -108,17 +118,32 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 		return dispatchers;
 	}
 	
-	private static DirectMessage loadDirectMessage(String fileName) throws TwitterException {
-		Scanner scanner = new Scanner(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
-		DirectMessage directMessage = DataObjectFactory.createDirectMessage(scanner.nextLine());
-		scanner.close();
+	private static DirectMessage loadDirectMessage(String fileName) throws TwitterException, IOException {
+		DirectMessage directMessage = DataObjectFactory.createDirectMessage(loadFromFile(fileName));
 		return directMessage;
 	}
 	
-	private static Status loadStatus(String fileName) throws TwitterException {
-		Scanner scanner = new Scanner(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
-		Status status = DataObjectFactory.createStatus(scanner.nextLine());
-		scanner.close();
+	private static String loadFromFile(String fileName) throws IOException {
+		BufferedInputStream stream = null;
+		try {
+			stream = new BufferedInputStream(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
+			byte[] buf = new byte[65536];
+			int len = stream.read(buf);
+			String str = new String(buf, 0, len, Charset.forName("utf8"));
+			return str;
+		} finally {
+			if (stream != null) {
+				try {
+					stream.close();
+				} catch (IOException e) {
+					throw new AssertionError(e);
+				}
+			}
+		}
+	}
+	
+	private static Status loadStatus(String fileName) throws TwitterException, IOException {
+		Status status = DataObjectFactory.createStatus(loadFromFile(fileName));
 		return status;
 	}
 	

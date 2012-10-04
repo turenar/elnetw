@@ -22,6 +22,8 @@ public class StandardStringProperties implements FilterProperty {
 	
 	private static final byte PROPERTY_ID_TEXT = 2;
 	
+	private static final byte PROPERTY_ID_CLIENT = 3;
+	
 	private FilterOperator operatorType;
 	
 	private Object value;
@@ -59,6 +61,8 @@ public class StandardStringProperties implements FilterProperty {
 			propertyId = PROPERTY_ID_USER;
 		} else if (Utility.equalString(name, "text")) {
 			propertyId = PROPERTY_ID_TEXT;
+		} else if (Utility.equalString(name, "client")) {
+			propertyId = PROPERTY_ID_CLIENT;
 		} else {
 			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
 					"[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
@@ -87,6 +91,8 @@ public class StandardStringProperties implements FilterProperty {
 			case PROPERTY_ID_TEXT:
 				target = directMessage.getText();
 				break;
+			case PROPERTY_ID_CLIENT:
+				return false;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");
 		}
@@ -102,6 +108,12 @@ public class StandardStringProperties implements FilterProperty {
 				break;
 			case PROPERTY_ID_TEXT:
 				target = status.getText();
+				break;
+			case PROPERTY_ID_CLIENT:
+				target = status.getSource();
+				int nameStart = target.indexOf('>');
+				int nameEnd = target.lastIndexOf('<');
+				target = target.substring(nameStart < 0 ? 0 : nameStart + 1, nameEnd < 0 ? target.length() : nameEnd);
 				break;
 			default:
 				throw new AssertionError("StandardBooleanProperties: 予期しないpropertyId");

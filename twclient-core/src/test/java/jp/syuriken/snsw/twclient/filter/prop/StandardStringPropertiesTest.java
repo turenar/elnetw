@@ -28,16 +28,26 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	}
 	
 	/**
+	 * client のテスト
+	 * 
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterClient() throws IllegalSyntaxException {
+		assertTrue(testEqual("client", "TweetDeck", STATUS_5));
+	}
+	
+	/**
 	 * text のテスト
 	 * 
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
 	public void testFilterText() throws IllegalSyntaxException {
-		assertFalse(testEqual("text", "@ture7", STATUS_1));
-		assertTrue(testEqual("text", "@ture7", STATUS_2));
-		assertTrue(testEqual("text", "@ture7", STATUS_3));
-		assertFalse(testEqual("text", "@ture7", STATUS_4));
+		assertFalse(testEqual("text", "*@ture7*", STATUS_1));
+		assertTrue(testEqual("text", "*@ture7*", STATUS_2));
+		assertTrue(testEqual("text", "*@ture7*", STATUS_3));
+		assertFalse(testEqual("text", "*@ture7*", STATUS_4));
 		
 		assertTrue(testEqual("text", DM_1.getText(), DM_1));
 	}
@@ -62,12 +72,12 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterUser() throws IllegalSyntaxException {
-		assertFalse(testEqual("user", "ture", STATUS_1));
-		assertTrue(testEqual("user", "ture", STATUS_2));
-		assertTrue(testEqual("user", "ture", STATUS_3));
-		assertFalse(testEqual("user", "ture", STATUS_4));
+		assertFalse(testEqual("user", "*ture*", STATUS_1));
+		assertTrue(testEqual("user", "*ture*", STATUS_2));
+		assertTrue(testEqual("user", "*ture*", STATUS_3));
+		assertFalse(testEqual("user", "*ture*", STATUS_4));
 		
-		assertFalse(testEqual("user", "ture", DM_1));
+		assertFalse(testEqual("user", "*ture*", DM_1));
 		assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
 	}
 	

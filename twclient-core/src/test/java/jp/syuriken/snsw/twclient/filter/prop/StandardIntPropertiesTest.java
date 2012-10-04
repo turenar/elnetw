@@ -58,8 +58,8 @@ public class StandardIntPropertiesTest extends FilterConstants {
 		assertFalse(testEqual("rtcount", STATUS_3.getRetweetCount(), STATUS_4));
 		assertTrue(testEqual("rtcount", STATUS_4.getRetweetCount(), STATUS_4));
 		
-		assertTrue(testEqual("rtcount", DM_1.getSenderId(), DM_1));
-		assertTrue(testEqual("rtcount", STATUS_1.getUser().getId(), DM_1));
+		assertFalse(testEqual("rtcount", 0, DM_1));
+		assertFalse(testEqual("rtcount", -1, DM_1));
 	}
 	
 	/**

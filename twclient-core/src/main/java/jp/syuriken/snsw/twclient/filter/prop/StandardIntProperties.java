@@ -24,6 +24,8 @@ public class StandardIntProperties implements FilterProperty {
 	
 	private static final byte PROPERTY_ID_RT_COUNT = 3;
 	
+	private static final byte PROPERTY_ID_TIMEDIFF = 4;
+	
 	private FilterOperator operatorType;
 	
 	private long value;
@@ -63,6 +65,8 @@ public class StandardIntProperties implements FilterProperty {
 			propertyId = PROPERTY_ID_IN_REPLY_TO_USERID;
 		} else if (Utility.equalString(name, "rtcount")) {
 			propertyId = PROPERTY_ID_RT_COUNT;
+		} else if (Utility.equalString(name, "timediff")) {
+			propertyId = PROPERTY_ID_TIMEDIFF;
 		} else {
 			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
 					"[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
@@ -97,7 +101,10 @@ public class StandardIntProperties implements FilterProperty {
 				target = directMessage.getRecipientId();
 				break;
 			case PROPERTY_ID_RT_COUNT:
-				return true; // DM is not supported
+				return false; // DM is not supported
+			case PROPERTY_ID_TIMEDIFF:
+				target = (System.currentTimeMillis() - directMessage.getCreatedAt().getTime()) / 1000;
+				break;
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");
 		}
@@ -119,6 +126,9 @@ public class StandardIntProperties implements FilterProperty {
 				break;
 			case PROPERTY_ID_RT_COUNT:
 				target = status.getRetweetCount();
+				break;
+			case PROPERTY_ID_TIMEDIFF:
+				target = (System.currentTimeMillis() - status.getCreatedAt().getTime()) / 1000;
 				break;
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");
