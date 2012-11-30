@@ -1,8 +1,11 @@
 package jp.syuriken.snsw.twclient.handler;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -21,9 +24,15 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -34,6 +43,7 @@ import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TabRenderer;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
 import com.twitter.Regex;
@@ -57,6 +67,37 @@ import twitter4j.internal.org.json.JSONObject;
  * @author $Author$
  */
 public class UserInfoViewActionHandler implements ActionHandler {
+	
+	final class UserFetcher extends TwitterRunnable {
+		
+		private final ClientConfiguration configuration;
+		
+		private final String userScreenName;
+		
+		private User user = null;
+		
+		
+		protected UserFetcher(ClientFrameApi api, String actionName) {
+			super(false);
+			configuration = api.getClientConfiguration();
+			userScreenName = actionName.substring(actionName.indexOf('!') + 1);
+		}
+		
+		@Override
+		protected void access() throws TwitterException {
+			user = configuration.getTwitterForRead().showUser(userScreenName);
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+		
+		protected User getUser() {
+			run();
+			return user;
+		}
+	}
 	
 	/**
 	 * ユーザー情報を表示するFrameTab
@@ -112,11 +153,6 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			
 			@Override
 			public void onDisconnect() {
-				// do nothing
-			}
-			
-			@Override
-			public void onException(Exception ex) {
 				// do nothing
 			}
 			
@@ -225,7 +261,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		/** レンダラ */
 		protected TabRenderer renderer = new UserInfoTweetsRenderer();
 		
-		private JLabel componentBio;
+		private JScrollPane componentBio;
 		
 		private JLabel componentLocation;
 		
@@ -250,6 +286,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		private JCheckBox muteCheckBox;
 		
 		private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
+		
+		private JLabel componentTwitterLogo;
 		
 		
 		/**
@@ -336,6 +374,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		@Override
 		public void focusGained() {
+			super.focusGained();
 			focusGained = true;
 			isDirty = false;
 			configuration.refreshTab(this);
@@ -351,9 +390,52 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return renderer;
 		}
 		
+		@SuppressWarnings("serial")
 		private Component getComponentBio() {
 			if (componentBio == null) {
-				componentBio = new JLabel();
+				componentBio = new JScrollPane();
+				componentBio.setOpaque(false);
+				JEditorPane componentBioEditorPane = new JEditorPane();
+				componentBio.getViewport().setOpaque(false);
+				componentBio.getViewport().setView(componentBioEditorPane);
+				componentBioEditorPane.setEditorKit(new HTMLEditorKit() {
+					
+					private HTMLFactory viewFactory = new HTMLFactoryDelegator();
+					
+					
+					@Override
+					public ViewFactory getViewFactory() {
+						return viewFactory;
+					}
+				});
+				componentBioEditorPane.setContentType("text/html");
+				componentBioEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+				componentBioEditorPane.setEditable(false);
+				componentBioEditorPane.setFont(frameApi.getUiFont());
+				componentBioEditorPane.addHyperlinkListener(new HyperlinkListener() {
+					
+					@Override
+					public void hyperlinkUpdate(HyperlinkEvent e) {
+						if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+							String url = e.getURL().toString();
+							if (url.startsWith("http://command/")) {
+								String command = url.substring("http://command/".length());
+								handleAction(command);
+							} else {
+								try {
+									configuration.getUtility().openBrowser(url);
+								} catch (Exception e1) {
+									getRenderer().onException(e1);
+								}
+							}
+						}
+					}
+				});
+				
+				Color bkgrnd = getComponentLocation().getBackground();
+				componentBioEditorPane.setBackground(bkgrnd);
+				componentBioEditorPane.setOpaque(false);
+				
 				String bio = user.getDescription();
 				StringBuilder builder = stringBuilder;
 				builder.setLength(0);
@@ -409,7 +491,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				}
 				matcher.appendTail(buffer);
 				
-				componentBio.setText(buffer.toString());
+				componentBioEditorPane.setText(buffer.toString());
 			}
 			return componentBio;
 		}
@@ -496,6 +578,15 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return getScrollPane();
 		}
 		
+		private Component getComponentTwitterLogo() {
+			if (componentTwitterLogo == null) {
+				Image scaledInstance = IMG_TWITTER_LOGO.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+				componentTwitterLogo = new JLabel(new ImageIcon(scaledInstance));
+				componentTwitterLogo.setMaximumSize(new Dimension(16, 16));
+			}
+			return componentTwitterLogo;
+		}
+		
 		private Component getComponentUserIcon() {
 			if (componentUserIcon == null) {
 				componentUserIcon = new JLabel();
@@ -505,24 +596,29 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 		
 		private JPanel getComponentUserInfo() {
-			if (componentUserIcon == null) {
+			if (componentUserInfoPanel == null) {
 				componentUserInfoPanel = new JPanel();
-			}
-			GroupLayout layout = new GroupLayout(componentUserInfoPanel);
-			componentUserInfoPanel.setLayout(layout);
-			layout.setVerticalGroup(layout
-				.createParallelGroup(Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(4, 4, 4) // 
-					.addComponent(getComponentUserIcon(), 48, 48, 48).addContainerGap(4, 4) // 
-					.addComponent(getComponentOperationsPanel()))
-				.addGroup(
-						layout.createSequentialGroup()
-							.addGroup(layout.createParallelGroup().addComponent(getComponentUserName()) //
-								.addComponent(getComponentLocation())) //
-							.addContainerGap(4, 4).addComponent(getComponentUserURL()) //
-							.addContainerGap(4, 4).addComponent(getComponentBio())));
-			layout
-				.setHorizontalGroup(layout
+				GroupLayout layout = new GroupLayout(componentUserInfoPanel);
+				componentUserInfoPanel.setLayout(layout);
+				layout.setVerticalGroup(layout
+					.createParallelGroup(Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup().addGap(4, 4, 4) // 
+						.addComponent(getComponentUserIcon(), 48, 48, 48).addContainerGap(4, 4) // 
+						.addComponent(getComponentOperationsPanel()))
+					.addGroup(
+							layout
+								.createSequentialGroup()
+								.addGroup(
+										layout.createParallelGroup()
+											.addComponent(getComponentTwitterLogo(), Alignment.CENTER, 16, 16, 16)
+											.addComponent(getComponentUserName()) //
+											.addComponent(getComponentLocation()))
+								//
+								.addGap(4, 4, 4).addComponent(getComponentUserURL())
+								//
+								.addGap(4, 4, 4).addComponent(getComponentBio())));
+				
+				layout.setHorizontalGroup(layout
 					.createSequentialGroup()
 					.addGap(4, 4, 4)
 					.addGroup(
@@ -536,14 +632,15 @@ public class UserInfoViewActionHandler implements ActionHandler {
 								.addGroup(
 										layout
 											.createSequentialGroup()
+											.addComponent(getComponentTwitterLogo(), 16, 16, 16)
 											.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE,
 													GroupLayout.PREFERRED_SIZE)
 											.addGap(16, 128, 128)
 											.addComponent(getComponentLocation(), 64, GroupLayout.DEFAULT_SIZE,
 													GroupLayout.DEFAULT_SIZE)) //
 								.addComponent(getComponentUserURL()) //
-								.addComponent(getComponentBio(), 64, GroupLayout.PREFERRED_SIZE,
-										GroupLayout.PREFERRED_SIZE)));
+								.addComponent(getComponentBio(), 64, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)));
+			}
 			return componentUserInfoPanel;
 		}
 		
@@ -595,14 +692,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			GroupLayout layout = new GroupLayout(tabComponent);
 			tabComponent.setLayout(layout);
 			layout.setVerticalGroup( //
-				layout
-					.createSequentialGroup()
-					.addComponent(getComponentUserInfo(), 72, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-					.addComponent(getComponentTweetsScrollPane(), 120, GroupLayout.DEFAULT_SIZE,
-							GroupLayout.DEFAULT_SIZE));
+				layout.createSequentialGroup()
+					.addComponent(getComponentUserInfo(), 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+					.addComponent(getComponentTweetsScrollPane()));
 			
 			layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(getComponentUserInfo(), 96, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE) // 
+				.addComponent(getComponentUserInfo(), 96, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE) // 
 				.addComponent(getComponentTweetsScrollPane()));
 			return tabComponent;
 		}
@@ -625,6 +720,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public String getToolTip() {
 			return user.getName() + " のユーザー情報";
+		}
+		
+		@Override
+		public void initTimeline() {
+			// use other way for display requirements...
+			//super.initTimeline();
 		}
 	}
 	
@@ -668,7 +769,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		
 		@Override
 		protected void handleException(TwitterException ex) {
-			getConfiguration().getRootFilterService().onException(ex);
+			tab.getRenderer().onException(ex);
 		}
 	}
 	
@@ -683,22 +784,10 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	}
 	
 	@Override
-	public void handleAction(String actionName, final StatusData statusData, final ClientFrameApi api) {
+	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
 		User user = null;
 		if (actionName.contains("!")) {
-			for (int i = 10; i > 0; i--) {
-				try {
-					user = api.getTwitterForRead().showUser(actionName.substring(actionName.indexOf('!') + 1)); //TODO
-					break;
-				} catch (TwitterException e) {
-					if (e.getStatusCode() == TwitterException.SERVICE_UNAVAILABLE) {
-						if (i != 1) { //not last
-							continue;
-						}
-					}
-					throw new RuntimeException("Failed Twitter#showUser", e);
-				}
-			}
+			user = new UserFetcher(api, actionName).getUser();
 		} else if (statusData != null && statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
 			if (status.isRetweet()) {

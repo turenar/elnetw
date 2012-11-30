@@ -256,6 +256,9 @@ public class ClientConfiguration {
 	
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
 	
+	/** 環境依存の改行コード */
+	public static final String NEW_LINE = System.getProperty("line.separator");
+	
 	private volatile CacheManager cacheManager;
 	
 	private Object lockObject = new Object();
@@ -766,7 +769,9 @@ public class ClientConfiguration {
 		try {
 			tabsListLock.readLock().lock();
 			final int indexOf = tabsList.indexOf(tab);
-			frameApi.refreshTab(indexOf, tab);
+			if (indexOf >= 0) {
+				frameApi.refreshTab(indexOf, tab);
+			}
 		} finally {
 			tabsListLock.readLock().unlock();
 		}

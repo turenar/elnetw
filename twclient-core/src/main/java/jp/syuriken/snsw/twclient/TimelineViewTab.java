@@ -82,7 +82,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
 				deletionStatusData.foregroundColor = Color.RED;
 				deletionStatusData.image = new JLabel();
-				deletionStatusData.sentBy = new JLabel();
+				deletionStatusData.sentBy = new JLabel(status.getUser().getScreenName());
 				deletionStatusData.user = "!twdel." + statusDeletionNotice.getUserId();
 				deletionStatusData.data = new JLabel("DELETED: " + status.getText());
 				addStatus(deletionStatusData, getInfoSurviveTime() * 2);
@@ -118,12 +118,16 @@ public class TimelineViewTab extends DefaultClientTab {
 			String exString;
 			if (ex instanceof TwitterException) {
 				TwitterException twex = (TwitterException) ex;
-				exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
+				if (twex.isCausedByNetworkIssue()) {
+					exString = twex.getCause().toString();
+				} else {
+					exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
+				}
 			} else {
 				exString = ex.toString();
-				if (exString.length() > 256) {
-					exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
-				}
+			}
+			if (exString.length() > 256) {
+				exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
 			}
 			statusData.data = new JLabel(exString);
 			addStatus(statusData);
@@ -333,6 +337,7 @@ public class TimelineViewTab extends DefaultClientTab {
 	
 	@Override
 	public void focusGained() {
+		super.focusGained();
 		focusGained = true;
 		isDirty = false;
 		configuration.refreshTab(this);

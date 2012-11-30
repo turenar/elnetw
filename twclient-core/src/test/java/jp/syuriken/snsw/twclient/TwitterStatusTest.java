@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
@@ -100,10 +101,17 @@ public class TwitterStatusTest {
 	 */
 	@Test
 	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
-		ClientConfiguration configuration = new ClientConfiguration(true);
+		ClientConfiguration configuration = new ClientConfiguration(true) {
+			
+			@Override
+			public Twitter getTwitterForRead() {
+				return null;
+			}
+		};
 		ClientProperties clientProperties = new ClientProperties();
-		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("twclient.properties"),
+		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
 				"UTF-8"));
+		configuration.setConfigProperties(clientProperties);
 		for (TestObj test : tests) {
 			Status status = DataObjectFactory.createStatus(test.json);
 			DataObjectFactoryUtil.registerJSONObject(status, test.json);

@@ -159,7 +159,7 @@ public class JobQueue {
 	 * </p>
 	 * 
 	 * <p>
-	 * <strong>パラメータ<em style="color:red;">二つどちらにも</em>nullを指定して呼び出す</strong>と、ジョブワーカースレッドの仕事が解除され、
+	 * <strong>パラメータにnullを指定して呼び出す</strong>と、ジョブワーカースレッドの仕事が解除され、
 	 * ジョブが追加されると同時にJobQueue内部で {@link Runnable#run()}が呼び出されるようになります。
 	 * </p>
 	 * @param threadHolder スレッドホルダ

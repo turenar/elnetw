@@ -8,6 +8,8 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimerTask;
@@ -212,13 +214,26 @@ public class Utility {
 		};
 	}
 	
-	/*package*/static final ThreadLocal<StringBuilder> stringBuilderThreadLocal = new ThreadLocal<StringBuilder>() {
+	/** DateFormatを管理する */
+	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
 		
 		@Override
-		protected StringBuilder initialValue() {
-			return new StringBuilder();
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		}
 	};
+	
+	/** 秒→ミリセカンド */
+	public static final long SEC2MS = 1000;
+	
+	/** 分→ミリセカンド */
+	public static final long MINUTE2MS = SEC2MS * 60;
+	
+	/** 時→ミリセカンド */
+	public static final long HOUR2MS = MINUTE2MS * 60;
+	
+	/** 日→ミリセカンド */
+	public static final long DAY2MS = HOUR2MS * 24;
 	
 	
 	/**
@@ -268,6 +283,53 @@ public class Utility {
 			return false;
 		}
 		return a.equals(b);
+	}
+	
+	/**
+	 * yyyy/MM/dd HH:mm:ssな {@link SimpleDateFormat} を取得する。
+	 * 
+	 * このメソッドはマルチスレッド対応ですが、このメソッドで返されるインスタンスは<strong>スレッドローカルなので
+	 * 複数スレッドで使いまわさないでください</strong>。
+	 * 
+	 * @return 日付フォーマッタ
+	 */
+	public static SimpleDateFormat getDateFormat() {
+		return dateFormat.get();
+	}
+	
+	/**
+	 * 日時をあらわす文字列を短い形式を含めて取得する。
+	 * 
+	 * <p>
+	 * このメソッドで返す文字列は&quot;(\d{2}[smh])?(&lt;small&gt;)? \(yyyy/MM/dd HH:mm:ss\)(&lt;/small&gt;)?&quot;です
+	 * </p>
+	 * @param date 日時
+	 * @param html HTMLタグを使用するかどうか。trueの場合、<strong>返す文字列には&lt;html&gt;がつきます</strong>。
+	 * @return 日時を表す文字列
+	 */
+	public static String getDateString(Date date, boolean html) {
+		long timeDiff = System.currentTimeMillis() - date.getTime();
+		String dateFormatted = dateFormat.get().format(date);
+		if (timeDiff < 0 || timeDiff > DAY2MS) {
+			// date is fortune or older than 24hours
+			return dateFormatted;
+		} else {
+			StringBuilder stringBuilder = new StringBuilder();
+			if (html) {
+				stringBuilder.append("<html>");
+			}
+			
+			if (timeDiff < MINUTE2MS) {
+				stringBuilder.append(timeDiff / SEC2MS).append("秒前");
+			} else if (timeDiff < HOUR2MS) {
+				stringBuilder.append(timeDiff / MINUTE2MS).append("分前");
+			} else {
+				stringBuilder.append(timeDiff / HOUR2MS).append("時間前");
+			}
+			
+			stringBuilder.append(" (").append(dateFormatted).append(')');
+			return stringBuilder.toString();
+		}
 	}
 	
 	/**
@@ -335,8 +397,7 @@ public class Utility {
 	 * @return キー文字列
 	 */
 	public static String toKeyString(int code, int modifiers, boolean isReleased) {
-		StringBuilder stringBuilder = stringBuilderThreadLocal.get();
-		stringBuilder.setLength(0);
+		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(isReleased ? "release(" : "press(");
 		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
 			stringBuilder.append('^');

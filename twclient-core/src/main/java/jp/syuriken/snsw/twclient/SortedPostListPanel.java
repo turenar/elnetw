@@ -190,6 +190,7 @@ public class SortedPostListPanel extends JPanel {
 		if (values.size() == 0) {
 			return;
 		}
+		invalidate();
 		
 		Collections.sort(values, ComponentComparator.SINGLETON);
 		
@@ -282,7 +283,7 @@ public class SortedPostListPanel extends JPanel {
 		splitFirstBranch();
 		
 		tryRelease();
-		revalidate();
+		validate();
 	}
 	
 	/**

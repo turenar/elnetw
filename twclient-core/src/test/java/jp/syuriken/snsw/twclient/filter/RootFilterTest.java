@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Timer;
 
 import javax.swing.Icon;
+import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -69,6 +70,11 @@ public class RootFilterTest {
 		public ImageCacher getImageCacher() {
 			return new TestImageCacher(this);
 		}
+		
+		@Override
+		public Twitter getTwitterForRead() {
+			return null;
+		}
 	}
 	
 	
@@ -102,6 +108,10 @@ class TestFrameApi implements ClientFrameApi {
 	
 	@Override
 	public void addShortcutKey(String keyCode, String actionName) {
+	}
+	
+	@Override
+	public void clearTweetView() {
 	}
 	
 	@Override
@@ -231,8 +241,26 @@ class TestFrameApi implements ClientFrameApi {
 	}
 	
 	@Override
+	public void setTweetViewCreatedAt(String createdAt, String toolTip, int flag) {
+	}
+	
+	@Override
+	public void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int flag) {
+	}
+	
+	@Override
+	public void setTweetViewOperationPanel(JPanel operationPanel) {
+	}
+	
+	@Override
+	public void setTweetViewText(String tweetData, String overlayString, int flag) {
+	}
+	
+	@SuppressWarnings("deprecation")
+	@Deprecated
+	@Override
 	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon) {
+			String createdAtToolTip, Icon icon, JPanel panel) {
 	}
 	
 	@Override

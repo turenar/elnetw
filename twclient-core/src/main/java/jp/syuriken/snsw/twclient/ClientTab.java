@@ -87,4 +87,9 @@ public interface ClientTab {
 	 * @param command コマンド名
 	 */
 	void handleAction(String command);
+	/**
+	 * タブとして表示できる状態となったことを通知するメソッド
+	 */
+	void initTimeline();
+	
 }

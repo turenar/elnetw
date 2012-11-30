@@ -51,6 +51,9 @@ public class FavoriteActionHandler implements ActionHandler {
 						} else {
 							api.getTwitterForWrite().createFavorite(status.getId());
 						}
+						if (status instanceof TwitterStatus) {
+							((TwitterStatus) status).setFavorited(unfavorite == false);
+						}
 					} catch (TwitterException e) {
 						api.handleException(e);
 					}

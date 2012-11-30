@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.event.MouseEvent;
+
 import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.UserStreamListener;
 
@@ -67,6 +69,33 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	/** 選択しているポストに含まれるURLをすべて開く (arg: なし) */
 	public static final String REQUEST_BROWSER_OPENURLS = "browser urls";
 	
+	/** 
+	 * 選択しているポストの一意URLを開く (arg: なし) 
+	 * ツイートビューから呼ばれる。
+	 */
+	public static final String REQUEST_BROWSER_PERMALINK = "browser permalink";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewText(String, String, int)}で設定された
+	 * オーバーレイラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent})
+	 */
+	public static final String EVENT_CLICKED_OVERLAY_LABEL = "event overlaylabel clicked";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewCreatedBy(javax.swing.Icon, String, String, int)}で設定された
+	 * createdByラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent}) 
+	 */
+	public static final String EVENT_CLICKED_CREATED_BY = "event createdBy clicked";
+	
+	/** 
+	 * {@link ClientFrameApi#setTweetViewCreatedAt(String, String, int)}で設定された
+	 * createdAtラベルがクリックされたイベント
+	 *  (thread: Swing Event Dispatcher Thread; arg: {@link MouseEvent}) 
+	 */
+	public static final String EVENT_CLICKED_CREATED_AT = "event createdAt clicked";
+	
 	
 	/**
 	 * アカウント変更
@@ -76,7 +105,7 @@ public interface ClientMessageListener extends UserStreamListener, ConnectionLif
 	void onChangeAccount(boolean forWrite);
 	
 	/**
-	 * core等が発する情報をキャッチする。この関数は自由に使えますが、間違ってもあらゆる情報をキャッチするようにはしないでください。
+	 * core等が発する情報をキャッチする。この関数は自由に使えます。
 	 * 
 	 * @param name リクエスト名。この名前で区別するのでできるだけFQCNなどで記述すると衝突の可能性が少なくなります。
 	 * @param arg 引数。Stringが投げられると過信してはいけません。

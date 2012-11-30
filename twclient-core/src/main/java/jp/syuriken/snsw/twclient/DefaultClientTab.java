@@ -1,5 +1,9 @@
 package jp.syuriken.snsw.twclient;
 
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -16,21 +20,28 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -39,20 +50,25 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
-import jp.syuriken.snsw.twclient.internal.MomemtumScroller;
-import jp.syuriken.snsw.twclient.internal.MomemtumScroller.BoundsTranslator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -119,7 +135,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				} else {
 					getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_PREV_COMPONENT)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -129,7 +145,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						arrayList.get(indexOf + 1).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -139,16 +155,16 @@ public abstract class DefaultClientTab implements ClientTab {
 						arrayList.get(indexOf - 1).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_FIRST_COMPONENT)) {
 				getSortedPostListPanel().requestFocusFirstComponent();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
 				getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
 					.requestFocusInWindow();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
 				JViewport viewport = getScrollPane().getViewport();
 				getSortedPostListPanel().getComponentAt(0, viewport.getViewPosition().y + viewport.getHeight())
 					.requestFocusInWindow();
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST)) {
+			} else if (Utility.equalString(name, REQUEST_SCROLL_AS_WINDOW_LAST)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -158,7 +174,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					int y = bounds.y - (viewport.getHeight() - bounds.height);
 					viewport.setViewPosition(new Point(x, y));
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_IN_REPLY_TO)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -169,7 +185,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						statusMap.get(tag.getInReplyToStatusId()).requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY)) {
+			} else if (Utility.equalString(name, REQUEST_FOCUS_BACK_REPLIED_BY)) {
 				if (selectingPost == null) {
 					getSortedPostListPanel().requestFocusInWindow();
 				} else {
@@ -177,14 +193,14 @@ public abstract class DefaultClientTab implements ClientTab {
 						inReplyToStack.pop().requestFocusInWindow();
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY)) {
+			} else if (Utility.equalString(name, REQUEST_COPY)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
 					StringSelection stringSelection = new StringSelection(statusData.data.getText());
 					clipboard.setContents(stringSelection, stringSelection);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_URL)) {
+			} else if (Utility.equalString(name, REQUEST_COPY_URL)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -197,14 +213,14 @@ public abstract class DefaultClientTab implements ClientTab {
 						clipboard.setContents(stringSelection, stringSelection);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_COPY_USERID)) {
+			} else if (Utility.equalString(name, REQUEST_COPY_USERID)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
 					StringSelection stringSelection = new StringSelection(statusData.user);
 					clipboard.setContents(stringSelection, stringSelection);
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_USER_HOME)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_USER_HOME)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -214,7 +230,9 @@ public abstract class DefaultClientTab implements ClientTab {
 						utility.openBrowser(url);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_STATUS)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_STATUS)
+					|| Utility.equalString(name, REQUEST_BROWSER_PERMALINK)
+					|| Utility.equalString(name, EVENT_CLICKED_CREATED_AT)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -225,7 +243,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						utility.openBrowser(url);
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_IN_REPLY_TO)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_IN_REPLY_TO)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -238,7 +256,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						}
 					}
 				}
-			} else if (Utility.equalString(name, ClientMessageListener.REQUEST_BROWSER_OPENURLS)) {
+			} else if (Utility.equalString(name, REQUEST_BROWSER_OPENURLS)) {
 				if (selectingPost != null) {
 					StatusData statusData = selectingPost.getStatusData();
 					if (statusData.tag instanceof Status) {
@@ -246,6 +264,27 @@ public abstract class DefaultClientTab implements ClientTab {
 						URLEntity[] urlEntities = status.getURLEntities();
 						for (URLEntity urlEntity : urlEntities) {
 							utility.openBrowser(urlEntity.getURL().toString());
+						}
+					}
+				}
+			} else if (Utility.equalString(name, EVENT_CLICKED_CREATED_BY)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						if (status.isRetweet()) {
+							status = status.getRetweetedStatus();
+						}
+						handleAction("userinfo!" + status.getUser().getScreenName());
+					}
+				}
+			} else if (Utility.equalString(name, EVENT_CLICKED_OVERLAY_LABEL)) {
+				if (selectingPost != null) {
+					StatusData statusData = selectingPost.getStatusData();
+					if (statusData.tag instanceof Status) {
+						Status status = (Status) statusData.tag;
+						if (status.isRetweet()) {
+							handleAction("userinfo!" + status.getUser().getScreenName());
 						}
 					}
 				}
@@ -359,8 +398,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		public void focusGained(FocusEvent e) {
+			// should scroll? if focus-window changed, i skip scrolling
+			boolean scroll = (e.getOppositeComponent() == null && selectingPost != null);
 			focusGainOfLinePanel(e);
-			kineticScroller.scrollTo(selectingPost);
+			if (scroll == false) {
+				scroller.scrollTo(selectingPost);
+			}
 		}
 		
 		@Override
@@ -427,14 +470,17 @@ public abstract class DefaultClientTab implements ClientTab {
 					synchronized (postListAddQueue) {
 						int size = postListAddQueue.size();
 						
-						getSortedPostListPanel().add(postListAddQueue);
+						postListScrollPane.invalidate();
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
 						if (viewPosition.y < fontHeight) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (fontHeight + 3) * size));
+									new Point(viewPosition.x, viewPosition.y + (iconSize.height + PADDING_OF_POSTLIST)
+											* size));
 						}
+						getSortedPostListPanel().add(postListAddQueue);
+						postListScrollPane.validate();
 					}
 				}
 			});
@@ -494,23 +540,23 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	
+	/** クリップボード */
 	protected static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	
+	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
 	
-	/** TODO Megumi */
+	/** ポストリストの間のパディング */
 	private static final int PADDING_OF_POSTLIST = 1;
 	
-	/** DateFormatを管理する */
-	protected static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
-		
-		@Override
-		protected SimpleDateFormat initialValue() {
-			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		}
-	};
+	/** 
+	 * DateFormatを管理する
+	 * @deprecated use {@link Utility#getDateFormat()}
+	 */
+	@Deprecated
+	protected static final ThreadLocal<SimpleDateFormat> dateFormat = null;
 	
 	
 	/**
@@ -531,11 +577,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			stringBuilder.replace(position, position + 1, "&nbsp;");
 			offset = position + 1;
 		}
-		offset = start;
+		/*offset = start;
 		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
 			stringBuilder.replace(position, position + 5, "&amp;amp;");
 			offset = position + 9;
-		}
+		}*/
 	}
 	
 	/**
@@ -601,10 +647,49 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected JPopupMenu tweetPopupMenu;
 	
 	/** 慣性スクローラー */
-	protected MomemtumScroller kineticScroller;
+	protected ScrollUtility scroller;
 	
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
+	
+	private JPanel tweetViewOperationPanel;
+	private JLabel tweetViewFavoriteButton;
+	
+	private JLabel tweetViewRetweetButton;
+	
+	private JLabel tweetViewReplyButton;
+	
+	private JLabel tweetViewOtherButton;
+	
+	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
+	public static final ImageIcon IMG_FAV_OFF;
+	
+	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_ON;
+	
+	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_HOVER;
+	
+	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+	
+	/** Twitterのロゴ (青背景に白) */
+	public static final ImageIcon IMG_TWITTER_LOGO;
+	static {
+		try {
+			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
+			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
+			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
+		}
+		try {
+			IMG_TWITTER_LOGO =
+					new ImageIcon(ImageIO.read(DefaultClientTab.class
+						.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
+		}
+	}
 	
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
@@ -677,7 +762,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		Status twitterStatus = new TwitterStatus(configuration, originalStatus);
+		Status twitterStatus =
+				originalStatus instanceof TwitterStatus ? originalStatus : new TwitterStatus(configuration,
+						originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
@@ -747,20 +834,20 @@ public abstract class DefaultClientTab implements ClientTab {
 		linePanel.setLayout(layout);
 		linePanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 		statusData.image.setInheritsPopupMenu(true);
-		statusData.image.setFocusable(true);
+		statusData.image.setFocusable(false);
 		statusData.image.setMinimumSize(iconSize);
 		statusData.image.setMaximumSize(iconSize);
 		linePanel.add(statusData.image);
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.sentBy.setInheritsPopupMenu(true);
-		statusData.sentBy.setFocusable(true);
+		statusData.sentBy.setFocusable(false);
 		statusData.sentBy.setMinimumSize(linePanelSizeOfSentBy);
 		statusData.sentBy.setMaximumSize(linePanelSizeOfSentBy);
 		statusData.sentBy.setFont(frameApi.getDefaultFont());
 		linePanel.add(statusData.sentBy);
 		linePanel.add(Box.createHorizontalStrut(3));
 		statusData.data.setInheritsPopupMenu(true);
-		statusData.data.setFocusable(true);
+		statusData.data.setFocusable(false);
 		statusData.data.setFont(frameApi.getDefaultFont());
 		int dataWidth = fontMetrics.stringWidth(statusData.data.getText());
 		
@@ -771,12 +858,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		} */
 		linePanel.setForeground(statusData.foregroundColor);
 		linePanel.setBackground(statusData.backgroundColor);
-		Dimension minSize =
-				new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, fontHeight
-						+ PADDING_OF_POSTLIST);
+		int height = iconSize.height + PADDING_OF_POSTLIST;
+		Dimension minSize = new Dimension(iconSize.width + linePanelSizeOfSentBy.width + dataWidth + 3 * 2, height);
 		linePanel.setMinimumSize(minSize);
 		linePanel.setPreferredSize(minSize);
-		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fontHeight + PADDING_OF_POSTLIST));
+		linePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
 		linePanel.setFocusable(true);
 		linePanel.setToolTipText(statusData.tooltip);
 		linePanel.addMouseListener(postListListenerSingleton);
@@ -814,6 +900,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		return status;
 	}
 	
+	@Override
+	public void focusGained() {
+		if (selectingPost != null) {
+			selectingPost.requestFocusInWindow();
+		}
+	}
+	
 	/**
 	 * ポストパネルがフォーカスを得た時のハンドラ
 	 * 
@@ -831,26 +924,39 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof TwitterStatus) {
-			TwitterStatus status = (TwitterStatus) statusData.tag;
-			status = status.isRetweet() ? status.getRetweetedStatus() : status;
+			TwitterStatus originalStatus = (TwitterStatus) statusData.tag;
+			TwitterStatus status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
+			int entitiesLen;
 			HashtagEntity[] hashtagEntities = status.getEscapedHashtagEntities();
-			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
+			entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
 			URLEntity[] urlEntities = status.getEscapedURLEntities();
-			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
+			entitiesLen += urlEntities == null ? 0 : urlEntities.length;
+			MediaEntity[] mediaEntities = status.getEscapedMediaEntities();
+			entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
 			UserMentionEntity[] mentionEntities = status.getEscapedUserMentionEntities();
-			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
-			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
+			entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
+			Object[] entities = new Object[entitiesLen];
 			
-			if (entities.length != 0) {
+			if (entitiesLen != 0) {
 				int copyOffset = 0;
-				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
-				copyOffset += hashtagEntities.length;
-				System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
-				copyOffset += urlEntities.length;
-				System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+				if (hashtagEntities != null) {
+					System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
+					copyOffset += hashtagEntities.length;
+				}
+				if (urlEntities != null) {
+					System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
+					copyOffset += urlEntities.length;
+				}
+				if (mediaEntities != null) {
+					System.arraycopy(mediaEntities, 0, entities, copyOffset, mediaEntities.length);
+					copyOffset += mediaEntities.length;
+				}
+				if (mentionEntities != null) {
+					System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+				}
 			}
 			Arrays.sort(entities, new Comparator<Object>() {
 				
@@ -900,7 +1006,8 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 			nl2br(stringBuilder, escapedText.substring(offset));
 			String tweetText = stringBuilder.toString();
-			String createdBy =
+			String createdBy;
+			createdBy =
 					MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 			String source = status.getSource();
 			int tagIndexOf = source.indexOf('>');
@@ -908,18 +1015,47 @@ public abstract class DefaultClientTab implements ClientTab {
 			String createdAtToolTip =
 					MessageFormat.format("from {0}",
 							source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
-			String createdAt = dateFormat.get().format(status.getCreatedAt());
-			frameApi.setTweetViewText(tweetText, createdBy, null, createdAt, createdAtToolTip,
-					((JLabel) statusData.image).getIcon());
+			String createdAt = Utility.getDateString(status.getCreatedAt(), true);
+			String overlayString;
+			if (originalStatus.isRetweet()) {
+				overlayString =
+						"<html><span style='color:#33cc33;'>Retweeted by @" + originalStatus.getUser().getScreenName()
+								+ " (" + originalStatus.getUser().getName() + ")</span>";
+			} else {
+				overlayString = null;
+			}
+			if (status.isFavorited()) {
+				getTweetViewFavoriteButton().setIcon(IMG_FAV_ON);
+			} else {
+				getTweetViewFavoriteButton().setIcon(IMG_FAV_OFF);
+			}
+			Icon userProfileIcon = ((JLabel) statusData.image).getIcon();
+			frameApi.clearTweetView();
+			frameApi.setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+			frameApi.setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+			frameApi.setTweetViewText(tweetText, overlayString, UNDERLINE);
+			frameApi.setTweetViewOperationPanel(getTweetViewOperationPanel());
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
-			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage());
+			Throwable handlingException = ex;
+			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage()).append("<br><br>");
+			while (null != (handlingException = handlingException.getCause())) {
+				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
+			}
 			nl2br(stringBuilder, 0);
-			frameApi.setTweetViewText(stringBuilder.toString(), ex.getClass().getName(), null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+			frameApi.clearTweetView();
+			frameApi.setTweetViewText(stringBuilder.toString(), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(Utility.getDateFormat().format(statusData.date), null,
+					DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), ex.getClass().getName(), null,
+					DO_NOTHING_WHEN_POINTED);
 		} else {
-			frameApi.setTweetViewText(statusData.data.getText(), statusData.user, null,
-					dateFormat.get().format(statusData.date), null, ((JLabel) statusData.image).getIcon());
+			frameApi.clearTweetView();
+			frameApi.setTweetViewText(statusData.data.getText(), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedAt(Utility.getDateFormat().format(statusData.date), null,
+					DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), statusData.user, null,
+					DO_NOTHING_WHEN_POINTED);
 		}
 	}
 	
@@ -974,8 +1110,6 @@ public abstract class DefaultClientTab implements ClientTab {
 				
 				@Override
 				protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-					logger.trace("jscrollpane#processKeyBinding: keyStroke={}, Event={}, condition={}, pressed={}",
-							Utility.toArray(ks, e, condition, pressed));
 					switch (ks.getKeyCode()) {
 						case KeyEvent.VK_DOWN:
 						case KeyEvent.VK_UP:
@@ -1054,6 +1188,173 @@ public abstract class DefaultClientTab implements ClientTab {
 		return getScrollPane();
 	}
 	
+	/**
+	 * ツイートビューの隣に表示するふぁぼボタン
+	 * 
+	 * @return ふぁぼボタン
+	 */
+	protected JLabel getTweetViewFavoriteButton() {
+		if (tweetViewFavoriteButton == null) {
+			tweetViewFavoriteButton = new JLabel(IMG_FAV_OFF, SwingConstants.CENTER);
+			tweetViewFavoriteButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewFavoriteButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewFavoriteButton.addAncestorListener(new AncestorListener() {
+				
+				@Override
+				public void ancestorAdded(AncestorEvent event) {
+					ancestorMoved(event);
+				}
+				
+				@Override
+				public void ancestorMoved(AncestorEvent event) {
+					if (selectingPost != null && selectingPost.getStatusData().tag instanceof Status) {
+						Status status = (Status) selectingPost.getStatusData().tag;
+						if (status.isFavorited()) {
+							tweetViewFavoriteButton.setIcon(IMG_FAV_ON);
+						} else {
+							tweetViewFavoriteButton.setIcon(IMG_FAV_OFF);
+						}
+					}
+				}
+				
+				@Override
+				public void ancestorRemoved(AncestorEvent event) {
+					ancestorMoved(event);
+				}
+			});
+			tweetViewFavoriteButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					mouseExited(e);
+					handleAction("fav");
+				}
+				
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					tweetViewFavoriteButton.setIcon(IMG_FAV_HOVER);
+				}
+				
+				@Override
+				public void mouseExited(MouseEvent e) {
+					Status status = (Status) selectingPost.getStatusData().tag;
+					if (status.isFavorited()) {
+						tweetViewFavoriteButton.setIcon(IMG_FAV_ON);
+					} else {
+						tweetViewFavoriteButton.setIcon(IMG_FAV_OFF);
+					}
+				}
+			});
+			
+		}
+		return tweetViewFavoriteButton;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するボタンの集まり
+	 * 
+	 * @return ボタンの集まり
+	 */
+	protected JPanel getTweetViewOperationPanel() {
+		if (tweetViewOperationPanel == null) {
+			tweetViewOperationPanel = new JPanel();
+			tweetViewOperationPanel.setPreferredSize(new Dimension(76, 76));
+			tweetViewOperationPanel.setMinimumSize(new Dimension(76, 76));
+			GroupLayout layout = new GroupLayout(tweetViewOperationPanel);
+			layout.setHorizontalGroup(layout
+				.createParallelGroup()
+				.addGroup(
+						layout.createSequentialGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+				.addGroup(
+						layout.createSequentialGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+			layout.setVerticalGroup(layout
+				.createSequentialGroup()
+				.addGroup(
+						layout.createParallelGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+				.addGroup(
+						layout.createParallelGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+		}
+		return tweetViewOperationPanel;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するその他用ボタン
+	 * 
+	 * @return その他用ボタン
+	 */
+	protected JLabel getTweetViewOtherButton() {
+		if (tweetViewOtherButton == null) {
+			tweetViewOtherButton = new JLabel("？", SwingConstants.CENTER);
+			tweetViewOtherButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewOtherButton.setToolTipText("ユーザー情報を見る");
+			tweetViewOtherButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewOtherButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("userinfo");
+				}
+			});
+		}
+		return tweetViewOtherButton;
+	}
+	
+	/**
+	 * ツイートビューの隣に表示するリプライボタン
+	 * 
+	 * @return リプライボタン
+	 */
+	protected JLabel getTweetViewReplyButton() {
+		if (tweetViewReplyButton == null) {
+			tweetViewReplyButton = new JLabel("Re", SwingConstants.CENTER);
+			tweetViewReplyButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewReplyButton.setToolTipText("@返信を行う");
+			tweetViewReplyButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewReplyButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("reply");
+				}
+			});
+		}
+		return tweetViewReplyButton;
+	}
+	
+	/**
+	* ツイートビューの隣に表示するリツイートボタン
+	* 
+	* @return リツイートボタン
+	*/
+	protected JLabel getTweetViewRetweetButton() {
+		if (tweetViewRetweetButton == null) {
+			tweetViewRetweetButton = new JLabel("RT", SwingConstants.CENTER);
+			tweetViewRetweetButton.setBorder(new LineBorder(Color.GRAY, 1));
+			tweetViewRetweetButton.setToolTipText("公式リツイート");
+			tweetViewRetweetButton.setMinimumSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.setMaximumSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.setPreferredSize(OPERATION_PANEL_SIZE);
+			tweetViewRetweetButton.addMouseListener(new MouseAdapter() {
+				
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					handleAction("rt");
+				}
+			});
+		}
+		return tweetViewRetweetButton;
+	}
+	
 	@Override
 	public String getUniqId() {
 		return uniqId;
@@ -1061,26 +1362,47 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	@Override
 	public void handleAction(String command) {
-		frameApi.handleAction(command, selectingPost.getStatusData());
+		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
 	}
 	
 	private void init(ClientConfiguration configuration) {
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
-		fontHeight = fontMetrics.getHeight();
-		linePanelSizeOfSentBy = new Dimension(str12width, fontHeight);
-		iconSize = new Dimension(64, fontHeight);
+		int height = Math.max(18, fontHeight);
+		linePanelSizeOfSentBy = new Dimension(str12width, height);
+		iconSize = new Dimension(64, height);
 		frameApi.getTimer().schedule(new PostListUpdater(), configData.intervalOfPostListUpdate,
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
-		kineticScroller = new MomemtumScroller(getScrollPane(), new BoundsTranslator() {
+		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
 			
 			@Override
 			public Rectangle translate(JComponent component) {
 				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
 			}
-		});
+		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
+	}
+	
+	/**
+	 * <p>
+	 * タイムラインの初期化。Display Requirements用にあります。
+	 * 他にDisplay Requirementsに準拠できる方法があるのならばこのメソッドをオーバーライドして無効化しても構いません。
+	 * </p><p>
+	 * この関数は処理の都合から {@link #getTabComponent()} 呼び出し時に呼び出されます。
+	 * </p>
+	 */
+	@Override
+	public void initTimeline() {
+		// for Display Requirements
+		StatusData statusData = new StatusData(null, new Date(0x7fffffffffffffffL));
+		statusData.user = "!twitter";
+		statusData.backgroundColor = Color.DARK_GRAY;
+		statusData.foregroundColor = Color.WHITE;
+		statusData.image = new JLabel(IMG_TWITTER_LOGO);
+		statusData.sentBy = new JLabel();
+		statusData.data = new JLabel("All data is from twitter...");
+		addStatus(statusData);
 	}
 	
 	/**
@@ -1094,14 +1416,31 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	/**
-	 * ステータスを削除する (未実装)
+	 * ステータスを削除する
 	 * 
 	 * @param statusData ステータスデータ
-	 * @param delay 遅延秒
 	 */
-	public void removeStatus(StatusData statusData, int delay) {
-		// TODO Auto-generated method stub
-		
+	public void removeStatus(StatusData statusData) {
+		StatusPanel panel = statusMap.get(statusData.id);
+		if (panel != null) {
+			getSortedPostListPanel().remove(panel);
+		}
+	}
+	
+	/**
+	 * ステータスを削除する
+	 * 
+	 * @param statusData ステータスデータ
+	 * @param delay 遅延ミリ秒
+	 */
+	public void removeStatus(final StatusData statusData, int delay) {
+		frameApi.getTimer().schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				removeStatus(statusData);
+			}
+		}, delay);
 	}
 	
 }

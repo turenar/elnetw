@@ -61,15 +61,8 @@
 				</plugin>
 				<plugin>
 					<groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
-					<artifactId>maven-svn-revision-number-plugin</artifactId>
-					<version>1.7</version>
-					<dependencies>
-						<dependency>
-							<groupId>org.tmatesoft.svnkit</groupId>
-							<artifactId>svnkit</artifactId>
-							<version>1.7.0-SNAPSHOT</version> <!-- or svnkit:1.7.0-alpha1 -->
-						</dependency>
-					</dependencies>
+					<artifactId>svn-revision-number-maven-plugin</artifactId>
+					<version>1.13</version>
 					<executions>
 						<execution>
 							<goals>
@@ -89,38 +82,6 @@
 							<include>**/*Test.java</include>
 						</includes>
 						<argLine>-Xmx512M</argLine>
-					</configuration>
-				</plugin>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											com.google.code.maven-svn-revision-number-plugin
-										</groupId>
-										<artifactId>
-											maven-svn-revision-number-plugin
-										</artifactId>
-										<versionRange>
-											[1.7,)
-										</versionRange>
-										<goals>
-											<goal>revision</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
 			</plugins>

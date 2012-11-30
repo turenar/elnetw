@@ -229,7 +229,7 @@ public class ClientProperties extends Properties {
 	 * @param key キー 
 	 * @return keyに関連付けられたdouble
 	 */
-	public double getDouble(String key) {
+	public synchronized double getDouble(String key) {
 		Double double1 = getCachedValue(key, Double.class);
 		if (double1 != null) {
 			return double1;
@@ -248,7 +248,7 @@ public class ClientProperties extends Properties {
 	 * @param key キー 
 	 * @return keyに関連付けられたfloat
 	 */
-	public float getFloat(String key) {
+	public synchronized float getFloat(String key) {
 		Float float1 = getCachedValue(key, Float.class);
 		if (float1 != null) {
 			return float1;
@@ -364,7 +364,7 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param value 値
 	 */
-	public void setDouble(String key, double value) {
+	public synchronized void setDouble(String key, double value) {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
@@ -375,7 +375,7 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @param value 値
 	 */
-	public void setFloat(String key, float value) {
+	public synchronized void setFloat(String key, float value) {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
