@@ -11,7 +11,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.Annotations;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -27,21 +26,20 @@ import twitter4j.internal.org.json.JSONObject;
 import twitter4j.json.DataObjectFactory;
 
 /**
- * RT/favしたかどうかを格納できるTwitter拡張型
+ * RT/favしたかどうかを格納できるStatus拡張型
  * 
  * @author $Author$
  */
 @SuppressWarnings({
-	"serial",
-	"deprecation"
+	"serial"
 })
-public class TwitterStatus implements Status {
+public class TwitterStatus implements Status, TwitterExtendedObject {
 	
 	/*package*/static abstract class EntityImplBase {
 		
-		private final int start;
-		
 		private final int end;
+		
+		private final int start;
 		
 		
 		protected EntityImplBase(int start, int end) {
@@ -167,17 +165,18 @@ public class TwitterStatus implements Status {
 	}
 	
 	
-	private static final Constructor<UserMentionEntityImpl> USERMENTION_ENTITY_CONSTRUCTOR;
-	
-	private static final Constructor<MediaEntityImpl> MEDIA_ENTITY_CONSTRUCTOR;
+	private static final Map<String, String> escapeEntityMap;
 	
 	private static final Constructor<HashtagEntityImpl> HASHTAG_ENTITY_CONSTRUCTOR;
 	
-	private static final Constructor<URLEntityImpl> URL_ENTITY_CONSTRUCTOR;
-	
 	private static final Logger logger;
 	
-	private static final Map<String, String> escapeEntityMap;
+	private static final Constructor<MediaEntityImpl> MEDIA_ENTITY_CONSTRUCTOR;
+	
+	private static final Constructor<URLEntityImpl> URL_ENTITY_CONSTRUCTOR;
+	
+	private static final Constructor<UserMentionEntityImpl> USERMENTION_ENTITY_CONSTRUCTOR;
+	
 	static {
 		logger = LoggerFactory.getLogger(TwitterStatus.class);
 		try {
@@ -254,13 +253,15 @@ public class TwitterStatus implements Status {
 	 * @param entity エンティティ
 	 * @return indice start
 	 */
-	public static int getEntityEnd(Object entity) {
+	public static final int getEntityEnd(Object entity) {
 		if (entity instanceof URLEntity) {
 			return ((URLEntity) entity).getEnd();
 		} else if (entity instanceof HashtagEntity) {
 			return ((HashtagEntity) entity).getEnd();
 		} else if (entity instanceof UserMentionEntity) {
 			return ((UserMentionEntity) entity).getEnd();
+		} else if (entity instanceof EntityImplBase) {
+			return ((EntityImplBase) entity).getEnd();
 		} else {
 			throw new IllegalArgumentException("entity is not instanceof *Entity");
 		}
@@ -272,49 +273,22 @@ public class TwitterStatus implements Status {
 	 * @param entity エンティティ
 	 * @return indice end
 	 */
-	public static int getEntityStart(Object entity) {
+	public static final int getEntityStart(Object entity) {
 		if (entity instanceof URLEntity) {
 			return ((URLEntity) entity).getStart();
 		} else if (entity instanceof HashtagEntity) {
 			return ((HashtagEntity) entity).getStart();
 		} else if (entity instanceof UserMentionEntity) {
 			return ((UserMentionEntity) entity).getStart();
+		} else if (entity instanceof EntityImplBase) {
+			return ((EntityImplBase) entity).getStart();
 		} else {
 			throw new IllegalArgumentException("entity is not instanceof *Entity");
 		}
 	}
 	
-	
-	private final Status originalStatus;
-	
-	private volatile boolean favorited;
-	
-	private volatile boolean retweetedByMe;
-	
-	private TwitterStatus retweetedStatus;
-	
-	private String escapedText;
-	
-	private UserMentionEntity[] userMentionEntities;
-	
-	private MediaEntity[] mediaEntities;
-	
-	private URLEntity[] urlEntities;
-	
-	private HashtagEntity[] hashtagEntities;
-	
-	private String text;
-	
-	private boolean loadedInitialization;
-	
-	
-	/**
-	 * インスタンスを生成する。
-	 * 
-	 * @param originalStatus オリジナルステータス
-	 */
-	public TwitterStatus(Status originalStatus) {
-		this.originalStatus = originalStatus;
+	private static JSONObject getJsonObject(ClientConfiguration configuration, Status originalStatus)
+			throws AssertionError {
 		String json = DataObjectFactory.getRawJSON(originalStatus);
 		JSONObject jsonObject = null;
 		if (json != null) {
@@ -325,44 +299,288 @@ public class TwitterStatus implements Status {
 				throw new AssertionError(e);
 			}
 		}
-		init(originalStatus, jsonObject);
+		return jsonObject;
+	}
+	
+	
+	private final ClientConfiguration configuration;
+	
+	private final long[] contributors;
+	
+	private final Date createdAt;
+	
+	private final String escapedText;
+	
+	private final GeoLocation geoLocation;
+	
+	private/*final*/HashtagEntity[] hashtagEntities;
+	
+	private final long id;
+	
+	private final String inReplyToScreenName;
+	
+	private final long inReplyToStatusId;
+	
+	private final long inReplyToUserId;
+	
+	private final boolean isTruncated;
+	
+	private boolean loadedInitialization;
+	
+	private/*final*/MediaEntity[] mediaEntities;
+	
+	private final Place place;
+	
+	private final TwitterStatus retweetedStatus;
+	
+	private final String source;
+	
+	private/*final*/String text;
+	
+	private/*final*/URLEntity[] urlEntities;
+	
+	private final User user;
+	
+	private/*final*/UserMentionEntity[] userMentionEntities;
+	
+	private volatile boolean favorited;
+	
+	private volatile long retweetCount;
+	
+	private volatile boolean retweetedByMe;
+	
+	private final transient int accessLevel;
+	
+	private final transient RateLimitStatus rateLimitStatus;
+	
+	private String json;
+	
+	private final UserMentionEntity[] escapedUserMentionEntities;
+	
+	private final MediaEntity[] escapedMediaEntities;
+	
+	private final HashtagEntity[] escapedHashtagEntities;
+	
+	private final URLEntity[] escapedUrlEntities;
+	
+	
+	/**
+	 * インスタンスを生成する。
+	 * @param configuration 設定
+	 * @param originalStatus オリジナルステータス
+	 */
+	public TwitterStatus(ClientConfiguration configuration, Status originalStatus) {
+		this(configuration, originalStatus, getJsonObject(configuration, originalStatus));
 	}
 	
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 * @param configuration 設定
 	 * @param originalStatus オリジナルステータス
 	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
 	 */
-	protected TwitterStatus(Status originalStatus, JSONObject jsonObject) {
-		this.originalStatus = originalStatus;
-		init(originalStatus, jsonObject);
+	public TwitterStatus(ClientConfiguration configuration, Status originalStatus, JSONObject jsonObject) {
+		this.configuration = configuration;
+		json = jsonObject == null ? null : jsonObject.toString();
+		
+		favorited = originalStatus.isFavorited();
+		retweetedByMe = originalStatus.isRetweetedByMe();
+		escapedUrlEntities = urlEntities = originalStatus.getURLEntities();
+		escapedHashtagEntities = hashtagEntities = originalStatus.getHashtagEntities();
+		escapedMediaEntities = mediaEntities = originalStatus.getMediaEntities();
+		escapedUserMentionEntities = userMentionEntities = originalStatus.getUserMentionEntities();
+		text = originalStatus.getText();
+		createdAt = originalStatus.getCreatedAt();
+		id = originalStatus.getId();
+		source = originalStatus.getSource();
+		isTruncated = originalStatus.isTruncated();
+		inReplyToStatusId = originalStatus.getInReplyToStatusId();
+		inReplyToUserId = originalStatus.getInReplyToUserId();
+		favorited = originalStatus.isFavorited();
+		inReplyToScreenName = originalStatus.getInReplyToScreenName();
+		geoLocation = originalStatus.getGeoLocation();
+		place = originalStatus.getPlace();
+		retweetCount = originalStatus.getRetweetCount();
+		retweetedByMe = originalStatus.isRetweetedByMe();
+		contributors = originalStatus.getContributors();
+		user = getCachedUser(originalStatus.getUser());
+		rateLimitStatus = originalStatus.getRateLimitStatus();
+		accessLevel = originalStatus.getAccessLevel();
+		
+		Status retweetedStatus = originalStatus.getRetweetedStatus();
+		if (originalStatus instanceof TwitterStatus) {
+			escapedText = originalStatus.getText();
+			this.retweetedStatus = (TwitterStatus) retweetedStatus;
+			return;
+		}
+		
+		if (jsonObject == null) {
+			escapedText = HTMLEntity.escape(originalStatus.getText());
+		} else {
+			try {
+				escapedText = jsonObject.getString("text");
+				if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
+					CacheManager cacheManager = configuration.getCacheManager();
+					Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
+					if (cachedStatus == null || cachedStatus instanceof TwitterStatus == false) {
+						Status status =
+								new TwitterStatus(configuration, retweetedStatus, jsonObject.isNull("retweeted_status")
+										? null : jsonObject.getJSONObject("retweeted_status"));
+						cachedStatus = cacheManager.cacheStatusIfAbsent(status);
+						if (cachedStatus == null) {
+							cachedStatus = status;
+						}
+					}
+					retweetedStatus = cachedStatus;
+				}
+			} catch (JSONException e) {
+				logger.error("Cannot parse json", e); // already parsed by StatusJSONImpl
+				throw new RuntimeException(e);
+			}
+		}
+		ArrayList<int[]> replacedList = new ArrayList<int[]>();
+		StringBuilder escapedTextBuilder = new StringBuilder(escapedText);
+		
+		// == Original is Twitter4j v2.2.5 HTMLEntity.java ==
+		int index = 0;
+		int semicolonIndex;
+		String escaped;
+		String entity;
+		while (index < escapedTextBuilder.length()) {
+			index = escapedTextBuilder.indexOf("&", index);
+			if (-1 == index) {
+				break;
+			}
+			semicolonIndex = escapedTextBuilder.indexOf(";", index);
+			if (-1 != semicolonIndex) {
+				escaped = escapedTextBuilder.substring(index, semicolonIndex + 1);
+				entity = escapeEntityMap.get(escaped);
+				if (entity != null) {
+					replacedList.add(new int[] {
+						index,
+						escaped.length() - entity.length()
+					});
+					escapedTextBuilder.replace(index, semicolonIndex + 1, entity);
+				}
+				index++;
+			} else {
+				break;
+			}
+		}
+		// == here is end ==
+		text = escapedTextBuilder.toString();
+		
+		try {
+			if (urlEntities != null) {
+				urlEntities =
+						getEntities(urlEntities, new URLEntity[urlEntities.length], replacedList,
+								URL_ENTITY_CONSTRUCTOR);
+			}
+			if (hashtagEntities != null) {
+				hashtagEntities =
+						getEntities(hashtagEntities, new HashtagEntity[hashtagEntities.length], replacedList,
+								HASHTAG_ENTITY_CONSTRUCTOR);
+			}
+			if (mediaEntities != null) {
+				mediaEntities =
+						getEntities(mediaEntities, new MediaEntity[mediaEntities.length], replacedList,
+								MEDIA_ENTITY_CONSTRUCTOR);
+			}
+			if (userMentionEntities != null) {
+				userMentionEntities =
+						getEntities(userMentionEntities, new UserMentionEntity[userMentionEntities.length],
+								replacedList, USERMENTION_ENTITY_CONSTRUCTOR);
+			}
+		} catch (AssertionError error) {
+			logger.error("caught error on preparing entities", error);
+			logger.error("original={}, json={}", originalStatus, jsonObject);
+		}
+		this.retweetedStatus = (TwitterStatus) retweetedStatus;
 	}
 	
 	@Override
-	public int compareTo(Status o) {
-		return originalStatus.compareTo(o);
+	public int compareTo(Status b) {
+		long thisId = id;
+		long thatId = b.getId();
+		if (thisId < thatId) {
+			return -1;
+		} else if (thisId > thatId) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		} else if (this == obj) {
+			return true;
+		} else if (obj instanceof Status == false) {
+			return false;
+		}
+		return ((Status) obj).getId() == id;
 	}
 	
 	@Override
 	public int getAccessLevel() {
-		return originalStatus.getAccessLevel();
+		return accessLevel;
 	}
 	
+	/**
+	 * @deprecated (Twitter4Jにならい、非推奨メソッドです) この実装では常にnullを返します。
+	 */
+	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
-	public Annotations getAnnotations() {
-		return originalStatus.getAnnotations();
+	public twitter4j.Annotations getAnnotations() {
+		return null;
+	}
+	
+	private User getCachedUser(User user) {
+		if (user instanceof TwitterUser) {
+			return user;
+		}
+		
+		CacheManager cacheManager = configuration.getCacheManager();
+		User cachedUser = cacheManager.getCachedUser(user.getId());
+		if (cachedUser == null) {
+			TwitterUser twitterUser = new TwitterUser(configuration, user);
+			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
+			if (cachedUser == null) {
+				cachedUser = twitterUser;
+			}
+		}
+		return cachedUser;
 	}
 	
 	@Override
 	public long[] getContributors() {
-		return originalStatus.getContributors();
+		return contributors;
 	}
 	
 	@Override
 	public Date getCreatedAt() {
-		return originalStatus.getCreatedAt();
+		return createdAt;
+	}
+	
+	/**
+	 * {@link #getEscapedText()} を使用した時の {@link HashtagEntity} 配列
+	 * 
+	 * @return {@link HashtagEntity}配列
+	 */
+	public HashtagEntity[] getEscapedHashtagEntities() {
+		return escapedHashtagEntities;
+	}
+	
+	/**
+	 * {@link #getEscapedText()} を使用した時の {@link MediaEntity} 配列
+	 * 
+	 * @return {@link MediaEntity}配列
+	 */
+	public MediaEntity[] getEscapedMediaEntities() {
+		return escapedMediaEntities;
 	}
 	
 	/**
@@ -375,9 +593,27 @@ public class TwitterStatus implements Status {
 		return escapedText;
 	}
 	
+	/**
+	 * {@link #getEscapedText()} を使用した時の {@link URLEntity} 配列
+	 * 
+	 * @return {@link URLEntity}配列
+	 */
+	public URLEntity[] getEscapedURLEntities() {
+		return escapedUrlEntities;
+	}
+	
+	/**
+	 * {@link #getEscapedText()} を使用した時の {@link UserMentionEntity} 配列
+	 * 
+	 * @return {@link UserMentionEntity}配列
+	 */
+	public UserMentionEntity[] getEscapedUserMentionEntities() {
+		return escapedUserMentionEntities;
+	}
+	
 	@Override
 	public GeoLocation getGeoLocation() {
-		return originalStatus.getGeoLocation();
+		return geoLocation;
 	}
 	
 	@Override
@@ -387,22 +623,27 @@ public class TwitterStatus implements Status {
 	
 	@Override
 	public long getId() {
-		return originalStatus.getId();
+		return id;
 	}
 	
 	@Override
 	public String getInReplyToScreenName() {
-		return originalStatus.getInReplyToScreenName();
+		return inReplyToScreenName;
 	}
 	
 	@Override
 	public long getInReplyToStatusId() {
-		return originalStatus.getInReplyToStatusId();
+		return inReplyToStatusId;
 	}
 	
 	@Override
 	public long getInReplyToUserId() {
-		return originalStatus.getInReplyToUserId();
+		return inReplyToUserId;
+	}
+	
+	@Override
+	public String getJson() {
+		return json;
 	}
 	
 	@Override
@@ -410,28 +651,19 @@ public class TwitterStatus implements Status {
 		return mediaEntities;
 	}
 	
-	/**
-	 * twitter4jから渡されたStatusを取得する。
-	 * 
-	 * @return twitter4jから渡されたStatus
-	 */
-	public Status getOriginalStatus() {
-		return originalStatus;
-	}
-	
 	@Override
 	public Place getPlace() {
-		return originalStatus.getPlace();
+		return place;
 	}
 	
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
-		return originalStatus.getRateLimitStatus();
+		return rateLimitStatus;
 	}
 	
 	@Override
 	public long getRetweetCount() {
-		return originalStatus.getRetweetCount();
+		return retweetCount;
 	}
 	
 	@Override
@@ -441,7 +673,7 @@ public class TwitterStatus implements Status {
 	
 	@Override
 	public String getSource() {
-		return originalStatus.getSource();
+		return source;
 	}
 	
 	@Override
@@ -456,7 +688,7 @@ public class TwitterStatus implements Status {
 	
 	@Override
 	public User getUser() {
-		return originalStatus.getUser();
+		return user;
 	}
 	
 	@Override
@@ -464,92 +696,9 @@ public class TwitterStatus implements Status {
 		return userMentionEntities;
 	}
 	
-	private void init(final Status originalStatus, JSONObject jsonObject) {
-		Status retweetedStatus = originalStatus.getRetweetedStatus();
-		favorited = originalStatus.isFavorited();
-		retweetedByMe = originalStatus.isRetweetedByMe();
-		urlEntities = originalStatus.getURLEntities();
-		hashtagEntities = originalStatus.getHashtagEntities();
-		mediaEntities = originalStatus.getMediaEntities();
-		userMentionEntities = originalStatus.getUserMentionEntities();
-		text = originalStatus.getText();
-		
-		if (originalStatus instanceof TwitterStatus) {
-			escapedText = originalStatus.getText();
-		} else {
-			if (jsonObject == null) {
-				escapedText = HTMLEntity.escape(originalStatus.getText());
-			} else {
-				try {
-					escapedText = jsonObject.getString("text");
-					if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
-						retweetedStatus =
-								new TwitterStatus(retweetedStatus, jsonObject.getJSONObject("retweeted_status"));
-					}
-				} catch (JSONException e) {
-					logger.error("Cannot parse json", e); // already parsed by StatusJSONImpl
-					throw new AssertionError(e);
-				}
-			}
-			ArrayList<int[]> replacedList = new ArrayList<int[]>();
-			StringBuilder escapedTextBuilder = new StringBuilder(escapedText);
-			
-			// == Original is Twitter4j v2.2.5 HTMLEntity.java ==
-			int index = 0;
-			int semicolonIndex;
-			String escaped;
-			String entity;
-			while (index < escapedTextBuilder.length()) {
-				index = escapedTextBuilder.indexOf("&", index);
-				if (-1 == index) {
-					break;
-				}
-				semicolonIndex = escapedTextBuilder.indexOf(";", index);
-				if (-1 != semicolonIndex) {
-					escaped = escapedTextBuilder.substring(index, semicolonIndex + 1);
-					entity = escapeEntityMap.get(escaped);
-					if (entity != null) {
-						replacedList.add(new int[] {
-							index,
-							escaped.length() - entity.length()
-						});
-						escapedTextBuilder.replace(index, semicolonIndex + 1, entity);
-					}
-					index++;
-				} else {
-					break;
-				}
-			}
-			// == here is end ==
-			text = escapedTextBuilder.toString();
-			
-			try {
-				if (urlEntities != null) {
-					urlEntities =
-							getEntities(urlEntities, new URLEntity[urlEntities.length], replacedList,
-									URL_ENTITY_CONSTRUCTOR);
-				}
-				if (hashtagEntities != null) {
-					hashtagEntities =
-							getEntities(hashtagEntities, new HashtagEntity[hashtagEntities.length], replacedList,
-									HASHTAG_ENTITY_CONSTRUCTOR);
-				}
-				if (mediaEntities != null) {
-					mediaEntities =
-							getEntities(mediaEntities, new MediaEntity[mediaEntities.length], replacedList,
-									MEDIA_ENTITY_CONSTRUCTOR);
-				}
-				if (userMentionEntities != null) {
-					userMentionEntities =
-							getEntities(userMentionEntities, new UserMentionEntity[userMentionEntities.length],
-									replacedList, USERMENTION_ENTITY_CONSTRUCTOR);
-				}
-			} catch (AssertionError error) {
-				logger.error("caught error on preparing entities", error);
-				logger.error("original={}, json={}", originalStatus, jsonObject);
-			}
-		}
-		this.retweetedStatus = (TwitterStatus) retweetedStatus;
+	@Override
+	public int hashCode() {
+		return (int) id;
 	}
 	
 	@Override
@@ -568,7 +717,7 @@ public class TwitterStatus implements Status {
 	
 	@Override
 	public boolean isRetweet() {
-		return originalStatus.isRetweet();
+		return retweetedStatus != null;
 	}
 	
 	@Override
@@ -578,7 +727,7 @@ public class TwitterStatus implements Status {
 	
 	@Override
 	public boolean isTruncated() {
-		return originalStatus.isTruncated();
+		return isTruncated;
 	}
 	
 	/**

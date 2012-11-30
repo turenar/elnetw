@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.URLEntity;
@@ -296,6 +297,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		
 		@Override
+		public void onStallWarning(StallWarning warning) {
+		}
+		
+		@Override
 		public void onStatus(Status originalStatus) {
 			addStatus(originalStatus);
 		}
@@ -489,8 +494,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 	
 	
-	private static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	protected static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	
+	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
 	
@@ -502,7 +508,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		
 		@Override
 		protected SimpleDateFormat initialValue() {
-			return new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		}
 	};
 	
@@ -600,8 +606,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
 	
-	private Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
-	
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
 	 * 
@@ -673,7 +677,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		Status twitterStatus = new TwitterStatus(originalStatus);
+		Status twitterStatus = new TwitterStatus(configuration, originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 		
 		Status status;
@@ -832,11 +836,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
 			
-			HashtagEntity[] hashtagEntities = status.getOriginalStatus().getHashtagEntities();
+			HashtagEntity[] hashtagEntities = status.getEscapedHashtagEntities();
 			hashtagEntities = hashtagEntities == null ? new HashtagEntity[0] : hashtagEntities;
-			URLEntity[] urlEntities = status.getOriginalStatus().getURLEntities();
+			URLEntity[] urlEntities = status.getEscapedURLEntities();
 			urlEntities = urlEntities == null ? new URLEntity[0] : urlEntities;
-			UserMentionEntity[] mentionEntities = status.getOriginalStatus().getUserMentionEntities();
+			UserMentionEntity[] mentionEntities = status.getEscapedUserMentionEntities();
 			mentionEntities = mentionEntities == null ? new UserMentionEntity[0] : mentionEntities;
 			Object[] entities = new Object[hashtagEntities.length + urlEntities.length + mentionEntities.length];
 			

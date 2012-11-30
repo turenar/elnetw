@@ -1,13 +1,14 @@
 package jp.syuriken.snsw.twclient;
 
 import twitter4j.DirectMessage;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
 import twitter4j.UserList;
 
 /**
- * TODO Megumi
+ * {@link ClientMessageListener} のアダプター・クラス
  * 
  * @author $Author$
  */
@@ -71,6 +72,10 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	
 	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
+	}
+	
+	@Override
+	public void onStallWarning(StallWarning arg0) {
 	}
 	
 	@Override

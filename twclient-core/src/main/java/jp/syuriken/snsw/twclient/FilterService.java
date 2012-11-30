@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import twitter4j.DirectMessage;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
@@ -91,6 +92,8 @@ public class FilterService implements ClientMessageListener {
 	/** タブを管理するためのリストロック */
 	protected final ReentrantReadWriteLock tabsListLock;
 	
+	private CacheManager cacheManager;
+	
 	
 	/**
 	 * インスタンスを生成する。
@@ -99,6 +102,7 @@ public class FilterService implements ClientMessageListener {
 	 */
 	public FilterService(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		cacheManager = configuration.getCacheManager();
 		filterList = new ArrayList<MessageFilter>();
 		filterListLock = new ReentrantReadWriteLock();
 		tabsList = configuration.getFrameTabs();
@@ -111,9 +115,12 @@ public class FilterService implements ClientMessageListener {
 	 * @param messageFilter フィルタ
 	 */
 	public void addFilter(MessageFilter messageFilter) {
-		filterListLock.writeLock().lock();
-		filterList.add(messageFilter);
-		filterListLock.writeLock().unlock();
+		try {
+			filterListLock.writeLock().lock();
+			filterList.add(messageFilter);
+		} finally {
+			filterListLock.writeLock().unlock();
+		}
 	}
 	
 	/**
@@ -132,6 +139,24 @@ public class FilterService implements ClientMessageListener {
 	 */
 	protected void filter(FilterDispatcher filterDispatcher) {
 		addJob(filterDispatcher);
+	}
+	
+	private Status getTwitterStatus(Status originalStatus) {
+		if (originalStatus instanceof TwitterStatus) {
+			return originalStatus;
+		}
+		
+		Status cachedStatus = cacheManager.getCachedStatus(originalStatus.getId());
+		if (cachedStatus == null) {
+			Status status =
+					(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(configuration,
+							originalStatus);
+			cachedStatus = cacheManager.cacheStatusIfAbsent(status);
+			if (cachedStatus == null) {
+				cachedStatus = status;
+			}
+		}
+		return cachedStatus;
 	}
 	
 	@Override
@@ -363,14 +388,41 @@ public class FilterService implements ClientMessageListener {
 	}
 	
 	@Override
-	public void onScrubGeo(long userId, long upToStatusId) {
-		// TODO Auto-generated method stub
+	public void onScrubGeo(final long userId, final long upToStatusId) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onScrubGeo(userId, upToStatusId);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onScrubGeo(userId, upToStatusId);
+			}
+		});
+	}
+	
+	@Override
+	public void onStallWarning(final StallWarning warning) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onStallWarning(warning);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onStallWarning(warning);
+			}
+		});
 	}
 	
 	@Override
 	public void onStatus(Status originalStatus) {
-		final Status status =
-				(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(originalStatus);
+		final Status status = getTwitterStatus(originalStatus);
+		
 		filter(new FilterDispatcher() {
 			
 			private Status obj = status;
@@ -406,9 +458,19 @@ public class FilterService implements ClientMessageListener {
 	}
 	
 	@Override
-	public void onUnblock(User source, User unblockedUser) {
-		// TODO Auto-generated method stub
-		
+	public void onUnblock(final User source, final User unblockedUser) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUnblock(source, unblockedUser);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUnblock(source, unblockedUser);
+			}
+		});
 	}
 	
 	@Override
@@ -428,50 +490,130 @@ public class FilterService implements ClientMessageListener {
 	}
 	
 	@Override
-	public void onUserListCreation(User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListCreation(final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListCreation(listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListCreation(listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListDeletion(User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListDeletion(final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListDeletion(listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListDeletion(listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListMemberAddition(final User addedMember, final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListMemberAddition(addedMember, listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListMemberAddition(addedMember, listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListMemberDeletion(final User deletedMember, final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListMemberDeletion(deletedMember, listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListMemberDeletion(deletedMember, listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListSubscription(final User subscriber, final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListSubscription(subscriber, listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListSubscription(subscriber, listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListUnsubscription(final User subscriber, final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListUnsubscription(subscriber, listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListUnsubscription(subscriber, listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserListUpdate(User listOwner, UserList list) {
-		// TODO Auto-generated method stub
-		
+	public void onUserListUpdate(final User listOwner, final UserList list) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserListUpdate(listOwner, list);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserListUpdate(listOwner, list);
+			}
+		});
 	}
 	
 	@Override
-	public void onUserProfileUpdate(User updatedUser) {
-		// TODO Auto-generated method stub
-		
+	public void onUserProfileUpdate(final User updatedUser) {
+		filter(new FilterDispatcher() {
+			
+			@Override
+			protected boolean callDispatch(MessageFilter messageFilter) {
+				return messageFilter.onUserProfileUpdate(updatedUser);
+			}
+			
+			@Override
+			protected void notifyClientMessage(ClientMessageListener notifyListener) {
+				notifyListener.onUserProfileUpdate(updatedUser);
+			}
+		});
 	}
 }

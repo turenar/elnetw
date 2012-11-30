@@ -185,7 +185,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 					String list = userMatcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
 					if (list == null) {
 						userMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
-								+ "<a href='http://command/userinfo/$"
+								+ "<a href='http://command/userinfo!$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");

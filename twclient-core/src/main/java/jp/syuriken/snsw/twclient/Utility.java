@@ -495,6 +495,7 @@ public class Utility {
 						browser,
 						url.trim()
 					});
+					break;
 				default:
 					break;
 			}

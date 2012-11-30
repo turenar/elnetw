@@ -4,10 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -223,6 +223,44 @@ public class ClientProperties extends Properties {
 	}
 	
 	/**
+	 * keyに関連付けられた値を利用して、doubleを取得する。
+	 * 
+	 * 書式：double
+	 * @param key キー 
+	 * @return keyに関連付けられたdouble
+	 */
+	public double getDouble(String key) {
+		Double double1 = getCachedValue(key, Double.class);
+		if (double1 != null) {
+			return double1;
+		}
+		
+		String value = getProperty(key);
+		double1 = Double.valueOf(value);
+		cacheValue(key, double1);
+		return double1;
+	}
+	
+	/**
+	 * keyに関連付けられた値を利用して、floatを取得する。
+	 * 
+	 * 書式：float
+	 * @param key キー 
+	 * @return keyに関連付けられたfloat
+	 */
+	public float getFloat(String key) {
+		Float float1 = getCachedValue(key, Float.class);
+		if (float1 != null) {
+			return float1;
+		}
+		
+		String value = getProperty(key);
+		float1 = Float.valueOf(value);
+		cacheValue(key, float1);
+		return float1;
+	}
+	
+	/**
 	 * keyに関連付けられた値を利用して、intを取得する。
 	 * 
 	 * 書式：int
@@ -321,6 +359,28 @@ public class ClientProperties extends Properties {
 	}
 	
 	/**
+	 * keyにdoubleを関連付ける。
+	 * 
+	 * @param key キー
+	 * @param value 値
+	 */
+	public void setDouble(String key, double value) {
+		clearCachedValue(key);
+		setProperty(key, String.valueOf(value));
+	}
+	
+	/**
+	 * keyにfloatを関連付ける
+	 * 
+	 * @param key キー
+	 * @param value 値
+	 */
+	public void setFloat(String key, float value) {
+		clearCachedValue(key);
+		setProperty(key, String.valueOf(value));
+	}
+	
+	/**
 	 * keyにintを関連付ける
 	 * 
 	 * @param key キー
@@ -375,19 +435,26 @@ public class ClientProperties extends Properties {
 	* @param comments ファイルのコメント
 	*/
 	public synchronized void store(String comments) {
-		FileWriter fileWriter = null;
-		BufferedWriter bufferedWriter = null;
+		FileOutputStream stream = null;
+		OutputStreamWriter writer = null;
 		try {
-			fileWriter = new FileWriter(storeFile);
-			bufferedWriter = new BufferedWriter(fileWriter);
-			store(bufferedWriter, comments);
+			stream = new FileOutputStream(storeFile);
+			writer = new OutputStreamWriter(stream, "UTF-8");
+			store(writer, comments);
 		} catch (IOException e) {
 			logger.warn("Propertiesファイルの保存中にエラー", e);
 		} finally {
-			if (bufferedWriter != null) {
+			if (writer != null) {
 				try {
-					bufferedWriter.flush();
-					bufferedWriter.close();
+					writer.flush();
+					writer.close();
+				} catch (IOException e) {
+					logger.warn("Propertiesファイルのクローズ中にエラー", e);
+				}
+			} else if (stream != null) { // writer.close()によりstreamは自動的に閉じられる
+				try {
+					stream.flush();
+					stream.close();
 				} catch (IOException e) {
 					logger.warn("Propertiesファイルのクローズ中にエラー", e);
 				}

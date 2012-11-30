@@ -238,11 +238,11 @@ public class ClientConfiguration {
 	
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	
-	private final FilterService rootFilterService;
+	private volatile FilterService rootFilterService;
 	
-	private ImageCacher imageCacher;
+	private volatile ImageCacher imageCacher;
 	
-	private ConfigData configData;
+	private volatile ConfigData configData;
 	
 	private ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
 	
@@ -255,6 +255,10 @@ public class ClientConfiguration {
 	private boolean portabledConfiguration;
 	
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.turetwcl";
+	
+	private volatile CacheManager cacheManager;
+	
+	private Object lockObject = new Object();
 	
 	private static ClientConfiguration instance;
 	
@@ -292,7 +296,6 @@ public class ClientConfiguration {
 	 */
 	protected ClientConfiguration(boolean register) {
 		init(this, register);
-		rootFilterService = new FilterService(this);
 	}
 	
 	/**
@@ -363,7 +366,11 @@ public class ClientConfiguration {
 	 */
 	public String getAccountIdForRead() {
 		if (accountIdForRead == null) {
-			accountIdForRead = getDefaultAccountId();
+			synchronized (lockObject) {
+				if (accountIdForRead == null) {
+					accountIdForRead = getDefaultAccountId();
+				}
+			}
 		}
 		return accountIdForRead;
 	}
@@ -375,7 +382,11 @@ public class ClientConfiguration {
 	 */
 	public String getAccountIdForWrite() {
 		if (accountIdForWrite == null) {
-			accountIdForWrite = getAccountIdForRead();
+			synchronized (lockObject) {
+				if (accountIdForWrite == null) {
+					accountIdForWrite = getAccountIdForRead();
+				}
+			}
 		}
 		return accountIdForWrite;
 	}
@@ -387,6 +398,22 @@ public class ClientConfiguration {
 	 */
 	public String[] getAccountList() {
 		return getConfigData().initAccountList();
+	}
+	
+	/**
+	 * キャッシュマネージャを取得する。
+	 *
+	 * @return キャッシュマネージャ 
+	 */
+	public CacheManager getCacheManager() {
+		if (cacheManager == null) {
+			synchronized (lockObject) {
+				if (cacheManager == null) {
+					cacheManager = new CacheManager(this);
+				}
+			}
+		}
+		return cacheManager;
 	}
 	
 	/**
@@ -405,7 +432,11 @@ public class ClientConfiguration {
 	 */
 	public ConfigData getConfigData() {
 		if (configData == null) {
-			configData = new ConfigData();
+			synchronized (lockObject) {
+				if (configData == null) {
+					configData = new ConfigData();
+				}
+			}
 		}
 		return configData;
 	}
@@ -428,6 +459,11 @@ public class ClientConfiguration {
 		return configProperties;
 	}
 	
+	/**
+	 * 設定を格納するためのディレクトリを取得する。
+	 * 
+	 * @return 設定を格納するディレクトリ
+	 */
 	public String getConfigRootDir() {
 		return portabledConfiguration ? "." : HOME_BASE_DIR;
 	}
@@ -440,7 +476,10 @@ public class ClientConfiguration {
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null) {
-			accountId = getAccountList()[0];
+			String[] accountIds = getAccountList();
+			if(accountIds != null){
+				accountId = getAccountList()[0];
+			}
 		}
 		return accountId;
 	}
@@ -510,7 +549,11 @@ public class ClientConfiguration {
 	 */
 	public ImageCacher getImageCacher() {
 		if (imageCacher == null) {
-			imageCacher = new ImageCacher(this);
+			synchronized (lockObject) {
+				if (imageCacher == null) {
+					imageCacher = new ImageCacher(this);
+				}
+			}
 		}
 		return imageCacher;
 	}
@@ -521,6 +564,13 @@ public class ClientConfiguration {
 	 * @return フィルター
 	 */
 	public FilterService getRootFilterService() {
+		if (rootFilterService == null) {
+			synchronized (lockObject) {
+				if (rootFilterService == null) {
+					rootFilterService = new FilterService(this);
+				}
+			}
+		}
 		return rootFilterService;
 	}
 	
@@ -543,7 +593,10 @@ public class ClientConfiguration {
 		Twitter twitter = cachedTwitterInstances.get(accountId);
 		if (twitter == null) {
 			twitter = new TwitterFactory(getTwitterConfiguration(accountId)).getInstance();
-			cachedTwitterInstances.put(accountId, twitter);
+			Twitter twitter2 = cachedTwitterInstances.putIfAbsent(accountId, twitter);
+			if (twitter2 != null) {
+				return twitter2;
+			}
 		}
 		return twitter;
 	}
@@ -654,7 +707,7 @@ public class ClientConfiguration {
 			return false;
 		}
 		for (UserMentionEntity userMentionEntity : userMentionEntities) {
-			if (getFrameApi().getConfigData().mentionIdStrictMatch) {
+			if (getConfigData().mentionIdStrictMatch) {
 				if (userMentionEntity.getId() == frameApi.getLoginUser().getId()) {
 					return true;
 				}

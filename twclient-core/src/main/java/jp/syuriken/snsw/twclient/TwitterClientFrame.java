@@ -530,8 +530,6 @@ import twitter4j.User;
 	
 	private JLabel tweetViewDateLabel;
 	
-	private Dimension linePanelSizeOfSentBy;
-	
 	private final Object mainThreadHolder;
 	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -565,7 +563,7 @@ import twitter4j.User;
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
 		initConfigurator();
-		jobWorkerThread = new JobWorkerThread(jobQueue);
+		jobWorkerThread = new JobWorkerThread(jobQueue, configuration);
 		jobWorkerThread.start();
 		rootFilterService = configuration.getRootFilterService();
 		mainThreadHolder = threadHolder;
@@ -582,20 +580,8 @@ import twitter4j.User;
 		// timer.schedule(updatePostListDispatcher, configData.intervalOfPostListUpdate,
 		//		configData.intervalOfPostListUpdate);
 		
-		timer.schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				logger.debug("jobQueue={}", jobQueue.size());
-				/*synchronized (postListAddQueue) {
-					logger.debug(viewTab.toString());
-				}*/
-			}
-		}, 10000, 10000);
-		
 		imageCacher = new ImageCacher(configuration);
 		
-		logger.debug("{}", linePanelSizeOfSentBy);
 		logger.info("initialized");
 	}
 	

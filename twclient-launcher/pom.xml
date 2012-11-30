@@ -75,10 +75,10 @@
 
 	<!-- SVNの設定 -->
 	<scm>
-		<connection>scm:svn:http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</connection>
-		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</developerConnection>
-		<tag>scm:svn:https://turetwcl.googlecode.com/svn/maven-snapshot/core/tags</tag>
-		<url>http://turetwcl.googlecode.com/svn/maven-snapshot/core/branches/0.1.x</url>
+		<connection>scm:svn:http://turetwcl.googlecode.com/svn/app/branches/0.1.x</connection>
+		<developerConnection>scm:svn:https://turetwcl.googlecode.com/svn/app/branches/0.1.x</developerConnection>
+		<tag>scm:svn:https://turetwcl.googlecode.com/svn/app/tags</tag>
+		<url>http://turetwcl.googlecode.com/svn/app/branches/0.1.x</url>
 	</scm>
 
 	<!-- 開発者のリストを記述(省略可能) -->
@@ -100,6 +100,11 @@
 			<scope>test</scope>
 			<version>4.10</version>
 		</dependency>
+		<dependency>
+			<groupId>findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<organization>
@@ -109,11 +114,6 @@
 
 	<build>
 		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-webdav</artifactId>
-				<version>1.0-beta-2</version>
-			</extension>
 			<extension>
 				<groupId>org.jvnet.wagon-svn</groupId>
 				<artifactId>wagon-svn</artifactId>
@@ -126,7 +126,7 @@
 				<filtering>true</filtering>
 			</resource>
 			<resource>
-				<directory>doc/license</directory>
+				<directory>../doc/license</directory>
 				<filtering>false</filtering>
 			</resource>
 		</resources>
@@ -182,17 +182,22 @@
 					</execution>
 				</executions>
 			</plugin>
+		</plugins>
+	</build>
+	<reporting>
+		<plugins>
 			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.7.1</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.5.1</version>
 				<configuration>
-					<includes>
-						<include>**/*Test.java</include>
-					</includes>
+					<excludeFilterFile>.settings/findbugs-exclude.xml</excludeFilterFile>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</reporting>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

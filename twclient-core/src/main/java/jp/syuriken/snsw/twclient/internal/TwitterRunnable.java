@@ -1,7 +1,6 @@
 package jp.syuriken.snsw.twclient.internal;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
 import twitter4j.TwitterException;
 
 /**
@@ -9,10 +8,28 @@ import twitter4j.TwitterException;
  * 
  * @author $Author$
  */
-public abstract class TwitterRunnable implements ParallelRunnable {
+public abstract class TwitterRunnable implements Runnable {
 	
 	private int life = 10;
 	
+	private boolean intoQueue;
+	
+	
+	/**
+	 * インスタンスを生成する。失敗時はジョブキューに追加する。
+	 */
+	public TwitterRunnable() {
+		this(true);
+	}
+	
+	/**
+	 * インスタンスを生成する。
+	 * 
+	 * @param intoQueue 失敗時にジョブキューに追加するかどうか
+	 */
+	public TwitterRunnable(boolean intoQueue) {
+		this.intoQueue = intoQueue;
+	}
 	
 	/**
 	 * Twitterへのアクセス
@@ -42,7 +59,11 @@ public abstract class TwitterRunnable implements ParallelRunnable {
 			access();
 		} catch (TwitterException ex) {
 			if (ex.getStatusCode() == 503 && life >= 0) {
-				getConfiguration().getFrameApi().addJob(this);
+				if (intoQueue) {
+					getConfiguration().getFrameApi().addJob(this);
+				} else {
+					run();
+				}
 			} else {
 				handleException(ex);
 			}

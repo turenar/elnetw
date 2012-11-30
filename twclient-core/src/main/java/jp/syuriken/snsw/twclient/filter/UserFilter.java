@@ -13,6 +13,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
+import twitter4j.UserList;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -20,7 +21,7 @@ import twitter4j.UserMentionEntity;
  * 
  * @author $Author$
  */
-public class UserFilter implements MessageFilter, PropertyChangeListener {
+public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 	
 	private static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
 	
@@ -36,10 +37,10 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	
 	
 	/**
-	 * インスタンスを生成する。
-	 * 
-	 * @param configuration 設定
-	 */
+	* インスタンスを生成する。
+	* 
+	* @param configuration 設定
+	*/
 	public UserFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		configuration.getConfigBuilder().getGroup("フィルタ")
@@ -96,16 +97,6 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	@Override
-	public boolean onChangeAccount(boolean forWrite) {
-		return false;
-	}
-	
-	@Override
-	public boolean onClientMessage(String name, Object arg) {
-		return false;
-	}
-	
-	@Override
 	public boolean onDeletionNotice(long directMessageId, long userId) {
 		return filterUser(userId);
 	}
@@ -126,11 +117,6 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 			filtered = query.filter(message);
 		}
 		return filtered ? null : message;
-	}
-	
-	@Override
-	public boolean onException(Exception obj) {
-		return false;
 	}
 	
 	@Override
@@ -157,11 +143,6 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	@Override
-	public long[] onFriendList(long[] arr) {
-		return arr;
-	}
-	
-	@Override
 	public boolean onRetweet(User source, User target, Status retweetedStatus) {
 		boolean filtered;
 		filtered = filterUser(source);
@@ -175,6 +156,11 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 			filtered = query.filter(retweetedStatus);
 		}
 		return filtered;
+	}
+	
+	@Override
+	public boolean onScrubGeo(long userId, long upToStatusId) {
+		return filterUser(userId);
 	}
 	
 	@Override
@@ -201,23 +187,13 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 	}
 	
 	@Override
-	public boolean onStreamCleanUp() {
-		return false;
-	}
-	
-	@Override
-	public boolean onStreamConnect() {
-		return false;
-	}
-	
-	@Override
-	public boolean onStreamDisconnect() {
-		return false;
-	}
-	
-	@Override
-	public boolean onTrackLimitationNotice(int numberOfLimitedStatuses) {
-		return false;
+	public boolean onUnblock(User source, User unblockedUser) {
+		boolean filtered;
+		filtered = filterUser(source);
+		if (filtered == false) {
+			filtered = filterUser(unblockedUser);
+		}
+		return filtered;
 	}
 	
 	@Override
@@ -231,6 +207,66 @@ public class UserFilter implements MessageFilter, PropertyChangeListener {
 			filtered = onStatus(unfavoritedStatus) == null;
 		}
 		return filtered;
+	}
+	
+	@Override
+	public boolean onUserListCreation(User listOwner, UserList list) {
+		return filterUser(listOwner);
+	}
+	
+	@Override
+	public boolean onUserListDeletion(User listOwner, UserList list) {
+		return filterUser(listOwner);
+	}
+	
+	@Override
+	public boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+		boolean filtered;
+		filtered = filterUser(addedMember);
+		if (filtered == false) {
+			filtered = filterUser(listOwner);
+		}
+		return filtered;
+	}
+	
+	@Override
+	public boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+		boolean filtered;
+		filtered = filterUser(deletedMember);
+		if (filtered == false) {
+			filtered = filterUser(listOwner);
+		}
+		return filtered;
+	}
+	
+	@Override
+	public boolean onUserListSubscription(User subscriber, User listOwner, UserList list) {
+		boolean filtered;
+		filtered = filterUser(subscriber);
+		if (filtered == false) {
+			filtered = filterUser(listOwner);
+		}
+		return filtered;
+	}
+	
+	@Override
+	public boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
+		boolean filtered;
+		filtered = filterUser(subscriber);
+		if (filtered == false) {
+			filtered = filterUser(listOwner);
+		}
+		return filtered;
+	}
+	
+	@Override
+	public boolean onUserListUpdate(User listOwner, UserList list) {
+		return filterUser(listOwner);
+	}
+	
+	@Override
+	public boolean onUserProfileUpdate(User updatedUser) {
+		return filterUser(updatedUser);
 	}
 	
 	@Override

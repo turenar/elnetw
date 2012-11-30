@@ -10,6 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -33,6 +35,8 @@ import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TabRenderer;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+
+import com.twitter.Regex;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +71,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		 * @author $Author$
 		 */
 		public class UserInfoTweetsRenderer extends DefaultRenderer {
+			
+			private final TreeSet<Long> treeSet = new TreeSet<Long>();
+			
 			
 			@Override
 			public void onBlock(User source, User blockedUser) {
@@ -141,6 +148,13 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			@Override
 			public void onStatus(Status originalStatus) {
 				if (originalStatus.getUser().getId() == user.getId()) {
+					synchronized (treeSet) {
+						if (treeSet.contains(originalStatus.getId())) {
+							return;
+						}
+						
+						treeSet.add(originalStatus.getId());
+					}
 					addStatus(originalStatus);
 				}
 			}
@@ -341,7 +355,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			if (componentBio == null) {
 				componentBio = new JLabel();
 				String bio = user.getDescription();
-				StringBuilder builder = new StringBuilder("<html>");
+				StringBuilder builder = stringBuilder;
+				builder.setLength(0);
+				builder.append("<html>");
 				int index = 0;
 				for (; index < bio.length();) {
 					int end = bio.indexOf('\n', index);
@@ -351,7 +367,49 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					builder.append(bio, index, end).append("<br>");
 					index = end + 1;
 				}
-				componentBio.setText(builder.toString());
+				bio = builder.toString();
+				
+				StringBuffer buffer = new StringBuffer(bio.length());
+				Matcher matcher = Regex.VALID_URL.matcher(bio);
+				while (matcher.find()) {
+					matcher.appendReplacement(buffer, "$" + Regex.VALID_URL_GROUP_BEFORE + "<a href='$"
+							+ Regex.VALID_URL_GROUP_URL + "'>$" + Regex.VALID_URL_GROUP_URL + "</a>");
+				}
+				matcher.appendTail(buffer);
+				bio = buffer.toString();
+				
+				buffer.setLength(0);
+				matcher = Regex.AUTO_LINK_HASHTAGS.matcher(bio);
+				while (matcher.find()) {
+					matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_BEFORE
+							+ "<a href='http://command/hashtag!$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
+							+ Regex.AUTO_LINK_HASHTAGS_GROUP_HASH + "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "</a>");
+				}
+				matcher.appendTail(buffer);
+				bio = buffer.toString();
+				
+				buffer.setLength(0);
+				matcher = Regex.AUTO_LINK_USERNAMES_OR_LISTS.matcher(bio);
+				while (matcher.find()) {
+					String list = matcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
+					if (list == null) {
+						matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
+								+ "<a href='http://command/userinfo!$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");
+					} else {
+						matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
+								+ "<a href='http://command/list!$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME
+								+ "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "'>$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "</a>");
+					}
+				}
+				matcher.appendTail(buffer);
+				
+				componentBio.setText(buffer.toString());
 			}
 			return componentBio;
 		}
@@ -359,9 +417,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		private Component getComponentLocation() {
 			if (componentLocation == null) {
 				componentLocation = new JLabel();
-				stringBuilder.setLength(0);
-				stringBuilder.append("<html><i>Location: </i>").append(user.getLocation());
-				componentLocation.setText(stringBuilder.toString());
+				String location = user.getLocation();
+				if (location != null) {
+					stringBuilder.setLength(0);
+					stringBuilder.append("<html><i>Location: </i>").append(location);
+					componentLocation.setText(stringBuilder.toString());
+				}
 			}
 			return componentLocation;
 		}
@@ -449,34 +510,40 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			}
 			GroupLayout layout = new GroupLayout(componentUserInfoPanel);
 			componentUserInfoPanel.setLayout(layout);
-			layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
-			//
+			layout.setVerticalGroup(layout
+				.createParallelGroup(Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup().addGap(4, 4, 4) // 
 					.addComponent(getComponentUserIcon(), 48, 48, 48).addContainerGap(4, 4) // 
 					.addComponent(getComponentOperationsPanel()))
-				// 
-				.addGroup(layout.createSequentialGroup()
-				//
-					.addGroup(layout.createParallelGroup()
-					//
-						.addComponent(getComponentUserName()) //
-						.addComponent(getComponentLocation())) //
-					.addContainerGap(4, 4).addComponent(getComponentUserURL()) //
-					.addContainerGap(4, 4).addComponent(getComponentBio())));
-			layout.setHorizontalGroup(layout.createSequentialGroup()
-			// 
-				.addGap(4, 4, 4).addGroup(layout.createParallelGroup()
-				//
-					.addComponent(getComponentUserIcon(), Alignment.CENTER, 48, 48, 48) //
-					.addComponent(getComponentOperationsPanel())) //
-				.addGap(4, 4, 4).addGroup(layout.createParallelGroup()
-				// 
-					.addGroup(layout.createSequentialGroup()
-					//
-						.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE, 512) // 
-						.addComponent(getComponentLocation(), 64, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)) //
-					.addComponent(getComponentUserURL()) //
-					.addComponent(getComponentBio())));
+				.addGroup(
+						layout.createSequentialGroup()
+							.addGroup(layout.createParallelGroup().addComponent(getComponentUserName()) //
+								.addComponent(getComponentLocation())) //
+							.addContainerGap(4, 4).addComponent(getComponentUserURL()) //
+							.addContainerGap(4, 4).addComponent(getComponentBio())));
+			layout
+				.setHorizontalGroup(layout
+					.createSequentialGroup()
+					.addGap(4, 4, 4)
+					.addGroup(
+							layout.createParallelGroup()
+								.addComponent(getComponentUserIcon(), Alignment.CENTER, 48, 48, 48) //
+								.addComponent(getComponentOperationsPanel()))
+					.addGap(4, 4, 4)
+					.addGroup(
+							layout
+								.createParallelGroup()
+								.addGroup(
+										layout
+											.createSequentialGroup()
+											.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE,
+													GroupLayout.PREFERRED_SIZE)
+											.addGap(16, 128, 128)
+											.addComponent(getComponentLocation(), 64, GroupLayout.DEFAULT_SIZE,
+													GroupLayout.DEFAULT_SIZE)) //
+								.addComponent(getComponentUserURL()) //
+								.addComponent(getComponentBio(), 64, GroupLayout.PREFERRED_SIZE,
+										GroupLayout.PREFERRED_SIZE)));
 			return componentUserInfoPanel;
 		}
 		
@@ -528,15 +595,14 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			GroupLayout layout = new GroupLayout(tabComponent);
 			tabComponent.setLayout(layout);
 			layout.setVerticalGroup( //
-				layout.createSequentialGroup()
-				//
-					.addComponent(getComponentUserInfo(), 72, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-					//
-					.addComponent(getComponentTweetsScrollPane(), 120, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE));
+				layout
+					.createSequentialGroup()
+					.addComponent(getComponentUserInfo(), 72, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+					.addComponent(getComponentTweetsScrollPane(), 120, GroupLayout.DEFAULT_SIZE,
+							GroupLayout.DEFAULT_SIZE));
 			
 			layout.setHorizontalGroup(layout.createParallelGroup()
-			//
-				.addComponent(getComponentUserInfo(), 96, GroupLayout.DEFAULT_SIZE, 512) // 
+				.addComponent(getComponentUserInfo(), 96, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE) // 
 				.addComponent(getComponentTweetsScrollPane()));
 			return tabComponent;
 		}
@@ -559,6 +625,50 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public String getToolTip() {
 			return user.getName() + " のユーザー情報";
+		}
+	}
+	
+	/**
+	 * ユーザータイムラインfetcher
+	 * 
+	 * @author $Author$
+	 */
+	private final class UserTimelineFetcher extends TwitterRunnable {
+		
+		private final UserInfoFrameTab tab;
+		
+		private final long userId;
+		
+		private final ClientFrameApi api;
+		
+		
+		private UserTimelineFetcher(UserInfoFrameTab tab, long userId, ClientFrameApi api) {
+			this.tab = tab;
+			this.userId = userId;
+			this.api = api;
+		}
+		
+		@Override
+		protected void access() throws TwitterException {
+			ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
+			for (Status status : timeline) {
+				tab.getRenderer().onStatus(status);
+			}
+			for (Status status : getConfiguration().getCacheManager().getStatusSet()) {
+				if (status.getUser().getId() == userId) {
+					tab.getRenderer().onStatus(status);
+				}
+			}
+		}
+		
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return api.getClientConfiguration();
+		}
+		
+		@Override
+		protected void handleException(TwitterException ex) {
+			getConfiguration().getRootFilterService().onException(ex);
 		}
 	}
 	

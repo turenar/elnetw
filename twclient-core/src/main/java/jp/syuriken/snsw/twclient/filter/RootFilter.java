@@ -3,24 +3,29 @@ package jp.syuriken.snsw.twclient.filter;
 import java.text.MessageFormat;
 import java.util.TreeSet;
 
+import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ImageCacher;
 import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.TwitterUser;
 import jp.syuriken.snsw.twclient.internal.InitialMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import twitter4j.DirectMessage;
+import twitter4j.StallWarning;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * ルートフィルター
  * 
  * @author $Author$
  */
-public class RootFilter extends MessageFilterAdapter {
+public class RootFilter implements MessageFilter {
 	
 	private TreeSet<Long> statusSet;
 	
@@ -29,6 +34,8 @@ public class RootFilter extends MessageFilterAdapter {
 	private ImageCacher imageCacher;
 	
 	private Logger logger = LoggerFactory.getLogger(RootFilter.class);
+	
+	private CacheManager cacheManager;
 	
 	
 	/**
@@ -39,13 +46,45 @@ public class RootFilter extends MessageFilterAdapter {
 	public RootFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		imageCacher = configuration.getImageCacher();
+		cacheManager = configuration.getCacheManager();
 		statusSet = new TreeSet<Long>();
+	}
+	
+	private User getUser(User originalUser) {
+		if (originalUser instanceof TwitterUser) {
+			return originalUser;
+		}
+		
+		User cachedUser = cacheManager.getCachedUser(originalUser.getId());
+		if (cachedUser == null) {
+			User user = new TwitterUser(configuration, originalUser);
+			cachedUser = cacheManager.cacheUserIfAbsent(user);
+			if (cachedUser == null) {
+				cachedUser = user;
+			}
+		}
+		return cachedUser;
 	}
 	
 	@Override
 	public boolean onChangeAccount(boolean forWrite) {
 		configuration.getFetchScheduler().onChangeAccount(forWrite);
 		return false;
+	}
+	
+	@Override
+	public boolean onClientMessage(String name, Object arg) {
+		return false;
+	}
+	
+	@Override
+	public boolean onDeletionNotice(long directMessageId, long userId) {
+		return false;
+	}
+	
+	@Override
+	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		return statusDeletionNotice;
 	}
 	
 	@Override
@@ -68,6 +107,39 @@ public class RootFilter extends MessageFilterAdapter {
 	}
 	
 	@Override
+	public boolean onFavorite(User source, User target, Status favoritedStatus) {
+		return false;
+	}
+	
+	@Override
+	public boolean onFollow(User source, User followedUser) {
+		return false;
+	}
+	
+	@Override
+	public long[] onFriendList(long[] userIds) {
+		for (long userId : userIds) {
+			cacheManager.queueFetchingUser(userId);
+		}
+		return userIds;
+	}
+	
+	@Override
+	public boolean onRetweet(User source, User target, Status retweetedStatus) {
+		return false;
+	}
+	
+	@Override
+	public boolean onScrubGeo(long userId, long upToStatusId) {
+		return false;
+	}
+	
+	@Override
+	public boolean onStallWarning(StallWarning warning) {
+		return false;
+	}
+	
+	@Override
 	public Status onStatus(Status originalStatus) {
 		synchronized (statusSet) {
 			if (statusSet.contains(originalStatus.getId())) {
@@ -83,5 +155,83 @@ public class RootFilter extends MessageFilterAdapter {
 				return originalStatus;
 			}
 		}
+	}
+	
+	@Override
+	public boolean onStreamCleanUp() {
+		return false;
+	}
+	
+	@Override
+	public boolean onStreamConnect() {
+		return false;
+	}
+	
+	@Override
+	public boolean onStreamDisconnect() {
+		return false;
+	}
+	
+	@Override
+	public boolean onTrackLimitationNotice(int numberOfLimitedStatuses) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUnblock(User source, User unblockedUser) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUnfavorite(User source, User target, Status unfavoritedStatus) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListCreation(User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListDeletion(User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListSubscription(User subscriber, User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserListUpdate(User listOwner, UserList list) {
+		return false;
+	}
+	
+	@Override
+	public boolean onUserProfileUpdate(User updatedUser) {
+		User cachedUser = cacheManager.getCachedUser(updatedUser.getId());
+		if (cachedUser == null) {
+			cacheManager.cacheUserIfAbsent(getUser(updatedUser));
+		} else {
+			if (cachedUser instanceof TwitterUser) {
+				((TwitterUser) cachedUser).updateUser(updatedUser);
+			}
+		}
+		return false;
 	}
 }

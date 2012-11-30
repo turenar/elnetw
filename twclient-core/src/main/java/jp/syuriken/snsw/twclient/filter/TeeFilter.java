@@ -3,6 +3,7 @@ package jp.syuriken.snsw.twclient.filter;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.TabRenderer;
 import twitter4j.DirectMessage;
+import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
@@ -117,6 +118,11 @@ public class TeeFilter implements TabRenderer {
 	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 		renderer.onScrubGeo(userId, upToStatusId);
+	}
+	
+	@Override
+	public void onStallWarning(StallWarning warning) {
+		renderer.onStallWarning(warning);
 	}
 	
 	@Override

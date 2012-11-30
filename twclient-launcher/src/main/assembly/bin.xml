@@ -28,11 +28,13 @@
 
 	<fileSets>
 		<fileSet>
+			<directory>../</directory>
 			<includes>
 				<include>README*</include>
 				<include>LICENSE*</include>
-				<include>CONTRIBUTION*</include>
+				<include>CONTRIBUTORS*</include>
 				<include>NOTICE*</include>
+				<include>ChangeLog*</include>
 			</includes>
 		</fileSet>
 		<fileSet>
@@ -40,7 +42,7 @@
 			<outputDirectory>bin</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>doc/license</directory>
+			<directory>../doc/license</directory>
 			<includes>
 				<include>*</include>
 			</includes>
