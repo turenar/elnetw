@@ -84,6 +84,7 @@ public class RootFilter implements MessageFilter {
 	
 	@Override
 	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		cacheManager.removeCachedStatus(statusDeletionNotice.getStatusId());
 		return statusDeletionNotice;
 	}
 	

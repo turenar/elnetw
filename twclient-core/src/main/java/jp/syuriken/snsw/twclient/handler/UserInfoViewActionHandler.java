@@ -356,9 +356,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		 * 
 		 * @param clientConfiguration 設定
 		 * @param user ユーザー
-		 * @throws IllegalSyntaxException クエリエラー
 		 */
-		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) throws IllegalSyntaxException {
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) {
 			super(clientConfiguration);
 			this.user = user;
 		}
@@ -799,37 +798,11 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
 		}
 		
-		try {
-			final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
-			final long userId = user.getId();
-			api.addJob(new TwitterRunnable() {
-				
-				@Override
-				protected void access() throws TwitterException {
-					ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
-					for (Status status : timeline) {
-						tab.getRenderer().onStatus(status);
-					}
-					
-				}
-				
-				@Override
-				protected ClientConfiguration getConfiguration() {
-					return api.getClientConfiguration();
-				}
-				
-				@Override
-				protected void handleException(TwitterException ex) {
-					getConfiguration().getRootFilterService().onException(ex);
-				}
-			});
-			api.getClientConfiguration().addFrameTab(tab);
-			api.getClientConfiguration().focusFrameTab(tab);
-		} catch (IllegalSyntaxException e) {
-			RuntimeException wrapper = new RuntimeException("タブを開くことができません", e);
-			api.handleException(wrapper);
-			return;
-		}
+		final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
+		final long userId = user.getId();
+		api.addJob(new UserTimelineFetcher(tab, userId, api));
+		api.getClientConfiguration().addFrameTab(tab);
+		api.getClientConfiguration().focusFrameTab(tab);
 	}
 	
 	@Override

@@ -61,6 +61,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 							case SCALAR_INT:
 							case SCALAR_STRING:
 								stringBuilder.append(' ');
+								//$FALL-THROUGH$
 							case DEFAULT:
 							case FUNC_NAME:
 							case PROPERTY_NAME:
@@ -68,6 +69,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 								break;
 							case FUNC_START:
 								depth++;
+								//$FALL-THROUGH$
 							case FUNC_ARG_SEPARATOR:
 								stringBuilder.append(token);
 								stringBuilder.append('\n');
@@ -83,6 +85,8 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 								}
 								stringBuilder.append(token);
 								break;
+							case EOD:
+								throw new IllegalSyntaxException("got EOD as tokenType");
 							case UNEXPECTED:
 								throw new IllegalSyntaxException("got UNEXPECTED as tokenType");
 						}

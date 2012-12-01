@@ -486,7 +486,7 @@ public class FilterCompiler {
 						index++;
 						break LOOP;
 					}
-					// fall-through
+					//$FALL-THROUGH$
 				case DEFAULT:
 				case FUNC_ARG_SEPARATOR:
 					while (isNotEod(charAt) && (isAlphabet(charAt) || isNumeric(charAt) || (charAt == '_'))) {

@@ -99,7 +99,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 */
 	protected class ReferenceCleaner implements ParallelRunnable {
 		
-		private boolean isQueued = false;
+		private volatile boolean isQueued = false;
 		
 		
 		/**
@@ -482,12 +482,14 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	
 	@Override
 	public V remove(Object key) {
+		queueCleaner();
 		return expandReference(hashMap.remove(key));
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean remove(Object key, Object value) throws ClassCastException {
+		queueCleaner();
 		return hashMap.remove(key, wrapReference((V) value));
 	}
 	

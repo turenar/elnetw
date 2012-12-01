@@ -351,6 +351,24 @@ public class CacheManager {
 	}
 	
 	/**
+	 * 指定したステータスのキャッシュを削除する
+	 * 
+	 * @param statusId ステータスID
+	 */
+	public void removeCachedStatus(long statusId) {
+		statusCacheMap.remove(statusId);
+	}
+	
+	/**
+	 * 指定したユーザーのキャッシュを削除する
+	 * 
+	 * @param userId ユーザーID
+	 */
+	public void removeCachedUser(long userId) {
+		userCacheMap.remove(userId);
+	}
+	
+	/**
 	 * UserFetcherを走らせる。
 	 * 
 	 * @param expectedLength 
