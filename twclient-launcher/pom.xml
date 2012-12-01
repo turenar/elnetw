@@ -193,6 +193,9 @@
 				<configuration>
 					<excludeFilterFile>.settings/findbugs-exclude.xml</excludeFilterFile>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+					<effort>Max</effort>
+					<sourceEncoding>${file.encoding}</sourceEncoding>
 					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
