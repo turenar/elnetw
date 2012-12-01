@@ -21,7 +21,7 @@ import twitter4j.User;
 import twitter4j.UserList;
 
 /**
- * ルートフィルター
+ * ごにょごにょ用のフィルターハンドラー。キャッシュとか通知の作成とか
  * 
  * @author $Author$
  */

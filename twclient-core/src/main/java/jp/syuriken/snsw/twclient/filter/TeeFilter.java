@@ -1,7 +1,16 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.TabRenderer;
+import jp.syuriken.snsw.twclient.Utility;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -14,11 +23,17 @@ import twitter4j.UserList;
  * 
  * @author $Author$
  */
-public class TeeFilter implements TabRenderer {
+public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	
 	private FilterDispatcherBase filterQuery;
 	
 	private TabRenderer renderer;
+	
+	private final String filterPropertyName;
+	
+	private final ClientProperties configProperties;
+	
+	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 	
 	
 	/**
@@ -31,7 +46,19 @@ public class TeeFilter implements TabRenderer {
 	public TeeFilter(ClientConfiguration configuration, String uniqId, TabRenderer tabRenderer)
 			throws IllegalSyntaxException {
 		renderer = tabRenderer;
-		String filterQueryString = configuration.getConfigProperties().getProperty("core.filter._tabs." + uniqId);
+		configProperties = configuration.getConfigProperties();
+		filterPropertyName = "core.filter._tabs." + uniqId;
+		init();
+		configProperties.addPropertyChangedListener(this);
+	}
+	
+	/**
+	 * 初期化
+	 * 
+	 * @throws IllegalSyntaxException 正しくない文法のためエラー
+	 */
+	protected void init() throws IllegalSyntaxException {
+		String filterQueryString = configProperties.getProperty(filterPropertyName);
 		if (filterQueryString == null || filterQueryString.trim().isEmpty()) {
 			filterQuery = NullFilter.getInstance();
 		} else {
@@ -189,4 +216,15 @@ public class TeeFilter implements TabRenderer {
 		renderer.onUserProfileUpdate(updatedUser);
 	}
 	
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		String propertyName = evt.getPropertyName();
+		if (Utility.equalString(propertyName, filterPropertyName)) {
+			try {
+				init();
+			} catch (IllegalSyntaxException e) {
+				logger.warn("正しくない文法のためフィルタを更新できません: " + propertyName, e);
+			}
+		}
+	}
 }

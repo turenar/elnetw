@@ -6,10 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 
@@ -132,8 +130,8 @@ public class TwitterClientMain {
 		tryGetOAuthAccessToken();
 		
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
-		configuration.addFilter(new RootFilter(configuration));
 		configuration.addFilter(new UserFilter(configuration));
+		configuration.addFilter(new RootFilter(configuration));
 		
 		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
 		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);

@@ -58,10 +58,10 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
-import jp.syuriken.snsw.twclient.internal.ScrollUtility;
-import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility;
+import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -545,6 +545,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
+	
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
 	
@@ -653,6 +654,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected Utility utility;
 	
 	private JPanel tweetViewOperationPanel;
+	
 	private JLabel tweetViewFavoriteButton;
 	
 	private JLabel tweetViewRetweetButton;
