@@ -281,7 +281,6 @@ public class ClientConfiguration {
 	 */
 	protected ClientConfiguration() {
 		init(this, true);
-		rootFilterService = new FilterService(this);
 		try {
 			trayIcon =
 					new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
@@ -480,7 +479,7 @@ public class ClientConfiguration {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null) {
 			String[] accountIds = getAccountList();
-			if(accountIds != null){
+			if (accountIds != null) {
 				accountId = getAccountList()[0];
 			}
 		}
