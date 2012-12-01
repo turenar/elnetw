@@ -1370,6 +1370,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	private void init(ClientConfiguration configuration) {
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
+		fontHeight = fontMetrics.getHeight();
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);

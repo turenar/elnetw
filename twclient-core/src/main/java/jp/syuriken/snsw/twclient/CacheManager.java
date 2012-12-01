@@ -171,38 +171,50 @@ public class CacheManager {
 	/**
 	 * Statusをキャッシュする。
 	 * 
-	 * @param status キャッシュするStatus
+	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
 	 */
 	public void cacheStatus(Status status) {
+		if (status == null) {
+			throw new NullPointerException();
+		}
 		statusCacheMap.put(status.getId(), status);
 	}
 	
 	/**
 	 * キャッシュされていない場合のみStatusをキャッシュする。
 	 * 
-	 * @param status キャッシュするStatus
+	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
 	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
 	 */
 	public Status cacheStatusIfAbsent(Status status) {
+		if (status == null) {
+			throw new NullPointerException();
+		}
 		return statusCacheMap.putIfAbsent(status.getId(), status);
 	}
 	
 	/**
 	 * Userをキャッシュする
 	 * 
-	 * @param user キャッシュするUser
+	 * @param user キャッシュするUser。nullだとぬるぽ投げます。
 	 */
 	public void cacheUser(User user) {
+		if (user == null) {
+			throw new NullPointerException();
+		}
 		userCacheMap.put(user.getId(), user);
 	}
 	
 	/**
 	 * キャッシュされていない場合のみUserをキャッシュする。
 	 * 
-	 * @param user キャッシュするStatus
+	 * @param user キャッシュするStatus。nullだとぬるぽ投げます。
 	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
 	 */
 	public User cacheUserIfAbsent(User user) {
+		if (user == null) {
+			throw new NullPointerException();
+		}
 		return userCacheMap.putIfAbsent(user.getId(), user);
 	}
 	

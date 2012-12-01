@@ -16,6 +16,9 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * SoftReference を使った ConcurrentHashMap を操作するクラス。
  * 
@@ -114,11 +117,17 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 			}
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
 			Reference<? extends V> ref;
 			while ((ref = referenceQueue.poll()) != null) {
-				hashMap.remove(valueConverter.getKey(ref.get()));
+				logger.trace("remove {}", ref);
+				if (ref instanceof SoftReferenceUtil) {
+					hashMap.remove(((SoftReferenceUtil<K, V>) ref).key);
+				} else {
+					throw new AssertionError("ref must be SoftReferenceUtil");
+				}
 			}
 			synchronized (this) {
 				isQueued = false;
@@ -141,7 +150,8 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		
 		private final int hashCode;
 		
-		private final K key;
+		/** キー */
+		protected final K key;
 		
 		
 		/**
@@ -182,6 +192,11 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		@Override
 		public int hashCode() {
 			return hashCode;
+		}
+		
+		@Override
+		public String toString() {
+			return "SoftReferenceUtil{hash=" + hashCode + ",key=" + key + "}";
 		}
 	}
 	
@@ -306,6 +321,8 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		
 	}
 	
+	
+	/*package*/static final Logger logger = LoggerFactory.getLogger(ConcurrentSoftHashMap.class);
 	
 	/** ClientConfigurationインスタンス */
 	protected final ClientConfiguration configuration;
