@@ -34,7 +34,23 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>gcode</id>
+			<name>Elnetw's Maven Repository</name>
+			<url>http://maven.turetwcl.googlecode.com/git/</url>
+		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>sonatype-releases</id>
+			<url>http://oss.sonatype.org/content/repositories/releases</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>clojars.org</id>
+			<url>http://clojars.org/repo</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<!-- SVNの設定 -->
 	<scm>
@@ -143,6 +159,19 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.code54.mojo</groupId>
+				<artifactId>buildversion-plugin</artifactId>
+				<version>1.0.1</version>
+				<executions>
+					<execution>
+						<goals><goal>set-properties</goal></goals>
+						<configuration>
+							<tstampFormat>yyyyMMdd</tstampFormat>
+						</configuration>
+					</execution>
+				</executions>
+				</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
