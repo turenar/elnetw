@@ -30,14 +30,14 @@ import javax.swing.table.TableRowSorter;
 /**
  * プロパティーエディター。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class PropertyEditorFrame extends JFrame {
 	
 	/**
 	 * セルレンダラ。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	@SuppressWarnings("serial")
 	private final class DefaultTableCellRendererExtension extends DefaultTableCellRenderer {
@@ -75,7 +75,7 @@ public class PropertyEditorFrame extends JFrame {
 	/**
 	 * テーブルモデル
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class DefaultTableModelExtension extends DefaultTableModel {
 		

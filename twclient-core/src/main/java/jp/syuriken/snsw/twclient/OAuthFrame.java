@@ -12,7 +12,7 @@ import twitter4j.auth.RequestToken;
 /**
  * OAuthでアクセストークンを取得するためのクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class OAuthFrame {
 	

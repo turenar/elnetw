@@ -10,7 +10,7 @@ import twitter4j.User;
 /**
  * 空のUser実装
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  * @see NullStatus
  */
 @SuppressWarnings("serial")

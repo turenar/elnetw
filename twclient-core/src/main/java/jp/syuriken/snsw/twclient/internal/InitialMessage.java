@@ -9,7 +9,7 @@ import twitter4j.User;
 /**
  * 初期化時に読み込まれたDM。通知を発行しない。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class InitialMessage implements DirectMessage {

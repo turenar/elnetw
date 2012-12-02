@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * TwitterClient のためのランチャ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterClientLauncher {
 	

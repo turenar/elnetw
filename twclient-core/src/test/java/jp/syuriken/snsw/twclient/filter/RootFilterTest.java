@@ -34,7 +34,7 @@ import twitter4j.User;
 /**
  * RootFilter のためのテスト
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class RootFilterTest {
 	

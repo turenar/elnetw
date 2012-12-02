@@ -61,7 +61,7 @@ import twitter4j.UserList;
 /**
  * ユーザー情報を表示するアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class UserInfoViewActionHandler implements ActionHandler {
 	
@@ -99,14 +99,14 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	/**
 	 * ユーザー情報を表示するFrameTab
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class UserInfoFrameTab extends DefaultClientTab {
 		
 		/**
 		 * 指定されたユーザーの発言のみを表示するレンダラ
 		 * 
-		 * @author $Author$
+		 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 		 */
 		public class UserInfoTweetsRenderer extends DefaultRenderer {
 			
@@ -654,7 +654,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	/**
 	 * ユーザータイムラインfetcher
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class UserTimelineFetcher extends TwitterRunnable {
 		

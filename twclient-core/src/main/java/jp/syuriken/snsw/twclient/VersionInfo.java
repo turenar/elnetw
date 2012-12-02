@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * twclient関係のバージョン情報を格納するクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public final class VersionInfo {
 	

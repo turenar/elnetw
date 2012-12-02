@@ -7,7 +7,7 @@ import javax.swing.Icon;
 /**
  * タブのデータを管理するクラス
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  * @see DefaultClientTab
  */
 public interface ClientTab {

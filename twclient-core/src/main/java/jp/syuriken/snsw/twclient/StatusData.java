@@ -11,7 +11,7 @@ import javax.swing.JPopupMenu;
 /**
  * ポストリストに登録するために必要な情報を格納するクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class StatusData {
 	

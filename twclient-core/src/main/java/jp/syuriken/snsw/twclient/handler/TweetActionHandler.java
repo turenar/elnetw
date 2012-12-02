@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * ツイートをどうにかするアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TweetActionHandler implements ActionHandler {
 	

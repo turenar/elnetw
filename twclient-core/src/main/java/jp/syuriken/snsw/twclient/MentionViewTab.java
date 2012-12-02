@@ -11,14 +11,14 @@ import twitter4j.UserList;
 /**
  * メンション表示用タブ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class MentionViewTab extends DefaultClientTab {
 	
 	/**
 	 * メンションタブ用レンダラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class MentionRenderer extends DefaultRenderer {
 		

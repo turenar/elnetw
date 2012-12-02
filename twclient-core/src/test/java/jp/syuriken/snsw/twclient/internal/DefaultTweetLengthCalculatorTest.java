@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * {@link DefaultTweetLengthCalculator}のためのテスト
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class DefaultTweetLengthCalculatorTest {
 	

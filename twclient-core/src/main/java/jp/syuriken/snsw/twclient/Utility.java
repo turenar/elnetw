@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * ユーティリティクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class Utility {
 	
@@ -45,7 +45,7 @@ public class Utility {
 	/**
 	 * notify-sendを使用して通知を送信するクラス。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class LibnotifySender implements NotifySender {
 		
@@ -73,7 +73,7 @@ public class Utility {
 	/**
 	 * 通知が送信されるクラスのインターフェース
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected interface NotifySender {
 		
@@ -90,7 +90,7 @@ public class Utility {
 	/**
 	 * OSの種別を判断する。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public enum OSType {
 		/** Windows環境 */
@@ -104,7 +104,7 @@ public class Utility {
 	/**
 	 * TrayIconを使用して通知する。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class TrayIconNotifySender implements NotifySender, ParallelRunnable {
 		

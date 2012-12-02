@@ -97,7 +97,7 @@ import twitter4j.User;
 
 /**
  * twclientのメインウィンドウ
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 /*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
@@ -105,7 +105,7 @@ import twitter4j.User;
 	/**
 	 * アカウント認証するアクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class AccountVerifierActionHandler implements ActionHandler {
 		
@@ -138,7 +138,7 @@ import twitter4j.User;
 	/**
 	 * MenuItemのActionListenerの実装。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class ActionListenerImplementation implements ActionListener {
 		
@@ -157,7 +157,7 @@ import twitter4j.User;
 	/**
 	 * "core!*" アクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class CoreFrameActionHandler implements ActionHandler {
 		
@@ -251,7 +251,7 @@ import twitter4j.User;
 	/**
 	 * JLabel および JEditorPane用
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class DefaultMouseListener implements MouseListener {
 		
@@ -376,7 +376,7 @@ import twitter4j.User;
 	/**
 	 * 設定フレームを表示するアクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private class MenuConfiguratorActionHandler implements ActionHandler {
 		
@@ -422,7 +422,7 @@ import twitter4j.User;
 	/**
 	 * メニューのプロパティエディタを開くためのアクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class MenuPropertyEditorActionHandler implements ActionHandler {
 		
@@ -447,7 +447,7 @@ import twitter4j.User;
 	/**
 	 * 終了するためのアクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class MenuQuitActionHandler implements ActionHandler {
 		
@@ -472,7 +472,7 @@ import twitter4j.User;
 	/**
 	 * リログインするためのアクションハンドラ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ReloginActionHandler implements ActionHandler {
 		
@@ -513,7 +513,7 @@ import twitter4j.User;
 	/**
 	 * ログイン出来るユーザー情報を取得する
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class UserInfoFetcher implements Runnable {
 		

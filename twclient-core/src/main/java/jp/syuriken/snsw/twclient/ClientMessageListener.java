@@ -8,7 +8,7 @@ import twitter4j.UserStreamListener;
 /**
  * 入出力データをディスパッチするためのクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public interface ClientMessageListener extends UserStreamListener, ConnectionLifeCycleListener {
 	

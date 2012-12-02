@@ -14,7 +14,7 @@ import twitter4j.URLEntity;
 /**
  * ツイートに含まれるURLを開くアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class UrlActionHandler implements ActionHandler {
 	

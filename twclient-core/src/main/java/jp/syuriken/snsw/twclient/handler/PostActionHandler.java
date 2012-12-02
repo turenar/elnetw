@@ -11,7 +11,7 @@ import jp.syuriken.snsw.twclient.StatusData;
 /**
  * TODO snsoftware
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class PostActionHandler implements ActionHandler {
 	

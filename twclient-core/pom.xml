@@ -34,44 +34,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-		<repository>
-			<id>gc-repos</id>
-			<name>Google Code for turetwcl / releases</name>
-			<url>http://turetwcl.googlecode.com/svn/maven/</url>
-			<layout>default</layout>
-			<releases>
-				<updatePolicy>daily</updatePolicy>
-			</releases>
-		</repository>
-		<repository>
-			<id>gc-snapshot</id>
-			<name>Google Code for turetwcl / snapshot</name>
-			<url>http://turetwcl.googlecode.com/svn/maven-snapshot/</url>
-			<releases>
-				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
-		</repository>
 	</repositories>
-
-	<!-- 配布先の設定 -->
-	<distributionManagement>
-		<repository>
-			<id>gc-repos</id>
-			<name>Google Code for twclient / releases</name>
-			<url>scm:svn:https://twclient.googlecode.com/svn/maven</url>
-		</repository>
-		<snapshotRepository>
-			<uniqueVersion>true</uniqueVersion>
-			<id>gc-snapshot</id>
-			<name>Google Code for twclient / snapshot</name>
-			<url>scm:svn:https://twclient.googlecode.com/svn/maven-snapshot</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<!-- SVNの設定 -->
 	<scm>
@@ -178,29 +141,6 @@
 							<mainClass>jp.syuriken.snsw.launcher.TwitterClientLauncher</mainClass>
 						</manifest>
 					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
-				<artifactId>svn-revision-number-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<entries>
-						<entry>
-							<path>${project.basedir}</path>
-							<prefix>svn</prefix>
-							<depth>infinity</depth>
-							<reportUnversioned>true</reportUnversioned>
-							<reportIgnored>false</reportIgnored>
-							<reportOutOfDate>false</reportOutOfDate>
-						</entry>
-					</entries>
 				</configuration>
 			</plugin>
 		</plugins>

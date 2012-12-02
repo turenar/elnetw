@@ -12,7 +12,7 @@ import javax.swing.SpinnerNumberModel;
 /**
  * 数値を設定するタイプ。JSpinnerを使用する。(正しくない文字列の場合はJLabel)
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class IntegerConfigType implements ConfigType {
 	

@@ -14,7 +14,7 @@ import org.junit.Test;
 /**
  * ClientPropertiesのためのテスト
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ClientPropertiesTest {
 	

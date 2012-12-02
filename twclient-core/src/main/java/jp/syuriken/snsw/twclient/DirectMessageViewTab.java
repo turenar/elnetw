@@ -18,7 +18,7 @@ import twitter4j.User;
 /**
  * ダイレクトメッセージを表示するタブ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class DirectMessageViewTab extends DefaultClientTab {
 	

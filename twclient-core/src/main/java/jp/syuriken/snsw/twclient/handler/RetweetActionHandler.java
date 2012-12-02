@@ -14,7 +14,7 @@ import twitter4j.TwitterException;
 /**
  * 公式リツイートするためのアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class RetweetActionHandler implements ActionHandler {
 	

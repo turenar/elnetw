@@ -31,14 +31,14 @@ import twitter4j.conf.ConfigurationBuilder;
 /**
  * twclient の情報などを格納するクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ClientConfiguration {
 	
 	/**
 	 * よく使いそうな設定をキャッシュしておくクラス
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ConfigData implements PropertyChangeListener {
 		

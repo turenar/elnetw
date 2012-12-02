@@ -21,14 +21,14 @@ import twitter4j.User;
 /**
  * StatusとUserをキャッシュするクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class CacheManager {
 	
 	/**
 	 * Statusを取得するジョブ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class StatusFetcher extends TwitterRunnable implements ParallelRunnable {
 		
@@ -65,7 +65,7 @@ public class CacheManager {
 	/**
 	 * ユーザーを取得するジョブ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class UserFetcher extends TwitterRunnable implements ParallelRunnable {
 		
