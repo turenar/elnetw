@@ -26,7 +26,7 @@ import twitter4j.User;
 /**
  * ミュートするオプションを提供するアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class MuteActionHandler implements ActionHandler {
 	

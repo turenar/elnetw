@@ -12,7 +12,7 @@ import jp.syuriken.snsw.twclient.StatusData;
 /**
  * リストを閲覧するアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ListActionHandler implements ActionHandler {
 	

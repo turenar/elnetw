@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * SoftReference を使った ConcurrentHashMap を操作するクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  * @param <K> キー型パラメータ。
  *   {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link K#equals(Object)} はfalseを
  *   返さなければなりません。
@@ -33,7 +33,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} を扱うエントリーイテレータ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class EntryIterator implements Iterator<Entry<K, V>> {
 		
@@ -68,7 +68,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} を扱うエントリーセット
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class EntrySet extends AbstractSet<Entry<K, V>> {
 		
@@ -98,7 +98,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * リファレンス掃除するクラス。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class ReferenceCleaner implements ParallelRunnable {
 		
@@ -144,7 +144,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 *   返さなければなりません。
 	 * @param <V> 値型パラメータ。
 	 *   {@link #hashCode()} のために {@link V#hashCode()} はキャッシュされます。ハッシュコードの変更は許可されません。
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected static class SoftReferenceUtil<K, V> extends SoftReference<V> {
 		
@@ -205,7 +205,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * 
 	 * @param <K> キー型パラメータ
 	 * @param <V> 値型パラメータ
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static interface ValueConverter<K, V> {
 		
@@ -222,7 +222,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} をラップするバリューイテレータ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ValueIterator implements Iterator<V> {
 		
@@ -258,7 +258,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil}を扱うバリューセット
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class Values extends AbstractCollection<V> {
 		
@@ -288,7 +288,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * エントリーをラップするクラス。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class WrapEntry implements Entry<K, V> {
 		

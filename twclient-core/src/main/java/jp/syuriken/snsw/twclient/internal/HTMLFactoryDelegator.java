@@ -12,14 +12,14 @@ import javax.swing.text.html.ParagraphView;
 /**
  * HTMLFactory を弄ぶクラス
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class HTMLFactoryDelegator extends HTMLFactory {
 	
 	/**
 	 * ParagraphViewを弄ぶクラス
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ParagraphViewDelegator extends ParagraphView {
 		

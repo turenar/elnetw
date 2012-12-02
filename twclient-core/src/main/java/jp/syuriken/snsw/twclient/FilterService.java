@@ -19,14 +19,14 @@ import twitter4j.UserList;
  * このクラスでは登録されているフィルタが平等に呼び出されることはありません。
  * 登録順に呼び出され、該当関数がフィルターした場合 (falseまたはnullを返した時など) には以降の関数は呼び出されません。
  * なおこのクラスは並列的にフィルタを呼び出すため、フィルタのマルチスレッド対応が必要です。
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class FilterService implements ClientMessageListener {
 	
 	/**
 	 * FilterDispatch元クラス。内部的に用いられる。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public abstract class FilterDispatcher implements ParallelRunnable {
 		

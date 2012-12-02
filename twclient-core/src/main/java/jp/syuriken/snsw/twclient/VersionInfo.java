@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * twclient関係のバージョン情報を格納するクラス。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public final class VersionInfo {
 	
@@ -54,12 +54,21 @@ public final class VersionInfo {
 	}
 	
 	/**
-	 * ビルドのもととなったsvn revisionを返す
+	 * ビルドのもととなったgit revisionを返す
 	 * 
 	 * @return revision
 	 */
 	public static String getCommittedRevision() {
-		return getString("svn.committedRevision");
+		return getString("git.build-commit-abbrev");
+	}
+
+	/**
+	 * ビルドのもととなったgit described versionを返す
+	 *
+	 * @return described version
+	 */
+	public static String getDescribedVersion() {
+		return getString("git.build-version");
 	}
 	
 	private static String getString(String key) {
@@ -90,7 +99,7 @@ public final class VersionInfo {
 				return version;
 			} else {
 				StringBuilder sb = new StringBuilder();
-				sb.append(version).append("-rev").append(getCommittedRevision());
+				sb.append(version).append("-").append(getCommittedRevision());
 				return sb.toString();
 			}
 		}

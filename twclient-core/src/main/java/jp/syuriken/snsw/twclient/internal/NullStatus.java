@@ -16,7 +16,7 @@ import twitter4j.UserMentionEntity;
 /**
  * 空のStatus実装
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings({
 	"serial",

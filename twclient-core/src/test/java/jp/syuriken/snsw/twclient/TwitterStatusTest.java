@@ -26,7 +26,7 @@ import twitter4j.json.DataObjectFactory;
 /**
  * TwitterStatusのためのテスト
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterStatusTest {
 	

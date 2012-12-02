@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 登録済みのリスナに変更を通知できるプロパティーリストです。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class ClientProperties extends Properties {

@@ -5,7 +5,7 @@ import javax.swing.JMenuItem;
 /**
  * アクションハンドラ。
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public interface ActionHandler {
 	

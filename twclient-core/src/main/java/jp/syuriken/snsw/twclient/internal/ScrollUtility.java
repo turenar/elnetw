@@ -14,14 +14,14 @@ import javax.swing.Timer;
 /**
  * y軸方向の慣性スクロールを実現させるためのクラス
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ScrollUtility {
 	
 	/**
 	 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換するためのクラス。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static interface BoundsTranslator {
 		

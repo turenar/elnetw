@@ -6,7 +6,7 @@ import java.awt.image.ImageObserver;
 /**
  * アニメーションをキャンセルする ImageObserver
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public final class AnimationCanceledImageObserver implements ImageObserver {
 	

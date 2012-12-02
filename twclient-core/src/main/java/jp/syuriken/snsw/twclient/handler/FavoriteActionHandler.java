@@ -15,7 +15,7 @@ import twitter4j.TwitterException;
 /**
  * ふぁぼる
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class FavoriteActionHandler implements ActionHandler {
 	

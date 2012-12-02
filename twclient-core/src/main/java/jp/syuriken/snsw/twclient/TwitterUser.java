@@ -16,7 +16,7 @@ import twitter4j.json.DataObjectFactory;
 /**
  * プロフィールの更新ができるUser拡張型
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class TwitterUser implements User, TwitterExtendedObject {

@@ -8,7 +8,7 @@ import javax.swing.event.ChangeListener;
 /**
  * 真偽値を設定するタイプ。JCheckBoxを使用
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class BooleanConfigType implements ConfigType {
 	

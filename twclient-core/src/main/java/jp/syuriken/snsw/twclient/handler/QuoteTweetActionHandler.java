@@ -21,14 +21,14 @@ import twitter4j.Status;
 /**
  * QTするためのアクションハンドラ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class QuoteTweetActionHandler implements ActionHandler {
 	
 	/**
 	 * QTされた時用のツイートの長さを計算するクラス
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 		

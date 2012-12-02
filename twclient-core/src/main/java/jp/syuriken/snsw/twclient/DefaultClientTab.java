@@ -83,14 +83,14 @@ import twitter4j.internal.org.json.JSONObject;
 /**
  * ツイート表示用のタブ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public abstract class DefaultClientTab implements ClientTab {
 	
 	/**
 	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public abstract class DefaultRenderer implements TabRenderer {
 		
@@ -392,7 +392,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * ポストリストリスナ。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class PostListListener implements MouseListener, FocusListener, KeyListener {
 		
@@ -457,7 +457,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * PostListを更新する。
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class PostListUpdater extends TimerTask {
 		
@@ -490,7 +490,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * StatusPanelのポップアップメニューリスナ
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class TweetPopupMenuListener implements PopupMenuListener, ActionListener {
 		

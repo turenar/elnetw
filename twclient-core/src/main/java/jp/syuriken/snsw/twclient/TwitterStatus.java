@@ -28,7 +28,7 @@ import twitter4j.json.DataObjectFactory;
 /**
  * RT/favしたかどうかを格納できるStatus拡張型
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings({
 	"serial"

@@ -11,7 +11,7 @@ import jp.syuriken.snsw.twclient.ClientFrameApi;
 /**
  * アクションコマンドを指定したコンフィグタイプ
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ActionButtonConfigType implements ConfigType {
 	

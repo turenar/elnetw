@@ -8,14 +8,14 @@ import java.util.Random;
  * ジョブキューを保持するクラスです。時間のかかる作業 (HTTP通信など) をする場合は、このクラスに
  * ジョブを追加することが推奨されます。(推奨であって強制ではありません)
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class JobQueue {
 	
 	/**
 	 * 優先度を格納する
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public enum Priority {
 		/** 優先度：高 */

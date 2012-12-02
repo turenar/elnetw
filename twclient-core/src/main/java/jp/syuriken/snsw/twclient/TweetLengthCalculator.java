@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient;
 /**
  * ツイートの長さを計算するインターフェース
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public interface TweetLengthCalculator {
 	

@@ -1,0 +1,10 @@
+/*.cfg
+/*.diff
+/*.log
+/*.patch
+/*.tmp
+/.classpath
+/.project
+/.settings/edu.umd.cs.findbugs.plugin.eclipse.prefs
+/.settings/org.eclipse.core.resources.prefs
+/target

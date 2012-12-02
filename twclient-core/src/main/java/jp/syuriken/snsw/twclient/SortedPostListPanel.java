@@ -72,7 +72,7 @@ import javax.swing.JPanel;
  * branches -&gt; [ [15:00, 14:30] <del>[14:00, 12:00]</del> ]
  * </pre>
  * </p>
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class SortedPostListPanel extends JPanel {
@@ -80,7 +80,7 @@ public class SortedPostListPanel extends JPanel {
 	/**
 	 * コンポーネントを比較する
 	 * 
-	 * @author $Author$
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public final static class ComponentComparator implements Comparator<Component> {
 		

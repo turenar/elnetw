@@ -23,7 +23,7 @@ import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder.Config;
 /**
  * 設定フレーム
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class ConfigFrame extends JFrame {

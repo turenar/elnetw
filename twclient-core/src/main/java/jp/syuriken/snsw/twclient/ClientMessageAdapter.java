@@ -10,7 +10,7 @@ import twitter4j.UserList;
 /**
  * {@link ClientMessageListener} のアダプター・クラス
  * 
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public abstract class ClientMessageAdapter implements ClientMessageListener {
 	
