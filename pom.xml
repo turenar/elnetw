@@ -4,24 +4,35 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>jp.syuriken.snsw</groupId>
-	<artifactId>twclient</artifactId>
+	<artifactId>elnetw</artifactId>
 	<version>0.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Twitter client </name>
+	<name>elnetw, the twitter client</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
-		<module>twclient-core</module>
-		<module>twclient-launcher</module>
+		<module>elnetw-core</module>
+		<module>elnetw-launcher</module>
 	</modules>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>sonatype-releases</id>
+			<url>http://oss.sonatype.org/content/repositories/releases</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>clojars.org</id>
+			<url>http://clojars.org/repo</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>jp.syuriken.snsw</groupId>
-				<artifactId>twclient-core</artifactId>
+				<artifactId>elnetw-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -95,6 +106,19 @@
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.code54.mojo</groupId>
+				<artifactId>buildversion-plugin</artifactId>
+				<version>1.0.1</version>
+				<executions>
+					<execution>
+						<goals><goal>set-properties</goal></goals>
+						<configuration>
+							<tstampFormat>yyyyMMdd</tstampFormat>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

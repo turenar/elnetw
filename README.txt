@@ -1,4 +1,4 @@
-AstaViewer (仮)
+elnetw (エルナト)
 Twitter Client for 'HITOBASHIRA'
 ================================
 このファイルを読む上での注意
@@ -31,7 +31,7 @@ Twitter Client for 'HITOBASHIRA'
 
 使用について
 
-	bin ディレクトリにある turetwcl (Windows環境の場合は turetwcl.bat)
+	bin ディレクトリにある elnetw (Windows環境の場合は elnetw.bat)
 	を実行して下さい。
 
 	(Windows) UACの制限が掛かるフォルダ内では正常に動作するかが
@@ -46,20 +46,18 @@ Twitter Client for 'HITOBASHIRA'
 設定ファイル・キャッシュについて
 
 	Windows環境の場合は
-		設定　　　　%userprofile%\.turetwcl
-		キャッシュ　%temp%\turetwcl
+		設定　　　　%userprofile%\.elnetw
+		キャッシュ　%temp%\elnetw
 	その他の環境の場合は
-		設定　　　　${HOME}/.turetwcl
-		キャッシュ　${HOME}/.cache/turetwcl
+		設定　　　　${HOME}/.elnetw
+		キャッシュ　${HOME}/.cache/elnetw
 	に保存されます。なお、実行ファイルでポータブル設定にした場合は、
 	設定については作業ディレクトリ内に保存されます。
 
 ライセンスについて
 
-	このアプリケーションでは、ソースコードには MIT License が
-	適用されています。ライセンス全文については doc/license/turetwcl.txt
-	を参照して下さい。なお、ドキュメントはCC-BY 3.0 が適用されます。
-	CC-BY 3.0については http://creativecommons.org/licenses/by/3.0/
+	このアプリケーションでは、MIT License が
+	適用されています。ライセンス全文については doc/license/elnetw.txt
 	を参照して下さい。
 
 	このアプリケーションでは、ライブラリとしてオープンソースプロジェクトの
@@ -68,8 +66,9 @@ Twitter Client for 'HITOBASHIRA'
 
 リンク
 
-	配布元 (turetwcl)
+	配布元 (elnetw)
 		http://code.google.com/p/turetwcl
+		https://github.com/turenar/elnetw
 	作者のついった
 		http://twitter.com/ture7
 	ライブラリ等
