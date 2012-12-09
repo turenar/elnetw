@@ -13,23 +13,23 @@ import twitter4j.TwitterException;
 
 /**
  * 公式リツイートするためのアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class RetweetActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
 		return retweetMenuItem;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			final Status retweetStatus = (Status) statusData.tag;
 			api.addJob(new ParallelRunnable() {
-				
+
 				@Override
 				public void run() {
 					try {
@@ -41,7 +41,7 @@ public class RetweetActionHandler implements ActionHandler {
 			});
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if (statusData.isSystemNotify() || (statusData.tag instanceof Status) == false) {

@@ -17,20 +17,20 @@ import java.util.Map;
 
 /**
  * TwitterClient のためのランチャ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterClientLauncher {
-	
+
 	private static FilenameFilter jarFilter = new FilenameFilter() {
-		
+
 		@Override
 		public boolean accept(File dir, String name) {
 			return name.endsWith(".jar");
 		}
 	};
-	
-	
+
+
 	private static void addURL(List<URL> urlList, Map<String, URL> fileMap, File file) {
 		if (file.isDirectory() == false) {
 			return;
@@ -65,10 +65,10 @@ public class TwitterClientLauncher {
 			}
 		}
 	}
-	
+
 	/**
 	 * Launch
-	 * 
+	 *
 	 * @param args アプリケーション引数
 	 */
 	public static void main(String[] args) {
@@ -105,12 +105,12 @@ public class TwitterClientLauncher {
 			return;
 		}
 	}
-	
+
 	private static URLClassLoader prepareClassLoader() {
 		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
 		File baseDir = null;
 		boolean skipCurrentDir = false;
-		
+
 		if (classpath.length == 1) { // run with "-jar" Option
 			try {
 				baseDir = new File(classpath[0]).getCanonicalFile().getParentFile();
@@ -131,7 +131,7 @@ public class TwitterClientLauncher {
 		if (skipCurrentDir == false) {
 			addURL(libList, fileMap, new File("lib"));
 		}
-		
+
 		URL[] urls = libList.toArray(new URL[libList.size()]);
 		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}

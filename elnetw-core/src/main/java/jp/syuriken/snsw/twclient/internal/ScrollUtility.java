@@ -13,46 +13,46 @@ import javax.swing.Timer;
 
 /**
  * y軸方向の慣性スクロールを実現させるためのクラス
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ScrollUtility {
-	
+
 	/**
 	 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換するためのクラス。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static interface BoundsTranslator {
-		
+
 		/**
 		 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換する
-		 * 
+		 *
 		 * @param component コンポーネント
 		 * @return 絶対位置情報
 		 */
 		Rectangle translate(JComponent component);
 	}
-	
-	
+
+
 	private final JScrollPane scrollPane;
-	
+
 	private int deltaY;
-	
+
 	private static final int MAX_SPEED = 100;
-	
+
 	private Timer scrollTimer;
-	
+
 	private JComponent target;
-	
+
 	private final BoundsTranslator translator;
-	
+
 	private boolean momemtumEnabled;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param scrollPane スクロールペーン
 	 * @param translator 位置情報を変換するクラス
 	 * @param momemtumEnabled 慣性スクロールするかどうか
@@ -63,7 +63,7 @@ public class ScrollUtility {
 		this.momemtumEnabled = momemtumEnabled;
 		if (momemtumEnabled) {
 			scrollTimer = new Timer(10, new ActionListener() {
-				
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (isInside(target)) {
@@ -80,10 +80,10 @@ public class ScrollUtility {
 			});
 		}
 	}
-	
+
 	/**
 	 * 指定したコンポーネントを表示するためのy距離を取得する
-	 * 
+	 *
 	 * @param viewPosition スクロールペーンの表示位置
 	 * @return y距離
 	 */
@@ -97,10 +97,10 @@ public class ScrollUtility {
 		}
 		return vectorY;
 	}
-	
+
 	/**
 	 * 指定されたコンポーネントが表示位置の中にあるかどうかを調べる
-	 * 
+	 *
 	 * @param component 調べるコンポーネント
 	 * @return 表示位置の中にあるかどうか。
 	 */
@@ -110,7 +110,7 @@ public class ScrollUtility {
 		return (viewPosition.y <= bounds.y && viewPosition.y + scrollPane.getViewport().getHeight() >= bounds.y
 				+ bounds.height);
 	}
-	
+
 	private void momemtumTranslate(int vectorY) {
 		if (abs(vectorY) < 5) {
 			deltaY = vectorY;
@@ -126,10 +126,10 @@ public class ScrollUtility {
 			}
 		}
 	}
-	
+
 	/**
 	 * 指定されたコンポーネントが表示できるようにスクロールする。非同期で行われます。
-	 * 
+	 *
 	 * @param target スクロールの基準
 	 * @return スクロールされるかどうか。
 	 */

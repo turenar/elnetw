@@ -76,7 +76,7 @@ else
   # jarが見つからない
   echo
   echo ERROR: Usable jar is not found.
-  echo Please re-install or, 
+  echo Please re-install or,
   echo  if you compile from source, run 'mvn assembly:assembly'
   echo   in elnetw-launcher directory.
   echo

@@ -13,19 +13,19 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ツイートをどうにかするアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TweetActionHandler implements ActionHandler {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(TweetActionHandler.class);
-	
-	
+
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return null;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		String messageName;
@@ -49,10 +49,10 @@ public class TweetActionHandler implements ActionHandler {
 		}
 		api.getSelectingTab().getRenderer().onClientMessage(messageName, null);
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		// do nothing
 	}
-	
+
 }

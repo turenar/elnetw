@@ -76,39 +76,39 @@ import twitter4j.UserMentionEntity;
 
 /**
  * ツイート表示用のタブ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public abstract class DefaultClientTab implements ClientTab {
-	
+
 	/**
 	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public abstract class DefaultRenderer implements TabRenderer {
-		
+
 		/**
 		 * この時間ぐらい情報を置いておけばいいんじゃないですか的な秒数を取得する
-		 * 
+		 *
 		 * @return ミリ秒
 		 */
 		protected int getInfoSurviveTime() {
 			return frameApi.getInfoSurviveTime();
 		}
-		
+
 		@Override
 		public void onBlock(User source, User blockedUser) {
 		}
-		
+
 		@Override
 		public void onChangeAccount(boolean forWrite) {
 		}
-		
+
 		@Override
 		public void onCleanUp() {
 		}
-		
+
 		@Override
 		public void onClientMessage(String name, Object arg) {
 			if (Utility.equalString(name, REQUEST_FOCUS_TAB_COMPONENT)) {
@@ -284,112 +284,112 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			}
 		}
-		
+
 		@Override
 		public void onConnect() {
 		}
-		
+
 		@Override
 		public void onDeletionNotice(long directMessageId, long userId) {
 		}
-		
+
 		@Override
 		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 		}
-		
+
 		@Override
 		public void onDirectMessage(DirectMessage directMessage) {
 		}
-		
+
 		@Override
 		public void onDisconnect() {
 		}
-		
+
 		@Override
 		public void onException(Exception ex) {
 		}
-		
+
 		@Override
 		public void onFavorite(User source, User target, Status favoritedStatus) {
 		}
-		
+
 		@Override
 		public void onFollow(User source, User followedUser) {
 		}
-		
+
 		@Override
 		public void onFriendList(long[] friendIds) {
 		}
-		
+
 		@Override
 		public void onRetweet(User source, User target, Status retweetedStatus) {
 		}
-		
+
 		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
 		}
-		
+
 		@Override
 		public void onStallWarning(StallWarning warning) {
 		}
-		
+
 		@Override
 		public void onStatus(Status originalStatus) {
 			addStatus(originalStatus);
 		}
-		
+
 		@Override
 		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 		}
-		
+
 		@Override
 		public void onUnblock(User source, User unblockedUser) {
 		}
-		
+
 		@Override
 		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		}
-		
+
 		@Override
 		public void onUserListCreation(User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListDeletion(User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserListUpdate(User listOwner, UserList list) {
 		}
-		
+
 		@Override
 		public void onUserProfileUpdate(User updatedUser) {
 		}
 	}
-	
+
 	/**
 	 * ポストリストリスナ。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class PostListListener implements MouseListener, FocusListener, KeyListener {
-		
+
 		@Override
 		public void focusGained(FocusEvent e) {
 			// should scroll? if focus-window changed, i skip scrolling
@@ -399,25 +399,25 @@ public abstract class DefaultClientTab implements ClientTab {
 				scroller.scrollTo(selectingPost);
 			}
 		}
-		
+
 		@Override
 		public void focusLost(FocusEvent e) {
 		}
-		
+
 		@Override
 		public void keyPressed(KeyEvent e) {
 			frameApi.handleShortcutKey("list", e);
 		}
-		
+
 		@Override
 		public void keyReleased(KeyEvent e) {
 			frameApi.handleShortcutKey("list", e);
 		}
-		
+
 		@Override
 		public void keyTyped(KeyEvent e) {
 		}
-		
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			e.getComponent().requestFocusInWindow();
@@ -429,41 +429,41 @@ public abstract class DefaultClientTab implements ClientTab {
 				frameApi.handleAction("reply", panel.getStatusData());
 			}
 		}
-		
+
 		@Override
 		public void mouseEntered(MouseEvent e) {
 		}
-		
+
 		@Override
 		public void mouseExited(MouseEvent e) {
 		}
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 		}
-		
+
 		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
-		
+
 	}
-	
+
 	/**
 	 * PostListを更新する。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class PostListUpdater extends TimerTask {
-		
+
 		@Override
 		public void run() {
 			EventQueue.invokeLater(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					synchronized (postListAddQueue) {
 						int size = postListAddQueue.size();
-						
+
 						postListScrollPane.invalidate();
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
 						if (viewPosition.y < fontHeight) {
@@ -480,14 +480,14 @@ public abstract class DefaultClientTab implements ClientTab {
 			});
 		}
 	}
-	
+
 	/**
 	 * StatusPanelのポップアップメニューリスナ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class TweetPopupMenuListener implements PopupMenuListener, ActionListener {
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			StatusData statusData;
@@ -498,15 +498,15 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 			frameApi.handleAction(e.getActionCommand(), statusData);
 		}
-		
+
 		@Override
 		public void popupMenuCanceled(PopupMenuEvent arg0) {
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(PopupMenuEvent arg0) {
 			if (selectingPost == null) {
@@ -530,30 +530,30 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			}
 		}
-		
+
 	}
-	
-	
+
+
 	/** クリップボード */
 	protected static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-	
+
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
-	
+
 	/** ポストリストの間のパディング */
 	private static final int PADDING_OF_POSTLIST = 1;
-	
-	/** 
+
+	/**
 	 * DateFormatを管理する
 	 * @deprecated use {@link Utility#getDateFormat()}
 	 */
 	@Deprecated
 	protected static final ThreadLocal<SimpleDateFormat> dateFormat = null;
-	
-	
+
+
 	/**
 	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
-	 * 
+	 *
 	 * @param stringBuilder テキスト
 	 * @param start 置き換え開始位置
 	 */
@@ -575,10 +575,10 @@ public abstract class DefaultClientTab implements ClientTab {
 			offset = position + 9;
 		}*/
 	}
-	
+
 	/**
 	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
-	 * 
+	 *
 	 * @param stringBuilder テキスト
 	 * @param append 追加する文字列
 	 */
@@ -587,84 +587,84 @@ public abstract class DefaultClientTab implements ClientTab {
 		stringBuilder.append(append);
 		nl2br(stringBuilder, offset);
 	}
-	
-	
+
+
 	/** {@link ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
-	
+
 	/** 現在選択しているポスト */
 	public StatusPanel selectingPost;
-	
+
 	/** SortedPostListPanelインスタンス */
 	protected final SortedPostListPanel sortedPostListPanel;
-	
+
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-	
+
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
-	
+
 	/** 取得したフォントメトリックス (Default Font) */
 	protected FontMetrics fontMetrics;
-	
+
 	/** フォントの高さ */
 	protected int fontHeight;
-	
+
 	/** 送信元ラベルのサイズ */
 	protected Dimension linePanelSizeOfSentBy;
-	
+
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
-	
+
 	/** ポストリストリスナのシングルインスタンス */
 	protected final PostListListener postListListenerSingleton = new PostListListener();
-	
+
 	/** <K=ユーザーID, V=ユーザーのツイートなど> */
 	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<String, ArrayList<StatusPanel>>();
-	
+
 	/** <K=ステータスID, V=ツイートなど> */
 	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<Long, StatusPanel>();
-	
+
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
-	
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	/** {@link ClientConfiguration#getConfigData()} */
 	protected final ConfigData configData;
-	
+
 	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
-	
+
 	/** ポップアップメニュー */
 	protected JPopupMenu tweetPopupMenu;
-	
+
 	/** 慣性スクローラー */
 	protected ScrollUtility scroller;
-	
+
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
-	
+
 	private JPanel tweetViewOperationPanel;
-	
+
 	private JLabel tweetViewFavoriteButton;
-	
+
 	private JLabel tweetViewRetweetButton;
-	
+
 	private JLabel tweetViewReplyButton;
-	
+
 	private JLabel tweetViewOtherButton;
-	
+
 	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
 	public static final ImageIcon IMG_FAV_OFF;
-	
+
 	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_ON;
-	
+
 	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_HOVER;
-	
+
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
-	
+
 	/** Twitterのロゴ (青背景に白) */
 	public static final ImageIcon IMG_TWITTER_LOGO;
 	static {
@@ -683,11 +683,11 @@ public abstract class DefaultClientTab implements ClientTab {
 			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
 	}
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 */
 	protected DefaultClientTab(ClientConfiguration configuration) {
@@ -707,19 +707,19 @@ public abstract class DefaultClientTab implements ClientTab {
 				configData.intervalOfPostListUpdate);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
-		
+
 		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
-			
+
 			@Override
 			public Rectangle translate(JComponent component) {
 				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
 			}
 		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
 	}
-	
+
 	/**
 	 * リストにステータスを追加する。
-	 * 
+	 *
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
@@ -727,7 +727,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				originalStatus instanceof TwitterStatus ? originalStatus : new TwitterStatus(configuration,
 						originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
-		
+
 		Status status;
 		if (twitterStatus.isRetweet()) {
 			status = twitterStatus.getRetweetedStatus();
@@ -735,7 +735,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			status = twitterStatus;
 		}
 		User user = status.getUser();
-		
+
 		if (configData.mentionIdStrictMatch) {
 			if (user.getId() == frameApi.getLoginUser().getId()) {
 				statusData.foregroundColor = Color.BLUE;
@@ -745,12 +745,12 @@ public abstract class DefaultClientTab implements ClientTab {
 				statusData.foregroundColor = Color.BLUE;
 			}
 		}
-		
+
 		JLabel icon = new JLabel();
 		imageCacher.setImageIcon(icon, status.getUser());
 		icon.setHorizontalAlignment(JLabel.CENTER);
 		statusData.image = icon;
-		
+
 		String screenName = user.getScreenName();
 		statusData.user = screenName;
 		if (screenName.length() > 11) {
@@ -759,18 +759,18 @@ public abstract class DefaultClientTab implements ClientTab {
 		JLabel sentBy = new JLabel(screenName);
 		sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
 		statusData.sentBy = sentBy;
-		
+
 		JLabel statusText = new JLabel(status.getText());
 		statusData.data = statusText;
-		
+
 		statusData.popupMenu = tweetPopupMenu;
-		
+
 		if (twitterStatus.isRetweet()) {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("Retweeted by @").append(twitterStatus.getUser().getScreenName());
 			statusData.tooltip = stringBuilder.toString();
 		}
-		
+
 		if (twitterStatus.isRetweet()) {
 			statusData.foregroundColor = Color.GREEN;
 		} else {
@@ -779,13 +779,13 @@ public abstract class DefaultClientTab implements ClientTab {
 				statusData.foregroundColor = Color.RED;
 			}
 		}
-		
+
 		addStatus(statusData);
 	}
-	
+
 	/**
 	 * リストにステータスを追加する。
-	 * 
+	 *
 	 * @param statusData StatusDataインスタンス。
 	 * @return 追加された StatusPanel
 	 */
@@ -811,7 +811,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		statusData.data.setFocusable(false);
 		statusData.data.setFont(frameApi.getDefaultFont());
 		int dataWidth = fontMetrics.stringWidth(statusData.data.getText());
-		
+
 		linePanel.add(statusData.data);
 		linePanel.setComponentPopupMenu(statusData.popupMenu);
 		/* if (information.isSystemNotify()) {
@@ -832,7 +832,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		statusData.image.setForeground(statusData.foregroundColor);
 		statusData.sentBy.setForeground(statusData.foregroundColor);
 		statusData.data.setForeground(statusData.foregroundColor);
-		
+
 		synchronized (listItems) {
 			statusMap.put(statusData.id, linePanel);
 			ArrayList<StatusPanel> list = listItems.get(statusData.user);
@@ -847,10 +847,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return linePanel;
 	}
-	
+
 	/**
 	 * リストにステータスを追加する。その後deltionDelayミリ秒後に該当するステータスを削除する。
-	 * 
+	 *
 	 * @param statusData StatusDataインスタンス。
 	 * @param deletionDelay 削除を予約する時間。ミリ秒
 	 * @return 追加された (もしくはそのあと削除された) ステータス。
@@ -860,17 +860,17 @@ public abstract class DefaultClientTab implements ClientTab {
 		removeStatus(statusData, deletionDelay);
 		return status;
 	}
-	
+
 	@Override
 	public void focusGained() {
 		if (selectingPost != null) {
 			selectingPost.requestFocusInWindow();
 		}
 	}
-	
+
 	/**
 	 * ポストパネルがフォーカスを得た時のハンドラ
-	 * 
+	 *
 	 * @param e Focusイベント
 	 * @throws IllegalArgumentException 正しくないプロパティ
 	 * @throws NumberFormatException 数値ではないプロパティ
@@ -882,14 +882,14 @@ public abstract class DefaultClientTab implements ClientTab {
 		selectingPost = (StatusPanel) e.getComponent();
 		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
 				frameApi.getConfigData().colorOfFocusList));
-		
+
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof TwitterStatus) {
 			TwitterStatus originalStatus = (TwitterStatus) statusData.tag;
 			TwitterStatus status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 			String escapedText = status.getEscapedText();
 			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
-			
+
 			int entitiesLen;
 			HashtagEntity[] hashtagEntities = status.getEscapedHashtagEntities();
 			entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
@@ -900,7 +900,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			UserMentionEntity[] mentionEntities = status.getEscapedUserMentionEntities();
 			entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
 			Object[] entities = new Object[entitiesLen];
-			
+
 			if (entitiesLen != 0) {
 				int copyOffset = 0;
 				if (hashtagEntities != null) {
@@ -920,7 +920,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			}
 			Arrays.sort(entities, new Comparator<Object>() {
-				
+
 				@Override
 				public int compare(Object o1, Object o2) {
 					return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
@@ -953,7 +953,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				} else {
 					throw new AssertionError();
 				}
-				
+
 				if (offset < start) {
 					nl2br(stringBuilder, escapedText.substring(offset, start));
 				}
@@ -962,7 +962,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				stringBuilder.append("\">");
 				stringBuilder.append(replaceText == null ? escapedText.substring(start, end) : replaceText);
 				stringBuilder.append("</a>");
-				
+
 				offset = end;
 			}
 			nl2br(stringBuilder, escapedText.substring(offset));
@@ -1019,26 +1019,26 @@ public abstract class DefaultClientTab implements ClientTab {
 					DO_NOTHING_WHEN_POINTED);
 		}
 	}
-	
+
 	/**
 	 * {@link #getScrollPane()}の子コンポーネント
-	 * 
+	 *
 	 * @return {@link SortedPostListPanel}インスタンス
 	 */
 	protected JComponent getChildComponent() {
 		return getSortedPostListPanel();
 	}
-	
+
 	/**
 	* スクロールペーン。
-	* 
+	*
 	* @return JScrollPane
 	*/
 	@SuppressWarnings("serial")
 	protected JScrollPane getScrollPane() {
 		if (postListScrollPane == null) {
 			postListScrollPane = new JScrollPane() {
-				
+
 				@Override
 				protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
 					switch (ks.getKeyCode()) {
@@ -1051,7 +1051,7 @@ public abstract class DefaultClientTab implements ClientTab {
 							return super.processKeyBinding(ks, e, condition, pressed);
 					}
 				}
-				
+
 				@Override
 				protected void processKeyEvent(KeyEvent e) {
 					logger.trace("jscrollpane#processKeyEvent: {}", e);
@@ -1062,19 +1062,19 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return postListScrollPane;
 	}
-	
+
 	/**
 	 * SortedPostListPanelを取得する(レンダラ用)
-	 * 
+	 *
 	 * @return {@link SortedPostListPanel}インスタンス
 	 */
 	protected SortedPostListPanel getSortedPostListPanel() {
 		return sortedPostListPanel;
 	}
-	
+
 	/**
 	 * ステータスを取得する。
-	 * 
+	 *
 	 * @param statusId ステータスID
 	 * @return ステータスデータ
 	 */
@@ -1082,15 +1082,15 @@ public abstract class DefaultClientTab implements ClientTab {
 		StatusPanel statusPanel = statusMap.get(statusId);
 		return statusPanel == null ? null : statusPanel.getStatusData();
 	}
-	
+
 	@Override
 	public JComponent getTabComponent() {
 		return getScrollPane();
 	}
-	
+
 	/**
 	 * ツイートビューの隣に表示するふぁぼボタン
-	 * 
+	 *
 	 * @return ふぁぼボタン
 	 */
 	protected JLabel getTweetViewFavoriteButton() {
@@ -1101,12 +1101,12 @@ public abstract class DefaultClientTab implements ClientTab {
 			tweetViewFavoriteButton.setMaximumSize(OPERATION_PANEL_SIZE);
 			tweetViewFavoriteButton.setPreferredSize(OPERATION_PANEL_SIZE);
 			tweetViewFavoriteButton.addAncestorListener(new AncestorListener() {
-				
+
 				@Override
 				public void ancestorAdded(AncestorEvent event) {
 					ancestorMoved(event);
 				}
-				
+
 				@Override
 				public void ancestorMoved(AncestorEvent event) {
 					if (selectingPost != null && selectingPost.getStatusData().tag instanceof Status) {
@@ -1118,25 +1118,25 @@ public abstract class DefaultClientTab implements ClientTab {
 						}
 					}
 				}
-				
+
 				@Override
 				public void ancestorRemoved(AncestorEvent event) {
 					ancestorMoved(event);
 				}
 			});
 			tweetViewFavoriteButton.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					mouseExited(e);
 					handleAction("fav");
 				}
-				
+
 				@Override
 				public void mouseEntered(MouseEvent e) {
 					tweetViewFavoriteButton.setIcon(IMG_FAV_HOVER);
 				}
-				
+
 				@Override
 				public void mouseExited(MouseEvent e) {
 					Status status = (Status) selectingPost.getStatusData().tag;
@@ -1147,14 +1147,14 @@ public abstract class DefaultClientTab implements ClientTab {
 					}
 				}
 			});
-			
+
 		}
 		return tweetViewFavoriteButton;
 	}
-	
+
 	/**
 	 * ツイートビューの隣に表示するボタンの集まり
-	 * 
+	 *
 	 * @return ボタンの集まり
 	 */
 	protected JPanel getTweetViewOperationPanel() {
@@ -1182,10 +1182,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return tweetViewOperationPanel;
 	}
-	
+
 	/**
 	 * ツイートビューの隣に表示するその他用ボタン
-	 * 
+	 *
 	 * @return その他用ボタン
 	 */
 	protected JLabel getTweetViewOtherButton() {
@@ -1197,7 +1197,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			tweetViewOtherButton.setMaximumSize(OPERATION_PANEL_SIZE);
 			tweetViewOtherButton.setPreferredSize(OPERATION_PANEL_SIZE);
 			tweetViewOtherButton.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					handleAction("userinfo");
@@ -1206,10 +1206,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return tweetViewOtherButton;
 	}
-	
+
 	/**
 	 * ツイートビューの隣に表示するリプライボタン
-	 * 
+	 *
 	 * @return リプライボタン
 	 */
 	protected JLabel getTweetViewReplyButton() {
@@ -1221,7 +1221,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			tweetViewReplyButton.setMaximumSize(OPERATION_PANEL_SIZE);
 			tweetViewReplyButton.setPreferredSize(OPERATION_PANEL_SIZE);
 			tweetViewReplyButton.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					handleAction("reply");
@@ -1230,10 +1230,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return tweetViewReplyButton;
 	}
-	
+
 	/**
 	* ツイートビューの隣に表示するリツイートボタン
-	* 
+	*
 	* @return リツイートボタン
 	*/
 	protected JLabel getTweetViewRetweetButton() {
@@ -1245,7 +1245,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			tweetViewRetweetButton.setMaximumSize(OPERATION_PANEL_SIZE);
 			tweetViewRetweetButton.setPreferredSize(OPERATION_PANEL_SIZE);
 			tweetViewRetweetButton.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					handleAction("rt");
@@ -1254,12 +1254,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return tweetViewRetweetButton;
 	}
-	
+
 	@Override
 	public void handleAction(String command) {
 		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
 	}
-	
+
 	/**
 	 * <p>
 	 * タイムラインの初期化。Display Requirements用にあります。
@@ -1280,20 +1280,20 @@ public abstract class DefaultClientTab implements ClientTab {
 		statusData.data = new JLabel("All data is from twitter...");
 		addStatus(statusData);
 	}
-	
+
 	/**
 	 * IDが呼ばれたかどうかを判定する
-	 * 
+	 *
 	 * @param userMentionEntities エンティティ
 	 * @return 呼ばれたかどうか
 	 */
 	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
 		return configuration.isMentioned(userMentionEntities);
 	}
-	
+
 	/**
 	 * ステータスを削除する
-	 * 
+	 *
 	 * @param statusData ステータスデータ
 	 */
 	public void removeStatus(StatusData statusData) {
@@ -1302,21 +1302,21 @@ public abstract class DefaultClientTab implements ClientTab {
 			getSortedPostListPanel().remove(panel);
 		}
 	}
-	
+
 	/**
 	 * ステータスを削除する
-	 * 
+	 *
 	 * @param statusData ステータスデータ
 	 * @param delay 遅延ミリ秒
 	 */
 	public void removeStatus(final StatusData statusData, int delay) {
 		frameApi.getTimer().schedule(new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				removeStatus(statusData);
 			}
 		}, delay);
 	}
-	
+
 }

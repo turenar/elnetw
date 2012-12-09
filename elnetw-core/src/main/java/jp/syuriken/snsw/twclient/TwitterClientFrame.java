@@ -101,23 +101,23 @@ import twitter4j.User;
  */
 @SuppressWarnings("serial")
 /*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
-	
+
 	/**
 	 * アカウント認証するアクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class AccountVerifierActionHandler implements ActionHandler {
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData statusData, final ClientFrameApi frameInstance) {
 			Thread thread = new Thread(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					Exception exception = configuration.tryGetOAuthToken();
@@ -129,19 +129,19 @@ import twitter4j.User;
 			});
 			thread.start();
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		}
 	}
-	
+
 	/**
 	 * MenuItemのActionListenerの実装。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class ActionListenerImplementation implements ActionListener {
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			/* StatusData statusData;
@@ -153,19 +153,19 @@ import twitter4j.User;
 			handleAction(e.getActionCommand(), null);
 		}
 	}
-	
+
 	/**
 	 * "core!*" アクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class CoreFrameActionHandler implements ActionHandler {
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 			if (Utility.equalString(actionName, "core!move_between_list_and_postbox")) {
@@ -175,7 +175,7 @@ import twitter4j.User;
 					actionName = "core!focusinput";
 				}
 			}
-			
+
 			if (Utility.equalString(actionName, "core!submenu")) {
 				return;
 			} else if (Utility.equalString(actionName, "core!version")) {
@@ -227,7 +227,7 @@ import twitter4j.User;
 				getSelectingTab().getRenderer().onClientMessage(messageName, arg);
 			}
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 			if (Utility.equalString(menuItem.getActionCommand(), "core!submenu")) {
@@ -245,31 +245,31 @@ import twitter4j.User;
 				}
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * JLabel および JEditorPane用
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class DefaultMouseListener implements MouseListener {
-		
+
 		private static final String DEL_FTAG = "<!-- del -->";
-		
+
 		private static final String DEL_ETAG = "<!-- /del -->";
-		
+
 		private static final String DEL_ALL = "<!-- delbefthis -->";
-		
+
 		private static final String UNDERLINE_TAG = DEL_FTAG
 				+ "<span style='text-decoration:underline' class='autoinserted'>" + DEL_ETAG;
-		
+
 		private static final String HTML_UNDERLINE_TAG =
 				"<html><span style='text-decoration:underline' class='autohtmled'>" + DEL_ALL;
-		
+
 		private static final String END_TAG = DEL_FTAG + "</span>" + DEL_ETAG;
-		
-		
+
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (tweetViewingTab != null) {
@@ -287,7 +287,7 @@ import twitter4j.User;
 				tweetViewingTab.getRenderer().onClientMessage(messageName, e);
 			}
 		}
-		
+
 		@Override
 		public void mouseEntered(MouseEvent e) {
 			Component component = e.getComponent();
@@ -303,7 +303,7 @@ import twitter4j.User;
 				} else {
 					return;
 				}
-				
+
 				if ((flag & SET_FOREGROUND_COLOR_BLUE) != 0) {
 					label.setForeground(Color.BLUE);
 				}
@@ -320,7 +320,7 @@ import twitter4j.User;
 				}
 			}
 		}
-		
+
 		@Override
 		public void mouseExited(MouseEvent e) {
 			Component component = e.getComponent();
@@ -336,7 +336,7 @@ import twitter4j.User;
 				} else {
 					return;
 				}
-				
+
 				if ((flag & SET_FOREGROUND_COLOR_BLUE) != 0) {
 					label.setForeground(Color.BLACK);
 				}
@@ -363,26 +363,26 @@ import twitter4j.User;
 				}
 			}
 		}
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 		}
-		
+
 		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
 	}
-	
+
 	/**
 	 * 設定フレームを表示するアクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private class MenuConfiguratorActionHandler implements ActionHandler {
-		
+
 		private Method showMethod;
-		
-		
+
+
 		private MenuConfiguratorActionHandler() {
 			try {
 				showMethod = ConfigFrameBuilder.class.getDeclaredMethod("show");
@@ -394,12 +394,12 @@ import twitter4j.User;
 				e.printStackTrace();
 			}
 		}
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 			try {
@@ -412,87 +412,87 @@ import twitter4j.User;
 				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
 			}
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 			// This is always enabled.
 		}
 	}
-	
+
 	/**
 	 * メニューのプロパティエディタを開くためのアクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class MenuPropertyEditorActionHandler implements ActionHandler {
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame(configuration);
 			propertyEditorFrame.setVisible(true);
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 			// This is always enabled.
 		}
-		
+
 	}
-	
+
 	/**
 	 * 終了するためのアクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class MenuQuitActionHandler implements ActionHandler {
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 			setVisible(false);
 			dispose();
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 			// This is always enabled
 		}
-		
+
 	}
-	
+
 	/**
 	 * リログインするためのアクションハンドラ
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ReloginActionHandler implements ActionHandler {
-		
+
 		private final boolean forWrite;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param forWrite 書き込み用
 		 */
 		public ReloginActionHandler(boolean forWrite) {
 			this.forWrite = forWrite;
 		}
-		
+
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
 		}
-		
+
 		@Override
 		public void handleAction(String actionName, StatusData ignore, ClientFrameApi frameInstance) {
 			String accountId = actionName.substring(actionName.indexOf('!') + 1);
@@ -502,33 +502,33 @@ import twitter4j.User;
 				configuration.setAccountIdForRead(accountId);
 			}
 		}
-		
+
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 			// TODO Auto-generated method stub
-			
+
 		}
 	}
-	
+
 	/**
 	 * ログイン出来るユーザー情報を取得する
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class UserInfoFetcher implements Runnable {
-		
+
 		public final String[] accountList = configuration.getAccountList();
-		
+
 		public int offset = 0;
-		
+
 		public JMenuItem[] readTimelineMenuItems;
-		
+
 		public JMenuItem[] postToMenuItems;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 */
 		public UserInfoFetcher() {
 			readTimelineMenuItems = new JMenuItem[accountList.length];
@@ -538,7 +538,7 @@ import twitter4j.User;
 			ButtonGroup writeButtonGroup = new ButtonGroup();
 			for (int i = 0; i < accountList.length; i++) {
 				String accountId = accountList[i];
-				
+
 				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
 				readMenuItem.setActionCommand("menu_login_read!" + accountId);
 				readMenuItem.addActionListener(menuActionListener);
@@ -549,7 +549,7 @@ import twitter4j.User;
 				readTimelineMenuItems[i] = readMenuItem;
 				getReadTimelineJMenu().add(readMenuItem);
 				readButtonGroup.add(readMenuItem);
-				
+
 				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
 				writeMenuItem.setActionCommand("menu_login_write!" + accountId);
 				writeMenuItem.addActionListener(menuActionListener);
@@ -562,7 +562,7 @@ import twitter4j.User;
 				writeButtonGroup.add(writeMenuItem);
 			}
 		}
-		
+
 		@Override
 		public void run() {
 			if (offset < accountList.length) {
@@ -570,13 +570,13 @@ import twitter4j.User;
 				lookupUsersSize = lookupUsersSize <= 100 ? lookupUsersSize : 100;
 				try {
 					long[] ids = new long[lookupUsersSize];
-					
+
 					for (int i = 0; i < lookupUsersSize; i++) {
 						ids[i] = Long.parseLong(accountList[offset + i]);
 					}
-					
+
 					ResponseList<User> users = configuration.getTwitterForRead().lookupUsers(ids);
-					
+
 					int finish = offset + lookupUsersSize;
 					for (User user : users) {
 						for (int i = offset; i < finish; i++) {
@@ -591,7 +591,7 @@ import twitter4j.User;
 					e.printStackTrace(); //TODO
 				}
 				getTimer().schedule(new TimerTask() {
-					
+
 					@Override
 					public void run() {
 						addJob(Priority.LOW, UserInfoFetcher.this);
@@ -600,108 +600,108 @@ import twitter4j.User;
 			}
 		}
 	}
-	
-	
+
+
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
-	
+
 	private Hashtable<String, ActionHandler> actionHandlerTable;
-	
+
 	private Status inReplyToStatus = null;
-	
+
 	private final JobQueue jobQueue = new JobQueue();
-	
+
 	private JobWorkerThread jobWorkerThread;
-	
+
 	private JPanel editPanel;
-	
+
 	private JPanel postPanel;
-	
+
 	private JScrollPane postBoxScrollPane;
-	
+
 	private JSplitPane jSplitPane1;
-	
+
 	private JButton postActionButton;
-	
+
 	private JTextArea postBox;
-	
+
 	private JTabbedPane viewTab;
-	
+
 	/** デフォルトフォント: TODO from config */
 	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-	
+
 	/** UIフォント: TODO from config */
 	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
-	
+
 	private User loginUser;
-	
+
 	private Timer timer;
-	
+
 	private ClientProperties configProperties;
-	
+
 	private JMenuBar clientMenu;
-	
+
 	private final ClientConfiguration configuration;
-	
+
 	private final ActionListener menuActionListener = new ActionListenerImplementation();
-	
+
 	private JPanel tweetViewPanel;
-	
+
 	private JMenu accountMenu;
-	
+
 	private JMenu readTimelineJMenu;
-	
+
 	private JMenu postToJMenu;
-	
+
 	private JScrollPane tweetViewScrollPane;
-	
+
 	private JEditorPane tweetViewEditorPane;
-	
+
 	private JLabel tweetViewCreatedByLabel;
-	
+
 	private JLabel tweetViewCreatedAtLabel;
-	
+
 	private final Object mainThreadHolder;
-	
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	private ImageCacher imageCacher;
-	
+
 	private JLabel tweetViewUserIconLabel;
-	
+
 	private Map<String, String> shortcutKeyMap = new HashMap<String, String>();
-	
+
 	private ConfigData configData;
-	
+
 	private FilterService rootFilterService;
-	
+
 	private JLabel postLengthLabel;
-	
+
 	protected ClientTab selectingTab;
-	
+
 	private final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR = new DefaultTweetLengthCalculator(this);
-	
+
 	private TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
-	
+
 	private DefaultMouseListener tweetViewListener = new DefaultMouseListener();
-	
+
 	private ClientTab tweetViewingTab;
-	
+
 	private JPanel operationPanelContainer;
-	
+
 	private JLayeredPane tweetViewTextLayeredPane;
-	
+
 	private JLabel tweetViewTextOverlayLabel;
-	
+
 	private int tweetViewCreatedByFlag;
-	
+
 	private int tweetViewCreatedAtFlag;
-	
+
 	private int tweetViewTextOverlayFlag;
-	
-	
-	/** 
-	 * Creates new form TwitterClientFrame 
+
+
+	/**
+	 * Creates new form TwitterClientFrame
 	 * @param configuration 設定
 	 * @param threadHolder スレッドホルダ
 	 */
@@ -720,26 +720,26 @@ import twitter4j.User;
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		initActionHandlerTable();
 		initShortcutKey();
-		
+
 		getLoginUser();
 		generatePopupMenu(new ActionListenerImplementation());
 		initComponents();
 		// timer.schedule(updatePostListDispatcher, configData.intervalOfPostListUpdate,
 		//		configData.intervalOfPostListUpdate);
-		
+
 		imageCacher = new ImageCacher(configuration);
-		
+
 		logger.info("initialized");
 	}
-	
+
 	@Override
 	public ActionHandler addActionHandler(String name, ActionHandler handler) {
 		return actionHandlerTable.put(name, handler);
 	}
-	
+
 	/**
 	 * ジョブを追加する
-	 * 
+	 *
 	 * @param priority 優先度
 	 * @param job ジョブ
 	 */
@@ -747,27 +747,27 @@ import twitter4j.User;
 	public void addJob(Priority priority, Runnable job) {
 		jobQueue.addJob(priority, job);
 	}
-	
+
 	/**
 	 * ジョブを追加する
-	 * 
+	 *
 	 * @param job ジョブ
 	 */
 	@Override
 	public void addJob(Runnable job) {
 		jobQueue.addJob(job);
 	}
-	
+
 	@Override
 	public void addShortcutKey(String keyString, String actionName) {
 		shortcutKeyMap.put(keyString, actionName);
 	}
-	
+
 	protected void addTab(ClientTab tab) {
 		getViewTab().add(tab.getTitle(), tab.getTabComponent());
 		tab.initTimeline();
 	}
-	
+
 	/**
 	 * 終了できるようにお掃除する
 	 */
@@ -776,7 +776,7 @@ import twitter4j.User;
 		timer.cancel();
 		jobWorkerThread.cleanUp();
 	}
-	
+
 	@Override
 	public void clearTweetView() {
 		setTweetViewText(null, null, DO_NOTHING_WHEN_POINTED);
@@ -784,23 +784,23 @@ import twitter4j.User;
 		setTweetViewCreatedBy(null, null, null, DO_NOTHING_WHEN_POINTED);
 		setTweetViewOperationPanel(null);
 	}
-	
+
 	@Override
 	public void doPost() {
 		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
 			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
-			
+
 			addJob(Priority.HIGH, new ParallelRunnable() {
-				
+
 				@Override
 				public void run() {
 					try {
 						// String escapedText = HTMLEntity.escape(text);
 						String escapedText = text;
 						StatusUpdate statusUpdate = new StatusUpdate(escapedText);
-						
+
 						if (inReplyToStatus != null) {
 							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
 						}
@@ -813,7 +813,7 @@ import twitter4j.User;
 					} finally {
 						try {
 							Runnable enabler = new Runnable() {
-								
+
 								@Override
 								public void run() {
 									postActionButton.setEnabled(true);
@@ -836,21 +836,21 @@ import twitter4j.User;
 			});
 		}
 	}
-	
+
 	/*package*/void focusFrameTab(ClientTab tab, int index) {
 		getViewTab().setSelectedIndex(index);
 	}
-	
+
 	@Override
 	public void focusPostBox() {
 		getPostBox().requestFocusInWindow();
 	}
-	
+
 	JPopupMenu generatePopupMenu(ActionListener actionListener) {
 		JPopupMenu popupMenu = new JPopupMenu();
 		Container nowProcessingMenu = popupMenu;
 		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
-		
+
 		for (String actionCommand : popupMenus) {
 			if (actionCommand.trim().isEmpty()) {
 				continue;
@@ -877,15 +877,15 @@ import twitter4j.User;
 		}
 		return popupMenu;
 	}
-	
+
 	private JMenu getAccountMenu() {
 		if (accountMenu == null) {
 			accountMenu = new JMenu("アカウント");
-			
+
 			addJob(Priority.LOW, new UserInfoFetcher());
 			accountMenu.add(getReadTimelineJMenu());
 			accountMenu.add(getPostToJMenu());
-			
+
 			JMenuItem verifyAccountMenuItem = new JMenuItem("アカウント認証(V)...", KeyEvent.VK_V);
 			verifyAccountMenuItem.setActionCommand("menu_account_verify");
 			verifyAccountMenuItem.addActionListener(menuActionListener);
@@ -893,7 +893,7 @@ import twitter4j.User;
 		}
 		return accountMenu;
 	}
-	
+
 	@Override
 	public String getActionCommandByShortcutKey(String component, String keyString) {
 		synchronized (shortcutKeyMap) {
@@ -904,10 +904,10 @@ import twitter4j.User;
 			return actionCommand;
 		}
 	}
-	
+
 	/**
 	 * アクションハンドラを取得する
-	 * 
+	 *
 	 * @param name アクション名。!を含んでいても可
 	 * @return アクションハンドラ
 	 */
@@ -918,15 +918,15 @@ import twitter4j.User;
 		ActionHandler actionHandler = actionHandlerTable.get(commandName);
 		return actionHandler;
 	}
-	
+
 	@Override
 	public ClientConfiguration getClientConfiguration() {
 		return configuration;
 	}
-	
+
 	/**
 	 * メニューバーを取得する。
-	 * 
+	 *
 	 * @return メニューバー
 	 */
 	private JMenuBar getClientMenuBar() {
@@ -938,9 +938,9 @@ import twitter4j.User;
 				configMenuItem.setActionCommand("menu_config");
 				configMenuItem.addActionListener(new ActionListenerImplementation());
 				applicationMenu.add(configMenuItem);
-				
+
 				applicationMenu.addSeparator();
-				
+
 				JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
 				quitMenuItem.setActionCommand("menu_quit");
 				quitMenuItem.addActionListener(menuActionListener);
@@ -959,17 +959,17 @@ import twitter4j.User;
 		}
 		return clientMenu;
 	}
-	
+
 	@Override
 	public ConfigData getConfigData() {
 		return configData;
 	}
-	
+
 	@Override
 	public Font getDefaultFont() {
 		return DEFAULT_FONT;
 	}
-	
+
 	private JPanel getEditPanel() {
 		if (editPanel == null) {
 			editPanel = new JPanel();
@@ -988,30 +988,30 @@ import twitter4j.User;
 								.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
-			
+
 		}
 		return editPanel;
 	}
-	
+
 	@Override
 	public ImageCacher getImageCacher() {
 		return imageCacher;
 	}
-	
+
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
 	 * 若干重要度が高いときは *2 とかしてみよう！
-	 * 
+	 *
 	 * @return 一時的な情報が生き残る時間
 	 */
 	@Override
 	public int getInfoSurviveTime() {
 		return configData.timeOfSurvivingInfo;
 	}
-	
+
 	/**
 	 * ログインしているユーザーを取得する。取得出来なかった場合nullの可能性あり。また、ブロックする可能性あり。
-	 * 
+	 *
 	 * @return the loginUser
 	 */
 	@Override
@@ -1025,23 +1025,23 @@ import twitter4j.User;
 		}
 		return loginUser;
 	}
-	
+
 	private JButton getPostActionButton() {
 		if (postActionButton == null) {
 			postActionButton = new javax.swing.JButton();
 			postActionButton.setText("投稿");
 			postActionButton.addActionListener(new ActionListener() {
-				
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					doPost();
 				}
 			});
-			
+
 		}
 		return postActionButton;
 	}
-	
+
 	private JTextArea getPostBox() {
 		if (postBox == null) {
 			postBox = new javax.swing.JTextArea();
@@ -1049,12 +1049,12 @@ import twitter4j.User;
 			postBox.setRows(3);
 			postBox.setFont(UI_FONT);
 			postBox.addKeyListener(new KeyAdapter() {
-				
+
 				@Override
 				public void keyPressed(KeyEvent e) {
 					handleShortcutKey("postbox", e);
 				}
-				
+
 				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
@@ -1064,7 +1064,7 @@ import twitter4j.User;
 		}
 		return postBox;
 	}
-	
+
 	private JScrollPane getPostBoxScrollPane() {
 		if (postBoxScrollPane == null) {
 			postBoxScrollPane = new JScrollPane();
@@ -1072,7 +1072,7 @@ import twitter4j.User;
 		}
 		return postBoxScrollPane;
 	}
-	
+
 	private JLabel getPostLengthLabel() {
 		if (postLengthLabel == null) {
 			postLengthLabel = new JLabel();
@@ -1081,7 +1081,7 @@ import twitter4j.User;
 		}
 		return postLengthLabel;
 	}
-	
+
 	private JPanel getPostPanel() {
 		if (postPanel == null) {
 			postPanel = new JPanel();
@@ -1113,40 +1113,40 @@ import twitter4j.User;
 													.addComponent(getPostActionButton()))
 										.addComponent(getPostBoxScrollPane(), 32, 64, GroupLayout.PREFERRED_SIZE))
 							.addContainerGap(6, Short.MAX_VALUE)));
-			
+
 		}
 		return postPanel;
 	}
-	
+
 	/**
 	 * 今現在ポストボックスに入力されている文字列を返す。
-	 * 
+	 *
 	 * @return ポストボックスに入力されている文字列
 	 */
 	@Override
 	public String getPostText() {
 		return getPostBox().getText();
 	}
-	
+
 	private JMenu getPostToJMenu() {
 		if (postToJMenu == null) {
 			postToJMenu = new JMenu("投稿先");
 		}
 		return postToJMenu;
 	}
-	
+
 	private JMenu getReadTimelineJMenu() {
 		if (readTimelineJMenu == null) {
 			readTimelineJMenu = new JMenu("タイムライン読み込み");
 		}
 		return readTimelineJMenu;
 	}
-	
+
 	@Override
 	public ClientTab getSelectingTab() {
 		return selectingTab;
 	}
-	
+
 	private JSplitPane getSplitPane1() {
 		if (jSplitPane1 == null) {
 			jSplitPane1 = new JSplitPane();
@@ -1162,17 +1162,17 @@ import twitter4j.User;
 		}
 		return jSplitPane1;
 	}
-	
+
 	/**
 	 * タイマーを取得する。
-	 * 
+	 *
 	 * @return タイマー
 	 */
 	@Override
 	public Timer getTimer() {
 		return timer;
 	}
-	
+
 	private JLabel getTweetViewCreatedAtLabel() {
 		if (tweetViewCreatedAtLabel == null) {
 			tweetViewCreatedAtLabel = new JLabel();
@@ -1183,7 +1183,7 @@ import twitter4j.User;
 		}
 		return tweetViewCreatedAtLabel;
 	}
-	
+
 	private JLabel getTweetViewCreatedByLabel() {
 		if (tweetViewCreatedByLabel == null) {
 			tweetViewCreatedByLabel = new JLabel();
@@ -1193,7 +1193,7 @@ import twitter4j.User;
 		}
 		return tweetViewCreatedByLabel;
 	}
-	
+
 	private JEditorPane getTweetViewEditorPane() {
 		if (tweetViewEditorPane == null) {
 			tweetViewEditorPane = new JEditorPane();
@@ -1202,10 +1202,10 @@ import twitter4j.User;
 			tweetViewEditorPane.setFont(UI_FONT);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setEditorKit(new HTMLEditorKit() {
-				
+
 				private HTMLFactory viewFactory = new HTMLFactoryDelegator();
-				
-				
+
+
 				@Override
 				public ViewFactory getViewFactory() {
 					return viewFactory;
@@ -1213,7 +1213,7 @@ import twitter4j.User;
 			});
 			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
 			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
-				
+
 				@Override
 				public void hyperlinkUpdate(HyperlinkEvent e) {
 					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -1234,14 +1234,14 @@ import twitter4j.User;
 		}
 		return tweetViewEditorPane;
 	}
-	
+
 	private JPanel getTweetViewOperationPanelContainer() {
 		if (operationPanelContainer == null) {
 			operationPanelContainer = new JPanel();
 		}
 		return operationPanelContainer;
 	}
-	
+
 	private JPanel getTweetViewPanel() {
 		if (tweetViewPanel == null) {
 			tweetViewPanel = new JPanel();
@@ -1253,7 +1253,7 @@ import twitter4j.User;
 					.addGroup(
 							layout
 								.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(Alignment.LEADING) // 
+								.addGroup(layout.createParallelGroup(Alignment.LEADING) //
 									.addComponent(getTweetViewCreatedByLabel(), Alignment.LEADING) //
 									.addComponent(getTweetViewCreatedAtLabel(), Alignment.LEADING))
 								.addContainerGap()
@@ -1273,7 +1273,7 @@ import twitter4j.User;
 					.addGroup(
 							layout
 								.createParallelGroup(Alignment.LEADING)
-								.addGroup(layout.createSequentialGroup() // 
+								.addGroup(layout.createSequentialGroup() //
 									.addComponent(getTweetViewCreatedByLabel()) //
 									.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
 									.addComponent(getTweetViewCreatedAtLabel()))
@@ -1291,26 +1291,26 @@ import twitter4j.User;
 		}
 		return tweetViewPanel;
 	}
-	
+
 	private JLayeredPane getTweetViewTextLayeredPane() {
 		if (tweetViewTextLayeredPane == null) {
 			tweetViewTextLayeredPane = new JLayeredPane();
 			tweetViewTextLayeredPane.setLayout(new LayoutManager2() {
-				
+
 				Dimension minimumSize;
-				
+
 				Dimension prefferedSize;
-				
+
 				Dimension maximumSize;
-				
+
 				final Dimension MAXIMUM_SIZE = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
-				
-				
+
+
 				@Override
 				public void addLayoutComponent(Component comp, Object constraints) {
 					invalidateLayout();
 				}
-				
+
 				@Override
 				public void addLayoutComponent(String name, Component comp) {
 					if (tweetViewTextLayeredPane != comp.getParent()) {
@@ -1318,7 +1318,7 @@ import twitter4j.User;
 					}
 					invalidateLayout();
 				}
-				
+
 				private void calculateLayout(Container parent) {
 					if (minimumSize != null && prefferedSize != null && maximumSize != null) {
 						return;
@@ -1343,28 +1343,28 @@ import twitter4j.User;
 					prefferedSize = new Dimension(prefw, prefh);
 					maximumSize = new Dimension(maxh, maxw);
 				}
-				
+
 				@Override
 				public float getLayoutAlignmentX(Container target) {
 					return 0;
 				}
-				
+
 				@Override
 				public float getLayoutAlignmentY(Container target) {
 					return 0;
 				}
-				
+
 				private void invalidateLayout() {
 					minimumSize = null;
 					prefferedSize = null;
 					maximumSize = null;
 				}
-				
+
 				@Override
 				public void invalidateLayout(Container target) {
 					invalidateLayout();
 				}
-				
+
 				@Override
 				public void layoutContainer(Container parent) {
 					final Insets insets = parent.getInsets();
@@ -1399,26 +1399,26 @@ import twitter4j.User;
 						comp.setBounds(x, y, compw, comph);
 					}
 				}
-				
+
 				@Override
 				public Dimension maximumLayoutSize(Container target) {
 					/*calculateLayout(target);
 					return maximumSize;*/
 					return MAXIMUM_SIZE;
 				}
-				
+
 				@Override
 				public Dimension minimumLayoutSize(Container parent) {
 					calculateLayout(parent);
 					return minimumSize;
 				}
-				
+
 				@Override
 				public Dimension preferredLayoutSize(Container parent) {
 					calculateLayout(parent);
 					return prefferedSize;
 				}
-				
+
 				@Override
 				public void removeLayoutComponent(Component comp) {
 					invalidateLayout();
@@ -1429,7 +1429,7 @@ import twitter4j.User;
 		}
 		return tweetViewTextLayeredPane;
 	}
-	
+
 	private JLabel getTweetViewTextOverlayLabel() {
 		if (tweetViewTextOverlayLabel == null) {
 			tweetViewTextOverlayLabel = new JLabel();
@@ -1440,7 +1440,7 @@ import twitter4j.User;
 		}
 		return tweetViewTextOverlayLabel;
 	}
-	
+
 	private JScrollPane getTweetViewTextScrollPane() {
 		if (tweetViewScrollPane == null) {
 			tweetViewScrollPane = new JScrollPane();
@@ -1451,7 +1451,7 @@ import twitter4j.User;
 		}
 		return tweetViewScrollPane;
 	}
-	
+
 	private JLabel getTweetViewUserIconLabel() {
 		if (tweetViewUserIconLabel == null) {
 			tweetViewUserIconLabel = new JLabel();
@@ -1460,42 +1460,42 @@ import twitter4j.User;
 		}
 		return tweetViewUserIconLabel;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
 	public Twitter getTwitter() {
 		return getTwitterForRead();
 	}
-	
+
 	@Deprecated
 	@Override
 	public Twitter getTwitterForRead() {
 		return configuration.getTwitterForRead();
 	}
-	
+
 	@Deprecated
 	@Override
 	public Twitter getTwitterForWrite() {
 		return configuration.getTwitterForWrite();
 	}
-	
+
 	@Override
 	public Font getUiFont() {
 		return UI_FONT;
 	}
-	
+
 	@Override
 	public Utility getUtility() {
 		return configuration.getUtility();
 	}
-	
+
 	private JTabbedPane getViewTab() {
 		if (viewTab == null) {
 			viewTab = new JTabbedPane();
 			viewTab.setBackground(Color.WHITE);
 			viewTab.addChangeListener(new ChangeListener() {
-				
+
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					if (selectingTab != null) {
@@ -1510,10 +1510,10 @@ import twitter4j.User;
 		}
 		return viewTab;
 	}
-	
+
 	/**
 	* Actionをhandleする。
-	* 
+	*
 	* @param name Action名
 	* @param statusData ステータス情報
 	*/
@@ -1527,17 +1527,17 @@ import twitter4j.User;
 			actionHandler.handleAction(name, statusData, this);
 		}
 	}
-	
+
 	/**
 	 * 例外を処理する。
-	 * 
+	 *
 	 * @param ex 例外
 	 */
 	@Override
 	public void handleException(Exception ex) {
 		rootFilterService.onException(ex);
 	}
-	
+
 	/**
 	 * 例外を処理する。
 	 * @param e 例外
@@ -1546,7 +1546,7 @@ import twitter4j.User;
 	public void handleException(TwitterException e) {
 		handleException((Exception) e);
 	}
-	
+
 	@Override
 	public void handleShortcutKey(String component, KeyEvent e) {
 		int id = e.getID();
@@ -1562,7 +1562,7 @@ import twitter4j.User;
 			}
 		}
 	}
-	
+
 	/**
 	 * アクションハンドラーテーブルを初期化する。
 	 */
@@ -1590,7 +1590,7 @@ import twitter4j.User;
 		addActionHandler("menu_login_write", new ReloginActionHandler(true));
 		addActionHandler("menu_config", new MenuConfiguratorActionHandler());
 	}
-	
+
 	/**
 	 * This method is called from within the constructor to
 	 * initialize the form.
@@ -1599,16 +1599,16 @@ import twitter4j.User;
 		setTitle(APPLICATION_NAME);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);
-		
+
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
 				getSplitPane1(), GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(getSplitPane1(),
 				GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE));
-		
+
 		pack();
-		
+
 		setJMenuBar(getClientMenuBar());
 		Dimension size = configProperties.getDimension("gui.main.size");
 		if (size != null) {
@@ -1616,7 +1616,7 @@ import twitter4j.User;
 			// setSize(500, 500);
 		}
 	}
-	
+
 	/**
 	 * 設定ウィンドウの初期化
 	 */
@@ -1638,7 +1638,7 @@ import twitter4j.User;
 		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
 				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", this));
 	}
-	
+
 	/**
 	 * ショートカットキーテーブルを初期化する。
 	 */
@@ -1668,31 +1668,31 @@ import twitter4j.User;
 			addShortcutKey(key, shortcutkeyProperties.getProperty(key));
 		}
 	}
-	
+
 	/*package*/boolean isFocusTab(int index) {
 		return getViewTab().getSelectedIndex() == index;
 	}
-	
+
 	/*package*/void refreshTab(int indexOf, ClientTab tab) {
 		JTabbedPane tabbedPane = getViewTab();
 		tabbedPane.setIconAt(indexOf, tab.getIcon());
 		tabbedPane.setTitleAt(indexOf, tab.getTitle());
 		tabbedPane.setToolTipTextAt(indexOf, tab.getToolTip());
 	}
-	
+
 	/**
 	 * フレームタブを削除するよ♪
-	 * @param indexOf インデックス 
+	 * @param indexOf インデックス
 	 * @param tab タブ
 	 */
 	/*package*/void removeFrameTab(int indexOf, ClientTab tab) {
 		JTabbedPane viewTab = getViewTab();
 		viewTab.remove(indexOf);
 	}
-	
+
 	/**
 	 * inReplyToStatusを付加する。
-	 * 
+	 *
 	 * @param status ステータス
 	 * @return 前設定されたinReplyToStatus
 	 */
@@ -1702,12 +1702,12 @@ import twitter4j.User;
 		inReplyToStatus = status;
 		return previousInReplyToStatus;
 	}
-	
+
 	@Override
 	public String setPostText(String text) {
 		return setPostText(text, text.length(), text.length());
 	}
-	
+
 	@Override
 	public String setPostText(String text, int selectionStart, int selectionEnd) {
 		JTextArea textArea = getPostBox();
@@ -1717,21 +1717,21 @@ import twitter4j.User;
 		updatePostLength();
 		return oldText;
 	}
-	
+
 	@Override
 	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
 		TweetLengthCalculator oldCalculator = tweetLengthCalculator;
 		tweetLengthCalculator = newCalculator == null ? DEFAULT_TWEET_LENGTH_CALCULATOR : newCalculator;
 		return oldCalculator;
 	}
-	
+
 	@Override
 	public void setTweetViewCreatedAt(String createdAt, String toolTip, int actionFlag) {
 		getTweetViewCreatedAtLabel().setText(createdAt);
 		getTweetViewCreatedAtLabel().setToolTipText(toolTip);
 		tweetViewCreatedAtFlag = actionFlag;
 	}
-	
+
 	@Override
 	public void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int actionFlag) {
 		getTweetViewUserIconLabel().setIcon(icon);
@@ -1739,7 +1739,7 @@ import twitter4j.User;
 		getTweetViewCreatedByLabel().setToolTipText(toolTip);
 		tweetViewCreatedByFlag = actionFlag;
 	}
-	
+
 	@Override
 	public void setTweetViewOperationPanel(JPanel operationPanel) {
 		operationPanelContainer.removeAll();
@@ -1747,7 +1747,7 @@ import twitter4j.User;
 			operationPanelContainer.add(operationPanel);
 		}
 	}
-	
+
 	@Override
 	public void setTweetViewText(String tweetData, String overlayString, int actionFlag) {
 		tweetViewingTab = selectingTab;
@@ -1755,7 +1755,7 @@ import twitter4j.User;
 		getTweetViewTextOverlayLabel().setText(overlayString);
 		tweetViewTextOverlayFlag = actionFlag;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
@@ -1767,13 +1767,13 @@ import twitter4j.User;
 		setTweetViewCreatedBy(icon, createdBy, createdByToolTip, DO_NOTHING_WHEN_POINTED);
 		setTweetViewOperationPanel(operationPanel);
 	}
-	
+
 	/**
 	 * 開始する
 	 */
 	public void start() {
 		EventQueue.invokeLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				setVisible(true);
@@ -1787,11 +1787,11 @@ import twitter4j.User;
 			}
 		}
 	}
-	
+
 	private void updatePostLength() {
 		tweetLengthCalculator.calcTweetLength(getPostBox().getText());
 	}
-	
+
 	@Override
 	public void updatePostLength(String length, Color color, String tooltip) {
 		JLabel label = getPostLengthLabel();
@@ -1799,12 +1799,12 @@ import twitter4j.User;
 		label.setForeground(color);
 		label.setToolTipText(tooltip);
 	}
-	
+
 	@Override
 	public void windowActivated(WindowEvent e) {
 		// do nothing
 	}
-	
+
 	@Override
 	public void windowClosed(WindowEvent e) {
 		logger.debug("closing main-window...");
@@ -1818,30 +1818,30 @@ import twitter4j.User;
 			mainThreadHolder.notifyAll();
 		}
 	}
-	
+
 	@Override
 	public void windowClosing(WindowEvent e) {
 		// do nothing
 	}
-	
+
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 		// do nothing
 	}
-	
+
 	@Override
 	public void windowDeiconified(WindowEvent e) {
 		// do nothing
 	}
-	
+
 	@Override
 	public void windowIconified(WindowEvent e) {
 		// do nothing
 	}
-	
+
 	@Override
 	public void windowOpened(WindowEvent e) {
 		// do nothing
 	}
-	
+
 }

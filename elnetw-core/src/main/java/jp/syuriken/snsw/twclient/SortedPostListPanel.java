@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 
 /**
  * 日時でソートするポストリスト。
- * 
+ *
  * <p>
  * 普通の {@linkplain JPanel} では、コンポーネントの格納にArrayListを使用してるため、
  * 内部コンポーネントが増えてくると配列のコピーに時間がかかる可能性があります。
@@ -76,21 +76,21 @@ import javax.swing.JPanel;
  */
 @SuppressWarnings("serial")
 public class SortedPostListPanel extends JPanel {
-	
+
 	/**
 	 * コンポーネントを比較する
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public final static class ComponentComparator implements Comparator<Component> {
-		
+
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
-		
-		
+
+
 		private ComponentComparator() {
 		}
-		
+
 		@Override
 		public int compare(Component o1, Component o2) {
 			if (o1 instanceof StatusPanel && o2 instanceof StatusPanel) {
@@ -100,45 +100,45 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * {@link StatusPanel} を日時で比較する。
-	 * @param a 比較する側 
+	 * @param a 比較する側
 	 * @param b 比較される側
 	 * @return a.compareTo(b)
 	 */
 	public static int compareDate(StatusPanel a, StatusPanel b) {
 		return a.compareTo(b);
 	}
-	
-	
+
+
 	private LinkedList<JPanel> branches;
-	
+
 	private LinkedList<StatusPanel> firstBranch;
-	
+
 	private JPanel firstPanel;
-	
+
 	private int size;
-	
+
 	private final int leafSize;
-	
+
 	private final int maxContainSize;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 */
 	public SortedPostListPanel() {
 		this(3200, 50);
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
 	 * @param leafSize 二層目のJPanelの期待サイズ (このサイズより大きくなる可能性があります)
 	 * @param maxSize このクラスが格納する要素数
-	 * 
+	 *
 	 */
 	public SortedPostListPanel(int leafSize, int maxSize) {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -150,7 +150,7 @@ public class SortedPostListPanel extends JPanel {
 		firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.Y_AXIS));
 		super.add(firstPanel, 0);
 	}
-	
+
 	@Deprecated
 	@Override
 	public Component add(Component comp) {
@@ -163,27 +163,27 @@ public class SortedPostListPanel extends JPanel {
 			throw new IllegalArgumentException();
 		}
 	}
-	
+
 	@Deprecated
 	@Override
 	public Component add(Component comp, int index) {
 		return this.add(comp);
 	}
-	
+
 	@Deprecated
 	@Override
 	public void add(Component comp, Object constraints) {
 		this.add(comp);
 	}
-	
+
 	@Override
 	public void add(Component comp, Object constraints, int index) {
 		this.add(comp);
 	}
-	
+
 	/**
 	 * valuesの内容をこのパネルに追加する
-	 * 
+	 *
 	 * @param values StatusPanelのLinkedList
 	 */
 	public synchronized void add(LinkedList<StatusPanel> values) {
@@ -191,16 +191,16 @@ public class SortedPostListPanel extends JPanel {
 			return;
 		}
 		invalidate();
-		
+
 		Collections.sort(values, ComponentComparator.SINGLETON);
-		
+
 		for (ListIterator<StatusPanel> iterator = firstBranch.listIterator(); iterator.hasNext();) {
 			if (values.isEmpty()) {
 				break;
 			}
 			StatusPanel value = values.peekFirst();
 			StatusPanel branchValue = iterator.next();
-			
+
 			if (compareDate(value, branchValue) < 0) {
 				continue;
 			} else {
@@ -237,7 +237,7 @@ public class SortedPostListPanel extends JPanel {
 					size++;
 				}
 			}
-			if (values.isEmpty() == false) { // all are added into last 
+			if (values.isEmpty() == false) { // all are added into last
 				JPanel branch = branches.getLast();
 				Component[] newBranch =
 						Arrays.copyOf(branch.getComponents(), branch.getComponentCount() + values.size());
@@ -281,14 +281,14 @@ public class SortedPostListPanel extends JPanel {
 			throw new AssertionError();
 		}
 		splitFirstBranch();
-		
+
 		tryRelease();
 		validate();
 	}
-	
+
 	/**
 	 * {@link #add(LinkedList)}の糖衣構文
-	 * 
+	 *
 	 * @param panel パネル
 	 */
 	public void add(StatusPanel panel) {
@@ -296,16 +296,16 @@ public class SortedPostListPanel extends JPanel {
 		list.add(panel);
 		add(list);
 	}
-	
+
 	@Override
 	public Component add(String name, Component comp) {
 		return this.add(comp);
 	}
-	
+
 	/**
 	 * 親コンポーネント(={@link SortedPostListPanel}) に対する絶対位置を取得する。
 	 * 指定されたコンポーネントがこのパネルに追加されていない場合の動作は保証されません。
-	 * 
+	 *
 	 * @param panel 調べるコンポーネント
 	 * @return 絶対位置情報
 	 */
@@ -327,7 +327,7 @@ public class SortedPostListPanel extends JPanel {
 		}
 		return bounds;
 	}
-	
+
 	@Override
 	public StatusPanel getComponentAt(int x, int y) {
 		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
@@ -336,10 +336,10 @@ public class SortedPostListPanel extends JPanel {
 		y -= bounds.y;
 		return (StatusPanel) componentAt.getComponentAt(x, y);
 	}
-	
+
 	/**
 	 * valueをこのパネルから削除する。
-	 * 
+	 *
 	 * @param value 削除するStatusPanel
 	 * @return 削除したかどうか
 	 */
@@ -362,7 +362,7 @@ public class SortedPostListPanel extends JPanel {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 最初のコンポーネントをフォーカスする
 	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
@@ -377,16 +377,16 @@ public class SortedPostListPanel extends JPanel {
 		}
 		return panel.requestFocusInWindow();
 	}
-	
+
 	/**
 	 * 指定されたパネルの次のパネルにフォーカスを当てる
-	 * 
+	 *
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
 	 */
 	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
 		int comparison = compareDate(panel, firstBranch.getLast());
-		
+
 		if (comparison > 0) { // firstBranchのlastではない
 			int indexOf = firstBranch.indexOf(panel);
 			if (indexOf < 0) {
@@ -413,10 +413,10 @@ public class SortedPostListPanel extends JPanel {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 指定されたパネルの前のパネルにフォーカスを当てる
-	 * 
+	 *
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
 	 */
@@ -446,7 +446,7 @@ public class SortedPostListPanel extends JPanel {
 		}
 		return firstBranch.get(indexOf - 1).requestFocusInWindow();
 	}
-	
+
 	/**
 	 * firstBranchを分割する。分割しない時もある。
 	 */
@@ -463,7 +463,7 @@ public class SortedPostListPanel extends JPanel {
 			super.add(panel, 1);
 		}
 	}
-	
+
 	@Override
 	public synchronized String toString() {
 		StringBuilder stringBuilder = new StringBuilder();
@@ -475,10 +475,10 @@ public class SortedPostListPanel extends JPanel {
 		}
 		stringBuilder.setLength(stringBuilder.length() - 2);
 		stringBuilder.append("]");
-		
+
 		return stringBuilder.toString();
 	}
-	
+
 	/**
 	 * いくつかの要素を開放する。開放しない時もある。
 	 */

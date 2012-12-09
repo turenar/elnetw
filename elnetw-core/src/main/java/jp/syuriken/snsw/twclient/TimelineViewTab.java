@@ -21,19 +21,19 @@ import twitter4j.UserList;
 
 /**
  * タイムラインビュー
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TimelineViewTab extends DefaultClientTab {
-	
+
 	private DefaultRenderer renderer = new DefaultRenderer() {
-		
+
 		@Override
 		public void onBlock(User source, User blockedUser) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onChangeAccount(boolean forWrite) {
 			StatusData statusData = new StatusData(null, new Date());
@@ -50,24 +50,24 @@ public class TimelineViewTab extends DefaultClientTab {
 			}
 			addStatus(statusData, frameApi.getInfoSurviveTime());
 		}
-		
+
 		@Override
 		public void onCleanUp() {
 		}
-		
+
 		@Override
 		public void onConnect() {
 		}
-		
+
 		@Override
 		public void onDeletionNotice(long directMessageId, long userId) {
 			// TODO DM Deletion is not supported yet.
 		}
-		
+
 		@Override
 		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 			logger.trace("onDeletionNotice: {}", statusDeletionNotice);
-			
+
 			StatusData statusData = getStatus(statusDeletionNotice.getStatusId());
 			if (statusData != null) {
 				if (statusData.tag instanceof Status == false) {
@@ -85,7 +85,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				removeStatus(statusData, getInfoSurviveTime() * 2);
 			}
 		}
-		
+
 		@Override
 		public void onDirectMessage(DirectMessage directMessage) {
 			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
@@ -98,11 +98,11 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
 		}
-		
+
 		@Override
 		public void onDisconnect() {
 		}
-		
+
 		@Override
 		public void onException(Exception ex) {
 			StatusData statusData = new StatusData(ex, new Date());
@@ -128,7 +128,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.data = new JLabel(exString);
 			addStatus(statusData);
 		}
-		
+
 		@Override
 		public void onFavorite(User source, User target, Status favoritedStatus) {
 			if (target.getId() == frameApi.getLoginUser().getId()) {
@@ -153,7 +153,7 @@ public class TimelineViewTab extends DefaultClientTab {
 				}
 			}
 		}
-		
+
 		@Override
 		public void onFollow(User source, User followedUser) {
 			if (followedUser.getId() == frameApi.getLoginUser().getId()) {
@@ -171,14 +171,14 @@ public class TimelineViewTab extends DefaultClientTab {
 						imageCacher.getImageFile(source));
 			}
 		}
-		
+
 		@Override
 		public void onFriendList(long[] friendIds) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("onFriendList: count={}, {}", friendIds.length, Arrays.toString(friendIds));
 			}
 		}
-		
+
 		@Override
 		public void onRetweet(User source, User target, Status retweetedStatus) {
 			if (logger.isTraceEnabled()) {
@@ -190,12 +190,12 @@ public class TimelineViewTab extends DefaultClientTab {
 			}
 			addStatus(retweetedStatus);
 		}
-		
+
 		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
 			// TODO Auto-generated method stub
 		}
-		
+
 		@Override
 		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 			logger.trace("onTrackLimitationNotice: {}", numberOfLimitedStatuses);
@@ -209,12 +209,12 @@ public class TimelineViewTab extends DefaultClientTab {
 					new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
 			addStatus(statusData, getInfoSurviveTime() * 2);
 		}
-		
+
 		@Override
 		public void onUnblock(User source, User unblockedUser) {
 			// TODO Auto-generated method stub
 		}
-		
+
 		@Override
 		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 			if (logger.isTraceEnabled()) {
@@ -245,72 +245,72 @@ public class TimelineViewTab extends DefaultClientTab {
 				}
 			}
 		}
-		
+
 		@Override
 		public void onUserListCreation(User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListDeletion(User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserListUpdate(User listOwner, UserList list) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 		@Override
 		public void onUserProfileUpdate(User updatedUser) {
 			// TODO Auto-generated method stub
-			
+
 		}
 	};
-	
+
 	private boolean focusGained;
-	
+
 	private boolean isDirty;
-	
+
 	private Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 */
 	protected TimelineViewTab(ClientConfiguration configuration) {
 		super(configuration);
 	}
-	
+
 	@Override
 	public StatusPanel addStatus(StatusData statusData) {
 		if (focusGained == false && isDirty == false) {
@@ -319,7 +319,7 @@ public class TimelineViewTab extends DefaultClientTab {
 		}
 		return super.addStatus(statusData);
 	}
-	
+
 	@Override
 	public void focusGained() {
 		super.focusGained();
@@ -327,27 +327,27 @@ public class TimelineViewTab extends DefaultClientTab {
 		isDirty = false;
 		configuration.refreshTab(this);
 	}
-	
+
 	@Override
 	public void focusLost() {
 		focusGained = false;
 	}
-	
+
 	@Override
 	public Icon getIcon() {
 		return null; // TODO
 	}
-	
+
 	@Override
 	public DefaultRenderer getRenderer() {
 		return renderer;
 	}
-	
+
 	@Override
 	public String getTitle() {
 		return isDirty ? "Timeline*" : "Timeline";
 	}
-	
+
 	@Override
 	public String getToolTip() {
 		return "HomeTimeline";

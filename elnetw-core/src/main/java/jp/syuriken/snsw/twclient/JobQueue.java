@@ -7,14 +7,14 @@ import java.util.Random;
 /**
  * ジョブキューを保持するクラスです。時間のかかる作業 (HTTP通信など) をする場合は、このクラスに
  * ジョブを追加することが推奨されます。(推奨であって強制ではありません)
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class JobQueue {
-	
+
 	/**
 	 * 優先度を格納する
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public enum Priority {
@@ -25,37 +25,37 @@ public class JobQueue {
 		/** 優先度：低 */
 		LOW;
 	}
-	
-	
+
+
 	private static final int HIGH_THRESHOLD = 100;
-	
+
 	private static final int MEDIUM_THRESHOLD = 10;
-	
+
 	private static final int LOW_THRESHOLD = 1;
-	
+
 	private int mediumStart = 0;
-	
+
 	private int lowStart = 0;
-	
+
 	private LinkedList<Runnable> jobList;
-	
+
 	private Random random;
-	
+
 	private Object jobWorkerThreadHolder = null;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 */
 	public JobQueue() {
 		jobList = new LinkedList<Runnable>();
 		random = new Random();
 	}
-	
+
 	/**
 	 * ジョブを追加する
-	 * 
+	 *
 	 * @param priority 優先度
 	 * @param job 追加するジョブ
 	 */
@@ -89,20 +89,20 @@ public class JobQueue {
 			}
 		}
 	}
-	
+
 	/**
 	 * ジョブを追加する。優先度はMEDIUMで追加します。
-	 * 
+	 *
 	 * @param job ジョブ
 	 */
 	public void addJob(Runnable job) {
 		addJob(Priority.MEDIUM, job);
 	}
-	
+
 	/**
 	 * ジョブを取得する。
-	 * 
-	 * @return 
+	 *
+	 * @return
 	 * 	ジョブ。必ずしも優先度が一番高いものというわけではなく、
 	 * 	たまに優先度が低いものが返って来る時があります。
 	 */
@@ -138,10 +138,10 @@ public class JobQueue {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * キューが空かどうかを調べる
-	 * 
+	 *
 	 * @return キューが空かどうか
 	 */
 	public boolean isEmpty() {
@@ -149,15 +149,15 @@ public class JobQueue {
 			return jobList.isEmpty();
 		}
 	}
-	
+
 	/**
 	 * ジョブワーカースレッドを設定する。
-	 * 
+	 *
 	 * <p>
 	 * ジョブワーカースレッドは、ジョブキューにジョブが追加されたときに {@link Thread#notifyAll()}される
 	 * スレッドです。このスレッドでは、ジョブキューの消費が仕事となります。
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * <strong>パラメータにnullを指定して呼び出す</strong>と、ジョブワーカースレッドの仕事が解除され、
 	 * ジョブが追加されると同時にJobQueue内部で {@link Runnable#run()}が呼び出されるようになります。
@@ -167,10 +167,10 @@ public class JobQueue {
 	public void setJobWorkerThread(Object threadHolder) {
 		jobWorkerThreadHolder = threadHolder;
 	}
-	
+
 	/**
 	 * ジョブキューが保持してるジョブの数
-	 * 
+	 *
 	 * @return ジョブ数
 	 */
 	public int size() {

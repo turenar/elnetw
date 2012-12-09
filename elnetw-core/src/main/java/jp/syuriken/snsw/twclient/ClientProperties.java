@@ -18,34 +18,34 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 登録済みのリスナに変更を通知できるプロパティーリストです。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class ClientProperties extends Properties {
-	
+
 	/** リスナの配列 */
 	protected ArrayList<PropertyChangeListener> listeners;
-	
+
 	/** 保存先のファイル */
 	protected File storeFile;
-	
+
 	private transient Hashtable<String, Object> cacheTable;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 */
 	public ClientProperties() {
 		this(null);
 	}
-	
+
 	/**
 	 * defaults を使用してClientPropertiesインスタンスを生成する。
-	 * 
+	 *
 	 * @param defaults デフォルトプロパティー
 	 */
 	public ClientProperties(Properties defaults) {
@@ -53,7 +53,7 @@ public class ClientProperties extends Properties {
 		listeners = new ArrayList<PropertyChangeListener>();
 		cacheTable = new Hashtable<String, Object>();
 	}
-	
+
 	/**
 	 * PropertyChangedListnerを追加する
 	 * @param listener リスナ。nullは不可
@@ -64,27 +64,27 @@ public class ClientProperties extends Properties {
 		}
 		listeners.add(listener);
 	}
-	
+
 	/**
 	 * 変換済みの値をキャッシュする。
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
 	protected synchronized void cacheValue(String key, Object value) {
 		cacheTable.put(key, value);
 	}
-	
+
 	/**
 	 * キャッシュ済みの値を削除する。
-	 * 
+	 *
 	 * @param key キー
 	 * @return キャッシュされていた変換済みの値。キャッシュされていなかった場合null
 	 */
 	protected synchronized Object clearCachedValue(String key) {
 		return cacheTable.remove(key);
 	}
-	
+
 	@Override
 	public synchronized boolean equals(Object o) {
 		if (o instanceof ClientProperties == false) {
@@ -108,10 +108,10 @@ public class ClientProperties extends Properties {
 		}
 		return true;
 	}
-	
+
 	/**
 	* プロパティーが変更されたことを通知する。
-	* 
+	*
 	* @param key キー
 	* @param oldValue 古い値
 	* @param newValue 新しい値
@@ -122,10 +122,10 @@ public class ClientProperties extends Properties {
 			listener.propertyChange(evt);
 		}
 	}
-	
+
 	/**
 	 * keyと関連付けられた値を利用して、boolean値を取得する。変換できない場合はfalseを返す。
-	 * 
+	 *
 	 * <p>書式：(true|false)</p>
 	 * @param key キー
 	 * @return boolean値
@@ -135,16 +135,16 @@ public class ClientProperties extends Properties {
 		if (boolean1 != null) {
 			return boolean1;
 		}
-		
+
 		String value = getProperty(key);
 		boolean1 = Boolean.parseBoolean(value);
 		cacheValue(key, boolean1);
 		return boolean1;
 	}
-	
+
 	/**
 	 * キャッシュされた値を取得する。
-	 * 
+	 *
 	 * @param key キー
 	 * @param expectedClass 期待するClass
 	 * @return
@@ -160,14 +160,14 @@ public class ClientProperties extends Properties {
 			return (T) cachedValue;
 		}
 	}
-	
+
 	/**
 	 * keyと関連付けられた値を利用して、Colorインスタンスを作成する。
-	 * 
+	 *
 	 * <p>書式：int,int,int[,int]</p>
 	 * @param key キー
 	 * @return Colorインスタンス
-	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません 
+	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません
 	 * @throws NumberFormatException 数値に変換できない値です
 	 */
 	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
@@ -175,7 +175,7 @@ public class ClientProperties extends Properties {
 		if (color != null) {
 			return color;
 		}
-		
+
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -193,12 +193,12 @@ public class ClientProperties extends Properties {
 		cacheValue(key, color);
 		return color;
 	}
-	
+
 	/**
 	 * keyに関連付けられた値を利用して、Dimensionを取得する。
-	 * 
+	 *
 	 * 書式：int,int
-	 * @param key キー 
+	 * @param key キー
 	 * @return keyに関連付けられたDimension
 	 * @throws IllegalArgumentException 正しくない設定値
 	 */
@@ -207,7 +207,7 @@ public class ClientProperties extends Properties {
 		if (dimension != null) {
 			return dimension;
 		}
-		
+
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -221,12 +221,12 @@ public class ClientProperties extends Properties {
 		cacheValue(key, dimension);
 		return dimension;
 	}
-	
+
 	/**
 	 * keyに関連付けられた値を利用して、doubleを取得する。
-	 * 
+	 *
 	 * 書式：double
-	 * @param key キー 
+	 * @param key キー
 	 * @return keyに関連付けられたdouble
 	 */
 	public synchronized double getDouble(String key) {
@@ -234,18 +234,18 @@ public class ClientProperties extends Properties {
 		if (double1 != null) {
 			return double1;
 		}
-		
+
 		String value = getProperty(key);
 		double1 = Double.valueOf(value);
 		cacheValue(key, double1);
 		return double1;
 	}
-	
+
 	/**
 	 * keyに関連付けられた値を利用して、floatを取得する。
-	 * 
+	 *
 	 * 書式：float
-	 * @param key キー 
+	 * @param key キー
 	 * @return keyに関連付けられたfloat
 	 */
 	public synchronized float getFloat(String key) {
@@ -253,18 +253,18 @@ public class ClientProperties extends Properties {
 		if (float1 != null) {
 			return float1;
 		}
-		
+
 		String value = getProperty(key);
 		float1 = Float.valueOf(value);
 		cacheValue(key, float1);
 		return float1;
 	}
-	
+
 	/**
 	 * keyに関連付けられた値を利用して、intを取得する。
-	 * 
+	 *
 	 * 書式：int
-	 * @param key キー 
+	 * @param key キー
 	 * @return keyに関連付けられたint
 	 */
 	public synchronized int getInteger(String key) {
@@ -272,16 +272,16 @@ public class ClientProperties extends Properties {
 		if (integer != null) {
 			return integer;
 		}
-		
+
 		String value = getProperty(key);
 		integer = Integer.valueOf(value);
 		cacheValue(key, integer);
 		return integer;
 	}
-	
+
 	/**
 	 * keyに関連付けられた値を利用して、longを取得する。
-	 * 
+	 *
 	 * 書式：long
 	 * @param key キー
 	 * @return keyに関連付けられたlong
@@ -291,13 +291,13 @@ public class ClientProperties extends Properties {
 		if (long1 != null) {
 			return long1;
 		}
-		
+
 		String value = getProperty(key);
 		long1 = Long.valueOf(value);
 		cacheValue(key, long1);
 		return long1;
 	}
-	
+
 	@Override
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
@@ -305,26 +305,26 @@ public class ClientProperties extends Properties {
 		hashCode += 19 * storeFile.hashCode();
 		return hashCode;
 	}
-	
+
 	@Override
 	public synchronized Object remove(Object key) {
 		firePropetyChanged((String) key, getProperty((String) key), null);
 		return super.remove(key);
 	}
-	
+
 	/**
 	 * 登録済みの {@link PropertyChangeListener}を削除する
-	 * 
+	 *
 	 * @param listener リスナ
 	 * @return 登録されて削除された場合true
 	 */
 	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
 		return listeners.remove(listener);
 	}
-	
+
 	/**
 	 * keyにbooleanを関連付ける。
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
@@ -332,10 +332,10 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
-	
+
 	/**
 	 * keyにColorを関連付ける。
-	 * 
+	 *
 	 * @param key キー
 	 * @param color Colorインスタンス。null不可。
 	 */
@@ -346,10 +346,10 @@ public class ClientProperties extends Properties {
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
 						color.getAlpha()));
 	}
-	
+
 	/**
 	 * keyにDimensionを関連付ける。
-	 * 
+	 *
 	 * @param key キー
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
@@ -357,10 +357,10 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, dimension.width + "," + dimension.height);
 	}
-	
+
 	/**
 	 * keyにdoubleを関連付ける。
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
@@ -368,10 +368,10 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
-	
+
 	/**
 	 * keyにfloatを関連付ける
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
@@ -379,10 +379,10 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
-	
+
 	/**
 	 * keyにintを関連付ける
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
@@ -390,10 +390,10 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
-	
+
 	/**
 	 * keyにlongを関連付ける。
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 */
@@ -401,7 +401,7 @@ public class ClientProperties extends Properties {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
-	
+
 	/**
 	 * <p>プロパティを設定して、登録済みのリスナに変更を通知します。</p>
 	 * {@inheritDoc}
@@ -412,24 +412,24 @@ public class ClientProperties extends Properties {
 		firePropetyChanged(key, oldValue, newValue);
 		return super.setProperty(key, newValue);
 	}
-	
+
 	/**
 	 * デフォルトの保存先のファイルを設定する。
-	 * 
+	 *
 	 * @param storeFile デフォルトの保存先のファイル
 	 */
 	public synchronized void setStoreFile(File storeFile) {
 		this.storeFile = storeFile;
 	}
-	
+
 	/**
 	 * ファイルに保存する。
-	 * 
+	 *
 	 */
 	public void store() {
 		store("Auto generated by jp.syuriken.snsw.twclient.ClientProperties");
 	}
-	
+
 	/**
 	* ファイルに保存する
 	* @param comments ファイルのコメント

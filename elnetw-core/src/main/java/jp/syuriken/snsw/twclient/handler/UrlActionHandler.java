@@ -13,17 +13,17 @@ import twitter4j.URLEntity;
 
 /**
  * ツイートに含まれるURLを開くアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class UrlActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		JMenu openUrlMenu = new JMenu("ツイートのURLをブラウザで開く");
 		return openUrlMenu;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		String url = actionName.substring(actionName.indexOf('!') + 1);
@@ -33,7 +33,7 @@ public class UrlActionHandler implements ActionHandler {
 			e.printStackTrace(); //TODO
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if (menuItem instanceof JMenu == false) {
@@ -43,7 +43,7 @@ public class UrlActionHandler implements ActionHandler {
 		if (statusData.isSystemNotify() == false && statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
 			menu.removeAll();
-			
+
 			URLEntity[] urlEntities = status.getURLEntities();
 			if (urlEntities == null || urlEntities.length == 0) {
 				menu.setEnabled(false);

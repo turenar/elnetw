@@ -23,32 +23,32 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ユーティリティクラス。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class Utility {
-	
+
 	private static class KVEntry {
-		
+
 		final String key;
-		
+
 		final String value;
-		
-		
+
+
 		public KVEntry(String key, String value) {
 			this.key = key;
 			this.value = value;
 		}
-		
+
 	}
-	
+
 	/**
 	 * notify-sendを使用して通知を送信するクラス。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class LibnotifySender implements NotifySender {
-		
+
 		@Override
 		public void sendNotify(String summary, String text, File imageFile) throws IOException {
 			if (imageFile == null) {
@@ -67,16 +67,16 @@ public class Utility {
 				});
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * 通知が送信されるクラスのインターフェース
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected interface NotifySender {
-		
+
 		/**
 		 * 通知を送信する
 		 * @param summary 概要
@@ -86,10 +86,10 @@ public class Utility {
 		 */
 		public void sendNotify(String summary, String text, File imageFile) throws IOException;
 	}
-	
+
 	/**
 	 * OSの種別を判断する。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public enum OSType {
@@ -100,41 +100,41 @@ public class Utility {
 		/** その他 (*nixなど) */
 		OTHER;
 	}
-	
+
 	/**
 	 * TrayIconを使用して通知する。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class TrayIconNotifySender implements NotifySender, ParallelRunnable {
-		
+
 		private TrayIcon trayIcon;
-		
+
 		private LinkedList<Object[]> queue = new LinkedList<Object[]>();
-		
+
 		private final ClientConfiguration configuration;
-		
+
 		private long lastNotified;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param configuration 設定
 		 */
 		public TrayIconNotifySender(ClientConfiguration configuration) {
 			this.configuration = configuration;
 			trayIcon = configuration.getTrayIcon();
 		}
-		
+
 		@Override
 		public void run() {
 			synchronized (queue) {
 				long tempTime = lastNotified + 5000; //TODO 5000 from configure
 				if (tempTime > System.currentTimeMillis()) {
-					
+
 					configuration.getFrameApi().getTimer().schedule(new TimerTask() {
-						
+
 						@Override
 						public void run() {
 							TrayIconNotifySender.this.run();
@@ -155,7 +155,7 @@ public class Utility {
 				}
 			}
 		}
-		
+
 		@Override
 		public void sendNotify(String summary, String text, File imageFile) {
 			synchronized (queue) {
@@ -169,14 +169,14 @@ public class Utility {
 			}
 		}
 	}
-	
-	
+
+
 	private static volatile OSType ostype;
-	
+
 	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
-	
+
 	private static KVEntry[] privacyEntries;
-	
+
 	static {
 		keyMap.put(KeyEvent.VK_ENTER, "%return");
 		keyMap.put(KeyEvent.VK_UP, "%up");
@@ -206,36 +206,36 @@ public class Utility {
 		keyMap.put(KeyEvent.VK_F10, "%F10");
 		keyMap.put(KeyEvent.VK_F11, "%F11");
 		keyMap.put(KeyEvent.VK_F12, "%F12");
-		
+
 		privacyEntries = new KVEntry[] {
 			new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 			new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
 			new KVEntry(System.getProperty("user.home"), "{HOME}/"),
 		};
 	}
-	
+
 	/** DateFormatを管理する */
 	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
-		
+
 		@Override
 		protected SimpleDateFormat initialValue() {
 			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		}
 	};
-	
+
 	/** 秒→ミリセカンド */
 	public static final long SEC2MS = 1000;
-	
+
 	/** 分→ミリセカンド */
 	public static final long MINUTE2MS = SEC2MS * 60;
-	
+
 	/** 時→ミリセカンド */
 	public static final long HOUR2MS = MINUTE2MS * 60;
-	
+
 	/** 日→ミリセカンド */
 	public static final long DAY2MS = HOUR2MS * 24;
-	
-	
+
+
 	/**
 	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
 	 * @param target 下の色
@@ -250,7 +250,7 @@ public class Utility {
 		Color color = new Color(newr, newg, newb, target.getAlpha());
 		return color;
 	}
-	
+
 	/**
 	 * OSを確定する
 	 */
@@ -264,10 +264,10 @@ public class Utility {
 			ostype = OSType.OTHER;
 		}
 	}
-	
+
 	/**
 	 * 文字列が等しいかどうかを調べる。単にequalsとするよりも速くなるかもしれないぐらいの程度
-	 * 
+	 *
 	 * @param a 文字列A
 	 * @param b 文字列B
 	 * @return 等しいかどうか
@@ -284,22 +284,22 @@ public class Utility {
 		}
 		return a.equals(b);
 	}
-	
+
 	/**
 	 * yyyy/MM/dd HH:mm:ssな {@link SimpleDateFormat} を取得する。
-	 * 
+	 *
 	 * このメソッドはマルチスレッド対応ですが、このメソッドで返されるインスタンスは<strong>スレッドローカルなので
 	 * 複数スレッドで使いまわさないでください</strong>。
-	 * 
+	 *
 	 * @return 日付フォーマッタ
 	 */
 	public static SimpleDateFormat getDateFormat() {
 		return dateFormat.get();
 	}
-	
+
 	/**
 	 * 日時をあらわす文字列を短い形式を含めて取得する。
-	 * 
+	 *
 	 * <p>
 	 * このメソッドで返す文字列は&quot;(\d{2}[smh])?(&lt;small&gt;)? \(yyyy/MM/dd HH:mm:ss\)(&lt;/small&gt;)?&quot;です
 	 * </p>
@@ -318,7 +318,7 @@ public class Utility {
 			if (html) {
 				stringBuilder.append("<html>");
 			}
-			
+
 			if (timeDiff < MINUTE2MS) {
 				stringBuilder.append(timeDiff / SEC2MS).append("秒前");
 			} else if (timeDiff < HOUR2MS) {
@@ -326,15 +326,15 @@ public class Utility {
 			} else {
 				stringBuilder.append(timeDiff / HOUR2MS).append("時間前");
 			}
-			
+
 			stringBuilder.append(" (").append(dateFormatted).append(')');
 			return stringBuilder.toString();
 		}
 	}
-	
+
 	/**
 	 * OS種別を取得する
-	 * 
+	 *
 	 * @return OSの種類
 	 */
 	public static OSType getOstype() {
@@ -343,20 +343,20 @@ public class Utility {
 		}
 		return ostype;
 	}
-	
+
 	/**
 	 * ディレクトリの文字列置換えを行う。ホームディレクトリ等を隠す。
-	 * 
+	 *
 	 * @param string ディレクトリパス
 	 * @return ディレクトリパス
 	 */
 	public static String protectPrivacy(String string) {
 		return protectPrivacy(new StringBuilder(string)).toString();
 	}
-	
+
 	/**
 	 * ディレクトリの文字列置き換えを行う。ホームディレクトリ等を隠す
-	 * 
+	 *
 	 * @param builder ディレクトリパス。変更されます。
 	 * @return builder自身。
 	 */
@@ -377,20 +377,20 @@ public class Utility {
 		}
 		return builder;
 	}
-	
+
 	/**
 	 * 単にobjを配列として返すだけの
-	 * 
+	 *
 	 * @param obj オブジェクト
 	 * @return 配列
 	 */
 	public static Object[] toArray(Object... obj) {
 		return obj;
 	}
-	
+
 	/**
 	 * キーをキー文字列に変換する
-	 * 
+	 *
 	 * @param code キー
 	 * @param modifiers キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
 	 * @param isReleased keyReleased等のイベントでコールされたかどうか
@@ -413,10 +413,10 @@ public class Utility {
 		stringBuilder.append(')');
 		return stringBuilder.toString();
 	}
-	
+
 	/**
 	 * キーをキー文字列に変換する
-	 * 
+	 *
 	 * @param e キーイベント
 	 * @return キー文字列
 	 */
@@ -426,30 +426,30 @@ public class Utility {
 		}
 		return toKeyString(e.getKeyCode(), e.getModifiersEx(), e.getID() == KeyEvent.KEY_RELEASED);
 	}
-	
-	
+
+
 	private final ClientConfiguration configuration;
-	
+
 	private Logger logger = LoggerFactory.getLogger(Utility.class);
-	
+
 	private String detectedBrowser = null;
-	
+
 	/** 通知を送信するクラス */
 	public volatile NotifySender notifySender = null;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 */
 	public Utility(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
-	
+
 	/**
 	 * インストールされているブラウザを確定する。
-	 * 
+	 *
 	 * @return ブラウザコマンド
 	 */
 	protected String detectBrowser() {
@@ -466,7 +466,7 @@ public class Utility {
 			"mozilla",
 		};
 		String detectedBrowser = null;
-		
+
 		for (String browser : browsers) {
 			try {
 				if (Runtime.getRuntime().exec(new String[] {
@@ -482,7 +482,7 @@ public class Utility {
 				// do nothing
 			}
 		}
-		
+
 		if (detectedBrowser == null) {
 			detectedBrowser =
 					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "elnetw",
@@ -490,7 +490,7 @@ public class Utility {
 		}
 		return detectedBrowser;
 	}
-	
+
 	/**
 	 * 通知を送信するクラスを設定する
 	 */
@@ -515,10 +515,10 @@ public class Utility {
 			}
 		}
 	}
-	
+
 	/**
 	 * browserを表示する。
-	 * 
+	 *
 	 * @param url 開くURL
 	 * @return
 	 * 		<dl>
@@ -530,7 +530,7 @@ public class Utility {
 	 * 		<dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
 	 * 		<dt>SecurityException</dt><dd>セキュリティ例外</dd>
 	 * 		<dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
-	 * 		</dl> 	
+	 * 		</dl>
 	 */
 	public Exception openBrowser(String url) {
 		detectOS();
@@ -542,7 +542,7 @@ public class Utility {
 				case MAC:
 					Class<?> fileMgr = null;
 					fileMgr = Class.forName("com.apple.eio.FileManager");
-					
+
 					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {
 						String.class
 					});
@@ -566,7 +566,7 @@ public class Utility {
 			return ex;
 		}
 	}
-	
+
 	/**
 	 * 通知を送信する
 	 * @param summary 概要
@@ -575,7 +575,7 @@ public class Utility {
 	public void sendNotify(String summary, String text) {
 		sendNotify(summary, text, null);
 	}
-	
+
 	/**
 	 * 通知を送信する
 	 * @param summary 概要

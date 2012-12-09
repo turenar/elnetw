@@ -6,16 +6,16 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 
 /**
  * {@link TweetLengthUpdater}のテンプレートクラス (テスト用)
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TweetLengthUpdaterImpl implements TweetLengthUpdater {
-	
+
 	@Override
 	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
 		return null; // do nothing
 	}
-	
+
 	@Override
 	public void updatePostLength(String length, Color color, String tooltip) {
 		// do nothing

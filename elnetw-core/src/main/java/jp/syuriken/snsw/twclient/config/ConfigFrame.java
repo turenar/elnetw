@@ -22,14 +22,14 @@ import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder.Config;
 
 /**
  * 設定フレーム
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class ConfigFrame extends JFrame {
-	
+
 	private class FrameWindowListener extends WindowAdapter {
-		
+
 		@Override
 		public void windowClosing(WindowEvent e) {
 			synchronized (staticHolder) {
@@ -38,16 +38,16 @@ public class ConfigFrame extends JFrame {
 			}
 		}
 	}
-	
-	
+
+
 	private static ConfigFrame openingFrame;
-	
+
 	private static Object staticHolder = new Object();
-	
-	
+
+
 	/**
 	 * 指定された設定の配列からフレームを生成する。すでにフレームが存在したときはそのフレームを返す。
-	 * 
+	 *
 	 * @param configs 設定の配列
 	 * @param configuration 実行時設定
 	 * @return フレーム
@@ -125,21 +125,21 @@ public class ConfigFrame extends JFrame {
 		openingFrame.pack();
 		return openingFrame;
 	}
-	
-	
+
+
 	private final ClientProperties properties;
-	
-	
+
+
 	private ConfigFrame(ClientConfiguration configuration) {
 		super("設定");
 		properties = configuration.getConfigProperties();
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(new FrameWindowListener());
 	}
-	
+
 	/**
 	 * 実行時設定に反映させる。
-	 * 
+	 *
 	 * @param key キー
 	 * @param value 値
 	 * @return 以前キーに関連付けられていた値

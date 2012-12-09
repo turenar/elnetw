@@ -25,29 +25,29 @@ import twitter4j.auth.AccessToken;
 
 /**
  * 実際に起動するランチャ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterClientMain {
-	
+
 	/** 設定ファイル名 */
 	private static final String CONFIG_FILE_NAME = "elnetw.cfg";
-	
+
 	/** 設定データ */
 	protected ClientProperties configProperties;
-	
+
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-	
+
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param args コマンドラインオプション
 	 */
 	public TwitterClientMain(String[] args) {
@@ -58,10 +58,10 @@ public class TwitterClientMain {
 			logger.warn("LookAndFeelの設定に失敗", e);
 		}
 	}
-	
+
 	/**
 	 * 環境チェック
-	 * 
+	 *
 	 */
 	private void checkEnvironment() {
 		if (Charset.isSupported("UTF-8") == false) {
@@ -72,15 +72,15 @@ public class TwitterClientMain {
 			throw new AssertionError("お使いのJava VMないし環境ではGUI出力がサポートされていないようです。GUIモードにするか、Java VMにGUIサポートを組み込んでください");
 		}
 	}
-	
+
 	/**
 	 * 起動する。
 	 * @return 終了値
-	 * 
+	 *
 	 */
 	public int run() {
 		checkEnvironment();
-		
+
 		boolean portable = Boolean.getBoolean("config.portable");
 		configuration.setPortabledConfiguration(portable);
 		File configRootDir = new File(configuration.getConfigRootDir());
@@ -96,7 +96,7 @@ public class TwitterClientMain {
 				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
 			}
 		}
-		
+
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
 			InputStream stream = getClass().getResourceAsStream("config.properties");
@@ -124,7 +124,7 @@ public class TwitterClientMain {
 		}
 		configuration.setConfigProperties(configProperties);
 		tryGetOAuthAccessToken();
-		
+
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		configuration.addFilter(new RootFilter(configuration));
 		configuration.addFilter(new UserFilter(configuration));
@@ -134,13 +134,13 @@ public class TwitterClientMain {
 		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
 		configuration.setFetchScheduler(fetchScheduler);
 		java.awt.EventQueue.invokeLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				frame.start();
 			}
 		});
-		
+
 		synchronized (threadHolder) {
 			while (configuration.isShutdownPhase() == false) {
 				try {
@@ -154,10 +154,10 @@ public class TwitterClientMain {
 		logger.info("Exiting elnetw...");
 		frame.cleanUp();
 		fetchScheduler.cleanUp();
-		
+
 		return 0;
 	}
-	
+
 	/**
 	 * OAuthアクセストークンの取得を試す
 	 * @return アクセストークン
@@ -168,7 +168,7 @@ public class TwitterClientMain {
 		}
 		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
 		AccessToken accessToken = new OAuthFrame(configuration).show(twitter);
-		
+
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {

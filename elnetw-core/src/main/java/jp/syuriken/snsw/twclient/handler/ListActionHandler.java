@@ -11,16 +11,16 @@ import jp.syuriken.snsw.twclient.StatusData;
 
 /**
  * リストを閲覧するアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ListActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return null;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		int separatorPosition = actionName.indexOf('!');
@@ -34,7 +34,7 @@ public class ListActionHandler implements ActionHandler {
 			throw new AssertionError(e);
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 	}

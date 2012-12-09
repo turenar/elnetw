@@ -9,16 +9,16 @@ import twitter4j.Status;
 
 /**
  * TODO snsoftware
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class UnofficialRetweetActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return new JMenuItem("非公式RT");
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
@@ -27,7 +27,7 @@ public class UnofficialRetweetActionHandler implements ActionHandler {
 			api.focusPostBox();
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
@@ -36,5 +36,5 @@ public class UnofficialRetweetActionHandler implements ActionHandler {
 			menuItem.setEnabled(false);
 		}
 	}
-	
+
 }

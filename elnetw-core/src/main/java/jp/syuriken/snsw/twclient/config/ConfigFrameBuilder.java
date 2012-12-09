@@ -9,38 +9,38 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 
 /**
  * 設定フレームのビルダー
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ConfigFrameBuilder {
-	
+
 	/**
 	 * 設定を格納するクラス。
-	 * 
+	 *
 	 * <p>グループは、フレームのタブ名です</p>
 	 * <p>サブグループは、まとめられます</p>
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class Config implements Comparable<Config> {
-		
+
 		private final String group;
-		
+
 		private final String subgroup;
-		
+
 		private final String configKey;
-		
+
 		private final String description;
-		
+
 		private final String hint;
-		
+
 		private final ConfigType type;
-		
+
 		private final int priority;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param group グループ名
 		 * @param subgroup サブグループ名
 		 * @param configKey 設定名 (プロパティーキー)。表示しません
@@ -50,10 +50,10 @@ public class ConfigFrameBuilder {
 		public Config(String group, String subgroup, String configKey, String description, ConfigType type) {
 			this(group, subgroup, configKey, description, null, type);
 		}
-		
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param group グループ名
 		 * @param subgroup サブグループ名
 		 * @param configKey 設定名 (プロパティーキー)。表示しません
@@ -64,10 +64,10 @@ public class ConfigFrameBuilder {
 		public Config(String group, String subgroup, String configKey, String description, String hint, ConfigType type) {
 			this(group, subgroup, configKey, description, hint, type, 0);
 		}
-		
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param group グループ名
 		 * @param subgroup サブグループ名
 		 * @param configKey 設定名 (プロパティーキー)。表示しません
@@ -89,7 +89,7 @@ public class ConfigFrameBuilder {
 			this.type = type;
 			this.priority = priority;
 		}
-		
+
 		@Override
 		public int compareTo(Config o) {
 			int result = group.compareTo(o.group);
@@ -107,88 +107,88 @@ public class ConfigFrameBuilder {
 			}
 			return result;
 		}
-		
+
 		/**
 		 * 設定キーを取得する
-		 * 
+		 *
 		 * @return configKey
 		 */
 		public String getConfigKey() {
 			return configKey;
 		}
-		
+
 		/**
 		 * 説明を取得する
-		 * 
+		 *
 		 * @return description
 		 */
 		public String getDescription() {
 			return description;
 		}
-		
+
 		/**
 		 * グループ名を取得する
-		 * 
+		 *
 		 * @return group
 		 */
 		public String getGroup() {
 			return group;
 		}
-		
+
 		/**
 		 * ヒントを取得する
-		 * 
+		 *
 		 * @return hint
 		 */
 		public String getHint() {
 			return hint;
 		}
-		
+
 		/**
 		 * 順序付け優先度を取得する
-		 * 
+		 *
 		 * @return priority
 		 */
 		public int getPriority() {
 			return priority;
 		}
-		
+
 		/**
 		 * サブグループ名を取得する
-		 * 
+		 *
 		 * @return subgroup
 		 */
 		public String getSubgroup() {
 			return subgroup;
 		}
-		
+
 		/**
 		 * 設定のタイプを取得する
-		 * 
+		 *
 		 * @return type
 		 */
 		public ConfigType getType() {
 			return type;
 		}
 	}
-	
+
 	/**
 	 * グループの糖衣構文
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public final class ConfigGroup {
-		
+
 		private final String group;
-		
-		
+
+
 		/*package*/ConfigGroup(String group) {
 			this.group = group;
 		}
-		
+
 		/**
 		 * 設定を追加する。subgroupはnullを指定します。{@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
-		 * 
+		 *
 		 * @param configKey 設定キー
 		 * @param description 説明
 		 * @param hint ヒント
@@ -199,10 +199,10 @@ public class ConfigFrameBuilder {
 			ConfigFrameBuilder.this.addConfig(new Config(group, null, configKey, description, hint, type));
 			return this;
 		}
-		
+
 		/**
 		 * 設定を追加する。subgroupはnullを指定します。{@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
-		 * 
+		 *
 		 * @param configKey 設定キー
 		 * @param description 説明
 		 * @param hint ヒント
@@ -214,28 +214,28 @@ public class ConfigFrameBuilder {
 			ConfigFrameBuilder.this.addConfig(new Config(group, null, configKey, description, hint, type, priority));
 			return this;
 		}
-		
+
 		/**
 		 * 設定フレームビルダーのインスタンスを取得する。
-		 * 
+		 *
 		 * @return 設定フレームビルダーのインスタンス
 		 */
 		public ConfigFrameBuilder getBuilder() {
 			return ConfigFrameBuilder.this;
 		}
-		
+
 		/**
 		 * グループ名を取得する。
-		 * 
+		 *
 		 * @return グループ名
 		 */
 		public String getGroupName() {
 			return group;
 		}
-		
+
 		/**
 		 * このグループと指定されたサブグループ名の糖衣構文を取得する。
-		 * 
+		 *
 		 * @param subgroup サブグループ名
 		 * @return サブグループの糖衣構文
 		 */
@@ -243,43 +243,43 @@ public class ConfigFrameBuilder {
 			return new ConfigSubgroup(this, subgroup);
 		}
 	}
-	
+
 	/**
 	 * サブグループの糖衣構文
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public final class ConfigSubgroup {
-		
+
 		private final String subgroup;
-		
+
 		private final ConfigGroup group;
-		
-		
+
+
 		/*package*/ConfigSubgroup(ConfigGroup group, String subgroup) {
 			this.group = group;
 			this.subgroup = subgroup;
 		}
-		
+
 		/**
 		 * 設定を追加する。 {@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
-		 * 
+		 *
 		 * @param configKey 設定キー
 		 * @param description 説明
 		 * @param hint ヒント
 		 * @param type タイプ
 		 * @return このインスタンス
 		 */
-		
+
 		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type) {
 			ConfigFrameBuilder.this.addConfig(new Config(group.getGroupName(), subgroup, configKey, description, hint,
 					type));
 			return this;
 		}
-		
+
 		/**
 		 * 設定を追加する。 {@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
-		 * 
+		 *
 		 * @param configKey 設定キー
 		 * @param description 説明
 		 * @param hint ヒント
@@ -287,59 +287,59 @@ public class ConfigFrameBuilder {
 		 * @param priority 順序付け優先度
 		 * @return このインスタンス
 		 */
-		
+
 		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type, int priority) {
 			ConfigFrameBuilder.this.addConfig(new Config(group.getGroupName(), subgroup, configKey, description, hint,
 					type, priority));
 			return this;
 		}
-		
+
 		/**
 		 * グループ名を取得する
-		 * 
+		 *
 		 * @return グループ名
 		 */
 		public String getGroupName() {
 			return group.getGroupName();
 		}
-		
+
 		/**
 		 * 親のグループを設定する糖衣構文を取得する。
-		 * 
+		 *
 		 * @return グループ
 		 */
 		public ConfigGroup getParentGroup() {
 			return group;
 		}
-		
+
 		/**
 		 * サブグループ名を取得する
-		 * 
+		 *
 		 * @return サブグループ名
 		 */
 		public String getSubgroupName() {
 			return subgroup;
 		}
 	}
-	
-	
+
+
 	private ArrayList<Config> configsList = new ArrayList<Config>();
-	
+
 	private final ClientConfiguration configuration;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 */
 	public ConfigFrameBuilder(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
-	
+
 	/**
 	 * 設定を追加する。
-	 * 
+	 *
 	 * @param config 設定
 	 * @return このインスタンス
 	 */
@@ -349,17 +349,17 @@ public class ConfigFrameBuilder {
 		}
 		return this;
 	}
-	
+
 	/**
 	 * グループを取得する。返り値のすべてのメソッドが糖衣構文になります。
-	 * 
+	 *
 	 * @param group グループ名。
 	 * @return 糖衣された設定ビルダー
 	 */
 	public ConfigGroup getGroup(String group) {
 		return new ConfigGroup(group);
 	}
-	
+
 	/*package*/void show() {
 		Config[] configs;
 		synchronized (configsList) {

@@ -30,85 +30,85 @@ import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * elnetw の情報などを格納するクラス。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ClientConfiguration {
-	
+
 	/**
 	 * よく使いそうな設定をキャッシュしておくクラス
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public class ConfigData implements PropertyChangeListener {
-		
+
 		private static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
-		
+
 		private static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
-		
+
 		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
-		
+
 		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
-		
+
 		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
-		
+
 		private static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
-		
+
 		private static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
-		
+
 		private static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
-		
+
 		private static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
-		
+
 		private static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
-		
+
 		private static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
-		
+
 		/** UI更新間隔 */
 		public int intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
-		
+
 		/** タイムライン取得間隔 */
 		public int intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
-		
+
 		/** フォーカスしたポストの色 */
 		public Color colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
-		
+
 		/** タイムライン取得のページング */
 		public Paging pagingOfGettingTimeline = new Paging().count(configProperties
 			.getInteger(PROPERTY_PAGING_TIMELINE));
-		
+
 		/** タイムライン初期取得のページング */
 		public Paging pagingOfGettingInitialTimeline = new Paging().count(configProperties
 			.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
-		
+
 		/** メンション判定の厳密な比較 */
 		public boolean mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
-		
+
 		/** スクロール量 */
 		public int scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
-		
+
 		/** 情報の生存時間 */
 		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
-		
+
 		/** メンション初期取得のページング */
 		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
 			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
-		
+
 		/** アカウントリスト */
 		public String[] accountList = initAccountList();
-		
+
 		/** ダイレクトメッセージ初期取得のページング */
 		public Paging pagingOfGettingInitialDirectMessage = new Paging().count(configProperties
 			.getInteger(PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
-		
-		
+
+
 		/*package*/ConfigData() {
 			configProperties.addPropertyChangedListener(this);
 		}
-		
+
 		/**
 		 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
-		 * 
+		 *
 		 * @return アカウントリスト。
 		 */
 		private String[] initAccountList() {
@@ -120,7 +120,7 @@ public class ClientConfiguration {
 				return accountListString.split(" ");
 			}
 		}
-		
+
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			String name = evt.getPropertyName();
@@ -151,59 +151,59 @@ public class ClientConfiguration {
 			}
 		}
 	}
-	
-	
+
+
 	private TrayIcon trayIcon;
-	
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	private ClientProperties configProperties;
-	
+
 	private ClientProperties configDefaultProperties;
-	
+
 	private boolean isShutdownPhase = false;
-	
+
 	private TwitterClientFrame frameApi;
-	
+
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
-	
+
 	private final Utility utility = new Utility(this);
-	
+
 	private boolean isInitializing = true;
-	
+
 	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
-	
+
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-	
+
 	private volatile FilterService rootFilterService;
-	
+
 	private volatile ImageCacher imageCacher;
-	
+
 	private volatile ConfigData configData;
-	
+
 	private ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
-	
+
 	private String accountIdForRead;
-	
+
 	private String accountIdForWrite;
-	
+
 	private TwitterDataFetchScheduler fetchScheduler;
-	
+
 	private boolean portabledConfiguration;
-	
+
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
-	
+
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
-	
+
 	private volatile CacheManager cacheManager;
-	
+
 	private Object lockObject = new Object();
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 */
 	protected ClientConfiguration() {
 		try {
@@ -215,27 +215,27 @@ public class ClientConfiguration {
 			trayIcon = null;
 		}
 	}
-	
+
 	/**
 	 * <strong>テスト用</strong>インスタンスを生成する。HeadlessExceptionを無視
-	 * 
+	 *
 	 * @param isTestMethod テストメソッドですよ。悪用（？）禁止
 	 */
 	protected ClientConfiguration(boolean isTestMethod) {
 	}
-	
+
 	/**
 	 * フィルタを追加する
-	 * 
+	 *
 	 * @param rootFilter フィルター
 	 */
 	public void addFilter(MessageFilter rootFilter) {
 		rootFilterService.addFilter(rootFilter);
 	}
-	
+
 	/**
 	 * 新しいタブを追加する。
-	 * 
+	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
@@ -257,7 +257,7 @@ public class ClientConfiguration {
 		}
 		return result;
 	}
-	
+
 	private boolean checkValidAccountId(String accountId) {
 		for (String account : getAccountList()) {
 			if (Utility.equalString(account, accountId)) {
@@ -266,10 +266,10 @@ public class ClientConfiguration {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 指定されたタブをフォーカスする。
-	 * 
+	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 */
@@ -284,10 +284,10 @@ public class ClientConfiguration {
 			tabsListLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * 読み込み用アカウントのIDを取得する。
-	 * 
+	 *
 	 * @return アカウントID (ユニーク)
 	 */
 	public String getAccountIdForRead() {
@@ -300,10 +300,10 @@ public class ClientConfiguration {
 		}
 		return accountIdForRead;
 	}
-	
+
 	/**
 	 * 書き込み用アカウントのIDを取得する。
-	 * 
+	 *
 	 * @return アカウントID (ユニーク)
 	 */
 	public String getAccountIdForWrite() {
@@ -316,20 +316,20 @@ public class ClientConfiguration {
 		}
 		return accountIdForWrite;
 	}
-	
+
 	/**
 	 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
-	 * 
+	 *
 	 * @return アカウントリスト。
 	 */
 	public String[] getAccountList() {
 		return getConfigData().initAccountList();
 	}
-	
+
 	/**
 	 * キャッシュマネージャを取得する。
 	 *
-	 * @return キャッシュマネージャ 
+	 * @return キャッシュマネージャ
 	 */
 	public CacheManager getCacheManager() {
 		if (cacheManager == null) {
@@ -341,19 +341,19 @@ public class ClientConfiguration {
 		}
 		return cacheManager;
 	}
-	
+
 	/**
 	 * コンフィグビルダーを取得する。
-	 * 
+	 *
 	 * @return 設定ビルダー
 	 */
 	public ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
 	}
-	
+
 	/**
 	 * 設定のデータを格納するクラスを取得する
-	 * 
+	 *
 	 * @return データクラス
 	 */
 	public ConfigData getConfigData() {
@@ -366,37 +366,37 @@ public class ClientConfiguration {
 		}
 		return configData;
 	}
-	
+
 	/**
 	 * デフォルト設定を格納するプロパティを取得する。
-	 * 
+	 *
 	 * @return the configDefaultProperties
 	 */
 	public ClientProperties getConfigDefaultProperties() {
 		return configDefaultProperties;
 	}
-	
+
 	/**
 	 * 現在のユーザー設定を格納するプロパティを取得する。
-	 * 
+	 *
 	 * @return the configProperties
 	 */
 	public ClientProperties getConfigProperties() {
 		return configProperties;
 	}
-	
+
 	/**
 	 * 設定を格納するためのディレクトリを取得する。
-	 * 
+	 *
 	 * @return 設定を格納するディレクトリ
 	 */
 	public String getConfigRootDir() {
 		return portabledConfiguration ? "." : HOME_BASE_DIR;
 	}
-	
+
 	/**
 	 * デフォルトで使用するアカウントのIDを取得する。
-	 * 
+	 *
 	 * @return アカウントのID (int)
 	 */
 	public String getDefaultAccountId() {
@@ -406,28 +406,28 @@ public class ClientConfiguration {
 		}
 		return accountId;
 	}
-	
+
 	/**
 	 * 情報取得のスケジューラを取得する。
-	 * 
+	 *
 	 * @return スケジューラ
 	 */
 	public TwitterDataFetchScheduler getFetchScheduler() {
 		return fetchScheduler;
 	}
-	
+
 	/**
 	 * FrameApiを取得する
-	 * 
+	 *
 	 * @return フレームAPI
 	 */
 	public ClientFrameApi getFrameApi() {
 		return frameApi;
 	}
-	
+
 	/**
 	 * 指定されたインデックスのFrameTabを取得する。
-	 * 
+	 *
 	 * @param index インデックス
 	 * @return FrameTab
 	 */
@@ -441,10 +441,10 @@ public class ClientConfiguration {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 追加されているFrameTabの個数を数える
-	 * 
+	 *
 	 * @return 個数
 	 */
 	public int getFrameTabCount() {
@@ -457,15 +457,15 @@ public class ClientConfiguration {
 		}
 		return size;
 	}
-	
+
 	/*package*/List<ClientTab> getFrameTabs() {
 		return tabsList;
 	}
-	
+
 	/*package*/ReentrantReadWriteLock getFrameTabsLock() {
 		return tabsListLock;
 	}
-	
+
 	/**
 	 * ImageCacherインスタンスを取得する。
 	 * @return イメージキャッシャ
@@ -480,10 +480,10 @@ public class ClientConfiguration {
 		}
 		return imageCacher;
 	}
-	
+
 	/**
 	 * すべての入力をフィルターするクラスを取得する。
-	 * 
+	 *
 	 * @return フィルター
 	 */
 	public FilterService getRootFilterService() {
@@ -496,19 +496,19 @@ public class ClientConfiguration {
 		}
 		return rootFilterService;
 	}
-	
+
 	/**
 	 * TrayIconをかえす。nullの場合有り。
-	 * 
+	 *
 	 * @return トレイアイコン
 	 */
 	public TrayIcon getTrayIcon() {
 		return trayIcon;
 	}
-	
+
 	/**
 	 * 指定したアカウントのTwitterインスタンスを取得する。
-	 * 
+	 *
 	 * @param accountId アカウントID
 	 * @return Twitterインスタンス
 	 */
@@ -523,77 +523,77 @@ public class ClientConfiguration {
 		}
 		return twitter;
 	}
-	
+
 	/**
-	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 * 
+	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 *
 	* @return Twitter Configuration
 	*/
 	public Configuration getTwitterConfiguration() {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
-	
+
 	/**
 	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
-	 * @param accountId アカウントID 
+	 * @param accountId アカウントID
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration(String accountId) {
 		String accessTokenString = configProperties.getProperty("twitter.oauth.access_token." + accountId);
 		String accessTokenSecret =
 				configProperties.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", accountId));
-		
+
 		return getTwitterConfigurationBuilder() //
 			.setOAuthAccessToken(accessTokenString) //
 			.setOAuthAccessTokenSecret(accessTokenSecret) //
 			.build();
 	}
-	
+
 	/**
 	 * Twitterの {@link ConfigurationBuilder} インスタンスを取得する。
-	 * 
+	 *
 	 * @return Twitter ConfigurationBuilder
 	 */
 	public ConfigurationBuilder getTwitterConfigurationBuilder() {
 		String consumerKey = configProperties.getProperty("twitter.oauth.consumer");
 		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
-		
+
 		return new ConfigurationBuilder() //
 			.setOAuthConsumerKey(consumerKey) //
 			.setOAuthConsumerSecret(consumerSecret) //
 			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")) //
 			.setJSONStoreEnabled(true);
 	}
-	
+
 	/**
 	 * 読み込み用Twitterインスタンスを取得する。
-	 * 
+	 *
 	 * @return 読み込み用Twitterインスタンス
 	 */
 	public Twitter getTwitterForRead() {
 		return getTwitter(getAccountIdForRead());
 	}
-	
+
 	/**
 	 * 書き込み用Twitterインスタンスを取得する。
-	 * 
+	 *
 	 * @return 読み込み用Twitterインスタンス。
 	 */
 	public Twitter getTwitterForWrite() {
 		return getTwitter(getAccountIdForWrite());
 	}
-	
+
 	/**
 	 * Utilityインスタンスを取得する。
-	 * 
+	 *
 	 * @return インスタンス
 	 */
 	public Utility getUtility() {
 		return utility;
 	}
-	
+
 	/**
 	 * 指定したタブが選択されているかどうかを取得する
-	 * 
+	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 選択されているかどうか
@@ -609,19 +609,19 @@ public class ClientConfiguration {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 初期化中/初期TLロード中であるかどうかを返す。
-	 * 
+	 *
 	 * @return the isInitializing
 	 */
 	public boolean isInitializing() {
 		return isInitializing;
 	}
-	
+
 	/**
 	 * IDが呼ばれたかどうかを判定する
-	 * 
+	 *
 	 * @param userMentionEntities エンティティ
 	 * @return 呼ばれたかどうか
 	 */
@@ -642,19 +642,19 @@ public class ClientConfiguration {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * シャットダウンフェーズかどうかを取得する。
-	 * 
+	 *
 	 * @return シャットダウンフェーズかどうか
 	 */
 	public boolean isShutdownPhase() {
 		return isShutdownPhase;
 	}
-	
+
 	/**
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
-	 * 
+	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 */
@@ -669,10 +669,10 @@ public class ClientConfiguration {
 			tabsListLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * タブを削除する
-	 * 
+	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
@@ -691,10 +691,10 @@ public class ClientConfiguration {
 		}
 		return indexOf != -1;
 	}
-	
+
 	/**
 	 * 読み込み用アカウントを設定する
-	 * 
+	 *
 	 * @param accountId アカウントID。ユニーク。
 	 * @return 古い読み込み用アカウントID。
 	 */
@@ -709,10 +709,10 @@ public class ClientConfiguration {
 		}
 		return old;
 	}
-	
+
 	/**
 	 * 書き込み用アカウントを設定する。
-	 * 
+	 *
 	 * @param accountId アカウントID。ユニーク
 	 * @return 古い書き込み用アカウントID。
 	 */
@@ -727,51 +727,51 @@ public class ClientConfiguration {
 		}
 		return old;
 	}
-	
+
 	/**
 	 * デフォルト設定を格納するプロパティを設定する。
-	 * 
+	 *
 	 * @param configDefaultProperties the configDefaultProperties to set
 	 */
 	public void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
 		this.configDefaultProperties = configDefaultProperties;
 	}
-	
+
 	/**
 	 * 現在のユーザー設定を格納するプロパティを設定する。
-	 * 
+	 *
 	 * @param configProperties the configProperties to set
 	 */
 	public void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
 	}
-	
+
 	/*package*/void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
 		this.fetchScheduler = fetchScheduler;
 	}
-	
+
 	/**
 	 * FrameApiを設定する
-	 * 
+	 *
 	 * @param frameApi フレームAPI
 	 */
 	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
 		this.frameApi = frameApi;
 	}
-	
+
 	/**
 	 * 初期化中/初期TLロード中であるかを設定する
-	 * 
+	 *
 	 * @param isInitializing 初期化中かどうか。
 	 */
 	/*package*/void setInitializing(boolean isInitializing) {
 		this.isInitializing = isInitializing;
 	}
-	
+
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;
 	}
-	
+
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
 	 * @param isShutdownPhase シャットダウンフェーズかどうか。
@@ -779,16 +779,16 @@ public class ClientConfiguration {
 	public void setShutdownPhase(boolean isShutdownPhase) {
 		this.isShutdownPhase = isShutdownPhase;
 	}
-	
+
 	/**
 	 * OAuthトークンの取得を試みる。実行中のスレッドをブロックします。
-	 * 
+	 *
 	 * @return 取得を試して発生した例外。ない場合はnull
 	 */
 	public Exception tryGetOAuthToken() {
 		Twitter twitter = new TwitterFactory(getTwitterConfigurationBuilder().build()).getInstance();
 		AccessToken accessToken = new OAuthFrame(this).show(twitter);
-		
+
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
@@ -819,9 +819,9 @@ public class ClientConfiguration {
 }
 
 class TestCacher extends ImageCacher {
-	
+
 	public TestCacher(ClientConfiguration configuration) {
 		super(configuration);
 	}
-	
+
 }

@@ -11,17 +11,17 @@ import twitter4j.Status;
 
 /**
  * リプライするためのアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class ReplyActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
 		return replyMenuItem;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
@@ -44,7 +44,7 @@ public class ReplyActionHandler implements ActionHandler {
 			api.setInReplyToStatus(status);
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {

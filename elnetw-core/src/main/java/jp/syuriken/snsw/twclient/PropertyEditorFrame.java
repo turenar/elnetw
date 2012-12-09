@@ -29,36 +29,36 @@ import javax.swing.table.TableRowSorter;
 
 /**
  * プロパティーエディター。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class PropertyEditorFrame extends JFrame {
-	
+
 	/**
 	 * セルレンダラ。
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	@SuppressWarnings("serial")
 	private final class DefaultTableCellRendererExtension extends DefaultTableCellRenderer {
-		
+
 		private final DefaultTableModelExtension model;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param tableModel テーブルモデル
 		 */
 		public DefaultTableCellRendererExtension(DefaultTableModelExtension tableModel) {
 			model = tableModel;
 		}
-		
+
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 				boolean hasFocus, int row, int column) {
 			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			
+
 			Object key;
 			if (column == 0) {
 				key = value;
@@ -71,38 +71,38 @@ public class PropertyEditorFrame extends JFrame {
 			return this;
 		}
 	}
-	
+
 	/**
 	 * テーブルモデル
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	private final class DefaultTableModelExtension extends DefaultTableModel {
-		
+
 		private static final long serialVersionUID = 1L;
-		
+
 		Class<?>[] types = new Class<?>[] {
 			String.class,
 			String.class,
 		};
-		
-		
+
+
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			return types[columnIndex];
-			
+
 		}
-		
+
 		@Override
 		public boolean isCellEditable(int row, int column) {
 			return column == 1;
 		}
 	}
-	
-	
+
+
 	private static final long serialVersionUID = 1L;
-	
-	/* 
+
+	/*
 	public static void main(String[] args) throws IOException {
 		ClientConfiguration clientConfiguration = new ClientConfiguration();
 		ClientProperties defaultProperties = new ClientProperties();
@@ -119,30 +119,30 @@ public class PropertyEditorFrame extends JFrame {
 		frame.setVisible(true);
 	}
 	*/
-	
+
 	private JScrollPane paneListProperties;
-	
+
 	private JButton btnExit;
-	
+
 	private JButton btnDefault;
-	
+
 	private final ClientConfiguration configuration;
-	
+
 	private JTable tableProperties;
-	
+
 	private DefaultTableModelExtension tableModel;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する
-	 * 
+	 *
 	 * @param configuration プロパティー
 	 */
 	public PropertyEditorFrame(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initComponents();
 	}
-	
+
 	private void btnDefaultMouseMouseClicked(MouseEvent event) {
 		String key =
 				(String) tableModel.getValueAt(
@@ -150,7 +150,7 @@ public class PropertyEditorFrame extends JFrame {
 		String value =
 				(String) tableModel.getValueAt(
 						tableProperties.convertRowIndexToModel(tableProperties.getSelectedRow()), 1);
-		
+
 		int result =
 				JOptionPane.showConfirmDialog(this, "\"" + key + "\"をデフォルトの値に復元してよろしいですか？\n\n現在の値: \"" + value + "\"",
 						"元に戻す", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -159,23 +159,23 @@ public class PropertyEditorFrame extends JFrame {
 			initTableModel();
 		}
 	}
-	
+
 	/**
 	 * 終了ボタンを押した時のハンドラ。
-	 * 
+	 *
 	 * @param e イベント
 	 */
 	protected void btnExitMouseClicked(MouseEvent e) {
 		setVisible(false);
 		dispose();
 	}
-	
+
 	private JButton getBtnDefault() {
 		if (btnDefault == null) {
 			btnDefault = new JButton();
 			btnDefault.setText("元に戻す");
 			btnDefault.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent event) {
 					btnDefaultMouseMouseClicked(event);
@@ -184,14 +184,14 @@ public class PropertyEditorFrame extends JFrame {
 		}
 		return btnDefault;
 	}
-	
+
 	private JButton getBtnExit() {
 		if (btnExit == null) {
 			btnExit = new JButton();
 			btnExit.setText("閉じる(X)");
 			btnExit.setMnemonic('X');
 			btnExit.addMouseListener(new MouseAdapter() {
-				
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					btnExitMouseClicked(e);
@@ -200,7 +200,7 @@ public class PropertyEditorFrame extends JFrame {
 		}
 		return btnExit;
 	}
-	
+
 	private JScrollPane getPaneListProperties() {
 		if (paneListProperties == null) {
 			paneListProperties = new JScrollPane();
@@ -208,7 +208,7 @@ public class PropertyEditorFrame extends JFrame {
 		}
 		return paneListProperties;
 	}
-	
+
 	private JTable getTableProperties() {
 		if (tableProperties == null) {
 			tableProperties = new JTable();
@@ -221,7 +221,7 @@ public class PropertyEditorFrame extends JFrame {
 			tableModel.addColumn("name");
 			tableModel.addColumn("value");
 			tableModel.addTableModelListener(new TableModelListener() {
-				
+
 				@Override
 				public void tableChanged(TableModelEvent e) {
 					if (e.getType() == TableModelEvent.UPDATE) {
@@ -243,7 +243,7 @@ public class PropertyEditorFrame extends JFrame {
 		}
 		return tableProperties;
 	}
-	
+
 	private void initComponents() {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		GroupLayout layout = new GroupLayout(getContentPane());
@@ -275,22 +275,22 @@ public class PropertyEditorFrame extends JFrame {
 		 */
 		setSize(320, 223);
 		addWindowListener(new WindowAdapter() {
-			
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				configuration.getConfigProperties().store();
 			}
-			
+
 			@Override
 			public void windowClosing(WindowEvent e) {
 				configuration.getConfigProperties().store();
 			}
 		});
 	}
-	
+
 	private void initTableModel() {
 		tableModel.setRowCount(0);
-		
+
 		ClientProperties configProperties = configuration.getConfigProperties();
 		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements();) {
 			String key = (String) enumeration.nextElement();
@@ -300,7 +300,7 @@ public class PropertyEditorFrame extends JFrame {
 			});
 		}
 	}
-	
+
 	@Override
 	public void setVisible(boolean b) {
 		super.setVisible(b);
@@ -308,5 +308,5 @@ public class PropertyEditorFrame extends JFrame {
 			initTableModel();
 		}
 	}
-	
+
 }

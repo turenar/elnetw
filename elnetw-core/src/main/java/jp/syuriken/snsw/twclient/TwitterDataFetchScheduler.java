@@ -16,13 +16,13 @@ import twitter4j.TwitterStreamFactory;
 
 /**
  * Twitterからの情報を取得するためのスケジューラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterDataFetchScheduler {
-	
+
 	private final class FirstDirectMessageFetcher extends TwitterRunnable implements ParallelRunnable {
-		
+
 		@Override
 		protected void access() throws TwitterException {
 			ResponseList<DirectMessage> directMessages;
@@ -33,15 +33,15 @@ public class TwitterDataFetchScheduler {
 			}
 			configuration.setInitializing(false);
 		}
-		
+
 		@Override
 		protected ClientConfiguration getConfiguration() {
 			return configuration;
 		}
 	}
-	
+
 	private final class FirstMentionFetcher extends TwitterRunnable implements ParallelRunnable {
-		
+
 		@Override
 		public void access() throws TwitterException {
 			Paging paging = configData.pagingOfGettingInitialMentions;
@@ -52,15 +52,15 @@ public class TwitterDataFetchScheduler {
 				rootFilterService.onStatus(twitterStatus);
 			}
 		}
-		
+
 		@Override
 		protected ClientConfiguration getConfiguration() {
 			return configuration;
 		}
 	}
-	
+
 	private final class FirstTimelineFetcher extends TwitterRunnable {
-		
+
 		@Override
 		protected void access() throws TwitterException {
 			ResponseList<Status> homeTimeline;
@@ -72,15 +72,15 @@ public class TwitterDataFetchScheduler {
 				rootFilterService.onStatus(twitterStatus);
 			}
 		}
-		
+
 		@Override
 		protected ClientConfiguration getConfiguration() {
 			return configuration;
 		}
 	}
-	
+
 	private final class HomeTimelineFetcher extends TwitterRunnable implements ParallelRunnable {
-		
+
 		@Override
 		protected void access() throws TwitterException {
 			Paging paging = configData.pagingOfGettingTimeline;
@@ -90,30 +90,30 @@ public class TwitterDataFetchScheduler {
 				rootFilterService.onStatus(status);
 			}
 		}
-		
+
 		@Override
 		protected ClientConfiguration getConfiguration() {
 			return configuration;
 		}
 	}
-	
-	
+
+
 	private final ClientFrameApi frameApi;
-	
+
 	private final ConfigData configData;
-	
+
 	private Twitter twitterForRead;
-	
+
 	private final FilterService rootFilterService;
-	
+
 	private final ClientConfiguration configuration;
-	
+
 	private TwitterStream stream;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 */
 	/*package*/TwitterDataFetchScheduler(final ClientConfiguration configuration) {
@@ -122,7 +122,7 @@ public class TwitterDataFetchScheduler {
 		configData = configuration.getConfigData();
 		twitterForRead = configuration.getTwitterForRead();
 		rootFilterService = configuration.getRootFilterService();
-		
+
 		scheduleFirstTimeline();
 		scheduleFirstMentions();
 		scheduleFirstDirectMessage();
@@ -130,17 +130,17 @@ public class TwitterDataFetchScheduler {
 		onChangeAccount(true);
 		onChangeAccount(false);
 	}
-	
+
 	/**
 	 * お掃除する
 	 */
 	public void cleanUp() {
 		stream.shutdown();
 	}
-	
+
 	/**
 	 * アカウント変更通知
-	 * 
+	 *
 	 * @param forWrite 書き込み用アカウントが変更されたかどうか。
 	 */
 	public void onChangeAccount(boolean forWrite) {
@@ -150,13 +150,13 @@ public class TwitterDataFetchScheduler {
 			reloginForRead(configuration.getAccountIdForRead());
 		}
 	}
-	
+
 	private void reloginForRead(String accountId) {
 		twitterForRead = configuration.getTwitterForRead();
 		if (stream != null) {
 			final TwitterStream oldStream = stream;
 			new Thread(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					oldStream.cleanUp();
@@ -168,31 +168,31 @@ public class TwitterDataFetchScheduler {
 		stream.addListener(rootFilterService);
 		stream.user();
 	}
-	
+
 	private void reloginForWrite(String accountId) {
 		// do nothing
 	}
-	
+
 	private void scheduleFirstDirectMessage() {
 		frameApi.addJob(new FirstDirectMessageFetcher());
 	}
-	
+
 	private void scheduleFirstMentions() {
 		frameApi.addJob(new FirstMentionFetcher());
 	}
-	
+
 	private void scheduleFirstTimeline() {
 		frameApi.addJob(new FirstTimelineFetcher());
 	}
-	
+
 	private void scheduleGettingTimeline() {
 		frameApi.getTimer().schedule(new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				frameApi.addJob(new HomeTimelineFetcher());
 			}
 		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
 	}
-	
+
 }
