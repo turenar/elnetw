@@ -4,21 +4,16 @@ import java.awt.Color;
 import java.awt.TrayIcon;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.imageio.ImageIO;
-
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import twitter4j.Paging;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -155,8 +150,6 @@ public class ClientConfiguration {
 
 	private TrayIcon trayIcon;
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-
 	private ClientProperties configProperties;
 
 	private ClientProperties configDefaultProperties;
@@ -200,20 +193,14 @@ public class ClientConfiguration {
 
 	private Object lockObject = new Object();
 
+	private List<String> args;
+
 
 	/**
 	 * インスタンスを生成する。
 	 *
 	 */
 	protected ClientConfiguration() {
-		try {
-			trayIcon =
-					new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
-							"jp/syuriken/snsw/twclient/img/icon16.png")), TwitterClientFrame.APPLICATION_NAME);
-		} catch (IOException e) {
-			logger.error("icon ファイルの読み込みに失敗。");
-			trayIcon = null;
-		}
 	}
 
 	/**
@@ -479,6 +466,16 @@ public class ClientConfiguration {
 			}
 		}
 		return imageCacher;
+	}
+
+	/**
+	 * アプリケーション実行時に指定されたオプションの変更できないリストを取得する。
+	 * なお、内容はGetoptによって並び替えられている
+	 *
+	 * @return unmodifiable List
+	 */
+	public List<String> getOpts() {
+		return Collections.unmodifiableList(args);
 	}
 
 	/**
@@ -768,6 +765,10 @@ public class ClientConfiguration {
 		this.isInitializing = isInitializing;
 	}
 
+	/*package*/void setOpts(String[] args) {
+		this.args = Arrays.asList(args);
+	}
+
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;
 	}
@@ -778,6 +779,15 @@ public class ClientConfiguration {
 	 */
 	public void setShutdownPhase(boolean isShutdownPhase) {
 		this.isShutdownPhase = isShutdownPhase;
+	}
+
+	/**
+	 * トレイアイコン
+	 *
+	 * @param trayIcon the trayIcon to set
+	 */
+	public void setTrayIcon(TrayIcon trayIcon) {
+		this.trayIcon = trayIcon;
 	}
 
 	/**
