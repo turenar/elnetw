@@ -11,25 +11,25 @@ import twitter4j.Status;
 
 /**
  * 標準装備されたbool値を比較するプロパティ
- * 
+ *
  * @author $Author$
  */
 public class StandardStringProperties implements FilterProperty {
-	
+
 	private static Constructor<? extends FilterProperty> factory;
-	
+
 	private static final byte PROPERTY_ID_USER = 1;
-	
+
 	private static final byte PROPERTY_ID_TEXT = 2;
-	
+
 	private static final byte PROPERTY_ID_CLIENT = 3;
-	
+
 	private FilterOperator operatorType;
-	
+
 	private Object value;
-	
+
 	private byte propertyId;
-	
+
 	static {
 		try {
 			factory = StandardStringProperties.class.getConstructor(String.class, String.class, String.class);
@@ -37,8 +37,8 @@ public class StandardStringProperties implements FilterProperty {
 			throw new AssertionError(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * コンストラクターを取得する
 	 * @return ファクトリー
@@ -46,10 +46,10 @@ public class StandardStringProperties implements FilterProperty {
 	public static Constructor<? extends FilterProperty> getFactory() {
 		return factory;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
@@ -80,7 +80,7 @@ public class StandardStringProperties implements FilterProperty {
 		// value 処理
 		this.value = FilterOperator.compileValueString(value);
 	}
-	
+
 	@Override
 	public boolean filter(DirectMessage directMessage) {
 		String target;
@@ -98,7 +98,7 @@ public class StandardStringProperties implements FilterProperty {
 		}
 		return operatorType.compare(target, value);
 	}
-	
+
 	@Override
 	public boolean filter(Status status) {
 		String target;

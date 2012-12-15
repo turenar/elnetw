@@ -11,16 +11,16 @@ import jp.syuriken.snsw.twclient.StatusData;
 
 /**
  * 検索するアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class SearchActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return null;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		if (actionName.contains("!") == false) {
@@ -33,9 +33,9 @@ public class SearchActionHandler implements ActionHandler {
 			throw new AssertionError(e);
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 	}
-	
+
 }

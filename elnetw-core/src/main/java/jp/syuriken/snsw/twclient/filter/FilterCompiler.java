@@ -17,20 +17,20 @@ import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
 
 /**
  * フィルタをコンパイルするクラス。
- * 
+ *
  * @author $Author$
  */
 public class FilterCompiler {
-	
+
 	/** データの末尾を示すchar */
 	public static final char EOD_CHAR = '\uffff';
-	
+
 	/** constructor ( FilterDispatcherBase ) */
 	protected static HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories;
-	
+
 	/** constructor ( String, String, String) */
 	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories;
-	
+
 	static {
 		HashMap<String, Constructor<? extends FilterFunction>> ffMap =
 				new HashMap<String, Constructor<? extends FilterFunction>>();
@@ -40,7 +40,7 @@ public class FilterCompiler {
 		ffMap.put("and", AndFilterFunction.getFactory());
 		ffMap.put("not", NotFilterFunction.getFactory());
 		ffMap.put("inrt", InRetweetFilterFunction.getFactory());
-		
+
 		HashMap<String, Constructor<? extends FilterProperty>> pfMap =
 				new HashMap<String, Constructor<? extends FilterProperty>>();
 		FilterCompiler.filterPropertyFactories = pfMap;
@@ -62,8 +62,8 @@ public class FilterCompiler {
 		pfMap.put("text", properties);
 		pfMap.put("client", properties);
 	}
-	
-	
+
+
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
 	 * @param query クエリ
@@ -74,56 +74,56 @@ public class FilterCompiler {
 		FilterCompiler filterCompiler = new FilterCompiler(query);
 		return filterCompiler.compile();
 	}
-	
+
 	/**
 	 * 指定した名前のフィルタ関数を取得する
-	 * 
+	 *
 	 * @param functionName 関数名
 	 * @return {@link FilterFunction} の ({@link String}, {@link FilterDispatcherBase}) コンストラクタ
 	 */
 	public static Constructor<? extends FilterFunction> getFilterFunction(String functionName) {
 		return filterFunctionFactories.get(functionName);
 	}
-	
+
 	/**
 	 * フィルタプロパティを追加する
-	 * 
+	 *
 	 * @param propertyName プロパティ名
 	 * @return {@link FilterProperty} の ({@link String}, {@link String}, {@link String})コンストラクタ
 	 */
 	public static Constructor<? extends FilterProperty> getFilterProperty(String propertyName) {
 		return filterPropertyFactories.get(propertyName);
 	}
-	
+
 	private static final boolean isAlphabet(char charAt) {
 		return (charAt >= 'a' && charAt <= 'z') || (charAt >= 'A' && charAt <= 'Z');
 	}
-	
+
 	/**
 	 * データの最後ではないことを調べる。
-	 * 
+	 *
 	 * @param charAt 文字
 	 * @return データが最後の文字であるかどうか。
 	 */
 	public static final boolean isNotEod(char charAt) {
 		return charAt != EOD_CHAR;
 	}
-	
+
 	private static final boolean isNumeric(char charAt) {
 		return charAt >= '0' && charAt <= '9';
 	}
-	
+
 	private static final boolean isQuote(char charAt) {
 		return charAt == '"';
 	}
-	
+
 	private static final boolean isSpace(char charAt) {
 		return charAt == ' ' || charAt == '\t' || charAt == '\n';
 	}
-	
+
 	/**
 	 * テスト用インタラクティブコンソール
-	 * 
+	 *
 	 * @param args argv
 	 */
 	public static void main(String[] args) {
@@ -138,7 +138,7 @@ public class FilterCompiler {
 					TokenType tokenType = filterCompiler.getNextTokenType();
 					System.out.printf("'%s': %s%n", queryToken, tokenType.toString());
 				}
-				
+
 				filterCompiler.reset(query);
 				filterCompiler.compile();
 			} catch (IllegalSyntaxException e) {
@@ -147,10 +147,10 @@ public class FilterCompiler {
 			System.out.print("> ");
 		}
 	}
-	
+
 	/**
 	 * フィルタ関数を追加する
-	 * 
+	 *
 	 * @param functionName 関数名
 	 * @param constructor ({@link String}, {@link FilterDispatcherBase})コンストラクタ
 	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
@@ -159,10 +159,10 @@ public class FilterCompiler {
 			Constructor<? extends FilterFunction> constructor) {
 		return filterFunctionFactories.put(functionName, constructor);
 	}
-	
+
 	/**
 	 * フィルタプロパティを追加する
-	 * 
+	 *
 	 * @param propertyName プロパティ名
 	 * @param constructor ({@link String}, {@link String}, {@link String})コンストラクタ
 	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
@@ -171,21 +171,21 @@ public class FilterCompiler {
 			Constructor<? extends FilterProperty> constructor) {
 		return filterPropertyFactories.put(propertyName, constructor);
 	}
-	
-	
+
+
 	private transient String query;
-	
+
 	private transient TokenType queryTokenType;
-	
+
 	private transient TokenType queryNextTokenType;
-	
+
 	private transient int compilingIndex;
-	
+
 	private String queryToken;
-	
+
 	private boolean hasToken;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
 	 * @param query クエリ
@@ -193,21 +193,21 @@ public class FilterCompiler {
 	public FilterCompiler(String query) {
 		reset(query);
 	}
-	
+
 	private final char charAt(int i) {
 		return i < query.length() ? query.charAt(i) : EOD_CHAR;
 	}
-	
+
 	/**
 	 * コンパイルする。
-	 * 
+	 *
 	 * <p>この関数では処理前に {@link #reset()} を呼び出します。</p>
 	 * @return コンパイル済みのオブジェクト。中身は単なるツリー。
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ 
+	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
 	public FilterDispatcherBase compile() throws IllegalSyntaxException {
 		reset();
-		
+
 		String token = getToken();
 		switch (queryNextTokenType) {
 			case FUNC_NAME:
@@ -235,23 +235,23 @@ public class FilterCompiler {
 				return null; // orphaned
 		}
 	}
-	
+
 	/**
 	 * 関数をコンパイルする。
-	 * 
+	 *
 	 * @param functionName 関数名
 	 * @return 関数オブジェクト
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ 
+	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
 	private FilterDispatcherBase compileFunction(String functionName) throws IllegalSyntaxException {
 		getToken();
 		if (queryNextTokenType != TokenType.FUNC_START) {
 			throwUnexpectedToken();
 		}
-		
+
 		ArrayList<FilterDispatcherBase> argsList = new ArrayList<FilterDispatcherBase>();
 		ArrayList<Integer> argsTokenIndexList = new ArrayList<Integer>();
-		
+
 		argsTokenIndexList.add(compilingIndex);
 		getToken();
 		if (queryNextTokenType != TokenType.FUNC_END) {
@@ -273,7 +273,7 @@ public class FilterCompiler {
 					throw e;
 				}
 				argsTokenIndexList.add(compilingIndex);
-				
+
 				getToken();
 				if (queryNextTokenType == TokenType.FUNC_END) {
 					break;
@@ -323,16 +323,16 @@ public class FilterCompiler {
 					+ ">に関連付けられたConstructorは正しくありません", e);
 		}
 	}
-	
+
 	/**
 	 * プロパティをコンパイルする。
-	 * 
-	 * @param propertyName プロパティ名 
+	 *
+	 * @param propertyName プロパティ名
 	 * @return コンパイル済みのプロパティオブジェクト
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
 	private FilterDispatcherBase compileProperty(String propertyName) throws IllegalSyntaxException
-	
+
 	{
 		String propertyOperator;
 		int propertyOperatorPostion = compilingIndex;
@@ -346,7 +346,7 @@ public class FilterCompiler {
 		} else {
 			propertyOperator = queryToken;
 			compareValuePostion = compilingIndex;
-			
+
 			getToken();
 			if (queryNextTokenType == TokenType.SCALAR_STRING) {
 				StringBuilder stringBuilder = new StringBuilder(queryToken.substring(1, queryToken.length() - 1));
@@ -366,7 +366,7 @@ public class FilterCompiler {
 				}
 			}
 		}
-		
+
 		try {
 			Constructor<? extends FilterProperty> factory = filterPropertyFactories.get(propertyName);
 			if (factory == null) {
@@ -404,43 +404,43 @@ public class FilterCompiler {
 					+ ">に関連付けられたConstructorは正しくありません", e);
 		}
 	}
-	
+
 	/**
 	 * {@link #nextToken()} により取得したトークンの次の文字のインデックス。
-	 * 
+	 *
 	 * @return 次の文字のインデックス
 	 */
 	public int getCompilingIndex() {
 		return compilingIndex;
 	}
-	
+
 	/**
 	 * {@link #nextToken()} により取得したトークンのタイプを取得する。
-	 * 
+	 *
 	 * @return トークンタイプ
 	 */
 	public TokenType getNextTokenType() {
 		return queryNextTokenType;
 	}
-	
+
 	/**
 	 * 現在コンパイル中のクエリを取得する。
-	 * 
+	 *
 	 * @return クエリ
 	 */
 	public String getQuery() {
 		return query;
 	}
-	
+
 	/**
 	 * {@link #nextToken()} により取得したトークンを再取得する。
-	 * 
+	 *
 	 * @return トークン
 	 */
 	public String getQueryToken() {
 		return queryToken;
 	}
-	
+
 	private final String getToken() throws IllegalSyntaxException {
 		if (hasToken) {
 			hasToken = false;
@@ -449,10 +449,10 @@ public class FilterCompiler {
 			return nextToken();
 		}
 	}
-	
+
 	/**
 	 * 次のトークンを取得する。
-	 * 
+	 *
 	 * @return トークン
 	 * @throws IllegalSyntaxException トークン処理中にエラー
 	 */
@@ -470,7 +470,7 @@ public class FilterCompiler {
 				break;
 			}
 		}
-		
+
 		if (index >= length) { // no valid token
 			queryNextTokenType = TokenType.EOD;
 			queryToken = null;
@@ -609,19 +609,19 @@ public class FilterCompiler {
 		queryToken = query.substring(tokenStart, index).trim();
 		return queryToken;
 	}
-	
+
 	/**
 	 * リセットする。
-	 * 
+	 *
 	 * @see #reset(String)
 	 */
 	public void reset() {
 		reset(query);
 	}
-	
+
 	/**
 	 * 指定されたクエリでリセットする。
-	 * 
+	 *
 	 * @param query クエリ
 	 * @see #reset()
 	 */
@@ -633,7 +633,7 @@ public class FilterCompiler {
 		queryToken = null;
 		hasToken = false;
 	}
-	
+
 	private void throwUnexpectedToken() throws IllegalSyntaxException {
 		StringBuilder stringBuilder = new StringBuilder("Unexpected token: ");
 		if (queryToken == null) {
@@ -642,13 +642,13 @@ public class FilterCompiler {
 			stringBuilder.append('"').append(queryToken).append('"');
 		}
 		stringBuilder.append(" (").append(queryNextTokenType).append(')');
-		
+
 		IllegalSyntaxException exception = new IllegalSyntaxException(stringBuilder.toString());
 		exception.setQuery(query);
 		exception.setTokenPostion(queryToken == null ? compilingIndex : (compilingIndex - queryToken.length()));
 		throw exception;
 	}
-	
+
 	private final void ungetToken() {
 		hasToken = true;
 	}

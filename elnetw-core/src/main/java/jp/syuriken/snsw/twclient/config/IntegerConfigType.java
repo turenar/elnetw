@@ -11,40 +11,40 @@ import javax.swing.SpinnerNumberModel;
 
 /**
  * 数値を設定するタイプ。JSpinnerを使用する。(正しくない文字列の場合はJLabel)
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class IntegerConfigType implements ConfigType {
-	
+
 	private final class FocusAdapterExtension extends FocusAdapter {
-		
+
 		private final String configKey;
-		
+
 		private final JComponent component;
-		
+
 		private final ConfigFrame listener;
-		
-		
+
+
 		private FocusAdapterExtension(String configKey, JComponent component, ConfigFrame listener) {
 			this.configKey = configKey;
 			this.component = component;
 			this.listener = listener;
 		}
-		
+
 		@Override
 		public void focusLost(FocusEvent e) {
 			listener.setValue(configKey, String.valueOf(getValue(component)));
 		}
 	}
-	
-	
+
+
 	private final int minimum;
-	
+
 	private final int maximum;
-	
+
 	private final int multiplier;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
 	 * @param maximum 最大値
@@ -53,7 +53,7 @@ public class IntegerConfigType implements ConfigType {
 	public IntegerConfigType(int maximum, int minimum) {
 		this(maximum, minimum, 1);
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
 	 * @param minimum 最大値
@@ -65,7 +65,7 @@ public class IntegerConfigType implements ConfigType {
 		this.maximum = maximum;
 		this.multiplier = multiplier;
 	}
-	
+
 	@Override
 	public JComponent getComponent(String configKey, String nowValue, ConfigFrame listener) {
 		try {
@@ -79,7 +79,7 @@ public class IntegerConfigType implements ConfigType {
 			return textArea;
 		}
 	}
-	
+
 	@Override
 	public String getValue(JComponent component) {
 		if (component instanceof JSpinner) {
@@ -90,12 +90,12 @@ public class IntegerConfigType implements ConfigType {
 			throw new AssertionError();
 		}
 	}
-	
+
 	@Override
 	public boolean isPreferedAsMultiline() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isValid(JComponent component) {
 		if (component instanceof JSpinner) {

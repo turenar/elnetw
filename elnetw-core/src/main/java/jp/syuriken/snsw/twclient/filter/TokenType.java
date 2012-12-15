@@ -2,7 +2,7 @@ package jp.syuriken.snsw.twclient.filter;
 
 /**
  * トークンタイプ
- * 
+ *
  * @author $Author$
  */
 public enum TokenType {
@@ -30,7 +30,7 @@ public enum TokenType {
 	 * 9		-> SCALAR_INT
 	 * )		-> FUNC_END
 	 */
-	
+
 	/** デフォルトの状態 (トークンが分けられていない状態; トークンのタイプとしては正しくない */
 	DEFAULT,
 	/** 関数名 */
@@ -47,14 +47,14 @@ public enum TokenType {
 	PROPERTY_OPERATOR,
 	/** 数値 */
 	SCALAR_INT,
-	
+
 	// SCALAR_STRING_START,
-	
+
 	/** 文字列 ("を両端に含む) */
 	SCALAR_STRING,
-	
+
 	//	SCALAR_STRING_END,
-	
+
 	/** 予期しない状態 (正しくない状態で EndOfData に達した時など) */
 	UNEXPECTED,
 	/** データの終わり */

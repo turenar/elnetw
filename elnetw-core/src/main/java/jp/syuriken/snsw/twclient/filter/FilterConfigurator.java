@@ -18,28 +18,28 @@ import jp.syuriken.snsw.twclient.config.ConfigType;
 
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
- * 
+ *
  * @author $Author$
  */
 public class FilterConfigurator implements ConfigType, ActionListener {
-	
+
 	/**
 	 * {@link #displayString}と {@link #propertyKey}を格納するだけのクラス
-	 * 
+	 *
 	 * @author $Author$
 	 */
 	protected static class KVItem {
-		
+
 		/** 表示名 */
 		protected String displayString;
-		
+
 		/** プロパティキー */
 		protected String propertyKey;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param displayString 表示名
 		 * @param propertyKey プロパティキー
 		 */
@@ -47,29 +47,29 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 			this.displayString = displayString;
 			this.propertyKey = propertyKey;
 		}
-		
+
 		@Override
 		public String toString() {
 			return displayString;
 		}
 	}
-	
-	
+
+
 	private JComboBox filterChooser;
-	
+
 	private ClientConfiguration configuration;
-	
+
 	private JButton editButton;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 */
 	public FilterConfigurator() {
 		configuration = ClientConfiguration.getInstance();
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JComboBox componentFilterChooser = getComponentFilterChooser();
@@ -78,7 +78,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		editFrame.setVisible(true);
 		editFrame.toFront();
 	}
-	
+
 	@Override
 	public JComponent getComponent(String configKey, String nowValue, ConfigFrame listener) {
 		JPanel panel = new JPanel();
@@ -91,7 +91,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 			.addComponent(getComponentEditButton()));
 		return panel;
 	}
-	
+
 	private Component getComponentEditButton() {
 		if (editButton == null) {
 			editButton = new JButton("編集");
@@ -99,12 +99,12 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		}
 		return editButton;
 	}
-	
+
 	private JComboBox getComponentFilterChooser() {
 		if (filterChooser == null) {
 			filterChooser = new JComboBox();
 			filterChooser.addItem(new KVItem("(グローバル)", "core.filter._global"));
-			
+
 			int count = configuration.getFrameTabCount();
 			for (int i = 0; i < count; i++) {
 				ClientTab tab = configuration.getFrameTab(i);
@@ -114,20 +114,20 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		}
 		return filterChooser;
 	}
-	
+
 	@Override
 	public String getValue(JComponent component) {
 		return null;
 	}
-	
+
 	@Override
 	public boolean isPreferedAsMultiline() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean isValid(JComponent component) {
 		return true;
 	}
-	
+
 }

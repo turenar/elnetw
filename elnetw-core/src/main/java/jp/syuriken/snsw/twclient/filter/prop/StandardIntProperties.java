@@ -11,27 +11,27 @@ import twitter4j.Status;
 
 /**
  * 標準装備された数値を処理するプロパティ
- * 
+ *
  * @author $Author$
  */
 public class StandardIntProperties implements FilterProperty {
-	
+
 	private static Constructor<? extends FilterProperty> factory;
-	
+
 	private static final byte PROPERTY_ID_USERID = 1;
-	
+
 	private static final byte PROPERTY_ID_IN_REPLY_TO_USERID = 2;
-	
+
 	private static final byte PROPERTY_ID_RT_COUNT = 3;
-	
+
 	private static final byte PROPERTY_ID_TIMEDIFF = 4;
-	
+
 	private FilterOperator operatorType;
-	
+
 	private long value;
-	
+
 	private byte propertyId;
-	
+
 	static {
 		try {
 			factory = StandardIntProperties.class.getConstructor(String.class, String.class, String.class);
@@ -39,8 +39,8 @@ public class StandardIntProperties implements FilterProperty {
 			throw new AssertionError(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * コンストラクターを取得する
 	 * @return ファクトリー
@@ -48,10 +48,10 @@ public class StandardIntProperties implements FilterProperty {
 	public static Constructor<? extends FilterProperty> getFactory() {
 		return factory;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
@@ -89,7 +89,7 @@ public class StandardIntProperties implements FilterProperty {
 					e);
 		}
 	}
-	
+
 	@Override
 	public boolean filter(DirectMessage directMessage) {
 		long target;
@@ -110,7 +110,7 @@ public class StandardIntProperties implements FilterProperty {
 		}
 		return operatorType.compare(target, value);
 	}
-	
+
 	@Override
 	public boolean filter(Status status) {
 		long target;

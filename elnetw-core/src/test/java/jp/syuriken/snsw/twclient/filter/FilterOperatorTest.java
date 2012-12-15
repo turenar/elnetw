@@ -24,17 +24,17 @@ import org.junit.Test;
 
 /**
  * {@link FilterOperator}のためのテスト
- * 
+ *
  * @author $Author$
  */
 public class FilterOperatorTest {
-	
+
 	private void check(boolean expected, String haystack, String needle) throws RuntimeException,
 			IllegalSyntaxException {
 		assertTrue(expected == EQ.compare(haystack, FilterOperator.compileValueString(needle)));
 		assertFalse(expected == NE.compare(haystack, FilterOperator.compileValueString(needle)));
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 完全一致
@@ -49,7 +49,7 @@ public class FilterOperatorTest {
 		check(false, "abcdefghijk", "fghijk");
 		check(false, "abcdefghijk", "def");
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 先頭一致
@@ -64,7 +64,7 @@ public class FilterOperatorTest {
 		check(false, "abcdefghijk", "fghijk*");
 		check(false, "abcdefghijk", "def*");
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 末尾一致
@@ -79,7 +79,7 @@ public class FilterOperatorTest {
 		check(true, "abcdefghijk", "*fghijk");
 		check(false, "abcdefghijk", "*def");
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 部分一致
@@ -94,7 +94,7 @@ public class FilterOperatorTest {
 		check(true, "abcdefghijk", "*fghijk*");
 		check(true, "abcdefghijk", "*def*");
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 正規表現
@@ -105,13 +105,13 @@ public class FilterOperatorTest {
 	public void compareStringRegexMatch() throws RuntimeException, IllegalSyntaxException {
 		assertTrue(EQ.compare("http://twitter.com/ture7", Regex.VALID_URL));
 		assertFalse(NE.compare("http://twitter.com/ture7", Regex.VALID_URL));
-		
+
 		check(true, "turenar died.", "/turenar.died\\.");
 		check(true, "addd", "/^ad");
 		check(true, "addd", "/dd$");
 		check(false, "turenar died.", "/^[^t]");
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 予期しない演算子
@@ -157,7 +157,7 @@ public class FilterOperatorTest {
 			// success
 		}
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compileValueString(String)} のためのテスト・メソッド
 	 * @throws IllegalSyntaxException エラー
@@ -168,7 +168,7 @@ public class FilterOperatorTest {
 		assertTrue(FilterOperator.compileValueString("aiueo") instanceof String);
 		assertTrue(FilterOperator.compileValueString("/.+") instanceof Pattern);
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(boolean, boolean)} のためのテスト・メソッド。
 	 */
@@ -190,7 +190,7 @@ public class FilterOperatorTest {
 		assertTrue(NE.compare(false, true));
 		assertTrue(NE.compare(true, false));
 		assertFalse(NE.compare(true, true));
-		
+
 		try {
 			LT.compare(true, true);
 			fail();
@@ -216,7 +216,7 @@ public class FilterOperatorTest {
 			// success
 		}
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(long, long)} のためのテスト・メソッド。
 	 */
@@ -241,7 +241,7 @@ public class FilterOperatorTest {
 		assertFalse(GTE.compare(-200, 100));
 		assertTrue(GTE.compare(0, 0));
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorBool(java.lang.String)} のためのテスト・メソッド。
 	 */
@@ -260,7 +260,7 @@ public class FilterOperatorTest {
 		assertNull(compileOperatorBool("<="));
 		assertNull(compileOperatorBool(">="));
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorInt(java.lang.String)} のためのテスト・メソッド。
 	 */
@@ -278,7 +278,7 @@ public class FilterOperatorTest {
 		assertNull(compileOperatorInt("?"));
 		assertNull(compileOperatorInt("!?"));
 	}
-	
+
 	/**
 	 * {@link FilterOperator#compileValueBool(java.lang.String, java.lang.String)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -287,15 +287,15 @@ public class FilterOperatorTest {
 	public void testCompileValueBool() throws IllegalSyntaxException {
 		IS.compileValueBool("**", null);
 		IS_NOT.compileValueBool("**", null);
-		
+
 		assertTrue(EQ.compileValueBool("**", "true"));
 		assertFalse(EQ.compileValueBool("**", "false"));
 		assertTrue(EQ.compileValueBool("**", "yes"));
 		assertFalse(EQ.compileValueBool("**", "no"));
-		
+
 		assertTrue(EQ.compileValueBool("**", "true"));
 		assertTrue(NE.compileValueBool("**", "true"));
-		
+
 		// value must null
 		try {
 			IS.compileValueBool("**", "true");

@@ -22,26 +22,26 @@ import twitter4j.UserList;
 
 /**
  * ごにょごにょ用のフィルターハンドラー。キャッシュとか通知の作成とか
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class RootFilter implements MessageFilter {
-	
+
 	private TreeSet<Long> statusSet;
-	
+
 	private final ClientConfiguration configuration;
-	
+
 	private ImageCacher imageCacher;
-	
+
 	private Logger logger = LoggerFactory.getLogger(RootFilter.class);
-	
+
 	private CacheManager cacheManager;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
 	 * @param configuration 設定
-	 * 
+	 *
 	 */
 	public RootFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
@@ -49,12 +49,12 @@ public class RootFilter implements MessageFilter {
 		cacheManager = configuration.getCacheManager();
 		statusSet = new TreeSet<Long>();
 	}
-	
+
 	private User getUser(User originalUser) {
 		if (originalUser instanceof TwitterUser) {
 			return originalUser;
 		}
-		
+
 		User cachedUser = cacheManager.getCachedUser(originalUser.getId());
 		if (cachedUser == null) {
 			User user = new TwitterUser(configuration, originalUser);
@@ -65,29 +65,29 @@ public class RootFilter implements MessageFilter {
 		}
 		return cachedUser;
 	}
-	
+
 	@Override
 	public boolean onChangeAccount(boolean forWrite) {
 		configuration.getFetchScheduler().onChangeAccount(forWrite);
 		return false;
 	}
-	
+
 	@Override
 	public boolean onClientMessage(String name, Object arg) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onDeletionNotice(long directMessageId, long userId) {
 		return false;
 	}
-	
+
 	@Override
 	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 		cacheManager.removeCachedStatus(statusDeletionNotice.getStatusId());
 		return statusDeletionNotice;
 	}
-	
+
 	@Override
 	public DirectMessage onDirectMessage(DirectMessage message) {
 		if (message instanceof InitialMessage == false) {
@@ -100,23 +100,23 @@ public class RootFilter implements MessageFilter {
 		}
 		return message;
 	}
-	
+
 	@Override
 	public boolean onException(Exception ex) {
 		logger.warn("handling onException", ex);
 		return false;
 	}
-	
+
 	@Override
 	public boolean onFavorite(User source, User target, Status favoritedStatus) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onFollow(User source, User followedUser) {
 		return false;
 	}
-	
+
 	@Override
 	public long[] onFriendList(long[] userIds) {
 		for (long userId : userIds) {
@@ -124,22 +124,22 @@ public class RootFilter implements MessageFilter {
 		}
 		return userIds;
 	}
-	
+
 	@Override
 	public boolean onRetweet(User source, User target, Status retweetedStatus) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onScrubGeo(long userId, long upToStatusId) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onStallWarning(StallWarning warning) {
 		return false;
 	}
-	
+
 	@Override
 	public Status onStatus(Status originalStatus) {
 		synchronized (statusSet) {
@@ -157,72 +157,72 @@ public class RootFilter implements MessageFilter {
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean onStreamCleanUp() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onStreamConnect() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onStreamDisconnect() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onTrackLimitationNotice(int numberOfLimitedStatuses) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUnblock(User source, User unblockedUser) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListCreation(User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListDeletion(User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserListUpdate(User listOwner, UserList list) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean onUserProfileUpdate(User updatedUser) {
 		User cachedUser = cacheManager.getCachedUser(updatedUser.getId());

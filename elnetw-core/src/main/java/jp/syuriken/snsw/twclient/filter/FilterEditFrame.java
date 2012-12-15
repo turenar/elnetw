@@ -15,24 +15,24 @@ import org.slf4j.LoggerFactory;
 
 /**
  * フィルタを編集するためのフレーム
- * 
+ *
  * @author $Author$
  */
 @SuppressWarnings("serial")
 public class FilterEditFrame extends JFrame implements WindowListener {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(FilterEditFrame.class);
-	
+
 	private String propertyKey;
-	
+
 	private ClientProperties properties;
-	
+
 	private JTextArea filterEditTextArea;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param displayString 表示名
 	 * @param propertyKey プロパティキー
 	 */
@@ -42,11 +42,11 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		properties = ClientConfiguration.getInstance().getConfigProperties();
 		initComponents(displayString);
 	}
-	
+
 	private JTextArea getComponentFilterEditTextArea() {
 		if (filterEditTextArea == null) {
 			filterEditTextArea = new JTextArea();
-			
+
 			String filterQuery = properties.getProperty(propertyKey);
 			if (filterQuery != null) {
 				FilterCompiler filterCompiler = new FilterCompiler(filterQuery);
@@ -101,7 +101,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		}
 		return filterEditTextArea;
 	}
-	
+
 	private void initComponents(String displayString) {
 		GroupLayout layout = new GroupLayout(this);
 		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(getComponentFilterEditTextArea()));
@@ -111,15 +111,15 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		pack();
 		setSize(400, 400);
 	}
-	
+
 	@Override
 	public void windowActivated(WindowEvent e) {
 	}
-	
+
 	@Override
 	public void windowClosed(WindowEvent e) {
 	}
-	
+
 	@Override
 	public void windowClosing(WindowEvent e) {
 		FilterCompiler filterCompiler = new FilterCompiler(getComponentFilterEditTextArea().getText());
@@ -139,19 +139,19 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 			logger.error("保存中にエラー: 正しくない文法のクエリです", ex);
 		}
 	}
-	
+
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 	}
-	
+
 	@Override
 	public void windowDeiconified(WindowEvent e) {
 	}
-	
+
 	@Override
 	public void windowIconified(WindowEvent e) {
 	}
-	
+
 	@Override
 	public void windowOpened(WindowEvent e) {
 	}

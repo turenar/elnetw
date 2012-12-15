@@ -10,15 +10,15 @@ import twitter4j.Status;
 
 /**
  * どれかマッチすることを確認するフィルタ関数
- * 
+ *
  * @author $Author$
  */
 public class NotFilterFunction implements FilterFunction {
-	
+
 	private static Constructor<NotFilterFunction> constructor;
-	
+
 	private final FilterDispatcherBase child;
-	
+
 	static {
 		try {
 			constructor = NotFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
@@ -26,20 +26,20 @@ public class NotFilterFunction implements FilterFunction {
 			throw new AssertionError(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * コンストラクタを取得する。
-	 * 
+	 *
 	 * @return コンストラクタ
 	 */
 	public static Constructor<NotFilterFunction> getFactory() {
 		return constructor;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param functionName 関数名
 	 * @param child 子要素の配列
 	 * @throws IllegalSyntaxException エラー
@@ -51,12 +51,12 @@ public class NotFilterFunction implements FilterFunction {
 		}
 		this.child = child[0];
 	}
-	
+
 	@Override
 	public boolean filter(DirectMessage directMessage) {
 		return child.filter(directMessage) == false;
 	}
-	
+
 	@Override
 	public boolean filter(Status status) {
 		return child.filter(status) == false;

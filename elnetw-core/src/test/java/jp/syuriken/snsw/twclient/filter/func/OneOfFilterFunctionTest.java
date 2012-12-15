@@ -10,18 +10,18 @@ import org.junit.Test;
 
 /**
  * {@link OneOfFilterFunction}のためのテスト
- * 
+ *
  * @author $Author$
  */
 public class OneOfFilterFunctionTest extends FilterConstants {
-	
+
 	private OneOfFilterFunction get(boolean... bools) throws IllegalSyntaxException {
 		return new OneOfFilterFunction("exactly_one_of", getDispatchers(bools));
 	}
-	
+
 	/**
 	 * コンストラクタのテスト
-	 * 
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -39,7 +39,7 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 			throw ex;
 		}
 	}
-	
+
 	/**
 	 * {@link OneOfFilterFunction#filter(twitter4j.DirectMessage)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -57,7 +57,7 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 		assertTrue(get(true, false, false, false, false, false, false, false, false, false).filter(DM_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(DM_1));
 	}
-	
+
 	/**
 	 * {@link OneOfFilterFunction#filter(twitter4j.Status)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -75,5 +75,5 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 		assertTrue(get(true, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 	}
-	
+
 }

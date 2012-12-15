@@ -14,22 +14,22 @@ import twitter4j.TwitterException;
 
 /**
  * ふぁぼる
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class FavoriteActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		JMenuItem favMenuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
 		return favMenuItem;
 	}
-	
+
 	@Override
 	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			api.addJob(new ParallelRunnable() {
-				
+
 				@Override
 				public void run() {
 					Status status = (Status) statusData.tag;
@@ -61,7 +61,7 @@ public class FavoriteActionHandler implements ActionHandler {
 			});
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {

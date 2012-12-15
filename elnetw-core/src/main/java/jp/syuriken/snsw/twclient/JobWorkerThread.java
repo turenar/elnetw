@@ -9,38 +9,38 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ジョブワーカースレッド。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 /*package*/class JobWorkerThread extends Thread {
-	
+
 	protected volatile boolean isCanceled = false;
-	
+
 	private final Object threadHolder;
-	
+
 	private final JobQueue jobQueue;
-	
+
 	private ArrayList<JobWorkerThread> childThreads;
-	
+
 	private final ConcurrentLinkedQueue<Runnable> serializeQueue;
-	
+
 	private static final AtomicInteger threadNumber = new AtomicInteger();
-	
+
 	private final int jobPerWorker;
-	
+
 	private final int threadsCount;
-	
+
 	private final boolean isParent;
-	
+
 	private final JobWorkerThread parent;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
-	
-	
+
+
 	public JobWorkerThread(JobQueue jobQueue, ClientConfiguration configuration) {
 		this(jobQueue, null, new Object(), configuration);
 	}
-	
+
 	private JobWorkerThread(JobQueue jobQueue, JobWorkerThread parent, Object threadHolder,
 			ClientConfiguration configuration) {
 		super("jobworker-" + threadNumber.getAndIncrement());
@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 		this.threadHolder = threadHolder;
 		this.jobQueue = jobQueue;
 		isParent = parent == null;
-		
+
 		if (isParent) {
 			ClientProperties properties = configuration.getConfigProperties();
 			threadsCount = properties.getInteger("core.jobqueue.threads");
@@ -61,25 +61,25 @@ import org.slf4j.LoggerFactory;
 			jobPerWorker = parent.jobPerWorker;
 			serializeQueue = parent.serializeQueue;
 		}
-		
+
 	}
-	
+
 	public void cleanUp() {
 		jobQueue.setJobWorkerThread(null);
 		isCanceled = true;
 	}
-	
+
 	private void onExitChildThread(JobWorkerThread jobWorkerThread) {
 		synchronized (childThreads) {
 			childThreads.remove(jobWorkerThread);
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		if (isParent) {
 			jobQueue.setJobWorkerThread(threadHolder);
-			
+
 			// 設定された数だけワーカーを追加
 			for (int i = 1; i < threadsCount; i++) {
 				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder, null);
@@ -89,7 +89,7 @@ import org.slf4j.LoggerFactory;
 				workerThread.start();
 			}
 		}
-		
+
 		while (isCanceled == false) {
 			Runnable job = null;
 			if (isParent) { // check serializeQueue

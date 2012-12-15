@@ -26,29 +26,29 @@ import org.slf4j.LoggerFactory;
 
 /**
  * バージョン情報を表示するクラス。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class VersionInfoFrame extends JFrame {
-	
+
 	/**
 	 * ライブラリ情報を格納するクラス
-	 * 
+	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class LibraryInfo {
-		
+
 		/** ライブラリ名 */
 		protected String name;
-		
+
 		/** ライブラリ情報。ライセンスなど */
 		protected String info;
-		
-		
+
+
 		/**
 		 * インスタンスを生成する。
-		 * 
+		 *
 		 * @param name ライブラリ名
 		 * @param info ライブラリ情報
 		 */
@@ -56,37 +56,37 @@ public class VersionInfoFrame extends JFrame {
 			this.name = name;
 			this.info = info;
 		}
-		
+
 		/**
 		 * ライブラリ情報を取得する。
-		 * 
+		 *
 		 * @return ライセンスなど
 		 */
 		public String getInfo() {
 			return info;
 		}
-		
+
 		/**
 		 * ライブラリ名を取得する
-		 * 
+		 *
 		 * @return ライブラリ名。
 		 */
 		public String getName() {
 			return name;
 		}
 	}
-	
-	
+
+
 	/**
 	 * ライブラリ情報を追加する。
-	 * 
+	 *
 	 * @param libraryInfo ライブラリ情報
 	 * @return 追加されたかどうか。
 	 */
 	public static boolean addLibraryInfo(LibraryInfo libraryInfo) {
 		return libraryInfoList.add(libraryInfo);
 	}
-	
+
 	private static final String getData(String resourceName) {
 		BufferedReader bufferedReader = null;
 		try {
@@ -116,22 +116,22 @@ public class VersionInfoFrame extends JFrame {
 			}
 		}
 	}
-	
-	
+
+
 	private JSplitPane splitPane;
-	
+
 	private JScrollPane libraryListScrollPane;
-	
+
 	private JScrollPane infoTextScrollPane;
-	
+
 	private JTextArea infoTextPane;
-	
+
 	private JList libraryList;
-	
+
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
-	
+
 	private static List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
-	
+
 	static {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("elnetw (エルナト): version");
@@ -142,7 +142,7 @@ public class VersionInfoFrame extends JFrame {
 		stringBuilder.append("\n\nThis software included library:\n - twitter4j (");
 		stringBuilder.append(twitter4j.Version.getVersion());
 		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
-		
+
 		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
 		addLibraryInfo(new LibraryInfo("elnetw", getData("elnetw.txt")));
 		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
@@ -151,16 +151,16 @@ public class VersionInfoFrame extends JFrame {
 		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
 		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
 	}
-	
-	
+
+
 	/**
 	 * インスタンスを生成する
-	 * 
+	 *
 	 */
 	public VersionInfoFrame() {
 		initComponents();
 	}
-	
+
 	private JTextComponent getInfoTextPane() {
 		if (infoTextPane == null) {
 			infoTextPane = new JTextArea();
@@ -171,7 +171,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 		return infoTextPane;
 	}
-	
+
 	private JScrollPane getInfoTextScrollPane() {
 		if (infoTextScrollPane == null) {
 			infoTextScrollPane = new JScrollPane();
@@ -182,7 +182,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 		return infoTextScrollPane;
 	}
-	
+
 	private JList getLibraryList() {
 		if (libraryList == null) {
 			libraryList = new JList();
@@ -192,7 +192,7 @@ public class VersionInfoFrame extends JFrame {
 			}
 			libraryList.setModel(defaultListModel);
 			libraryList.addListSelectionListener(new ListSelectionListener() {
-				
+
 				@Override
 				public void valueChanged(ListSelectionEvent e) {
 					updateLibraryInfo(e);
@@ -201,7 +201,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 		return libraryList;
 	}
-	
+
 	private JScrollPane getLibraryListScrollPane() {
 		if (libraryListScrollPane == null) {
 			libraryListScrollPane = new JScrollPane();
@@ -209,7 +209,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 		return libraryListScrollPane;
 	}
-	
+
 	private JSplitPane getSplitPane() {
 		if (splitPane == null) {
 			splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -218,7 +218,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 		return splitPane;
 	}
-	
+
 	private void initComponents() {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		add(getSplitPane());
@@ -226,10 +226,10 @@ public class VersionInfoFrame extends JFrame {
 		setSize(600, 450);
 		getSplitPane().setDividerLocation(150);
 	}
-	
+
 	/**
 	 * 右側を更新する
-	 * 
+	 *
 	 * @param e イベント (ignore)
 	 */
 	protected void updateLibraryInfo(ListSelectionEvent e) {

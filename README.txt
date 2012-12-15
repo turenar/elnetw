@@ -17,8 +17,8 @@ Twitter Client for 'HITOBASHIRA'
 
 	あると幸せになれるかも:
 		* 高速なインターネット
-		* notify-sendコマンド (ubuntuではlibnotify-binパッケージ) 
-	
+		* notify-sendコマンド (ubuntuではlibnotify-binパッケージ)
+
 インストール・アンインストール
 
 	インストールは、ダウンロードしたファイルを展開することにより

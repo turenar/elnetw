@@ -10,18 +10,18 @@ import org.junit.Test;
 
 /**
  * {@link OrFilterFunction}のためのテスト
- * 
+ *
  * @author $Author$
  */
 public class OrFilterFunctionTest extends FilterConstants {
-	
+
 	private OrFilterFunction get(boolean... bools) throws IllegalSyntaxException {
 		return new OrFilterFunction("and", getDispatchers(bools));
 	}
-	
+
 	/**
 	 * コンストラクタのテスト
-	 * 
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -39,7 +39,7 @@ public class OrFilterFunctionTest extends FilterConstants {
 			throw ex;
 		}
 	}
-	
+
 	/**
 	 * {@link OrFilterFunction#filter(twitter4j.DirectMessage)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -57,7 +57,7 @@ public class OrFilterFunctionTest extends FilterConstants {
 		assertTrue(get(true, false, false, false, false, false, false, false, false, false).filter(DM_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(DM_1));
 	}
-	
+
 	/**
 	 * {@link OrFilterFunction#filter(twitter4j.Status)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -75,5 +75,5 @@ public class OrFilterFunctionTest extends FilterConstants {
 		assertTrue(get(true, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 	}
-	
+
 }

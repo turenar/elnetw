@@ -10,26 +10,26 @@ import twitter4j.Status;
 
 /**
  * RTを対象にするクラス。
- * 
+ *
  * @author $Author$
  */
 public class InRetweetFilterFunction implements FilterFunction {
-	
+
 	private static Constructor<InRetweetFilterFunction> constructor;
-	
-	
+
+
 	/**
 	 * ファクトリーメソッドを取得する。
-	 * 
+	 *
 	 * @return コンストラクタ
 	 */
 	public static Constructor<? extends FilterFunction> getFactory() {
 		return constructor;
 	}
-	
-	
+
+
 	private FilterDispatcherBase child;
-	
+
 	static {
 		try {
 			constructor = InRetweetFilterFunction.class.getConstructor(String.class, FilterDispatcherBase[].class);
@@ -37,11 +37,11 @@ public class InRetweetFilterFunction implements FilterFunction {
 			throw new AssertionError(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param name 関数名
 	 * @param child 子要素
 	 * @throws IllegalSyntaxException エラー
@@ -52,15 +52,15 @@ public class InRetweetFilterFunction implements FilterFunction {
 		}
 		this.child = child[0];
 	}
-	
+
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return child.filter(directMessage); // DM is not supported retweet 
+		return child.filter(directMessage); // DM is not supported retweet
 	}
-	
+
 	@Override
 	public boolean filter(Status status) {
 		return child.filter(status.isRetweet() ? status.getRetweetedStatus() : status);
 	}
-	
+
 }

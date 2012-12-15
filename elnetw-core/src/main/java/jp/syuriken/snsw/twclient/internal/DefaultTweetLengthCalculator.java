@@ -10,20 +10,20 @@ import com.twitter.Regex;
 
 /**
  * デフォルトのツイートの長さを計算するクラス。URL変換を行った上での長さを計算する。
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
-	
+
 	private final TweetLengthUpdater updater;
-	
+
 	/** URLパターン */
 	public static Pattern urlPattern = Regex.VALID_URL;
-	
-	
+
+
 	/**
 	 * ツイートの長さを取得する。URL変換を行う。
-	 * 
+	 *
 	 * @param original オリジナルテキスト
 	 * @return これぐらいの長さになりそうという長さ
 	 */
@@ -38,16 +38,16 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 		}
 		return length;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param updater 操作API
 	 */
 	public DefaultTweetLengthCalculator(TweetLengthUpdater updater) {
 		this.updater = updater;
 	}
-	
+
 	@Override
 	public void calcTweetLength(String original) {
 		int length = getTweetLength(original);
@@ -61,10 +61,10 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 		}
 		updater.updatePostLength(String.valueOf(length), color, null);
 	}
-	
+
 	@Override
 	public String getShortenedText(String original) {
 		return original;
 	}
-	
+
 }

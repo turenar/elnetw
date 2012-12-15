@@ -25,19 +25,19 @@ import twitter4j.User;
 
 /**
  * ミュートするオプションを提供するアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class MuteActionHandler implements ActionHandler {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(MuteActionHandler.class);
-	
-	
+
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return new JMenuItem("ミュートに追加する");
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
@@ -59,7 +59,7 @@ public class MuteActionHandler implements ActionHandler {
 				JDialog dialog = pane.createDialog(null, "確認");
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				pane.addPropertyChangeListener(new PropertyChangeListener() {
-					
+
 					@Override
 					public void propertyChange(PropertyChangeEvent evt) {
 						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
@@ -73,13 +73,13 @@ public class MuteActionHandler implements ActionHandler {
 							}
 						}
 					}
-					
+
 				});
 				dialog.setVisible(true);
 			}
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
@@ -88,9 +88,9 @@ public class MuteActionHandler implements ActionHandler {
 				status = status.getRetweetedStatus();
 			}
 			User user = status.getUser();
-			
+
 			boolean isTweetedByMe = user.getId() == api.getLoginUser().getId();
-			
+
 			String idsString = api.getClientConfiguration().getConfigProperties().getProperty("core.filter.user.ids");
 			String[] ids = idsString.split(" ");
 			String userIdString = String.valueOf(user.getId());
@@ -111,5 +111,5 @@ public class MuteActionHandler implements ActionHandler {
 			menuItem.setEnabled(false);
 		}
 	}
-	
+
 }

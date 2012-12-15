@@ -25,24 +25,24 @@ import twitter4j.json.DataObjectFactory;
 
 /**
  * TwitterStatusのためのテスト
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TwitterStatusTest {
-	
+
 	/*package*/static class TestObj {
-		
+
 		/*package*/String json;
-		
+
 		/*package*/List<String> entity = new ArrayList<String>();
-		
+
 		public Object text;
 	}
-	
-	
+
+
 	private static ArrayList<TestObj> tests;
-	
-	
+
+
 	/**
 	 * クラス初期化
 	 */
@@ -78,7 +78,7 @@ public class TwitterStatusTest {
 			tests.add(nowObj);
 		}
 	}
-	
+
 	private String getEntityText(String text, Object entity) {
 		if (entity instanceof URLEntity) {
 			URLEntity urlEntity = (URLEntity) entity;
@@ -92,17 +92,17 @@ public class TwitterStatusTest {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * {@link TwitterStatus#TwitterStatus(ClientConfiguration, Status)} のためのテスト・メソッド。
 	 * @throws TwitterException json例外
 	 * @throws IOException IO例外
-	 * @throws UnsupportedEncodingException UTF-8がサポートされていない 
+	 * @throws UnsupportedEncodingException UTF-8がサポートされていない
 	 */
 	@Test
 	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
 		ClientConfiguration configuration = new ClientConfiguration(true) {
-			
+
 			@Override
 			public Twitter getTwitterForRead() {
 				return null;
@@ -120,7 +120,7 @@ public class TwitterStatusTest {
 				status = status.getRetweetedStatus();
 			}
 			assertEquals(test.text, status.getText());
-			
+
 			int i = 0;
 			Object[] entities;
 			entities = status.getHashtagEntities();

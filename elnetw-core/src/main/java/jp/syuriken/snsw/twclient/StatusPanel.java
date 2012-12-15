@@ -6,18 +6,18 @@ import javax.swing.JPanel;
 
 /**
  * StatusDataを格納するだけのなんちゃら
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
-	
+
 	private final StatusData statusData;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param layout レイアウトマネージャ
 	 * @param statusData 元になる {@link StatusData}
 	 */
@@ -25,17 +25,17 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 		super(layout);
 		this.statusData = statusData;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param statusData 元になる {@link StatusData}
 	 */
 	public StatusPanel(StatusData statusData) {
 		super();
 		this.statusData = statusData;
 	}
-	
+
 	/**
 	 * 元になる情報が作成された日時で比較する。同じ場合はidを比較する。
 	 */
@@ -47,14 +47,14 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * statusData
-	 * 
+	 *
 	 * @return the statusData
 	 */
 	public StatusData getStatusData() {
 		return statusData;
 	}
-	
+
 }

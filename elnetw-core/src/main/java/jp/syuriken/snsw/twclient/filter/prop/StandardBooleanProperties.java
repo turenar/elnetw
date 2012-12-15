@@ -13,33 +13,33 @@ import twitter4j.Status;
 
 /**
  * 標準装備されたbool値を比較するプロパティ
- * 
+ *
  * @author $Author$
  */
 public class StandardBooleanProperties implements FilterProperty {
-	
+
 	private static Constructor<? extends FilterProperty> factory;
-	
+
 	private static final byte PROPERTY_ID_RETWEETED = 1;
-	
+
 	private static final byte PROPERTY_ID_MINE = 2;
-	
+
 	private static final byte PROPERTY_ID_PROTECTED = 3;
-	
+
 	private static final byte PROPERTY_ID_VERIFIED = 4;
-	
+
 	private static final byte PROPERTY_ID_DM = 5;
-	
+
 	private static final byte PROPERTY_ID_STATUS = 6;
-	
+
 	private final FilterOperator operatorType;
-	
+
 	private final boolean value;
-	
+
 	private final byte propertyId;
-	
+
 	private final ClientConfiguration configuration;
-	
+
 	static {
 		try {
 			factory = StandardBooleanProperties.class.getConstructor(String.class, String.class, String.class);
@@ -47,8 +47,8 @@ public class StandardBooleanProperties implements FilterProperty {
 			throw new AssertionError(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * コンストラクターを取得する
 	 * @return ファクトリー
@@ -56,10 +56,10 @@ public class StandardBooleanProperties implements FilterProperty {
 	public static Constructor<? extends FilterProperty> getFactory() {
 		return factory;
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
@@ -109,7 +109,7 @@ public class StandardBooleanProperties implements FilterProperty {
 			this.value = false; // init because this field is final
 		}
 	}
-	
+
 	@Override
 	public boolean filter(DirectMessage directMessage) {
 		boolean target;
@@ -133,7 +133,7 @@ public class StandardBooleanProperties implements FilterProperty {
 		}
 		return operatorType.compare(target, value);
 	}
-	
+
 	@Override
 	public boolean filter(Status status) {
 		boolean target;

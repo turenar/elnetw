@@ -21,14 +21,14 @@ import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ダイレクトメッセージを表示するタブ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class DirectMessageViewTab extends DefaultClientTab {
-	
+
 	private static final String TAB_ID = "directmessage";
-	
-	
+
+
 	private static void nl2br(StringBuffer stringBuffer) {
 		int start = stringBuffer.length();
 		int offset = start;
@@ -48,14 +48,14 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			offset = position + 9;
 		}
 	}
-	
-	
+
+
 	private DefaultRenderer renderer = new DefaultRenderer() {
-		
+
 		@Override
 		public void onDirectMessage(twitter4j.DirectMessage directMessage) {
 			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
-			
+
 			if (configData.mentionIdStrictMatch) {
 				if (directMessage.getSenderId() == frameApi.getLoginUser().getId()) {
 					statusData.foregroundColor = Color.BLUE;
@@ -65,13 +65,13 @@ public class DirectMessageViewTab extends DefaultClientTab {
 					statusData.foregroundColor = Color.BLUE;
 				}
 			}
-			
+
 			User user = directMessage.getSender();
 			JLabel icon = new JLabel();
 			imageCacher.setImageIcon(icon, user);
 			icon.setHorizontalAlignment(JLabel.CENTER);
 			statusData.image = icon;
-			
+
 			String screenName = user.getScreenName();
 			statusData.user = screenName;
 			if (screenName.length() > 11) {
@@ -80,38 +80,38 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			JLabel sentBy = new JLabel(screenName);
 			sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
 			statusData.sentBy = sentBy;
-			
+
 			JLabel statusText =
 					new JLabel("(to @" + directMessage.getRecipientScreenName() + ") " + directMessage.getText());
 			statusData.data = statusText;
 			statusData.popupMenu = tweetPopupMenu;
 			addStatus(statusData);
 		}
-		
+
 		@Override
 		public void onStatus(twitter4j.Status originalStatus) {
 			// do nothing
 		}
 	};
-	
+
 	private boolean focusGained;
-	
+
 	private boolean isDirty;
-	
-	
+
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
 	public DirectMessageViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
 		super(configuration);
 	}
-	
+
 	/**
 	 * インスタンスを生成する。
-	 * 
+	 *
 	 * @param configuration 設定
 	 * @param data 保存されたデータ
 	 * @throws JSONException JSON例外
@@ -121,7 +121,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			IllegalSyntaxException {
 		super(configuration, data);
 	}
-	
+
 	@Override
 	public StatusPanel addStatus(StatusData statusData) {
 		if (focusGained == false && isDirty == false) {
@@ -130,14 +130,14 @@ public class DirectMessageViewTab extends DefaultClientTab {
 		}
 		return super.addStatus(statusData);
 	}
-	
+
 	@Override
 	public void focusGained() {
 		focusGained = true;
 		isDirty = false;
 		configuration.refreshTab(this);
 	}
-	
+
 	@Override
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
@@ -146,14 +146,14 @@ public class DirectMessageViewTab extends DefaultClientTab {
 		selectingPost = (StatusPanel) e.getComponent();
 		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
 				frameApi.getConfigData().colorOfFocusList));
-		
+
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof DirectMessage) {
 			DirectMessage directMessage = (DirectMessage) statusData.tag;
 			String text = directMessage.getText();
 			StringBuffer oldBuffer = new StringBuffer();
 			StringBuffer newBuffer = new StringBuffer(text.length());
-			
+
 			{
 				Matcher urlMatcher = Regex.VALID_URL.matcher(text);
 				while (urlMatcher.find()) {
@@ -200,7 +200,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				}
 				userMatcher.appendTail(newBuffer);
 			}
-			
+
 			nl2br(newBuffer);
 			String tweetText = newBuffer.toString();
 			String createdBy =
@@ -218,37 +218,37 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			//throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
 		}
 	}
-	
+
 	@Override
 	public void focusLost() {
 		focusGained = false;
 	}
-	
+
 	@Override
 	public DefaultRenderer getActualRenderer() {
 		return renderer;
 	}
-	
+
 	@Override
 	public Icon getIcon() {
 		return null; // TODO
 	}
-	
+
 	@Override
 	protected Object getSerializedExtendedData() {
 		return JSONObject.NULL;
 	}
-	
+
 	@Override
 	public String getTabId() {
 		return TAB_ID;
 	}
-	
+
 	@Override
 	public String getTitle() {
 		return isDirty ? "DM*" : "DM";
 	}
-	
+
 	@Override
 	public String getToolTip() {
 		return "DirectMessages";

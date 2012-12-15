@@ -14,28 +14,28 @@ import twitter4j.Status;
 
 /**
  * UserFilterのためのTest
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class UserFilterTest {
-	
+
 	private static final class MyClientConfiguration extends ClientConfiguration {
-		
+
 		/*package*/MyClientConfiguration() {
 			super(false);
 		}
 	}
-	
-	
+
+
 	private static final String PROPERTY_FILTER_ID_NAME = "core.filter.user.ids";
-	
+
 	private static ClientConfiguration configuration;
-	
+
 	private static UserFilter userFilter;
-	
+
 	private ClientProperties properties;
-	
-	
+
+
 	/**
 	 * テスト前の準備
 	 */
@@ -48,7 +48,7 @@ public class UserFilterTest {
 		configuration.setConfigProperties(properties);
 		userFilter = new UserFilter(configuration);
 	}
-	
+
 	/**
 	 * 正しくないフィルタIDを指定した時のテスト・メソッド
 	 */
@@ -56,13 +56,13 @@ public class UserFilterTest {
 	public void testIllegalFilterIds() {
 		UserFilter userFilter = new UserFilter(configuration);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
-		
+
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "a 1");
 		userFilter = new UserFilter(configuration);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
 		assertNull(userFilter.onStatus(new TestStatus(1, null, -1)));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onDeletionNotice(long, long)} のためのテスト・メソッド。
 	 */
@@ -71,7 +71,7 @@ public class UserFilterTest {
 		assertFalse(userFilter.onDeletionNotice(0, 0));
 		assertTrue(userFilter.onDeletionNotice(0, 1));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onDeletionNotice(twitter4j.StatusDeletionNotice)} のためのテスト・メソッド。
 	 */
@@ -80,7 +80,7 @@ public class UserFilterTest {
 		assertNotNull(userFilter.onDeletionNotice(new TestNotice(0)));
 		assertNull(userFilter.onDeletionNotice(new TestNotice(1)));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onDirectMessage(twitter4j.DirectMessage)} のためのテスト・メソッド。
 	 */
@@ -90,7 +90,7 @@ public class UserFilterTest {
 		assertNull(userFilter.onDirectMessage(new TestMessage(0, 1)));
 		assertNull(userFilter.onDirectMessage(new TestMessage(1, 0)));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onFavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。
 	 */
@@ -117,7 +117,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onFavorite(new TestUser(0), new TestUser(1), status));
 		}
 	}
-	
+
 	/**
 	 * {@link UserFilter#onFollow(twitter4j.User, twitter4j.User)} のためのテスト・メソッド。
 	 */
@@ -127,7 +127,7 @@ public class UserFilterTest {
 		assertTrue(userFilter.onFollow(new TestUser(1), new TestUser(0)));
 		assertTrue(userFilter.onFollow(new TestUser(0), new TestUser(1)));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onRetweet(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。
 	 */
@@ -154,7 +154,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onRetweet(new TestUser(0), new TestUser(1), status));
 		}
 	}
-	
+
 	/**
 	 * {@link UserFilter#onStatus(twitter4j.Status)} のためのテスト・メソッド。
 	 */
@@ -170,7 +170,7 @@ public class UserFilterTest {
 		assertNull(userFilter.onStatus(new TestStatus(0, new TestStatus(1, null, 1), -1)));
 		assertNull(userFilter.onStatus(new TestStatus(0, null, 1)));
 	}
-	
+
 	/**
 	 * {@link UserFilter#onUnfavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。
 	 */
@@ -197,5 +197,5 @@ public class UserFilterTest {
 			assertTrue(userFilter.onUnfavorite(new TestUser(0), new TestUser(1), status));
 		}
 	}
-	
+
 }

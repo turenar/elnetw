@@ -21,17 +21,17 @@ import twitter4j.TwitterException;
 
 /**
  * ツイートを削除するためのアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class RemoveTweetActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		JMenuItem deleteMenuItem = new JMenuItem("削除(D)...", KeyEvent.VK_D);
 		return deleteMenuItem;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
@@ -49,13 +49,13 @@ public class RemoveTweetActionHandler implements ActionHandler {
 				JDialog dialog = pane.createDialog(null, "確認");
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				pane.addPropertyChangeListener(new PropertyChangeListener() {
-					
+
 					@Override
 					public void propertyChange(PropertyChangeEvent evt) {
 						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 							if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
 								api.addJob(new ParallelRunnable() {
-									
+
 									@Override
 									public void run() {
 										try {
@@ -69,13 +69,13 @@ public class RemoveTweetActionHandler implements ActionHandler {
 							}
 						}
 					}
-					
+
 				});
 				dialog.setVisible(true);
 			}
 		}
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {

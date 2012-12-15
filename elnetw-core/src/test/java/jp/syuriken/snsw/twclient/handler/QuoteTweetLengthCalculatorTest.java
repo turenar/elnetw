@@ -12,34 +12,34 @@ import org.junit.Test;
 
 /**
  * {@link QuoteTweetLengthCalculator}のためのテスト
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class QuoteTweetLengthCalculatorTest {
-	
+
 	private class TestTweetLengthUpdater extends TweetLengthUpdaterImpl {
-		
+
 		@Override
 		public void updatePostLength(String length, Color color, String tooltip) {
 			lastLengthString = length;
 		}
 	}
-	
-	
+
+
 	private static final String URL1 = "http://example.com/?test="; // 20char
-	
+
 	private static final String HASHTAG1 = "#aaaaaaaaa"; // 10char
-	
+
 	private static final String HASHTAG2 = "＃aaaaaaaaa"; // 10char
-	
+
 	private static final String MENTION1 = "@aaaaaaaaa"; // 10char
-	
+
 	private static final String MENTION2 = "＠aaaaaaaaa"; // 10char
-	
+
 	/** 長さ10のQTヘッダ */
 	private static final String QT_10LEN = " QT @aaaa:"; // 10char
-	
-	
+
+
 	private static final String getString(int width) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < width; i++) {
@@ -47,16 +47,16 @@ public class QuoteTweetLengthCalculatorTest {
 		}
 		return stringBuilder.toString();
 	}
-	
-	
+
+
 	private String lastLengthString;
-	
-	
+
+
 	private String calcTweetLength(TweetLengthCalculator calculator, String str) {
 		calculator.calcTweetLength(str);
 		return lastLengthString;
 	}
-	
+
 	/**
 	 * {@link QuoteTweetLengthCalculator#calcTweetLength(java.lang.String)} のためのテスト・メソッド。
 	 */
@@ -84,7 +84,7 @@ public class QuoteTweetLengthCalculatorTest {
 		assertEquals("140", calcTweetLength(calculator, QT_10LEN + URL1 + " " + MENTION2 + " " + getString(98)));
 		assertEquals("10+", calcTweetLength(calculator, QT_10LEN + URL1 + " " + MENTION2 + " " + getString(99)));
 	}
-	
+
 	/**
 	 * {@link QuoteTweetLengthCalculator#getShortenedText(java.lang.String)} のためのテスト・メソッド。
 	 */
@@ -123,9 +123,9 @@ public class QuoteTweetLengthCalculatorTest {
 				calculator.getShortenedText(QT_10LEN + URL1 + " " + getString(98) + " " + MENTION2));
 		assertEquals(QT_10LEN + URL1 + " " + getString(99) + " ",
 				calculator.getShortenedText(QT_10LEN + URL1 + " " + getString(99) + " " + MENTION2));
-		
+
 	}
-	
+
 	/**
 	 * テストに用いる文字列の長さが正しいかどうかをテストする
 	 */

@@ -10,18 +10,18 @@ import org.junit.Test;
 
 /**
  * {@link AndFilterFunction}のためのテスト
- * 
+ *
  * @author $Author$
  */
 public class AndFilterFunctionTest extends FilterConstants {
-	
+
 	private AndFilterFunction get(boolean... bools) throws IllegalSyntaxException {
 		return new AndFilterFunction("and", getDispatchers(bools));
 	}
-	
+
 	/**
 	 * コンストラクタのテスト
-	 * 
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -39,7 +39,7 @@ public class AndFilterFunctionTest extends FilterConstants {
 			throw ex;
 		}
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.func.AndFilterFunction#filter(twitter4j.DirectMessage)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -57,7 +57,7 @@ public class AndFilterFunctionTest extends FilterConstants {
 		assertFalse(get(true, false, false, false, false, false, false, false, false, false).filter(DM_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(DM_1));
 	}
-	
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.func.AndFilterFunction#filter(twitter4j.Status)} のためのテスト・メソッド。
 	 * @throws IllegalSyntaxException エラー
@@ -75,5 +75,5 @@ public class AndFilterFunctionTest extends FilterConstants {
 		assertFalse(get(true, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 	}
-	
+
 }

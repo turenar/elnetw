@@ -8,16 +8,16 @@ import jp.syuriken.snsw.twclient.StatusData;
 
 /**
  * ハッシュタグを処理するアクションハンドラ
- * 
+ *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class HashtagActionHandler implements ActionHandler {
-	
+
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
 		return null;
 	}
-	
+
 	@Override
 	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
 		if (actionName.contains("!") == false) {
@@ -26,9 +26,9 @@ public class HashtagActionHandler implements ActionHandler {
 		String hashtag = actionName.substring(actionName.indexOf('!') + 1);
 		api.handleAction("search!%23" + hashtag, statusData); //TODO
 	}
-	
+
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
 	}
-	
+
 }

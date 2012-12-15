@@ -8,7 +8,7 @@ import jp.syuriken.snsw.twclient.Utility;
 
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
- * 
+ *
  * @author $Author$
  */
 public enum FilterOperator {
@@ -28,10 +28,10 @@ public enum FilterOperator {
 	IS,
 	/** bool演算子 ==false */
 	IS_NOT;
-	
+
 	/**
 	 * bool値扱う演算子 (文字列) をFilterOperatorに変換する
-	 * 
+	 *
 	 * @param operator 演算子文字列
 	 * @return 演算子
 	 */
@@ -59,10 +59,10 @@ public enum FilterOperator {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 数値を扱う演算子 (文字列) をFilterOperatorに変換する。
-	 * 
+	 *
 	 * @param operator 演算子文字列
 	 * @return 演算子
 	 */
@@ -92,10 +92,10 @@ public enum FilterOperator {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 文字列を扱う演算子をFilterOperatorに変換する
-	 * 
+	 *
 	 * @param operator string演算子文字列
 	 * @return 演算子
 	 */
@@ -117,10 +117,10 @@ public enum FilterOperator {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 値を使いやすいように変換する
-	 * 
+	 *
 	 * @param value 値
 	 * @return {@link #compare(String, Object)} に渡すことのできるObject
 	 * @throws IllegalSyntaxException ぬるぽ→ガッ
@@ -135,17 +135,17 @@ public enum FilterOperator {
 			return value;
 		}
 	}
-	
+
 	private FilterOperator() {
 	}
-	
+
 	/**
 	 * boolを比較する。
-	 * 
+	 *
 	 * @param target 比較される側
 	 * @param value 比較する側
 	 * @return 演算子が成り立つときはtrue、それ以外はfalse
-	 * @throws RuntimeException boolでは対応していない演算子 
+	 * @throws RuntimeException boolでは対応していない演算子
 	 */
 	public boolean compare(boolean target, boolean value) throws RuntimeException {
 		switch (this) {
@@ -161,10 +161,10 @@ public enum FilterOperator {
 				throw new RuntimeException("boolでは対応していない演算子です");
 		}
 	}
-	
+
 	/**
 	 * intを比較する。
-	 * 
+	 *
 	 * @param a 被比較数値
 	 * @param b 比較数値
 	 * @return 演算子が成り立つときはtrue、それ以外はfalse
@@ -187,12 +187,12 @@ public enum FilterOperator {
 			default:
 				throw new RuntimeException("longの比較では対応していない演算子です");
 		}
-		
+
 	}
-	
+
 	/**
 	 * stringを比較する。
-	 * 
+	 *
 	 * @param target 被比較値
 	 * @param value 比較値
 	 * @return 演算子が成り立つときはtrue、それ以外はfalse
@@ -228,10 +228,10 @@ public enum FilterOperator {
 			throw new RuntimeException("stringの比較では対応していない演算子です");
 		}
 	}
-	
+
 	/**
 	 * 真偽値 (文字列) をbooleanに変換する
-	 * 
+	 *
 	 * @param propName プロパティ名
 	 * @param value 値
 	 * @return valueを変換した真偽値、あるいはvalueを必要としない場合false
