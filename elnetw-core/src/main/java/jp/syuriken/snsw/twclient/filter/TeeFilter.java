@@ -21,7 +21,7 @@ import twitter4j.UserList;
 /**
  * 入力 → {@link FilterDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TeeFilter implements TabRenderer, PropertyChangeListener {
 

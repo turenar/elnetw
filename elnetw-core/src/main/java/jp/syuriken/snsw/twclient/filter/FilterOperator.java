@@ -9,7 +9,7 @@ import jp.syuriken.snsw.twclient.Utility;
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public enum FilterOperator {
 	/** 比較演算子 == */

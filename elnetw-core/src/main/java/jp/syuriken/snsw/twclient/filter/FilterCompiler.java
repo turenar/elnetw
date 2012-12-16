@@ -18,7 +18,7 @@ import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
 /**
  * フィルタをコンパイルするクラス。
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class FilterCompiler {
 

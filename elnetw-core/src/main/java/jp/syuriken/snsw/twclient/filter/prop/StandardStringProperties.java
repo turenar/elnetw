@@ -12,7 +12,7 @@ import twitter4j.Status;
 /**
  * 標準装備されたbool値を比較するプロパティ
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class StandardStringProperties implements FilterProperty {
 

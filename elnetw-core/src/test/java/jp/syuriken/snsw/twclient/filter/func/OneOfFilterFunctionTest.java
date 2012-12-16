@@ -11,7 +11,7 @@ import org.junit.Test;
 /**
  * {@link OneOfFilterFunction}のためのテスト
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class OneOfFilterFunctionTest extends FilterConstants {
 

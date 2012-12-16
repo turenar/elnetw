@@ -11,7 +11,7 @@ import twitter4j.Status;
 /**
  * すべてマッチするかどうかを判断するフィルタクラス
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class AndFilterFunction implements FilterFunction {
 

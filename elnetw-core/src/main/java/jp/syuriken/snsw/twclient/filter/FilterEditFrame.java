@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * フィルタを編集するためのフレーム
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class FilterEditFrame extends JFrame implements WindowListener {

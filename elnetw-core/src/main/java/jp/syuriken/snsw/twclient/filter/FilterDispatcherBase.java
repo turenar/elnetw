@@ -6,7 +6,7 @@ import twitter4j.Status;
 /**
  * フィルタを処理するクラスのためのインスタンス。
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public interface FilterDispatcherBase {
 

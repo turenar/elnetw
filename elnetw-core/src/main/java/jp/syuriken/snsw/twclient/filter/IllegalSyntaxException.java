@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient.filter;
 /**
  * 正しくない文法のクエリの時の例外クラス。
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 @SuppressWarnings("serial")
 public class IllegalSyntaxException extends Exception {

@@ -11,7 +11,7 @@ import org.junit.Test;
 /**
  * TODO tyanar
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class InRetweetFilterFunctionTest extends FilterConstants {
 

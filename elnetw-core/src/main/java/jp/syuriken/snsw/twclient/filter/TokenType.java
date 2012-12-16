@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient.filter;
 /**
  * トークンタイプ
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public enum TokenType {
 	/*

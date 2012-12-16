@@ -20,7 +20,7 @@ import twitter4j.Status;
 /**
  * {@link StandardBooleanProperties}のためのテスト
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class StandardBooleanPropertiesTest extends FilterConstants {
 

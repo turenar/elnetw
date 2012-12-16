@@ -8,7 +8,7 @@ import org.junit.Test;
 /**
  * {@link FilterCompiler} のためのテスト・クラス
  *
- * @author $Author$
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class FilterCompilerTest {
 
