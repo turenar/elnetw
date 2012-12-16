@@ -143,7 +143,7 @@
 								<descriptor>src/main/assembly/bin.xml</descriptor>
 								<descriptor>src/main/assembly/jar.xml</descriptor>
 							</descriptors>
-							<finalName>elnetw</finalName>
+							<finalName>elnetw-${build-version}</finalName>
 							<appendAssemblyId>true</appendAssemblyId>
 						</configuration>
 					</execution>

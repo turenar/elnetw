@@ -17,7 +17,7 @@
 	</appender>
 
 	<logger name="jp.syuriken.snsw">
-		<level value="INFO" />
+		<level value="TRACE" />
 	</logger>
 
 	<root>

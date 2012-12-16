@@ -1,6 +1,10 @@
 package jp.syuriken.snsw.twclient;
 
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
+
 import java.awt.GraphicsEnvironment;
+import java.awt.TrayIcon;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,9 +12,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -18,6 +24,9 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +57,8 @@ public class TwitterClientMain {
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
 
+	private Getopt getopt;
+
 
 	/**
 	 * インスタンスを生成する。
@@ -56,6 +67,12 @@ public class TwitterClientMain {
 	 */
 	public TwitterClientMain(String[] args) {
 		configuration = new ClientConfiguration();
+		configuration.setOpts(args);
+		LongOpt[] longOpts = new LongOpt[] {
+			new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
+		};
+		getopt = new Getopt("elnetw", args, "d", longOpts);
+
 		try {
 			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
@@ -85,7 +102,38 @@ public class TwitterClientMain {
 	public int run() {
 		checkEnvironment();
 
+		Getopt getopt = this.getopt;
+		int c;
 		boolean portable = Boolean.getBoolean("config.portable");
+		boolean debugMode = false;
+		while ((c = getopt.getopt()) != -1) {
+			switch (c) {
+				case 'd':
+					portable = true;
+					debugMode = true;
+					break;
+				default:
+					break;
+			}
+		}
+
+		if (debugMode) {
+			URL resource = getClass().getResource("/logback-debug.xml");
+			if (resource == null) {
+				logger.error("resource /logback-debug.xml is not found");
+			} else {
+				LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+				try {
+					JoranConfigurator configurator = new JoranConfigurator();
+					configurator.setContext(context);
+					context.reset();
+					configurator.doConfigure(resource);
+				} catch (JoranException je) {
+					// StatusPrinter will handle this
+				}
+			}
+		}
+
 		configuration.setPortabledConfiguration(portable);
 		File configRootDir = new File(configuration.getConfigRootDir());
 		if (portable == false && configRootDir.exists() == false) {
@@ -99,6 +147,13 @@ public class TwitterClientMain {
 			} else {
 				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
 			}
+		}
+
+		try {
+			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
+					"jp/syuriken/snsw/twclient/img/icon16.png")), TwitterClientFrame.APPLICATION_NAME));
+		} catch (IOException e) {
+			logger.error("icon ファイルの読み込みに失敗。");
 		}
 
 		ClientProperties defaultConfig = new ClientProperties();
