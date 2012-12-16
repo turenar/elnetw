@@ -2,6 +2,7 @@ package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.lang.reflect.Constructor;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
@@ -34,7 +35,9 @@ public class StandardIntProperties implements FilterProperty {
 
 	static {
 		try {
-			factory = StandardIntProperties.class.getConstructor(String.class, String.class, Object.class);
+			factory =
+					StandardIntProperties.class.getConstructor(ClientConfiguration.class, String.class, String.class,
+							Object.class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -52,12 +55,14 @@ public class StandardIntProperties implements FilterProperty {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param configuration 設定
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public StandardIntProperties(String name, String operator, Object value) throws IllegalSyntaxException {
+	public StandardIntProperties(ClientConfiguration configuration, String name, String operator, Object value)
+			throws IllegalSyntaxException {
 		// name 処理
 		if (Utility.equalString(name, "userid")) {
 			propertyId = PROPERTY_ID_USERID;
@@ -84,6 +89,8 @@ public class StandardIntProperties implements FilterProperty {
 		// value 処理: 整数は必ず指定しないとダメ。
 		if (value instanceof Long) {
 			this.value = (Long) value;
+		} else if (value == null) {
+			throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
 		} else {
 			throw new IllegalSyntaxException("[" + name + "] 値が整数型ではありません");
 		}

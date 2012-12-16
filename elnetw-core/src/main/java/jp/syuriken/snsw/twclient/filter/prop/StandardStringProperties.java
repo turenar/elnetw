@@ -2,6 +2,7 @@ package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.lang.reflect.Constructor;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
@@ -32,7 +33,9 @@ public class StandardStringProperties implements FilterProperty {
 
 	static {
 		try {
-			factory = StandardStringProperties.class.getConstructor(String.class, String.class, String.class);
+			factory =
+					StandardStringProperties.class.getConstructor(ClientConfiguration.class, String.class,
+							String.class, Object.class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -50,12 +53,14 @@ public class StandardStringProperties implements FilterProperty {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param configuration 設定
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public StandardStringProperties(String name, String operator, String value) throws IllegalSyntaxException {
+	public StandardStringProperties(ClientConfiguration configuration, String name, String operator, Object value)
+			throws IllegalSyntaxException {
 		// name 処理
 		if (Utility.equalString(name, "user")) {
 			propertyId = PROPERTY_ID_USER;
@@ -78,7 +83,13 @@ public class StandardStringProperties implements FilterProperty {
 					+ "] 正しくないstring演算子です: " + operator);
 		}
 		// value 処理
-		this.value = FilterOperator.compileValueString(value);
+		if (value instanceof String) {
+
+			this.value = FilterOperator.compileValueString((String) value);
+		} else {
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
+					+ "] 正しくないstring値です: " + operator);
+		}
 	}
 
 	@Override

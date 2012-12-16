@@ -35,6 +35,8 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 
+	private ClientConfiguration configuration;
+
 
 	/**
 	 * インスタンスを生成する。
@@ -45,6 +47,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	 */
 	public TeeFilter(ClientConfiguration configuration, String uniqId, TabRenderer tabRenderer)
 			throws IllegalSyntaxException {
+		this.configuration = configuration;
 		renderer = tabRenderer;
 		configProperties = configuration.getConfigProperties();
 		filterPropertyName = "core.filter._tabs." + uniqId;
@@ -62,7 +65,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 		if (filterQueryString == null || filterQueryString.trim().isEmpty()) {
 			filterQuery = NullFilter.getInstance();
 		} else {
-			filterQuery = FilterCompiler.getCompiledObject(filterQueryString);
+			filterQuery = FilterCompiler.getCompiledObject(configuration, filterQueryString);
 		}
 	}
 

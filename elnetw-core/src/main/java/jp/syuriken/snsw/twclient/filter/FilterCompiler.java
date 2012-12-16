@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
@@ -88,6 +89,8 @@ public class FilterCompiler implements FilterParserVisitor {
 	/** constructor ( String, String, String) */
 	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories;
 
+	private ClientConfiguration configuration;
+
 	static {
 		HashMap<String, Constructor<? extends FilterFunction>> ffMap =
 				new HashMap<String, Constructor<? extends FilterFunction>>();
@@ -123,12 +126,14 @@ public class FilterCompiler implements FilterParserVisitor {
 
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
+	 * @param configuration 設定
 	 * @param query クエリ
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public static FilterDispatcherBase getCompiledObject(String query) throws IllegalSyntaxException {
-		FilterCompiler filterCompiler = new FilterCompiler();
+	public static FilterDispatcherBase getCompiledObject(ClientConfiguration configuration, String query)
+			throws IllegalSyntaxException {
+		FilterCompiler filterCompiler = new FilterCompiler(configuration);
 		try {
 			return (FilterDispatcherBase) tokenize(query).jjtAccept(filterCompiler, null);
 		} catch (TokenMgrError e) {
@@ -177,7 +182,7 @@ public class FilterCompiler implements FilterParserVisitor {
 			String query = scanner.nextLine();
 			try {
 				FilterCompiler.tokenize(query).dump("");
-				FilterCompiler.getCompiledObject(query);
+				FilterCompiler.getCompiledObject(null, query);
 			} catch (IllegalSyntaxException e) {
 				e.printStackTrace();
 			} catch (ParseException e) {
@@ -208,7 +213,14 @@ public class FilterCompiler implements FilterParserVisitor {
 	 */
 	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
 			Constructor<? extends FilterProperty> constructor) {
-		return filterPropertyFactories.put(propertyName, constructor);
+		Class<?>[] parameterTypes = constructor.getParameterTypes();
+		if (parameterTypes[0] == ClientConfiguration.class && parameterTypes[1] == String.class
+				&& parameterTypes[2] == String.class && parameterTypes[3] == Object.class) {
+			return filterPropertyFactories.put(propertyName, constructor);
+		} else {
+			throw new IllegalArgumentException(
+					"FilterProperty's constructor must be (ClientConfiguration, String, String, Object)");
+		}
 	}
 
 	/**
@@ -223,7 +235,8 @@ public class FilterCompiler implements FilterParserVisitor {
 		return filterParser.Start();
 	}
 
-	private FilterCompiler() {
+	private FilterCompiler(ClientConfiguration configuration) {
+		this.configuration = configuration;
 	}
 
 	@Override
@@ -280,7 +293,7 @@ public class FilterCompiler implements FilterParserVisitor {
 		Object value = propertyData.value;
 		Constructor<? extends FilterProperty> factory = propertyData.factory;
 		try {
-			return factory.newInstance(propertyName, propertyOperator, value);
+			return factory.newInstance(configuration, propertyName, propertyOperator, value);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			throw new WrappedException(cause);
@@ -321,22 +334,27 @@ public class FilterCompiler implements FilterParserVisitor {
 	@Override
 	public Object visit(QueryTokenPropertyValue node, Object data) {
 		PropertyData propertyData = (PropertyData) data;
-		String value = (String) node.jjtGetValue();
-		if (value.startsWith("\"")) {
-			StringBuilder str = new StringBuilder(value.substring(1, value.length() - 1));
+		String valueStr = (String) node.jjtGetValue();
+		Object value;
+		if (valueStr.startsWith("\"")) {
+			StringBuilder str = new StringBuilder(valueStr.substring(1, valueStr.length() - 1));
 			int index = 0;
 			while ((index = str.indexOf("\\", index)) != -1) {
 				str.deleteCharAt(index);
 				index += 2;
 			}
 			value = str.toString();
-			propertyData.value = value;
-			return value;
-		} else { // Integer or Long
-			Long longValue = Long.valueOf(value);
-			propertyData.value = longValue;
-			return longValue;
+		} else { // Boolean or Long
+			if (valueStr.equals("true")) {
+				value = Boolean.TRUE;
+			} else if (valueStr.equals("false")) {
+				value = Boolean.FALSE;
+			} else {
+				value = Long.valueOf(valueStr);
+			}
 		}
+		propertyData.value = value;
+		return value;
 	}
 
 	@Override

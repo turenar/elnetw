@@ -3,9 +3,15 @@ package jp.syuriken.snsw.twclient.filter.prop;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.lang.reflect.Constructor;
+
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import twitter4j.DirectMessage;
@@ -18,13 +24,36 @@ import twitter4j.Status;
  */
 public class StandardStringPropertiesTest extends FilterConstants {
 
+	private static ClientConfiguration configuration;
+
+
+	/**
+	 * テスト前に呼ばれる関数
+	 *
+	 * @throws Exception 例外
+	 */
+	@BeforeClass
+	public static void tearUpClass() throws Exception {
+		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(boolean.class); // テスト用メソッド
+		constructor.setAccessible(true);
+		configuration = constructor.newInstance(true);
+		ClientProperties defaultProperties = new ClientProperties();
+		defaultProperties.load(ClientConfiguration.class
+			.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties"));
+		configuration.setConfigDefaultProperties(defaultProperties);
+		ClientProperties properties = new ClientProperties(defaultProperties);
+		properties
+			.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
+		configuration.setConfigProperties(properties);
+	}
+
 	private static boolean testEqual(String propName, String target, DirectMessage directMessage)
 			throws IllegalSyntaxException {
-		return new StandardStringProperties(propName, ":", target).filter(directMessage);
+		return new StandardStringProperties(configuration, propName, ":", target).filter(directMessage);
 	}
 
 	private static boolean testEqual(String propName, String target, Status status) throws IllegalSyntaxException {
-		return new StandardStringProperties(propName, ":", target).filter(status);
+		return new StandardStringProperties(configuration, propName, ":", target).filter(status);
 	}
 
 	/**
@@ -58,7 +87,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	@Test
 	public void testFilterUnknownName() {
 		try {
-			new StandardIntProperties("unknown unknown", "", "");
+			new StandardStringProperties(configuration, "unknown unknown", "", "");
 			fail("prop nameを無視してるかな？");
 		} catch (IllegalSyntaxException e) {
 			// do nothing

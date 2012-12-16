@@ -28,7 +28,7 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 
 
 	/**
-	 * テスト前に呼ばれるクラス
+	 * テスト前に呼ばれる関数
 	 *
 	 * @throws Exception 例外
 	 */
@@ -48,11 +48,11 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	}
 
 	private static boolean testIs(String propName, DirectMessage directMessage) throws IllegalSyntaxException {
-		return new StandardBooleanProperties(propName, "?", null).filter(directMessage);
+		return new StandardBooleanProperties(configuration, propName, "?", false).filter(directMessage);
 	}
 
 	private static boolean testIs(String propName, Status status) throws IllegalSyntaxException {
-		return new StandardBooleanProperties(propName, "?", null).filter(status);
+		return new StandardBooleanProperties(configuration, propName, "?", false).filter(status);
 	}
 
 	/**
@@ -78,12 +78,11 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterMine() throws IllegalSyntaxException {
-		StandardBooleanProperties property = new StandardBooleanProperties("mine", "?", null);
-		assertFalse(property.filter(STATUS_1));
-		assertTrue(property.filter(STATUS_2));
-		assertTrue(property.filter(STATUS_3));
-		assertFalse(property.filter(STATUS_4));
-		assertTrue(property.filter(DM_1));
+		assertFalse(testIs("mine", STATUS_1));
+		assertTrue(testIs("mine", STATUS_2));
+		assertTrue(testIs("mine", STATUS_3));
+		assertFalse(testIs("mine", STATUS_4));
+		assertTrue(testIs("mine", DM_1));
 	}
 
 	/**
@@ -139,7 +138,7 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	@Test
 	public void testFilterUnknownName() {
 		try {
-			new StandardBooleanProperties("unknown unknown", "", "");
+			new StandardBooleanProperties(configuration, "unknown unknown", "?", false);
 			fail("prop nameを無視してるかな？");
 		} catch (IllegalSyntaxException e) {
 			// do nothing

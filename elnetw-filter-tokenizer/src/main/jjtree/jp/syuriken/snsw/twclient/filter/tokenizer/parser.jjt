@@ -26,17 +26,18 @@ SKIP:
 
 TOKEN:
 {
-	< #ALPHACHAR: ["a"-"z","A"-"Z","_"] >
-	| < ALPHASTR: (<ALPHACHAR>)+ >
-	| < #OPERATOR_CHAR: [":", "!", "=", "<", ">", "~", "?"] >
+	< #OPERATOR_CHAR: [":", "!", "=", "<", ">", "~", "?"] >
 	| < OPERATOR: (<OPERATOR_CHAR>)+ >
 	| < LPARAN: "(" >
 	| < RPARAN: ")" >
 	| < COMMA: "," >
 	| < INT_LITERAL: ( ["1"-"9"] (["0"-"9"])* | "0" ) >
+	| < BOOL_LITERAL: ( "false" | "true" ) >
 	| < STRING_LITERAL: "\""
 		( (~["\"","\\","\n","\r"]) | ("\\" ["n","\\","'","\""] ) )*
 			"\"" >
+	| < #ALPHACHAR: ["a"-"z","A"-"Z","_"] >
+	| < ALPHASTR: (<ALPHACHAR>)+ >
 }
 
 QueryTokenStart Start() #Start: {}
@@ -67,7 +68,7 @@ void PropertyOperator(): { Token t;}
 
 void PropertyValue(): { Token t;}
 {
-	(t=<INT_LITERAL> | t=<STRING_LITERAL>) { jjtThis.jjtSetValue(t.image); }
+	(t=<INT_LITERAL> | t=<BOOL_LITERAL> | t=<STRING_LITERAL>) { jjtThis.jjtSetValue(t.image); }
 }
 
 void Function(): {}

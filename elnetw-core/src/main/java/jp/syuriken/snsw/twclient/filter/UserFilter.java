@@ -89,7 +89,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 			this.query = NullFilter.getInstance();
 		} else {
 			try {
-				this.query = FilterCompiler.getCompiledObject(query);
+				this.query = FilterCompiler.getCompiledObject(configuration, query);
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
 			}

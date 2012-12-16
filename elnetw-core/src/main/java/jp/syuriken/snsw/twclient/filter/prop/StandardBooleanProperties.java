@@ -1,7 +1,6 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.lang.reflect.Constructor;
-import java.util.Locale;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
@@ -42,7 +41,9 @@ public class StandardBooleanProperties implements FilterProperty {
 
 	static {
 		try {
-			factory = StandardBooleanProperties.class.getConstructor(String.class, String.class, String.class);
+			factory =
+					StandardBooleanProperties.class.getConstructor(ClientConfiguration.class, String.class,
+							String.class, Object.class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -60,13 +61,15 @@ public class StandardBooleanProperties implements FilterProperty {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param configuration 設定
 	 * @param name プロパティ名
 	 * @param operator 演算子文字列。ない場合は null。
 	 * @param value 比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public StandardBooleanProperties(String name, String operator, String value) throws IllegalSyntaxException {
-		configuration = ClientConfiguration.getInstance();
+	public StandardBooleanProperties(ClientConfiguration configuration, String name, String operator, Object value)
+			throws IllegalSyntaxException {
+		this.configuration = configuration;
 		// name 処理
 		if (Utility.equalString(name, "retweeted")) {
 			propertyId = PROPERTY_ID_RETWEETED;
@@ -94,19 +97,20 @@ public class StandardBooleanProperties implements FilterProperty {
 			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
 					+ "] 正しくないbool演算子です: " + operator);
 		}
-		// value 処理
-		if ((operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT) == false) {
-			String lowerValue = value.toLowerCase(Locale.ENGLISH);
-			if (Utility.equalString(lowerValue, "false") || Utility.equalString(lowerValue, "no")) {
-				this.value = false;
-			} else if (Utility.equalString(lowerValue, "true") || Utility.equalString(lowerValue, "yes")) {
-				this.value = true;
+		if (value == null || value instanceof Boolean) {
+			// value 処理
+			if ((operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT) == false) {
+				if (value == null) {
+					throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name
+							+ "] 比較値が必要です");
+				} else {
+					this.value = (Boolean) value;
+				}
 			} else {
-				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name
-						+ "] 値がbool型ではありません");
+				this.value = false; // init because this field is final
 			}
 		} else {
-			this.value = false; // init because this field is final
+			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name + "] 値がbool型ではありません");
 		}
 	}
 
