@@ -31,7 +31,7 @@ public class IllegalSyntaxException extends Exception {
 
 
 	private static final String wrapChar(char character) {
-		return character == FilterCompiler.EOD_CHAR ? "<EOF>" : String.valueOf(character);
+		return character == 0xffff ? "<EOF>" : String.valueOf(character);
 	}
 
 

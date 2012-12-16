@@ -5,13 +5,22 @@ import java.awt.event.WindowListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
+import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionName;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyName;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenQuery;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
+import jp.syuriken.snsw.twclient.filter.tokenizer.SimpleNode;
 
 /**
  * フィルタを編集するためのフレーム
@@ -21,7 +30,149 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("serial")
 public class FilterEditFrame extends JFrame implements WindowListener {
 
-	private static Logger logger = LoggerFactory.getLogger(FilterEditFrame.class);
+	/**
+	 * クエリを見やすくするフォーマッタ
+	 *
+	 */
+	protected static class FilterQueryFormatter implements FilterParserVisitor {
+
+		/** 関数の深さ */
+		protected transient int queryDepth;
+
+
+		@Override
+		public Object visit(QueryTokenFunction node, Object data) {
+			StringBuilder stringBuilder = (StringBuilder) data;
+
+			int childrenCount = node.jjtGetNumChildren();
+			node.jjtGetChild(0).jjtAccept(this, data);
+
+			queryDepth++;
+			stringBuilder.append("(\n");
+
+			for (int i = 1; i < childrenCount; i++) {
+				for (int d = 0; d < queryDepth; d++) {
+					stringBuilder.append("  ");
+				}
+				node.jjtGetChild(i).jjtAccept(this, data);
+				stringBuilder.append(",\n");
+			}
+			int len = stringBuilder.length();
+			stringBuilder.deleteCharAt(len - 2); // remove "," before "\n"
+
+			queryDepth--;
+			for (int i = 0; i < queryDepth; i++) {
+				stringBuilder.append("  ");
+			}
+			return stringBuilder.append(")");
+		}
+
+		@Override
+		public Object visit(QueryTokenFunctionName node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenProperty node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyName node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyOperator node, Object data) {
+			return ((StringBuilder) data).append(' ').append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyValue node, Object data) {
+			return ((StringBuilder) data).append(' ').append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenQuery node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(QueryTokenStart node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(SimpleNode node, Object data) {
+			return null;
+		}
+
+	}
+
+	/**
+	 * スペースを削除するフィルタクエリビジター
+	 */
+	protected static class FilterQueryNormalizer implements FilterParserVisitor {
+
+		@Override
+		public Object visit(QueryTokenFunction node, Object data) {
+			StringBuilder stringBuilder = (StringBuilder) data;
+			QueryTokenFunctionName name = (QueryTokenFunctionName) node.jjtGetChild(0);
+			stringBuilder.append(name.jjtGetValue()).append('(');
+
+			int count = node.jjtGetNumChildren();
+			for (int i = 1; i < count; i++) {
+				node.jjtGetChild(i).jjtAccept(this, data);
+				stringBuilder.append(',');
+			}
+			stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+			stringBuilder.append(')');
+			return null;
+		}
+
+		@Override
+		public Object visit(QueryTokenFunctionName node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenProperty node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyName node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyOperator node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenPropertyValue node, Object data) {
+			return ((StringBuilder) data).append(node.jjtGetValue());
+		}
+
+		@Override
+		public Object visit(QueryTokenQuery node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(QueryTokenStart node, Object data) {
+			return node.childrenAccept(this, data);
+		}
+
+		@Override
+		public Object visit(SimpleNode node, Object data) {
+			return null;
+		}
+
+	}
+
 
 	private String propertyKey;
 
@@ -38,7 +189,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	 */
 	public FilterEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		properties = ClientConfiguration.getInstance().getConfigProperties();
 		initComponents(displayString);
 	}
@@ -49,52 +200,13 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 			String filterQuery = properties.getProperty(propertyKey);
 			if (filterQuery != null) {
-				FilterCompiler filterCompiler = new FilterCompiler(filterQuery);
 				StringBuilder stringBuilder = new StringBuilder(filterQuery.length());
-				int depth = 0;
 				try {
-					while (filterCompiler.nextToken() != null) {
-						String token = filterCompiler.getQueryToken();
-						TokenType tokenType = filterCompiler.getNextTokenType();
-						switch (tokenType) {
-							case PROPERTY_OPERATOR:
-							case SCALAR_INT:
-							case SCALAR_STRING:
-								stringBuilder.append(' ');
-								//$FALL-THROUGH$
-							case DEFAULT:
-							case FUNC_NAME:
-							case PROPERTY_NAME:
-								stringBuilder.append(token);
-								break;
-							case FUNC_START:
-								depth++;
-								//$FALL-THROUGH$
-							case FUNC_ARG_SEPARATOR:
-								stringBuilder.append(token);
-								stringBuilder.append('\n');
-								for (int i = 0; i < depth; i++) {
-									stringBuilder.append("  ");
-								}
-								break;
-							case FUNC_END:
-								depth--;
-								stringBuilder.append('\n');
-								for (int i = 0; i < depth; i++) {
-									stringBuilder.append("  ");
-								}
-								stringBuilder.append(token);
-								break;
-							case EOD:
-								throw new IllegalSyntaxException("got EOD as tokenType");
-							case UNEXPECTED:
-								throw new IllegalSyntaxException("got UNEXPECTED as tokenType");
-						}
-					}
-				} catch (IllegalSyntaxException e) {
-					logger.warn("フィルタの文字解析中にエラー", e);
-					stringBuilder.append('\n').append(filterQuery, filterCompiler.getCompilingIndex(),
-							filterQuery.length());
+					QueryTokenStart filterCompiler = FilterCompiler.tokenize(filterQuery);
+					filterCompiler.jjtAccept(new FilterQueryFormatter(), stringBuilder);
+				} catch (ParseException e) {
+					stringBuilder.append(filterQuery).append("\n\n/* クエリのパース中にエラー: ").append(e.getLocalizedMessage())
+						.append("\n*/");
 				}
 				filterEditTextArea.setText(stringBuilder.toString());
 			}
@@ -122,21 +234,16 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		FilterCompiler filterCompiler = new FilterCompiler(getComponentFilterEditTextArea().getText());
-		StringBuilder stringBuilder = new StringBuilder();
-		String token;
 		setExtendedState(NORMAL);
 		try {
-			while ((token = filterCompiler.nextToken()) != null) {
-				if (filterCompiler.getNextTokenType() == TokenType.UNEXPECTED) {
-					throw new IllegalSyntaxException("got UNEXPECTED as token");
-				}
-				stringBuilder.append(token);
-			}
+			QueryTokenStart tokenStart = FilterCompiler.tokenize(getComponentFilterEditTextArea().getText());
+			StringBuilder stringBuilder = new StringBuilder();
+
+			tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
 			properties.setProperty(propertyKey, stringBuilder.toString());
 			dispose();
-		} catch (IllegalSyntaxException ex) {
-			logger.error("保存中にエラー: 正しくない文法のクエリです", ex);
+		} catch (ParseException ex) {
+			JOptionPane.showMessageDialog(this, "正しくない文法のクエリです。\n" + ex.getLocalizedMessage());
 		}
 	}
 

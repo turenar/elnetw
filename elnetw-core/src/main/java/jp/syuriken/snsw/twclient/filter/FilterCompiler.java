@@ -1,8 +1,8 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -14,16 +14,73 @@ import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
 import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
+import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
+import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
+import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionName;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyName;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenQuery;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
+import jp.syuriken.snsw.twclient.filter.tokenizer.SimpleNode;
+import jp.syuriken.snsw.twclient.filter.tokenizer.TokenMgrError;
 
 /**
  * フィルタをコンパイルするクラス。
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class FilterCompiler {
+public class FilterCompiler implements FilterParserVisitor {
 
-	/** データの末尾を示すchar */
-	public static final char EOD_CHAR = '\uffff';
+	/**
+	 * 関数のデータを格納するクラス
+	 */
+	protected static class FunctionData {
+
+		/** ファクトリ */
+		protected Constructor<? extends FilterFunction> factory;
+
+		/** 名前 */
+		protected String name;
+	}
+
+	/**
+	 * プロパティのデータを格納するクラス
+	 */
+	protected static class PropertyData {
+
+		/** ファクトリ */
+		protected Constructor<? extends FilterProperty> factory;
+
+		/** 名前 */
+		protected String name;
+
+		/** 演算子 */
+		protected String operator;
+
+		/** 値 */
+		protected Object value;
+	}
+
+	/**
+	 * 例外をラップする
+	 */
+	@SuppressWarnings("serial")
+	public static class WrappedException extends RuntimeException {
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param exception 例外
+		 */
+		public WrappedException(Throwable exception) {
+			super(exception);
+		}
+	}
+
 
 	/** constructor ( FilterDispatcherBase ) */
 	protected static HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories;
@@ -35,32 +92,32 @@ public class FilterCompiler {
 		HashMap<String, Constructor<? extends FilterFunction>> ffMap =
 				new HashMap<String, Constructor<? extends FilterFunction>>();
 		FilterCompiler.filterFunctionFactories = ffMap;
-		ffMap.put("or", OrFilterFunction.getFactory());
-		ffMap.put("exactly_one_of", OneOfFilterFunction.getFactory());
-		ffMap.put("and", AndFilterFunction.getFactory());
-		ffMap.put("not", NotFilterFunction.getFactory());
-		ffMap.put("inrt", InRetweetFilterFunction.getFactory());
+		putFilterFunction("or", OrFilterFunction.getFactory());
+		putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
+		putFilterFunction("and", AndFilterFunction.getFactory());
+		putFilterFunction("not", NotFilterFunction.getFactory());
+		putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
 
 		HashMap<String, Constructor<? extends FilterProperty>> pfMap =
 				new HashMap<String, Constructor<? extends FilterProperty>>();
 		FilterCompiler.filterPropertyFactories = pfMap;
 		Constructor<? extends FilterProperty> properties;
 		properties = StandardIntProperties.getFactory();
-		pfMap.put("userid", properties);
-		pfMap.put("in_reply_to_userid", properties);
-		pfMap.put("rtcount", properties);
-		pfMap.put("timediff", properties);
+		putFilterProperty("userid", properties);
+		putFilterProperty("in_reply_to_userid", properties);
+		putFilterProperty("rtcount", properties);
+		putFilterProperty("timediff", properties);
 		properties = StandardBooleanProperties.getFactory();
-		pfMap.put("retweeted", properties);
-		pfMap.put("mine", properties);
-		pfMap.put("protected", properties);
-		pfMap.put("verified", properties);
-		pfMap.put("status", properties);
-		pfMap.put("dm", properties);
+		putFilterProperty("retweeted", properties);
+		putFilterProperty("mine", properties);
+		putFilterProperty("protected", properties);
+		putFilterProperty("verified", properties);
+		putFilterProperty("status", properties);
+		putFilterProperty("dm", properties);
 		properties = StandardStringProperties.getFactory();
-		pfMap.put("user", properties);
-		pfMap.put("text", properties);
-		pfMap.put("client", properties);
+		putFilterProperty("user", properties);
+		putFilterProperty("text", properties);
+		putFilterProperty("client", properties);
 	}
 
 
@@ -71,8 +128,21 @@ public class FilterCompiler {
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
 	public static FilterDispatcherBase getCompiledObject(String query) throws IllegalSyntaxException {
-		FilterCompiler filterCompiler = new FilterCompiler(query);
-		return filterCompiler.compile();
+		FilterCompiler filterCompiler = new FilterCompiler();
+		try {
+			return (FilterDispatcherBase) tokenize(query).jjtAccept(filterCompiler, null);
+		} catch (TokenMgrError e) {
+			throw new IllegalSyntaxException(e.getLocalizedMessage(), e);
+		} catch (WrappedException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof IllegalSyntaxException) {
+				throw (IllegalSyntaxException) cause;
+			} else {
+				throw e;
+			}
+		} catch (ParseException e) {
+			throw new IllegalSyntaxException(e.getLocalizedMessage(), e);
+		}
 	}
 
 	/**
@@ -95,32 +165,6 @@ public class FilterCompiler {
 		return filterPropertyFactories.get(propertyName);
 	}
 
-	private static final boolean isAlphabet(char charAt) {
-		return (charAt >= 'a' && charAt <= 'z') || (charAt >= 'A' && charAt <= 'Z');
-	}
-
-	/**
-	 * データの最後ではないことを調べる。
-	 *
-	 * @param charAt 文字
-	 * @return データが最後の文字であるかどうか。
-	 */
-	public static final boolean isNotEod(char charAt) {
-		return charAt != EOD_CHAR;
-	}
-
-	private static final boolean isNumeric(char charAt) {
-		return charAt >= '0' && charAt <= '9';
-	}
-
-	private static final boolean isQuote(char charAt) {
-		return charAt == '"';
-	}
-
-	private static final boolean isSpace(char charAt) {
-		return charAt == ' ' || charAt == '\t' || charAt == '\n';
-	}
-
 	/**
 	 * テスト用インタラクティブコンソール
 	 *
@@ -132,16 +176,11 @@ public class FilterCompiler {
 		while (scanner.hasNextLine()) {
 			String query = scanner.nextLine();
 			try {
-				FilterCompiler filterCompiler = new FilterCompiler(query);
-				while (filterCompiler.nextToken() != null) {
-					String queryToken = filterCompiler.getQueryToken();
-					TokenType tokenType = filterCompiler.getNextTokenType();
-					System.out.printf("'%s': %s%n", queryToken, tokenType.toString());
-				}
-
-				filterCompiler.reset(query);
-				filterCompiler.compile();
+				FilterCompiler.tokenize(query).dump("");
+				FilterCompiler.getCompiledObject(query);
 			} catch (IllegalSyntaxException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
 				e.printStackTrace();
 			}
 			System.out.print("> ");
@@ -164,7 +203,7 @@ public class FilterCompiler {
 	 * フィルタプロパティを追加する
 	 *
 	 * @param propertyName プロパティ名
-	 * @param constructor ({@link String}, {@link String}, {@link String})コンストラクタ
+	 * @param constructor ({@link String}, {@link String}, {@link Object})コンストラクタ
 	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
 	 */
 	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
@@ -172,146 +211,38 @@ public class FilterCompiler {
 		return filterPropertyFactories.put(propertyName, constructor);
 	}
 
-
-	private transient String query;
-
-	private transient TokenType queryTokenType;
-
-	private transient TokenType queryNextTokenType;
-
-	private transient int compilingIndex;
-
-	private String queryToken;
-
-	private boolean hasToken;
-
-
 	/**
-	 * インスタンスを生成する。
-	 * @param query クエリ
-	 */
-	public FilterCompiler(String query) {
-		reset(query);
-	}
-
-	private final char charAt(int i) {
-		return i < query.length() ? query.charAt(i) : EOD_CHAR;
-	}
-
-	/**
-	 * コンパイルする。
+	 * トークン化する
 	 *
-	 * <p>この関数では処理前に {@link #reset()} を呼び出します。</p>
-	 * @return コンパイル済みのオブジェクト。中身は単なるツリー。
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ
+	 * @param query クエリ文字列
+	 * @return トークン
+	 * @throws ParseException パース中にエラー
 	 */
-	public FilterDispatcherBase compile() throws IllegalSyntaxException {
-		reset();
-
-		String token = getToken();
-		switch (queryNextTokenType) {
-			case FUNC_NAME:
-				try {
-					return compileFunction(token);
-				} catch (IllegalSyntaxException e) {
-					e.setQuery(query);
-					if (e.getTokenType() == IllegalSyntaxException.ID_FUNC_NAME && e.getTokenPosition() < 0) {
-						e.setTokenPostion(0);
-					}
-					throw e;
-				}
-			case PROPERTY_NAME:
-				try {
-					return compileProperty(token);
-				} catch (IllegalSyntaxException e) {
-					e.setQuery(query);
-					if (e.getTokenType() == IllegalSyntaxException.ID_PROPERTY_NAME) {
-						e.setTokenPostion(0);
-					}
-					throw e;
-				}
-			default:
-				throwUnexpectedToken();
-				return null; // orphaned
-		}
+	public static QueryTokenStart tokenize(String query) throws ParseException {
+		FilterParser filterParser = new FilterParser(new StringReader(query));
+		return filterParser.Start();
 	}
 
-	/**
-	 * 関数をコンパイルする。
-	 *
-	 * @param functionName 関数名
-	 * @return 関数オブジェクト
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ
-	 */
-	private FilterDispatcherBase compileFunction(String functionName) throws IllegalSyntaxException {
-		getToken();
-		if (queryNextTokenType != TokenType.FUNC_START) {
-			throwUnexpectedToken();
+	private FilterCompiler() {
+	}
+
+	@Override
+	public Object visit(QueryTokenFunction node, Object data) {
+		int childrenCount = node.jjtGetNumChildren();
+		FunctionData functionData = new FunctionData();
+		node.jjtGetChild(0).jjtAccept(this, functionData);
+		FilterDispatcherBase[] args = new FilterDispatcherBase[childrenCount - 1];
+		for (int i = 1; i < childrenCount; i++) {
+			args[i - 1] = (FilterDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
 		}
 
-		ArrayList<FilterDispatcherBase> argsList = new ArrayList<FilterDispatcherBase>();
-		ArrayList<Integer> argsTokenIndexList = new ArrayList<Integer>();
-
-		argsTokenIndexList.add(compilingIndex);
-		getToken();
-		if (queryNextTokenType != TokenType.FUNC_END) {
-			do {
-				try {
-					if (queryNextTokenType == TokenType.PROPERTY_NAME) {
-						argsList.add(compileProperty(queryToken));
-					} else if (queryNextTokenType == TokenType.FUNC_NAME) {
-						argsList.add(compileFunction(queryToken));
-					} else {
-						throwUnexpectedToken();
-					}
-				} catch (IllegalSyntaxException e) {
-					int tokenType = e.getTokenType();
-					if (e.getTokenPosition() < 0
-							&& (tokenType == IllegalSyntaxException.ID_PROPERTY_NAME || tokenType == IllegalSyntaxException.ID_FUNC_NAME)) {
-						e.setTokenPostion(argsTokenIndexList.get(argsTokenIndexList.size() - 1));
-					}
-					throw e;
-				}
-				argsTokenIndexList.add(compilingIndex);
-
-				getToken();
-				if (queryNextTokenType == TokenType.FUNC_END) {
-					break;
-				} else if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR) {
-					continue;
-				} else {
-					throwUnexpectedToken();
-				}
-				argsTokenIndexList.add(compilingIndex);
-			} while (getToken() != null);
-		}
-		FilterDispatcherBase[] args = argsList.toArray(new FilterDispatcherBase[argsList.size()]);
+		String functionName = functionData.name;
+		Constructor<? extends FilterFunction> factory = functionData.factory;
 		try {
-			Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(functionName);
-			if (factory == null) {
-				throw new IllegalSyntaxException(IllegalSyntaxException.ID_FUNC_NAME,
-						"フィルタのコンパイル中にエラーが発生しました: function<" + functionName + ">は見つかりません");
-			} else {
-				try {
-					return factory.newInstance(functionName, args);
-				} catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (cause instanceof IllegalSyntaxException) {
-						throw (IllegalSyntaxException) cause;
-					} else {
-						throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + functionName
-								+ "をインスタンス化中にエラーが発生しました", cause);
-					}
-				}
-			}
-		} catch (IllegalSyntaxException e) {
-			int tokenType = e.getTokenType();
-			if (tokenType > 0) {
-				e.setTokenPostion(argsTokenIndexList.get(tokenType - 1));
-			} else if (tokenType == IllegalSyntaxException.ID_FUNC_ARGS) {
-				e.setTokenPostion(argsTokenIndexList.get(0));
-			}
-			throw e;
+			return factory.newInstance(functionName, args);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			throw new WrappedException(cause);
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
 					+ ">に関連付けられたConstructorは正しくありません", e);
@@ -322,77 +253,37 @@ public class FilterCompiler {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
 					+ ">に関連付けられたConstructorは正しくありません", e);
 		}
+
 	}
 
-	/**
-	 * プロパティをコンパイルする。
-	 *
-	 * @param propertyName プロパティ名
-	 * @return コンパイル済みのプロパティオブジェクト
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ
-	 */
-	private FilterDispatcherBase compileProperty(String propertyName) throws IllegalSyntaxException
-
-	{
-		String propertyOperator;
-		int propertyOperatorPostion = compilingIndex;
-		String compareValue = null;
-		int compareValuePostion;
-		getToken();
-		if (queryNextTokenType != TokenType.PROPERTY_OPERATOR) {
-			ungetToken();
-			propertyOperator = null;
-			compareValuePostion = propertyOperatorPostion;
-		} else {
-			propertyOperator = queryToken;
-			compareValuePostion = compilingIndex;
-
-			getToken();
-			if (queryNextTokenType == TokenType.SCALAR_STRING) {
-				StringBuilder stringBuilder = new StringBuilder(queryToken.substring(1, queryToken.length() - 1));
-				int index = 0;
-				int indexOf;
-				while ((indexOf = stringBuilder.indexOf("\\", index)) != -1) {
-					stringBuilder.deleteCharAt(indexOf);
-					index = indexOf + 1;
-				}
-				compareValue = stringBuilder.toString();
-			} else if (queryNextTokenType != TokenType.SCALAR_INT) {
-				if (queryNextTokenType == TokenType.FUNC_ARG_SEPARATOR || queryNextTokenType == TokenType.FUNC_END
-						|| queryNextTokenType == TokenType.EOD) {
-					ungetToken();
-				} else {
-					throwUnexpectedToken();
-				}
-			}
+	@Override
+	public Object visit(QueryTokenFunctionName node, Object data) {
+		String name = (String) node.jjtGetValue();
+		Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(name);
+		if (factory == null) {
+			throw new WrappedException(new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: function<" + name
+					+ ">は見つかりません"));
 		}
+		FunctionData functionData = (FunctionData) data;
+		functionData.name = name;
+		functionData.factory = factory;
+		return functionData;
+	}
 
+	@Override
+	public Object visit(QueryTokenProperty node, Object data) {
+		PropertyData propertyData = new PropertyData();
+		node.childrenAccept(this, propertyData);
+
+		String propertyName = propertyData.name;
+		String propertyOperator = propertyData.operator;
+		Object value = propertyData.value;
+		Constructor<? extends FilterProperty> factory = propertyData.factory;
 		try {
-			Constructor<? extends FilterProperty> factory = filterPropertyFactories.get(propertyName);
-			if (factory == null) {
-				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
-						"フィルタのコンパイル中にエラーが発生しました: property<" + propertyName + ">は見つかりません");
-			} else {
-				try {
-					return factory.newInstance(propertyName, propertyOperator, compareValue);
-				} catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (cause instanceof IllegalSyntaxException) {
-						throw (IllegalSyntaxException) cause;
-					} else {
-						throw new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: " + propertyName
-								+ "をインスタンス化中にエラーが発生しました", cause);
-					}
-				}
-			}
-		} catch (IllegalSyntaxException e) {
-			int tokenType = e.getTokenType();
-			if (tokenType == IllegalSyntaxException.ID_PROPERTY_OPERATOR) {
-				e.setTokenPostion(propertyOperatorPostion);
-			} else if (tokenType == IllegalSyntaxException.ID_PROPERTY_VALUE) {
-				e.setTokenPostion(compareValuePostion);
-			}
-			throw e;
+			return factory.newInstance(propertyName, propertyOperator, value);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			throw new WrappedException(cause);
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
 					+ ">に関連付けられたConstructorは正しくありません", e);
@@ -405,251 +296,62 @@ public class FilterCompiler {
 		}
 	}
 
-	/**
-	 * {@link #nextToken()} により取得したトークンの次の文字のインデックス。
-	 *
-	 * @return 次の文字のインデックス
-	 */
-	public int getCompilingIndex() {
-		return compilingIndex;
-	}
-
-	/**
-	 * {@link #nextToken()} により取得したトークンのタイプを取得する。
-	 *
-	 * @return トークンタイプ
-	 */
-	public TokenType getNextTokenType() {
-		return queryNextTokenType;
-	}
-
-	/**
-	 * 現在コンパイル中のクエリを取得する。
-	 *
-	 * @return クエリ
-	 */
-	public String getQuery() {
-		return query;
-	}
-
-	/**
-	 * {@link #nextToken()} により取得したトークンを再取得する。
-	 *
-	 * @return トークン
-	 */
-	public String getQueryToken() {
-		return queryToken;
-	}
-
-	private final String getToken() throws IllegalSyntaxException {
-		if (hasToken) {
-			hasToken = false;
-			return queryToken;
-		} else {
-			return nextToken();
+	@Override
+	public Object visit(QueryTokenPropertyName node, Object data) {
+		String name = (String) node.jjtGetValue();
+		Constructor<? extends FilterProperty> factory = getFilterProperty(name);
+		if (factory == null) {
+			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + name + ">は見つかりません。"));
 		}
+
+		PropertyData propertyData = (PropertyData) data;
+		propertyData.name = name;
+		propertyData.factory = factory;
+		return factory;
 	}
 
-	/**
-	 * 次のトークンを取得する。
-	 *
-	 * @return トークン
-	 * @throws IllegalSyntaxException トークン処理中にエラー
-	 */
-	public String nextToken() throws IllegalSyntaxException {
-		queryTokenType = queryNextTokenType;
-		queryNextTokenType = TokenType.UNEXPECTED;
-		char charAt = EOD_CHAR;
-		int length = query.length();
-		int index = compilingIndex;
-		for (; index < length; index++) {
-			charAt = query.charAt(index);
-			if (isSpace(charAt)) { // skip space
-				continue;
-			} else {
-				break;
+	@Override
+	public String visit(QueryTokenPropertyOperator node, Object data) {
+		PropertyData propertyData = (PropertyData) data;
+		String operator = (String) node.jjtGetValue();
+		propertyData.operator = operator;
+		return operator;
+	}
+
+	@Override
+	public Object visit(QueryTokenPropertyValue node, Object data) {
+		PropertyData propertyData = (PropertyData) data;
+		String value = (String) node.jjtGetValue();
+		if (value.startsWith("\"")) {
+			StringBuilder str = new StringBuilder(value.substring(1, value.length() - 1));
+			int index = 0;
+			while ((index = str.indexOf("\\", index)) != -1) {
+				str.deleteCharAt(index);
+				index += 2;
 			}
+			value = str.toString();
+			propertyData.value = value;
+			return value;
+		} else { // Integer or Long
+			Long longValue = Long.valueOf(value);
+			propertyData.value = longValue;
+			return longValue;
 		}
-
-		if (index >= length) { // no valid token
-			queryNextTokenType = TokenType.EOD;
-			queryToken = null;
-			return null;
-		}
-		int tokenStart = index;
-		LOOP: for (; index < length; index++) {
-			charAt = query.charAt(index);
-			switch (queryTokenType) {
-				case FUNC_START:
-					if (charAt == ')') {
-						queryNextTokenType = TokenType.FUNC_END;
-						index++;
-						break LOOP;
-					}
-					//$FALL-THROUGH$
-				case DEFAULT:
-				case FUNC_ARG_SEPARATOR:
-					while (isNotEod(charAt) && (isAlphabet(charAt) || isNumeric(charAt) || (charAt == '_'))) {
-						index++;// valid token
-						charAt = charAt(index);
-					}
-					if (index == tokenStart) {
-						throw new IllegalSyntaxException("FUNC_NAME", charAt, queryTokenType.toString());
-					}
-					int j = index;
-					while (isNotEod(charAt) && isSpace(charAt)) {
-						j++;
-						charAt = charAt(j);
-					}
-					if (charAt == '(') {
-						queryNextTokenType = TokenType.FUNC_NAME;
-					} else {
-						queryNextTokenType = TokenType.PROPERTY_NAME;
-					}
-					break LOOP;
-				case FUNC_END:
-					if (charAt == ',') {
-						queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
-					} else if (charAt == ')') {
-						queryNextTokenType = TokenType.FUNC_END;
-					} else {
-						throw new IllegalSyntaxException("TERMINATOR", charAt, "FUNC_END");
-					}
-					index++; // this char is already parsed
-					break LOOP;
-				case FUNC_NAME:
-					if (charAt != '(') {
-						throw new IllegalSyntaxException('(', charAt, "FUNC_NAME");
-					}
-					queryNextTokenType = TokenType.FUNC_START;
-					index++;
-					break LOOP;
-				case PROPERTY_NAME:
-					if (charAt == ')') {
-						if (tokenStart == index) {
-							queryNextTokenType = TokenType.FUNC_END;
-							index++;
-						} else {
-							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
-						}
-						break LOOP;
-					} else if (charAt == ',') {
-						if (tokenStart == index) {
-							queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
-							index++;
-						} else {
-							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
-						}
-						break LOOP;
-					} else if (isNumeric(charAt) || isQuote(charAt)) {
-						if (tokenStart == index) {
-							throw new IllegalSyntaxException("PROP_OP", charAt, "PROPERTY_NAME");
-						} else {
-							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
-							break LOOP;
-						}
-					} else if (isAlphabet(charAt)) {
-						if (tokenStart == index) {
-							throw new IllegalSyntaxException("PROP_OP or TERMINATOR", charAt, "PROPERTY_NAME");
-						} else {
-							queryNextTokenType = TokenType.PROPERTY_OPERATOR;
-							break LOOP;
-						}
-					} else {
-						queryNextTokenType = TokenType.PROPERTY_OPERATOR; // valid token
-					}
-					break;
-				case PROPERTY_OPERATOR:
-					if (isNumeric(charAt)) {
-						while (isNotEod(charAt) && isNumeric(charAt(++index))) {
-							// valid token
-						}
-						queryNextTokenType = TokenType.SCALAR_INT;
-						break LOOP;
-					} else {
-						if (isQuote(charAt)) {
-							charAt = charAt(++index);
-							while (isNotEod(charAt) && isQuote(charAt) == false) {
-								if (charAt == '\\') {
-									++index;
-								}
-								charAt = charAt(++index);
-							}
-							queryNextTokenType = TokenType.SCALAR_STRING;
-							index++; // '"' is already parsed
-							break LOOP;
-						} else {
-							if (charAt == ',') {
-								queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
-							} else if (charAt == ')') {
-								queryNextTokenType = TokenType.FUNC_END;
-							} else {
-								throw new IllegalSyntaxException("SCALAR or TERMINATOR", charAt, "PROPERTY_OPERATOR");
-							}
-						}
-						index++; // this char is already parsed
-						break LOOP;
-					}
-				case SCALAR_INT:
-				case SCALAR_STRING:
-					if (charAt == ',') {
-						queryNextTokenType = TokenType.FUNC_ARG_SEPARATOR;
-					} else if (charAt == ')') {
-						queryNextTokenType = TokenType.FUNC_END;
-					} else {
-						throw new IllegalSyntaxException("TERMINATOR", charAt, "SCALAR_INT");
-					}
-					index++; // this char is already parsed
-					break LOOP;
-				default:
-					throw new AssertionError("not catched enum");
-			}
-		}
-		compilingIndex = index;
-		queryToken = query.substring(tokenStart, index).trim();
-		return queryToken;
 	}
 
-	/**
-	 * リセットする。
-	 *
-	 * @see #reset(String)
-	 */
-	public void reset() {
-		reset(query);
+	@Override
+	public FilterDispatcherBase visit(QueryTokenQuery node, Object data) {
+		return (FilterDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
-	/**
-	 * 指定されたクエリでリセットする。
-	 *
-	 * @param query クエリ
-	 * @see #reset()
-	 */
-	public void reset(String query) {
-		this.query = query;
-		queryTokenType = TokenType.DEFAULT;
-		queryNextTokenType = TokenType.DEFAULT;
-		compilingIndex = 0;
-		queryToken = null;
-		hasToken = false;
+	@Override
+	public FilterDispatcherBase visit(QueryTokenStart node, Object data) {
+		return (FilterDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
-	private void throwUnexpectedToken() throws IllegalSyntaxException {
-		StringBuilder stringBuilder = new StringBuilder("Unexpected token: ");
-		if (queryToken == null) {
-			stringBuilder.append("null");
-		} else {
-			stringBuilder.append('"').append(queryToken).append('"');
-		}
-		stringBuilder.append(" (").append(queryNextTokenType).append(')');
-
-		IllegalSyntaxException exception = new IllegalSyntaxException(stringBuilder.toString());
-		exception.setQuery(query);
-		exception.setTokenPostion(queryToken == null ? compilingIndex : (compilingIndex - queryToken.length()));
-		throw exception;
+	@Override
+	public Object visit(SimpleNode node, Object data) {
+		return null;
 	}
 
-	private final void ungetToken() {
-		hasToken = true;
-	}
 }

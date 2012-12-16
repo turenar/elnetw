@@ -34,7 +34,7 @@ public class StandardIntProperties implements FilterProperty {
 
 	static {
 		try {
-			factory = StandardIntProperties.class.getConstructor(String.class, String.class, String.class);
+			factory = StandardIntProperties.class.getConstructor(String.class, String.class, Object.class);
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
@@ -57,7 +57,7 @@ public class StandardIntProperties implements FilterProperty {
 	 * @param value 比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public StandardIntProperties(String name, String operator, String value) throws IllegalSyntaxException {
+	public StandardIntProperties(String name, String operator, Object value) throws IllegalSyntaxException {
 		// name 処理
 		if (Utility.equalString(name, "userid")) {
 			propertyId = PROPERTY_ID_USERID;
@@ -82,11 +82,10 @@ public class StandardIntProperties implements FilterProperty {
 					+ "] 正しくないint演算子です: " + operator);
 		}
 		// value 処理: 整数は必ず指定しないとダメ。
-		try {
-			this.value = Long.parseLong(value);
-		} catch (NumberFormatException e) {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name + "] 値を整数型に変換できません",
-					e);
+		if (value instanceof Long) {
+			this.value = (Long) value;
+		} else {
+			throw new IllegalSyntaxException("[" + name + "] 値が整数型ではありません");
 		}
 	}
 
