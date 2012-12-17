@@ -127,7 +127,7 @@ public enum FilterOperator {
 	 */
 	public static Object compileValueString(String value) throws IllegalSyntaxException {
 		if (value == null) {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "string演算子には値が必要です");
+			throw new IllegalSyntaxException("string演算子には値が必要です");
 		}
 		if (value.length() >= 1 && value.charAt(0) == '/') {
 			return Pattern.compile(value.substring(1));
@@ -244,8 +244,7 @@ public enum FilterOperator {
 				if (value == null) {
 					return false; // valid; no error
 				} else {
-					throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + propName
-							+ "] 値を指定する必要がありません");
+					throw new IllegalSyntaxException("[" + propName + "] 値を指定する必要がありません");
 				}
 			case EQ:
 			case NE:
@@ -255,12 +254,10 @@ public enum FilterOperator {
 				} else if (Utility.equalString(lowerValue, "true") || Utility.equalString(lowerValue, "yes")) {
 					return true;
 				} else {
-					throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + propName
-							+ "] 値がbool型ではありません");
+					throw new IllegalSyntaxException("[" + propName + "] 値がbool型ではありません");
 				}
 			default:
-				throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + propName
-						+ "] 正しくないbool演算子です");
+				throw new IllegalSyntaxException("[" + propName + "] 正しくないbool演算子です");
 		}
 	}
 }

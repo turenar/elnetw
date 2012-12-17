@@ -84,8 +84,7 @@ public class StandardBooleanProperties implements FilterProperty {
 		} else if (Utility.equalString(name, "status")) {
 			propertyId = PROPERTY_ID_STATUS;
 		} else {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
-					"[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+			throw new IllegalSyntaxException("[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {
@@ -94,15 +93,13 @@ public class StandardBooleanProperties implements FilterProperty {
 			operatorType = FilterOperator.compileOperatorBool(operator);
 		}
 		if (operatorType == null) {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
-					+ "] 正しくないbool演算子です: " + operator);
+			throw new IllegalSyntaxException("[" + name + "] 正しくないbool演算子です: " + operator);
 		}
 		if (value == null || value instanceof Boolean) {
 			// value 処理
 			if ((operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT) == false) {
 				if (value == null) {
-					throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name
-							+ "] 比較値が必要です");
+					throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
 				} else {
 					this.value = (Boolean) value;
 				}
@@ -110,7 +107,7 @@ public class StandardBooleanProperties implements FilterProperty {
 				this.value = false; // init because this field is final
 			}
 		} else {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_VALUE, "[" + name + "] 値がbool型ではありません");
+			throw new IllegalSyntaxException("[" + name + "] 値がbool型ではありません");
 		}
 	}
 

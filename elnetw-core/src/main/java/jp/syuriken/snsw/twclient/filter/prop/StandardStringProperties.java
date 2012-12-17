@@ -69,26 +69,22 @@ public class StandardStringProperties implements FilterProperty {
 		} else if (Utility.equalString(name, "client")) {
 			propertyId = PROPERTY_ID_CLIENT;
 		} else {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_NAME,
-					"[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+			throw new IllegalSyntaxException("[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
-					+ "] string演算子が必要です");
+			throw new IllegalSyntaxException("[" + name + "] string演算子が必要です");
 		}
 		operatorType = FilterOperator.compileOperatorString(operator);
 		if (operatorType == null) {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
-					+ "] 正しくないstring演算子です: " + operator);
+			throw new IllegalSyntaxException("[" + name + "] 正しくないstring演算子です: " + operator);
 		}
 		// value 処理
 		if (value instanceof String) {
 
 			this.value = FilterOperator.compileValueString((String) value);
 		} else {
-			throw new IllegalSyntaxException(IllegalSyntaxException.ID_PROPERTY_OPERATOR, "[" + name
-					+ "] 正しくないstring値です: " + operator);
+			throw new IllegalSyntaxException("[" + name + "] 正しくないstring値です: " + operator);
 		}
 	}
 
