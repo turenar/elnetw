@@ -12,6 +12,7 @@ import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
+import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
 import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
@@ -121,6 +122,8 @@ public class FilterCompiler implements FilterParserVisitor {
 		putFilterProperty("user", properties);
 		putFilterProperty("text", properties);
 		putFilterProperty("client", properties);
+
+		putFilterProperty("in_list", InListProperty.getFactory());
 	}
 
 
