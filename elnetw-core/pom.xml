@@ -185,7 +185,7 @@
 		</plugins>
 	</reporting>
 	<properties>
-		<twitter4j.version>3.0.0-SNAPSHOT</twitter4j.version>
+		<twitter4j.version>3.0.2</twitter4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 </project>

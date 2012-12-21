@@ -322,10 +322,6 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 
 		@Override
-		public void onRetweet(User source, User target, Status retweetedStatus) {
-		}
-
-		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
 		}
 
@@ -552,40 +548,54 @@ public abstract class DefaultClientTab implements ClientTab {
 
 
 	/**
-	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
+	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
 	 *
-	 * @param stringBuilder テキスト
-	 * @param start 置き換え開始位置
+	 * @param text テキスト
+	 * @return {@link StringBuilder}
 	 */
-	protected static void nl2br(StringBuilder stringBuilder, int start) {
-		int offset = start;
-		int position;
-		while ((position = stringBuilder.indexOf("\n", offset)) >= 0) {
-			stringBuilder.replace(position, position + 1, "<br>");
-			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuilder.indexOf(" ", offset)) >= 0) {
-			stringBuilder.replace(position, position + 1, "&nbsp;");
-			offset = position + 1;
-		}
-		/*offset = start;
-		while ((position = stringBuilder.indexOf("&amp;", offset)) >= 0) {
-			stringBuilder.replace(position, position + 5, "&amp;amp;");
-			offset = position + 9;
-		}*/
+	protected static StringBuilder escapeHTML(CharSequence text) {
+		return escapeHTML(text, new StringBuilder(text.length() * 2));
 	}
 
 	/**
-	 * nl-&gt;br および 空白を &amp;nbsp;に置き換える
+	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
 	 *
-	 * @param stringBuilder テキスト
-	 * @param append 追加する文字列
+	 * @param text テキスト
+	 * @param appendTo 追加先
+	 * @return {@link StringBuilder}
 	 */
-	protected static void nl2br(StringBuilder stringBuilder, String append) {
-		int offset = stringBuilder.length();
-		stringBuilder.append(append);
-		nl2br(stringBuilder, offset);
+	protected static StringBuilder escapeHTML(CharSequence text, StringBuilder appendTo) {
+		int len = text.length();
+		for (int i = 0; i < len; i++) {
+			char c = text.charAt(i);
+			switch (c) {
+				case '&':
+					appendTo.append("&amp;");
+					break;
+				case '>':
+					appendTo.append("&gt;");
+					break;
+				case '<':
+					appendTo.append("&lt;");
+					break;
+				case '"':
+					appendTo.append("&quot;");
+					break;
+				case '\'':
+					appendTo.append("&#39;");
+					break;
+				case '\n':
+					appendTo.append("<br>");
+					break;
+				case ' ':
+					appendTo.append("&nbsp;");
+					break;
+				default:
+					appendTo.append(c);
+					break;
+			}
+		}
+		return appendTo;
 	}
 
 
@@ -667,6 +677,7 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/** Twitterのロゴ (青背景に白) */
 	public static final ImageIcon IMG_TWITTER_LOGO;
+
 	static {
 		try {
 			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
@@ -887,17 +898,17 @@ public abstract class DefaultClientTab implements ClientTab {
 		if (statusData.tag instanceof TwitterStatus) {
 			TwitterStatus originalStatus = (TwitterStatus) statusData.tag;
 			TwitterStatus status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
-			String escapedText = status.getEscapedText();
-			StringBuilder stringBuilder = new StringBuilder(escapedText.length());
+			String text = status.getText();
+			StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
 
 			int entitiesLen;
-			HashtagEntity[] hashtagEntities = status.getEscapedHashtagEntities();
+			HashtagEntity[] hashtagEntities = status.getHashtagEntities();
 			entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
-			URLEntity[] urlEntities = status.getEscapedURLEntities();
+			URLEntity[] urlEntities = status.getURLEntities();
 			entitiesLen += urlEntities == null ? 0 : urlEntities.length;
-			MediaEntity[] mediaEntities = status.getEscapedMediaEntities();
+			MediaEntity[] mediaEntities = status.getMediaEntities();
 			entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
-			UserMentionEntity[] mentionEntities = status.getEscapedUserMentionEntities();
+			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
 			entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
 			Object[] entities = new Object[entitiesLen];
 
@@ -940,7 +951,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					url = "http://command/hashtag!" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
-					url = urlEntity.getURL().toExternalForm();
+					url = urlEntity.getURL();
 					start = TwitterStatus.getEntityStart(urlEntity);
 					end = TwitterStatus.getEntityEnd(urlEntity);
 					replaceText = urlEntity.getDisplayURL();
@@ -954,18 +965,15 @@ public abstract class DefaultClientTab implements ClientTab {
 					throw new AssertionError();
 				}
 
-				if (offset < start) {
-					nl2br(stringBuilder, escapedText.substring(offset, start));
-				}
-				stringBuilder.append("<a href=\"");
-				stringBuilder.append(url);
-				stringBuilder.append("\">");
-				stringBuilder.append(replaceText == null ? escapedText.substring(start, end) : replaceText);
-				stringBuilder.append("</a>");
-
+				String insertText =
+						new StringBuilder().append("<a href=\"").append(url).append("\">")
+							.append(escapeHTML(replaceText == null ? text.substring(start, end) : replaceText))
+							.append("</a>").toString();
+				stringBuilder.append(escapeHTML(text.substring(offset, start)));
+				stringBuilder.append(insertText);
 				offset = end;
 			}
-			nl2br(stringBuilder, escapedText.substring(offset));
+			escapeHTML(text.substring(offset), stringBuilder);
 			String tweetText = stringBuilder.toString();
 			String createdBy;
 			createdBy =
@@ -1003,9 +1011,9 @@ public abstract class DefaultClientTab implements ClientTab {
 			while (null != (handlingException = handlingException.getCause())) {
 				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 			}
-			nl2br(stringBuilder, 0);
+			StringBuilder escaped = escapeHTML(stringBuilder);
 			frameApi.clearTweetView();
-			frameApi.setTweetViewText(stringBuilder.toString(), null, DO_NOTHING_WHEN_POINTED);
+			frameApi.setTweetViewText(escaped.toString(), null, DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedAt(Utility.getDateFormat().format(statusData.date), null,
 					DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), ex.getClass().getName(), null,

@@ -180,18 +180,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		}
 
 		@Override
-		public void onRetweet(User source, User target, Status retweetedStatus) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onRetweet: source={}, target={}, retweet={}",
-						Utility.toArray(source, target, retweetedStatus));
-			} else if (logger.isDebugEnabled()) {
-				logger.debug("id={}, retweetedid={}, status={}", Utility.toArray(retweetedStatus.getId(),
-						retweetedStatus.getRetweetedStatus().getId(), retweetedStatus));
-			}
-			addStatus(retweetedStatus);
-		}
-
-		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
 			// TODO Auto-generated method stub
 		}

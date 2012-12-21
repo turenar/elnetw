@@ -67,10 +67,6 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	}
 
 	@Override
-	public void onRetweet(User source, User target, Status retweetedStatus) {
-	}
-
-	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 	}
 

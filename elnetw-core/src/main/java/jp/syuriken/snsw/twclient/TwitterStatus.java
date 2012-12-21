@@ -1,12 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +14,6 @@ import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.http.HTMLEntity;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
 import twitter4j.json.DataObjectFactory;
@@ -35,217 +28,8 @@ import twitter4j.json.DataObjectFactory;
 })
 public class TwitterStatus implements Status, TwitterExtendedObject {
 
-	/*package*/static abstract class EntityImplBase {
+	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 
-		private final int end;
-
-		private final int start;
-
-
-		protected EntityImplBase(int start, int end) {
-			if (start < 0 || end < 0) {
-				throw new AssertionError("start=" + start + ", end=" + end);
-			}
-			this.start = start;
-			this.end = end;
-		}
-
-		public int getEnd() {
-			return end;
-		}
-
-		public int getStart() {
-			return start;
-		}
-
-	}
-
-	/*package*/static class HashtagEntityImpl extends EntityImplBase implements HashtagEntity {
-
-		private final HashtagEntity base;
-
-
-		public HashtagEntityImpl(HashtagEntity base, int start, int end) {
-			super(start, end);
-			this.base = base;
-		}
-
-		@Override
-		public String getText() {
-			return base.getText();
-		}
-	}
-
-	/*package*/static class MediaEntityImpl extends URLEntityImpl implements MediaEntity {
-
-		private final MediaEntity base;
-
-
-		public MediaEntityImpl(MediaEntity base, int start, int end) {
-			super(base, start, end);
-			this.base = base;
-		}
-
-		@Override
-		public long getId() {
-			return base.getId();
-		}
-
-		@Override
-		public URL getMediaURL() {
-			return base.getMediaURL();
-		}
-
-		@Override
-		public URL getMediaURLHttps() {
-			return base.getMediaURLHttps();
-		}
-
-		@Override
-		public Map<Integer, Size> getSizes() {
-			return base.getSizes();
-		}
-
-		@Override
-		public String getType() {
-			return base.getType();
-		}
-	}
-
-	/*package*/static class URLEntityImpl extends EntityImplBase implements URLEntity {
-
-		private final URLEntity base;
-
-
-		public URLEntityImpl(URLEntity base, int start, int end) {
-			super(start, end);
-			this.base = base;
-		}
-
-		@Override
-		public String getDisplayURL() {
-			return base.getDisplayURL();
-		}
-
-		@Override
-		public URL getExpandedURL() {
-			return base.getExpandedURL();
-		}
-
-		@Override
-		public URL getURL() {
-			return base.getURL();
-		}
-	}
-
-	/*package*/static class UserMentionEntityImpl extends EntityImplBase implements UserMentionEntity {
-
-		private final UserMentionEntity base;
-
-
-		public UserMentionEntityImpl(UserMentionEntity base, int start, int end) {
-			super(start, end);
-			this.base = base;
-		}
-
-		@Override
-		public long getId() {
-			return base.getId();
-		}
-
-		@Override
-		public String getName() {
-			return base.getName();
-		}
-
-		@Override
-		public String getScreenName() {
-			return base.getScreenName();
-		}
-	}
-
-
-	private static final Map<String, String> escapeEntityMap;
-
-	private static final Constructor<HashtagEntityImpl> HASHTAG_ENTITY_CONSTRUCTOR;
-
-	private static final Logger logger;
-
-	private static final Constructor<MediaEntityImpl> MEDIA_ENTITY_CONSTRUCTOR;
-
-	private static final Constructor<URLEntityImpl> URL_ENTITY_CONSTRUCTOR;
-
-	private static final Constructor<UserMentionEntityImpl> USERMENTION_ENTITY_CONSTRUCTOR;
-
-	static {
-		logger = LoggerFactory.getLogger(TwitterStatus.class);
-		try {
-			Class.forName("twitter4j.internal.http.HTMLEntity");
-			Field escapeEntityMapField;
-			escapeEntityMapField = HTMLEntity.class.getDeclaredField("escapeEntityMap");
-			escapeEntityMapField.setAccessible(true);
-			@SuppressWarnings("unchecked")
-			Map<String, String> escapeEntities = (Map<String, String>) escapeEntityMapField.get(null);
-			escapeEntityMap = escapeEntities;
-		} catch (ClassNotFoundException e) {
-			logger.error("Class.forName(twitter4j.internal.http.HTMLEntity) failed", e);
-			throw new AssertionError(e);
-		} catch (SecurityException e) {
-			logger.error("getField(HTMLEntity.escapeEntityMap) blocked", e);
-			throw new AssertionError(e);
-		} catch (NoSuchFieldException e) {
-			logger.error("getField(HTMLEntity.escapeEntityMap) failed", e);
-			throw new AssertionError(e);
-		} catch (IllegalArgumentException e) {
-			logger.error("getField(HTMLEntity.escapeEntityMap) failed", e);
-			throw new AssertionError(e);
-		} catch (IllegalAccessException e) {
-			logger.error("getField(HTMLEntity.escapeEntityMap) failed", e);
-			throw new AssertionError(e);
-		} catch (ClassCastException e) {
-			logger.error("getField(HTMLEntity.escapeEntityMap) failed", e);
-			throw new AssertionError(e);
-		}
-		try {
-			USERMENTION_ENTITY_CONSTRUCTOR =
-					UserMentionEntityImpl.class.getConstructor(UserMentionEntity.class, int.class, int.class);
-			MEDIA_ENTITY_CONSTRUCTOR = MediaEntityImpl.class.getConstructor(MediaEntity.class, int.class, int.class);
-			HASHTAG_ENTITY_CONSTRUCTOR =
-					HashtagEntityImpl.class.getConstructor(HashtagEntity.class, int.class, int.class);
-			URL_ENTITY_CONSTRUCTOR = URLEntityImpl.class.getDeclaredConstructor(URLEntity.class, int.class, int.class);
-		} catch (SecurityException e) {
-			logger.error("getConstructor(*EntityImpl) blocked", e);
-			throw new AssertionError(e);
-		} catch (NoSuchMethodException e) {
-			logger.error("getConstructor(*EntityImpl) failed", e);
-			throw new AssertionError(e);
-		}
-	}
-
-
-	private static <T>T[] getEntities(T[] entities, T[] newEntities, List<int[]> list,
-			Constructor<? extends T> constructor) {
-		for (int i = 0; i < entities.length; i++) {
-			T entity = entities[i];
-			int start = getEntityStart(entity);
-			int end = getEntityEnd(entity);
-			for (int[] ia : list) {
-				if (start > ia[0]) {
-					int decr = ia[1];
-					start = start - decr;
-					end = end - decr;
-				}
-			}
-			try {
-				newEntities[i] = constructor.newInstance(entity, start, end);
-			} catch (Exception e) {
-				logger.error("#getEntities got Exception: entity={}, start={}, end={}",
-						Utility.toArray(entity, start, end));
-				throw new AssertionError(e);
-			}
-		}
-		return newEntities;
-	}
 
 	/**
 	 * Entityのindice startを取得する
@@ -260,8 +44,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 			return ((HashtagEntity) entity).getEnd();
 		} else if (entity instanceof UserMentionEntity) {
 			return ((UserMentionEntity) entity).getEnd();
-		} else if (entity instanceof EntityImplBase) {
-			return ((EntityImplBase) entity).getEnd();
 		} else {
 			throw new IllegalArgumentException("entity is not instanceof *Entity");
 		}
@@ -280,8 +62,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 			return ((HashtagEntity) entity).getStart();
 		} else if (entity instanceof UserMentionEntity) {
 			return ((UserMentionEntity) entity).getStart();
-		} else if (entity instanceof EntityImplBase) {
-			return ((EntityImplBase) entity).getStart();
 		} else {
 			throw new IllegalArgumentException("entity is not instanceof *Entity");
 		}
@@ -308,8 +88,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private final long[] contributors;
 
 	private final Date createdAt;
-
-	private final String escapedText;
 
 	private final GeoLocation geoLocation;
 
@@ -355,13 +133,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private final String json;
 
-	private final UserMentionEntity[] escapedUserMentionEntities;
+	private boolean possiblySensitive;
 
-	private final MediaEntity[] escapedMediaEntities;
-
-	private final HashtagEntity[] escapedHashtagEntities;
-
-	private final URLEntity[] escapedUrlEntities;
+	private long currentUserRetweetId;
 
 
 	/**
@@ -385,10 +159,10 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 		favorited = originalStatus.isFavorited();
 		retweetedByMe = originalStatus.isRetweetedByMe();
-		escapedUrlEntities = urlEntities = originalStatus.getURLEntities();
-		escapedHashtagEntities = hashtagEntities = originalStatus.getHashtagEntities();
-		escapedMediaEntities = mediaEntities = originalStatus.getMediaEntities();
-		escapedUserMentionEntities = userMentionEntities = originalStatus.getUserMentionEntities();
+		urlEntities = originalStatus.getURLEntities();
+		hashtagEntities = originalStatus.getHashtagEntities();
+		mediaEntities = originalStatus.getMediaEntities();
+		userMentionEntities = originalStatus.getUserMentionEntities();
 		text = originalStatus.getText();
 		createdAt = originalStatus.getCreatedAt();
 		id = originalStatus.getId();
@@ -406,19 +180,16 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		user = getCachedUser(originalStatus.getUser());
 		rateLimitStatus = originalStatus.getRateLimitStatus();
 		accessLevel = originalStatus.getAccessLevel();
+		possiblySensitive = originalStatus.isPossiblySensitive();
+		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (originalStatus instanceof TwitterStatus) {
-			escapedText = originalStatus.getText();
-			this.retweetedStatus = (TwitterStatus) retweetedStatus;
-			return;
-		}
-
-		if (jsonObject == null) {
-			escapedText = HTMLEntity.escape(originalStatus.getText());
+			// do nothing
+		} else if (jsonObject == null) {
+			retweetedStatus = new TwitterStatus(configuration, retweetedStatus);
 		} else {
 			try {
-				escapedText = jsonObject.getString("text");
 				if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
 					CacheManager cacheManager = configuration.getCacheManager();
 					Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
@@ -437,63 +208,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 				logger.error("Cannot parse json", e); // already parsed by StatusJSONImpl
 				throw new RuntimeException(e);
 			}
-		}
-		ArrayList<int[]> replacedList = new ArrayList<int[]>();
-		StringBuilder escapedTextBuilder = new StringBuilder(escapedText);
-
-		// == Original is Twitter4j v2.2.5 HTMLEntity.java ==
-		int index = 0;
-		int semicolonIndex;
-		String escaped;
-		String entity;
-		while (index < escapedTextBuilder.length()) {
-			index = escapedTextBuilder.indexOf("&", index);
-			if (-1 == index) {
-				break;
-			}
-			semicolonIndex = escapedTextBuilder.indexOf(";", index);
-			if (-1 != semicolonIndex) {
-				escaped = escapedTextBuilder.substring(index, semicolonIndex + 1);
-				entity = escapeEntityMap.get(escaped);
-				if (entity != null) {
-					replacedList.add(new int[] {
-						index,
-						escaped.length() - entity.length()
-					});
-					escapedTextBuilder.replace(index, semicolonIndex + 1, entity);
-				}
-				index++;
-			} else {
-				break;
-			}
-		}
-		// == here is end ==
-		text = escapedTextBuilder.toString();
-
-		try {
-			if (urlEntities != null) {
-				urlEntities =
-						getEntities(urlEntities, new URLEntity[urlEntities.length], replacedList,
-								URL_ENTITY_CONSTRUCTOR);
-			}
-			if (hashtagEntities != null) {
-				hashtagEntities =
-						getEntities(hashtagEntities, new HashtagEntity[hashtagEntities.length], replacedList,
-								HASHTAG_ENTITY_CONSTRUCTOR);
-			}
-			if (mediaEntities != null) {
-				mediaEntities =
-						getEntities(mediaEntities, new MediaEntity[mediaEntities.length], replacedList,
-								MEDIA_ENTITY_CONSTRUCTOR);
-			}
-			if (userMentionEntities != null) {
-				userMentionEntities =
-						getEntities(userMentionEntities, new UserMentionEntity[userMentionEntities.length],
-								replacedList, USERMENTION_ENTITY_CONSTRUCTOR);
-			}
-		} catch (AssertionError error) {
-			logger.error("caught error on preparing entities", error);
-			logger.error("original={}, json={}", originalStatus, jsonObject);
 		}
 		this.retweetedStatus = (TwitterStatus) retweetedStatus;
 	}
@@ -528,16 +242,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return accessLevel;
 	}
 
-	/**
-	 * @deprecated (Twitter4Jにならい、非推奨メソッドです) この実装では常にnullを返します。
-	 */
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public twitter4j.Annotations getAnnotations() {
-		return null;
-	}
-
 	private User getCachedUser(User user) {
 		if (user instanceof TwitterUser) {
 			return user;
@@ -565,50 +269,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return createdAt;
 	}
 
-	/**
-	 * {@link #getEscapedText()} を使用した時の {@link HashtagEntity} 配列
-	 *
-	 * @return {@link HashtagEntity}配列
-	 */
-	public HashtagEntity[] getEscapedHashtagEntities() {
-		return escapedHashtagEntities;
-	}
-
-	/**
-	 * {@link #getEscapedText()} を使用した時の {@link MediaEntity} 配列
-	 *
-	 * @return {@link MediaEntity}配列
-	 */
-	public MediaEntity[] getEscapedMediaEntities() {
-		return escapedMediaEntities;
-	}
-
-	/**
-	 * HTMLEntityが含まれたtext。
-	 * この文字列を使用するときは originalStatus.get*Entities() を使用してください。
-	 *
-	 * @return HTMLEntityでエスケープされたテキスト
-	 */
-	public String getEscapedText() {
-		return escapedText;
-	}
-
-	/**
-	 * {@link #getEscapedText()} を使用した時の {@link URLEntity} 配列
-	 *
-	 * @return {@link URLEntity}配列
-	 */
-	public URLEntity[] getEscapedURLEntities() {
-		return escapedUrlEntities;
-	}
-
-	/**
-	 * {@link #getEscapedText()} を使用した時の {@link UserMentionEntity} 配列
-	 *
-	 * @return {@link UserMentionEntity}配列
-	 */
-	public UserMentionEntity[] getEscapedUserMentionEntities() {
-		return escapedUserMentionEntities;
+	@Override
+	public long getCurrentUserRetweetId() {
+		return currentUserRetweetId;
 	}
 
 	@Override
@@ -713,6 +376,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 */
 	public boolean isLoadedInitialization() {
 		return loadedInitialization;
+	}
+
+	@Override
+	public boolean isPossiblySensitive() {
+		return possiblySensitive;
 	}
 
 	@Override

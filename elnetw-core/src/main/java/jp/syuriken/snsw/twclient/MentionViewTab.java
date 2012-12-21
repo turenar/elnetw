@@ -83,11 +83,6 @@ public class MentionViewTab extends DefaultClientTab {
 		}
 
 		@Override
-		public void onRetweet(User source, User target, Status retweetedStatus) {
-			// do nothing
-		}
-
-		@Override
 		public void onScrubGeo(long userId, long upToStatusId) {
 			// do nothing
 		}

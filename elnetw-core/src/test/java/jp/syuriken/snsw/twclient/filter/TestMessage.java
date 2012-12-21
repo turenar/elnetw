@@ -3,8 +3,12 @@ package jp.syuriken.snsw.twclient.filter;
 import java.util.Date;
 
 import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
+import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 @SuppressWarnings("serial")
 class TestMessage implements DirectMessage {
@@ -30,8 +34,18 @@ class TestMessage implements DirectMessage {
 	}
 
 	@Override
+	public HashtagEntity[] getHashtagEntities() {
+		return null;
+	}
+
+	@Override
 	public long getId() {
 		return 0;
+	}
+
+	@Override
+	public MediaEntity[] getMediaEntities() {
+		return null;
 	}
 
 	@Override
@@ -71,6 +85,16 @@ class TestMessage implements DirectMessage {
 
 	@Override
 	public String getText() {
+		return null;
+	}
+
+	@Override
+	public URLEntity[] getURLEntities() {
+		return null;
+	}
+
+	@Override
+	public UserMentionEntity[] getUserMentionEntities() {
 		return null;
 	}
 

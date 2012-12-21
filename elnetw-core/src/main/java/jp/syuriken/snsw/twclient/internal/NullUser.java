@@ -31,6 +31,16 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public String getBiggerProfileImageURL() {
+		return null;
+	}
+
+	@Override
+	public String getBiggerProfileImageURLHttps() {
+		return null;
+	}
+
+	@Override
 	public Date getCreatedAt() {
 		return null;
 	}
@@ -76,7 +86,27 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public String getMiniProfileImageURL() {
+		return null;
+	}
+
+	@Override
+	public String getMiniProfileImageURLHttps() {
+		return null;
+	}
+
+	@Override
 	public String getName() {
+		return null;
+	}
+
+	@Override
+	public String getOriginalProfileImageURL() {
+		return null;
+	}
+
+	@Override
+	public String getOriginalProfileImageURLHttps() {
 		return null;
 	}
 
@@ -85,8 +115,15 @@ public class NullUser implements User {
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
+	@Deprecated
 	@Override
 	public String getProfileBackgroundImageUrl() {
+		return null;
+	}
+
+	@Override
+	public String getProfileBackgroundImageURL() {
 		return null;
 	}
 
@@ -96,12 +133,49 @@ public class NullUser implements User {
 	}
 
 	@Override
-	public URL getProfileImageURL() {
+	public String getProfileBannerIPadRetinaURL() {
 		return null;
 	}
 
 	@Override
+	public String getProfileBannerIPadURL() {
+		return null;
+	}
+
+	@Override
+	public String getProfileBannerMobileRetinaURL() {
+		return null;
+	}
+
+	@Override
+	public String getProfileBannerMobileURL() {
+		return null;
+	}
+
+	@Override
+	public String getProfileBannerRetinaURL() {
+		return null;
+	}
+
+	@Override
+	public String getProfileBannerURL() {
+		return null;
+	}
+
+	@Override
+	public String getProfileImageURL() {
+		return null;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Deprecated
+	@Override
 	public URL getProfileImageUrlHttps() {
+		return null;
+	}
+
+	@Override
+	public String getProfileImageURLHttps() {
 		return null;
 	}
 
@@ -151,7 +225,7 @@ public class NullUser implements User {
 	}
 
 	@Override
-	public URL getURL() {
+	public String getURL() {
 		return null;
 	}
 

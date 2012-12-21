@@ -2,7 +2,6 @@ package jp.syuriken.snsw.twclient.internal;
 
 import java.util.Date;
 
-import twitter4j.Annotations;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -20,7 +19,6 @@ import twitter4j.UserMentionEntity;
  */
 @SuppressWarnings({
 	"serial",
-	"deprecation"
 })
 public class NullStatus implements Status {
 
@@ -38,12 +36,6 @@ public class NullStatus implements Status {
 		return -1;
 	}
 
-	@Deprecated
-	@Override
-	public Annotations getAnnotations() {
-		return null;
-	}
-
 	@Override
 	public long[] getContributors() {
 		return null;
@@ -52,6 +44,11 @@ public class NullStatus implements Status {
 	@Override
 	public Date getCreatedAt() {
 		return null;
+	}
+
+	@Override
+	public long getCurrentUserRetweetId() {
+		return 0;
 	}
 
 	@Override
@@ -136,6 +133,11 @@ public class NullStatus implements Status {
 
 	@Override
 	public boolean isFavorited() {
+		return false;
+	}
+
+	@Override
+	public boolean isPossiblySensitive() {
 		return false;
 	}
 

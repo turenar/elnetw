@@ -45,7 +45,7 @@ public class TwitterDataFetchScheduler {
 		@Override
 		public void access() throws TwitterException {
 			Paging paging = configData.pagingOfGettingInitialMentions;
-			ResponseList<Status> mentions = twitterForRead.getMentions(paging);
+			ResponseList<Status> mentions = twitterForRead.getMentionsTimeline(paging);
 			for (Status status : mentions) {
 				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
 				twitterStatus.setLoadedInitialization(true);
