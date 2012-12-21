@@ -447,11 +447,10 @@ public class ClientConfiguration {
 		String consumerKey = configProperties.getProperty("twitter.oauth.consumer");
 		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
 
-		return new ConfigurationBuilder() //
-			.setOAuthConsumerKey(consumerKey) //
-			.setOAuthConsumerSecret(consumerSecret) //
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all")) //
-			.setJSONStoreEnabled(true);
+		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
+			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
+			.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
+			.setClientURL(VersionInfo.getSupportUrl());
 	}
 
 	/**

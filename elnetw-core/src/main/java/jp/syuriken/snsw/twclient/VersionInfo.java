@@ -72,7 +72,7 @@ public final class VersionInfo {
 	}
 
 	private static String getString(String key) {
-		return VERSION_INFO_RESOURCE.getProperty(key);
+		return VERSION_INFO_RESOURCE.getProperty(key, UNKNOWN_STRING);
 	}
 
 	/**
@@ -95,13 +95,7 @@ public final class VersionInfo {
 		if (version.equals(UNKNOWN_STRING)) {
 			return revision;
 		} else if (version.endsWith("-SNAPSHOT")) {
-			if (revision.equals(UNKNOWN_STRING)) {
-				return version;
-			} else {
-				StringBuilder sb = new StringBuilder();
-				sb.append(version).append("-").append(getCommittedRevision());
-				return sb.toString();
-			}
+			return getDescribedVersion();
 		}
 		return version;
 	}
