@@ -2,7 +2,6 @@ package jp.syuriken.snsw.twclient;
 
 import java.util.TimerTask;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.internal.InitialMessage;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import twitter4j.DirectMessage;
@@ -26,7 +25,9 @@ public class TwitterDataFetchScheduler {
 		@Override
 		protected void access() throws TwitterException {
 			ResponseList<DirectMessage> directMessages;
-			Paging paging = configData.pagingOfGettingInitialDirectMessage;
+			Paging paging =
+					new Paging().count(configProperties
+						.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
 			directMessages = twitterForRead.getDirectMessages(paging);
 			for (DirectMessage directMessage : directMessages) {
 				rootFilterService.onDirectMessage(new InitialMessage(directMessage));
@@ -44,7 +45,9 @@ public class TwitterDataFetchScheduler {
 
 		@Override
 		public void access() throws TwitterException {
-			Paging paging = configData.pagingOfGettingInitialMentions;
+			Paging paging =
+					new Paging()
+						.count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_MENTION));
 			ResponseList<Status> mentions = twitterForRead.getMentionsTimeline(paging);
 			for (Status status : mentions) {
 				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
@@ -64,7 +67,9 @@ public class TwitterDataFetchScheduler {
 		@Override
 		protected void access() throws TwitterException {
 			ResponseList<Status> homeTimeline;
-			Paging paging = configData.pagingOfGettingInitialTimeline;
+			Paging paging =
+					new Paging().count(configProperties
+						.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_TIMELINE));
 			homeTimeline = twitterForRead.getHomeTimeline(paging);
 			for (Status status : homeTimeline) {
 				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
@@ -83,7 +88,8 @@ public class TwitterDataFetchScheduler {
 
 		@Override
 		protected void access() throws TwitterException {
-			Paging paging = configData.pagingOfGettingTimeline;
+			Paging paging =
+					new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_TIMELINE));
 			ResponseList<Status> timeline;
 			timeline = twitterForRead.getHomeTimeline(paging);
 			for (Status status : timeline) {
@@ -98,17 +104,17 @@ public class TwitterDataFetchScheduler {
 	}
 
 
-	private final ClientFrameApi frameApi;
+	/*package*/final ClientFrameApi frameApi;
 
-	private final ConfigData configData;
+	/*package*/Twitter twitterForRead;
 
-	private Twitter twitterForRead;
+	/*package*/final FilterService rootFilterService;
 
-	private final FilterService rootFilterService;
+	/*package*/final ClientConfiguration configuration;
 
-	private final ClientConfiguration configuration;
+	/*package*/TwitterStream stream;
 
-	private TwitterStream stream;
+	/*package*/ClientProperties configProperties;
 
 
 	/**
@@ -119,7 +125,7 @@ public class TwitterDataFetchScheduler {
 	/*package*/TwitterDataFetchScheduler(final ClientConfiguration configuration) {
 		this.configuration = configuration;
 		frameApi = configuration.getFrameApi();
-		configData = configuration.getConfigData();
+		configProperties = configuration.getConfigProperties();
 		twitterForRead = configuration.getTwitterForRead();
 		rootFilterService = configuration.getRootFilterService();
 
@@ -192,7 +198,7 @@ public class TwitterDataFetchScheduler {
 			public void run() {
 				frameApi.addJob(new HomeTimelineFetcher());
 			}
-		}, configData.intervalOfGetTimeline, configData.intervalOfGetTimeline);
+		}, configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE),
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE));
 	}
-
 }

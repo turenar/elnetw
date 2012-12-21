@@ -3,6 +3,7 @@ package jp.syuriken.snsw.twclient;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -74,7 +75,6 @@ import javax.swing.JPanel;
  * </p>
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class SortedPostListPanel extends JPanel {
 
 	/**
@@ -82,7 +82,9 @@ public class SortedPostListPanel extends JPanel {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public final static class ComponentComparator implements Comparator<Component> {
+	public final static class ComponentComparator implements Comparator<Component>, Serializable {
+
+		private static final long serialVersionUID = 5164218366463800406L;
 
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
@@ -100,6 +102,9 @@ public class SortedPostListPanel extends JPanel {
 			}
 		}
 	}
+
+
+	private static final long serialVersionUID = 5744052485948702454L;
 
 
 	/**

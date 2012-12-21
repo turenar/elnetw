@@ -24,8 +24,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,7 +56,6 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 
@@ -257,7 +256,7 @@ public abstract class DefaultClientTab implements ClientTab {
 						Status status = (Status) statusData.tag;
 						URLEntity[] urlEntities = status.getURLEntities();
 						for (URLEntity urlEntity : urlEntities) {
-							utility.openBrowser(urlEntity.getURL().toString());
+							utility.openBrowser(urlEntity.getURL());
 						}
 					}
 				}
@@ -380,6 +379,20 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
+	 * Entityの開始位置を比較する
+	 */
+	private static final class EntityComparator implements Comparator<Object>, Serializable {
+
+		private static final long serialVersionUID = 8166780199866981253L;
+
+
+		@Override
+		public int compare(Object o1, Object o2) {
+			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
+		}
+	}
+
+	/**
 	 * ポストリストリスナ。
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
@@ -453,23 +466,26 @@ public abstract class DefaultClientTab implements ClientTab {
 
 		@Override
 		public void run() {
+			final DefaultClientTab this$dct = DefaultClientTab.this; // Suppress Warning of FindBugs
 			EventQueue.invokeLater(new Runnable() {
 
 				@Override
 				public void run() {
+					LinkedList<StatusPanel> postListAddQueue = this$dct.postListAddQueue;
 					synchronized (postListAddQueue) {
 						int size = postListAddQueue.size();
+						JScrollPane postListScrollPane = this$dct.postListScrollPane;
 
 						postListScrollPane.invalidate();
 						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < fontHeight) {
+						if (viewPosition.y < this$dct.fontHeight) {
 							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
 						} else {
 							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y + (iconSize.height + PADDING_OF_POSTLIST)
-											* size));
+									new Point(viewPosition.x, viewPosition.y
+											+ (this$dct.iconSize.height + PADDING_OF_POSTLIST) * size));
 						}
-						getSortedPostListPanel().add(postListAddQueue);
+						this$dct.getSortedPostListPanel().add(postListAddQueue);
 						postListScrollPane.validate();
 					}
 				}
@@ -531,20 +547,44 @@ public abstract class DefaultClientTab implements ClientTab {
 
 
 	/** クリップボード */
-	protected static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 
 	/** ポストリストの間のパディング */
-	private static final int PADDING_OF_POSTLIST = 1;
+	/*package*/static final int PADDING_OF_POSTLIST = 1;
 
-	/**
-	 * DateFormatを管理する
-	 * @deprecated use {@link Utility#getDateFormat()}
-	 */
-	@Deprecated
-	protected static final ThreadLocal<SimpleDateFormat> dateFormat = null;
+	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
+	public static final ImageIcon IMG_FAV_OFF;
+
+	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_ON;
+
+	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+	public static final ImageIcon IMG_FAV_HOVER;
+
+	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+
+	/** Twitterのロゴ (青背景に白) */
+	public static final ImageIcon IMG_TWITTER_LOGO;
+
+	static {
+		try {
+			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
+			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
+			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
+		}
+		try {
+			IMG_TWITTER_LOGO =
+					new ImageIcon(ImageIO.read(DefaultClientTab.class
+						.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
+		} catch (IOException e) {
+			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
+		}
+	}
 
 
 	/**
@@ -638,12 +678,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	/*package*/final Logger logger = LoggerFactory.getLogger(getClass());
 
-	/** {@link ClientConfiguration#getConfigData()} */
-	protected final ConfigData configData;
-
-	private LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
+	/** UI更新キュー */
+	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
 
 	/** ポップアップメニュー */
 	protected JPopupMenu tweetPopupMenu;
@@ -654,46 +692,23 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
 
-	private JPanel tweetViewOperationPanel;
+	/** 操作用パネル */
+	protected JPanel tweetViewOperationPanel;
 
-	private JLabel tweetViewFavoriteButton;
+	/** ふぁぼボタン */
+	protected JLabel tweetViewFavoriteButton;
 
-	private JLabel tweetViewRetweetButton;
+	/** リツイートボタン */
+	protected JLabel tweetViewRetweetButton;
 
-	private JLabel tweetViewReplyButton;
+	/** リプライボタン */
+	protected JLabel tweetViewReplyButton;
 
-	private JLabel tweetViewOtherButton;
+	/** その他用ボタン */
+	protected JLabel tweetViewOtherButton;
 
-	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
-	public static final ImageIcon IMG_FAV_OFF;
-
-	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
-	public static final ImageIcon IMG_FAV_ON;
-
-	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
-	public static final ImageIcon IMG_FAV_HOVER;
-
-	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
-
-	/** Twitterのロゴ (青背景に白) */
-	public static final ImageIcon IMG_TWITTER_LOGO;
-
-	static {
-		try {
-			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
-			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
-			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
-		} catch (IOException e) {
-			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
-		}
-		try {
-			IMG_TWITTER_LOGO =
-					new ImageIcon(ImageIO.read(DefaultClientTab.class
-						.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
-		} catch (IOException e) {
-			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
-		}
-	}
+	/** {@link ClientProperties} */
+	protected ClientProperties configProperties;
 
 
 	/**
@@ -703,19 +718,20 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected DefaultClientTab(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
-		configData = frameApi.getConfigData();
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);
-		frameApi.getTimer().schedule(new PostListUpdater(), configData.intervalOfPostListUpdate,
-				configData.intervalOfPostListUpdate);
+		frameApi.getTimer().schedule(new PostListUpdater(),
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
 
@@ -723,9 +739,13 @@ public abstract class DefaultClientTab implements ClientTab {
 
 			@Override
 			public Rectangle translate(JComponent component) {
-				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
+				if (component instanceof StatusPanel) {
+					return sortedPostListPanel.getBoundsOf((StatusPanel) component);
+				} else {
+					throw new AssertionError("component must be instance of StatusPanel");
+				}
 			}
-		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
+		}, configProperties.getBoolean("gui.scrool.momentumEnabled"));
 	}
 
 	/**
@@ -747,7 +767,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		User user = status.getUser();
 
-		if (configData.mentionIdStrictMatch) {
+		if (configProperties.getBoolean(ClientConfiguration.PROPERTY_ID_STRICT_MATCH)) {
 			if (user.getId() == frameApi.getLoginUser().getId()) {
 				statusData.foregroundColor = Color.BLUE;
 			}
@@ -892,7 +912,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		selectingPost = (StatusPanel) e.getComponent();
 		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
-				frameApi.getConfigData().colorOfFocusList));
+				configProperties.getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
 
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof TwitterStatus) {
@@ -930,13 +950,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
 				}
 			}
-			Arrays.sort(entities, new Comparator<Object>() {
-
-				@Override
-				public int compare(Object o1, Object o2) {
-					return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
-				}
-			});
+			Arrays.sort(entities, new EntityComparator());
 			int offset = 0;
 			for (Object entity : entities) {
 				int start;
@@ -1066,7 +1080,8 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			};
 			postListScrollPane.getViewport().setView(getChildComponent());
-			postListScrollPane.getVerticalScrollBar().setUnitIncrement(frameApi.getConfigData().scrollAmount);
+			postListScrollPane.getVerticalScrollBar().setUnitIncrement(
+					configProperties.getInteger(ClientConfiguration.PROPERTY_LIST_SCROLL));
 		}
 		return postListScrollPane;
 	}

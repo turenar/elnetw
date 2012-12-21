@@ -19,8 +19,9 @@ import twitter4j.json.DataObjectFactory;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class TwitterUser implements User, TwitterExtendedObject {
+
+	private static final long serialVersionUID = -345155522353480502L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
 
@@ -108,10 +109,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	private String profileImageUrlHttps;
 
-	private transient final int accessLevel;
-
-	private transient final RateLimitStatus rateLimitStatus;
-
 	private final String json;
 
 	private String profileBannerImageUrl;
@@ -166,8 +163,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		name = originalUser.getName();
 		screenName = originalUser.getScreenName();
 		statusesCount = originalUser.getStatusesCount();
-		accessLevel = originalUser.getAccessLevel();
-		rateLimitStatus = originalUser.getRateLimitStatus();
 		profileBannerImageUrl = originalUser.getProfileBannerURL();
 
 		json = jsonObject == null ? null : jsonObject.toString();
@@ -188,8 +183,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 			if (cachedStatus == null) {
 				status = new TwitterStatus(configuration, status, statusJsonObject);
 				cachedStatus = cacheManager.cacheStatusIfAbsent(status);
-				if (cachedStatus == null) {
-					cachedStatus = status;
+				if (cachedStatus != null) {
+					status = cachedStatus;
 				}
 			}
 		}
@@ -221,9 +216,12 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return ((User) obj).getId() == id;
 	}
 
+	/**
+	 * -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない)
+	 */
 	@Override
 	public int getAccessLevel() {
-		return accessLevel;
+		return -1;
 	}
 
 	@Override
@@ -238,7 +236,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	@Override
 	public Date getCreatedAt() {
-		return createdAt;
+		return (Date) createdAt.clone();
 	}
 
 	@Override
@@ -404,9 +402,12 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileTextColor;
 	}
 
+	/**
+	 * nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
+	 */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
-		return rateLimitStatus;
+		return null;
 	}
 
 	@Override

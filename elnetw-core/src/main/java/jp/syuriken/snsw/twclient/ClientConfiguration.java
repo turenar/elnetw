@@ -1,9 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.awt.Color;
 import java.awt.TrayIcon;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +11,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
-import twitter4j.Paging;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -30,129 +26,44 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class ClientConfiguration {
 
-	/**
-	 * よく使いそうな設定をキャッシュしておくクラス
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public class ConfigData implements PropertyChangeListener {
+	/** スクロール量のプロパティ名 */
+	public static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
 
-		private static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
+	/** フォーカスしたポストの色のプロパティ名 */
+	public static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
 
-		private static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
+	/** メンション判定の厳密な比較するかどうかのプロパティ名 */
+	public static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
 
-		private static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
+	/** 情報の生存時間のプロパティ名 */
+	public static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
 
-		private static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
+	/** UI更新間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
 
-		private static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
+	/** ダイレクトメッセージ初期取得のページングのプロパティ名 */
+	public static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
 
-		private static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
+	/** アカウントリストのプロパティ名 */
+	public static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
 
-		private static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
+	/** メンション初期取得のページングのプロパティ名 */
+	public static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
 
-		private static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
+	/** タイムライン取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
 
-		private static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
+	/** タイムライン取得のページングの更新間隔 */
+	public static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
 
-		private static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
-
-		private static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
-
-		/** UI更新間隔 */
-		public int intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
-
-		/** タイムライン取得間隔 */
-		public int intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
-
-		/** フォーカスしたポストの色 */
-		public Color colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
-
-		/** タイムライン取得のページング */
-		public Paging pagingOfGettingTimeline = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_TIMELINE));
-
-		/** タイムライン初期取得のページング */
-		public Paging pagingOfGettingInitialTimeline = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
-
-		/** メンション判定の厳密な比較 */
-		public boolean mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
-
-		/** スクロール量 */
-		public int scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
-
-		/** 情報の生存時間 */
-		public int timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
-
-		/** メンション初期取得のページング */
-		public Paging pagingOfGettingInitialMentions = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_INITIAL_MENTION));
-
-		/** アカウントリスト */
-		public String[] accountList = initAccountList();
-
-		/** ダイレクトメッセージ初期取得のページング */
-		public Paging pagingOfGettingInitialDirectMessage = new Paging().count(configProperties
-			.getInteger(PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
-
-
-		/*package*/ConfigData() {
-			configProperties.addPropertyChangedListener(this);
-		}
-
-		/**
-		 * アカウントリストを取得する。リストがない場合長さ0の配列を返す。
-		 *
-		 * @return アカウントリスト。
-		 */
-		private String[] initAccountList() {
-			cachedTwitterInstances.clear();
-			String accountListString = configProperties.getProperty(PROPERTY_ACCOUNT_LIST);
-			if (accountListString == null) {
-				return new String[] {};
-			} else {
-				return accountListString.split(" ");
-			}
-		}
-
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			String name = evt.getPropertyName();
-			if (Utility.equalString(name, PROPERTY_INTERVAL_POSTLIST_UPDATE)) {
-				intervalOfPostListUpdate = configProperties.getInteger(PROPERTY_INTERVAL_POSTLIST_UPDATE);
-			} else if (Utility.equalString(name, PROPERTY_INTERVAL_TIMELINE)) {
-				intervalOfGetTimeline = configProperties.getInteger(PROPERTY_INTERVAL_TIMELINE);
-			} else if (Utility.equalString(name, PROPERTY_COLOR_FOCUS_LIST)) {
-				colorOfFocusList = configProperties.getColor(PROPERTY_COLOR_FOCUS_LIST);
-			} else if (Utility.equalString(name, PROPERTY_PAGING_TIMELINE)) {
-				pagingOfGettingTimeline = new Paging().count(configProperties.getInteger(PROPERTY_PAGING_TIMELINE));
-			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_TIMELINE)) {
-				pagingOfGettingInitialTimeline =
-						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_TIMELINE));
-			} else if (Utility.equalString(name, PROPERTY_ID_STRICT_MATCH)) {
-				mentionIdStrictMatch = configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH);
-			} else if (Utility.equalString(name, PROPERTY_LIST_SCROLL)) {
-				scrollAmount = configProperties.getInteger(PROPERTY_LIST_SCROLL);
-			} else if (Utility.equalString(name, PROPERTY_INFO_SURVIVE_TIME)) {
-				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_INFO_SURVIVE_TIME);
-			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_MENTION)) {
-				timeOfSurvivingInfo = configProperties.getInteger(PROPERTY_PAGING_INITIAL_MENTION);
-			} else if (Utility.equalString(name, PROPERTY_ACCOUNT_LIST)) {
-				accountList = initAccountList();
-			} else if (Utility.equalString(name, PROPERTY_PAGING_INITIAL_DIRECTMESSAGE)) {
-				pagingOfGettingInitialDirectMessage =
-						new Paging().count(configProperties.getInteger(PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
-			}
-		}
-	}
-
+	/** タイムライン初期取得のページングのプロパティ名 */
+	public static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
 
 	private TrayIcon trayIcon;
 
-	private ClientProperties configProperties;
+	/*package*/ClientProperties configProperties;
 
-	private ClientProperties configDefaultProperties;
+	/*package*/ClientProperties configDefaultProperties;
 
 	private boolean isShutdownPhase = false;
 
@@ -172,9 +83,7 @@ public class ClientConfiguration {
 
 	private volatile ImageCacher imageCacher;
 
-	private volatile ConfigData configData;
-
-	private ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+	/*package*/ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
 
 	private String accountIdForRead;
 
@@ -310,7 +219,7 @@ public class ClientConfiguration {
 	 * @return アカウントリスト。
 	 */
 	public String[] getAccountList() {
-		return getConfigData().initAccountList();
+		return configProperties.getArray(PROPERTY_ACCOUNT_LIST);
 	}
 
 	/**
@@ -336,22 +245,6 @@ public class ClientConfiguration {
 	 */
 	public ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
-	}
-
-	/**
-	 * 設定のデータを格納するクラスを取得する
-	 *
-	 * @return データクラス
-	 */
-	public ConfigData getConfigData() {
-		if (configData == null) {
-			synchronized (lockObject) {
-				if (configData == null) {
-					configData = new ConfigData();
-				}
-			}
-		}
-		return configData;
 	}
 
 	/**
@@ -627,7 +520,7 @@ public class ClientConfiguration {
 			return false;
 		}
 		for (UserMentionEntity userMentionEntity : userMentionEntities) {
-			if (getConfigData().mentionIdStrictMatch) {
+			if (configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH)) {
 				if (userMentionEntity.getId() == frameApi.getLoginUser().getId()) {
 					return true;
 				}

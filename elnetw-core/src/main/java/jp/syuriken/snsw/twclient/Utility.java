@@ -532,7 +532,7 @@ public class Utility {
 	 * 		<dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
 	 * 		</dl>
 	 */
-	public Exception openBrowser(String url) {
+	public Throwable openBrowser(String url) {
 		detectOS();
 		try {
 			switch (ostype) {
@@ -561,7 +561,7 @@ public class Utility {
 					break;
 			}
 			return null;
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 			logger.warn("Failed opening browser", ex);
 			return ex;
 		}

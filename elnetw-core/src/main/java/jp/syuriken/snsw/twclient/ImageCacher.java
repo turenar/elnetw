@@ -34,7 +34,7 @@ public class ImageCacher {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	protected class ImageEntry {
+	protected static class ImageEntry {
 
 		/** イメージURL */
 		public final URL url;
@@ -169,7 +169,7 @@ public class ImageCacher {
 
 	private final ClientConfiguration configuration;
 
-	private ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
+	/*private*/ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
 
 	/** キャッシュ有効時間 */
 	private long cacheExpire;

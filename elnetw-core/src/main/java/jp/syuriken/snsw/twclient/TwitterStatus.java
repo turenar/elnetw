@@ -23,10 +23,9 @@ import twitter4j.json.DataObjectFactory;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings({
-	"serial"
-})
 public class TwitterStatus implements Status, TwitterExtendedObject {
+
+	private static final long serialVersionUID = 1311261989083804388L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 
@@ -83,8 +82,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 
-	private transient final ClientConfiguration configuration;
-
 	private final long[] contributors;
 
 	private final Date createdAt;
@@ -127,10 +124,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private volatile boolean retweetedByMe;
 
-	private final transient int accessLevel;
-
-	private final transient RateLimitStatus rateLimitStatus;
-
 	private final String json;
 
 	private boolean possiblySensitive;
@@ -154,7 +147,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
 	 */
 	public TwitterStatus(ClientConfiguration configuration, Status originalStatus, JSONObject jsonObject) {
-		this.configuration = configuration;
 		json = jsonObject == null ? null : jsonObject.toString();
 
 		favorited = originalStatus.isFavorited();
@@ -177,9 +169,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		retweetCount = originalStatus.getRetweetCount();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		contributors = originalStatus.getContributors();
-		user = getCachedUser(originalStatus.getUser());
-		rateLimitStatus = originalStatus.getRateLimitStatus();
-		accessLevel = originalStatus.getAccessLevel();
+		user = getCachedUser(configuration, originalStatus.getUser());
 		possiblySensitive = originalStatus.isPossiblySensitive();
 		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
 
@@ -237,12 +227,15 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return ((Status) obj).getId() == id;
 	}
 
+	/**
+	 * -1を返します ((このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない))
+	 */
 	@Override
 	public int getAccessLevel() {
-		return accessLevel;
+		return -1;
 	}
 
-	private User getCachedUser(User user) {
+	private User getCachedUser(ClientConfiguration configuration, User user) {
 		if (user instanceof TwitterUser) {
 			return user;
 		}
@@ -259,6 +252,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return cachedUser;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public long[] getContributors() {
 		return contributors;
@@ -266,7 +260,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	@Override
 	public Date getCreatedAt() {
-		return createdAt;
+		return (Date) createdAt.clone();
 	}
 
 	@Override
@@ -279,6 +273,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return geoLocation;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public HashtagEntity[] getHashtagEntities() {
 		return hashtagEntities;
@@ -309,6 +304,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return json;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public MediaEntity[] getMediaEntities() {
 		return mediaEntities;
@@ -319,9 +315,12 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return place;
 	}
 
+	/**
+	 * nullを返します。(このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
+	 */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
-		return rateLimitStatus;
+		return null;
 	}
 
 	@Override
@@ -344,6 +343,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return text;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public URLEntity[] getURLEntities() {
 		return urlEntities;
@@ -354,6 +354,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return user;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public UserMentionEntity[] getUserMentionEntities() {
 		return userMentionEntities;

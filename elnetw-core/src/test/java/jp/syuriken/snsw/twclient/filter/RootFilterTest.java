@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Timer;
 
 import javax.swing.Icon;
@@ -14,7 +15,6 @@ import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ClientTab;
@@ -25,6 +25,8 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.Utility;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -42,6 +44,8 @@ public class RootFilterTest {
 
 		private ClientProperties clientProperties;
 
+		private static final Logger logger = LoggerFactory.getLogger(MyClientConfiguration.class);
+
 
 		/*package*/MyClientConfiguration() {
 			super(true);
@@ -50,12 +54,21 @@ public class RootFilterTest {
 		@Override
 		public ClientProperties getConfigProperties() {
 			if (clientProperties == null) {
+				InputStream stream = null;
 				try {
 					clientProperties = new ClientProperties();
-					clientProperties.load(RootFilterTest.class
-						.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties"));
+					stream = RootFilterTest.class.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties");
+					clientProperties.load(stream);
 				} catch (IOException e) {
 					throw new AssertionError(e);
+				} finally {
+					if (stream != null) {
+						try {
+							stream.close();
+						} catch (IOException e) {
+							logger.error("failed closing stream", e);
+						}
+					}
 				}
 			}
 			return clientProperties;
@@ -134,11 +147,6 @@ class TestFrameApi implements ClientFrameApi {
 
 	@Override
 	public ClientConfiguration getClientConfiguration() {
-		return null;
-	}
-
-	@Override
-	public ConfigData getConfigData() {
 		return null;
 	}
 

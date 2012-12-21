@@ -7,7 +7,6 @@ import java.util.Timer;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration.ConfigData;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
@@ -106,13 +105,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return インスタンス
 	 */
 	ClientConfiguration getClientConfiguration();
-
-	/**
-	 * 設定情報を格納したクラスを取得する。該当のプロパティを変更すると自動的に更新されます。
-	 *
-	 * @return 設定情報を格納したクラス。
-	 */
-	ConfigData getConfigData();
 
 	/**
 	 * デフォルトで使用されるフォントを取得する。

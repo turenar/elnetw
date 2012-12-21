@@ -77,7 +77,7 @@ public class PropertyEditorFrame extends JFrame {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	private final class DefaultTableModelExtension extends DefaultTableModel {
+	private static final class DefaultTableModelExtension extends DefaultTableModel {
 
 		private static final long serialVersionUID = 1L;
 
@@ -126,11 +126,13 @@ public class PropertyEditorFrame extends JFrame {
 
 	private JButton btnDefault;
 
-	private final ClientConfiguration configuration;
+	/** 設定 */
+	protected transient final ClientConfiguration configuration;
 
 	private JTable tableProperties;
 
-	private DefaultTableModelExtension tableModel;
+	/** テーブルモデル */
+	protected DefaultTableModelExtension tableModel;
 
 
 	/**

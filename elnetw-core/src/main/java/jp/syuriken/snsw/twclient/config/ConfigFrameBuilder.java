@@ -108,6 +108,14 @@ public class ConfigFrameBuilder {
 			return result;
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Config == false) {
+				return false;
+			}
+			return compareTo((Config) obj) == 0;
+		}
+
 		/**
 		 * 設定キーを取得する
 		 *
@@ -169,6 +177,14 @@ public class ConfigFrameBuilder {
 		 */
 		public ConfigType getType() {
 			return type;
+		}
+
+		@Override
+		public int hashCode() {
+			int h = group.hashCode();
+			h = h * 31 + subgroup.hashCode();
+			h = h * 31 + priority;
+			return h;
 		}
 	}
 

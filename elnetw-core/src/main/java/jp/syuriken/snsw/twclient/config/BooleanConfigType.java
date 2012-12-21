@@ -28,6 +28,9 @@ public class BooleanConfigType implements ConfigType {
 
 	@Override
 	public String getValue(JComponent component) {
+		if (component instanceof JCheckBox) {
+			throw new AssertionError();
+		}
 		return String.valueOf(((JCheckBox) component).isSelected());
 	}
 

@@ -287,7 +287,7 @@ public class TimelineViewTab extends DefaultClientTab {
 
 	private boolean isDirty;
 
-	private Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
+	/*package*/Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
 
 
 	/**
