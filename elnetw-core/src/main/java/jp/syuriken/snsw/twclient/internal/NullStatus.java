@@ -2,7 +2,6 @@ package jp.syuriken.snsw.twclient.internal;
 
 import java.util.Date;
 
-import twitter4j.Annotations;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -18,11 +17,10 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings({
-	"serial",
-	"deprecation"
-})
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
 public class NullStatus implements Status {
+
+	private static final long serialVersionUID = -5283262110868599454L;
 
 	/** 使いまわし用のインスタンス */
 	public static final NullStatus INSTANCE = new NullStatus();
@@ -34,14 +32,13 @@ public class NullStatus implements Status {
 	}
 
 	@Override
-	public int getAccessLevel() {
-		return -1;
+	public boolean equals(Object obj) {
+		return obj instanceof NullStatus;
 	}
 
-	@Deprecated
 	@Override
-	public Annotations getAnnotations() {
-		return null;
+	public int getAccessLevel() {
+		return -1;
 	}
 
 	@Override
@@ -52,6 +49,11 @@ public class NullStatus implements Status {
 	@Override
 	public Date getCreatedAt() {
 		return null;
+	}
+
+	@Override
+	public long getCurrentUserRetweetId() {
+		return 0;
 	}
 
 	@Override
@@ -135,7 +137,17 @@ public class NullStatus implements Status {
 	}
 
 	@Override
+	public int hashCode() {
+		return 0;
+	}
+
+	@Override
 	public boolean isFavorited() {
+		return false;
+	}
+
+	@Override
+	public boolean isPossiblySensitive() {
 		return false;
 	}
 

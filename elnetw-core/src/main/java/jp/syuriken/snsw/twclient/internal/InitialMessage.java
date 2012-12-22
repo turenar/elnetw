@@ -3,16 +3,21 @@ package jp.syuriken.snsw.twclient.internal;
 import java.util.Date;
 
 import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
+import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * 初期化時に読み込まれたDM。通知を発行しない。
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class InitialMessage implements DirectMessage {
+
+	private static final long serialVersionUID = -646279578339845549L;
 
 	private final DirectMessage originalMessage;
 
@@ -36,8 +41,18 @@ public class InitialMessage implements DirectMessage {
 	}
 
 	@Override
+	public HashtagEntity[] getHashtagEntities() {
+		return originalMessage.getHashtagEntities();
+	}
+
+	@Override
 	public long getId() {
 		return originalMessage.getId();
+	}
+
+	@Override
+	public MediaEntity[] getMediaEntities() {
+		return originalMessage.getMediaEntities();
 	}
 
 	@Override
@@ -78,5 +93,15 @@ public class InitialMessage implements DirectMessage {
 	@Override
 	public String getText() {
 		return originalMessage.getText();
+	}
+
+	@Override
+	public URLEntity[] getURLEntities() {
+		return originalMessage.getURLEntities();
+	}
+
+	@Override
+	public UserMentionEntity[] getUserMentionEntities() {
+		return originalMessage.getUserMentionEntities();
 	}
 }

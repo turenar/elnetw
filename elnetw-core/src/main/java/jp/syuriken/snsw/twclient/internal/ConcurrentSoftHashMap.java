@@ -506,6 +506,9 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean remove(Object key, Object value) throws ClassCastException {
+		if (value == null) {
+			return false;
+		}
 		queueCleaner();
 		return hashMap.remove(key, wrapReference((V) value));
 	}

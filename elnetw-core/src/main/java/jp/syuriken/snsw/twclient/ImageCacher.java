@@ -34,7 +34,7 @@ public class ImageCacher {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	protected class ImageEntry {
+	protected static class ImageEntry {
 
 		/** イメージURL */
 		public final URL url;
@@ -169,7 +169,7 @@ public class ImageCacher {
 
 	private final ClientConfiguration configuration;
 
-	private ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
+	/*private*/ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
 
 	/** キャッシュ有効時間 */
 	private long cacheExpire;
@@ -224,7 +224,7 @@ public class ImageCacher {
 		synchronized (entry) {
 			InputStream stream;
 			try {
-				stream = entry.url.openStream();
+				stream = url.openStream();
 				byte[] buf = new byte[BUFSIZE];
 				byte[] imagedata = new byte[0];
 				int imagelen = 0;
@@ -316,7 +316,11 @@ public class ImageCacher {
 		String imageKey = getImageKey(user);
 		ImageEntry entry = cacheManager.get(imageKey);
 		if (entry == null) {
-			entry = new ImageEntry(user.getProfileImageURL(), imageKey);
+			try {
+				entry = new ImageEntry(new URL(user.getProfileImageURL()), imageKey);
+			} catch (MalformedURLException e) {
+				throw new AssertionError(e); // would never happen
+			}
 			entry.cacheFile = getImageFilename(user);
 			fetchImage(entry);
 		}
@@ -379,7 +383,7 @@ public class ImageCacher {
 	 * @return ファイル名
 	 */
 	protected String getProfileImageName(User user) {
-		String url = user.getProfileImageURL().toString();
+		String url = user.getProfileImageURL();
 		String fileName = url.substring(url.lastIndexOf('/') + 1);
 		return fileName;
 	}
@@ -434,12 +438,13 @@ public class ImageCacher {
 			String userId = name.substring(0, separatorPosition);
 			String fileName = name.substring(separatorPosition + 1, name.length());
 			logger.debug("loadCache: file={}", name);
+			ImageEntry imageEntry;
 			try {
-				ImageEntry imageEntry = new ImageEntry(file.toURI().toURL(), getImageKey(userId, fileName));
-				frameApi.addJob(new ImageFetcher(imageEntry, null));
+				imageEntry = new ImageEntry(file.toURI().toURL(), getImageKey(userId, fileName));
 			} catch (MalformedURLException e) {
-				logger.error("#loadFromCaches", e);
+				throw new AssertionError(e); // would never happen
 			}
+			frameApi.addJob(new ImageFetcher(imageEntry, null));
 		}
 	}
 
@@ -452,9 +457,10 @@ public class ImageCacher {
 	 * @return キャッシュヒットしたかどうか
 	 */
 	public boolean setImageIcon(JLabel label, URL url) {
-		ImageEntry entry = cacheManager.get(url.toString());
+		String urlString = url.toString();
+		ImageEntry entry = cacheManager.get(urlString);
 		if (entry == null) {
-			frameApi.addJob(new ImageFetcher(new ImageEntry(url), label));
+			frameApi.addJob(new ImageFetcher(new ImageEntry(url, urlString), label));
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
@@ -473,10 +479,14 @@ public class ImageCacher {
 	 */
 	public boolean setImageIcon(JLabel label, User user) {
 		String imageKey = getImageKey(user);
-		URL url = user.getProfileImageURL();
+		String url = user.getProfileImageURL();
 		ImageEntry entry = cacheManager.get(imageKey);
 		if (entry == null) {
-			entry = new ImageEntry(url, imageKey);
+			try {
+				entry = new ImageEntry(new URL(url), imageKey);
+			} catch (MalformedURLException e) {
+				throw new AssertionError(e); // would never happen
+			}
 			entry.cacheFile = getImageFilename(user);
 			frameApi.addJob(new ImageFetcher(entry, label));
 			return false;

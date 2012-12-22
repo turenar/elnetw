@@ -37,13 +37,13 @@ public class ScrollUtility {
 
 	private final JScrollPane scrollPane;
 
-	private int deltaY;
+	/*package*/int deltaY;
 
 	private static final int MAX_SPEED = 100;
 
-	private Timer scrollTimer;
+	/*package*/Timer scrollTimer;
 
-	private JComponent target;
+	/*package*/JComponent target;
 
 	private final BoundsTranslator translator;
 
@@ -104,7 +104,7 @@ public class ScrollUtility {
 	 * @param component 調べるコンポーネント
 	 * @return 表示位置の中にあるかどうか。
 	 */
-	private boolean isInside(JComponent component) {
+	/*package*/boolean isInside(JComponent component) {
 		Point viewPosition = scrollPane.getViewport().getViewPosition();
 		Rectangle bounds = translator.translate(component);
 		return (viewPosition.y <= bounds.y && viewPosition.y + scrollPane.getViewport().getHeight() >= bounds.y

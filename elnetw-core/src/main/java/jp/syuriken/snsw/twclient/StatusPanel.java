@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 
-	private final StatusData statusData;
+	private transient final StatusData statusData;
 
 
 	/**
@@ -48,6 +48,14 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 		return result;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof StatusPanel == false) {
+			return false;
+		}
+		return compareTo((StatusPanel) obj) == 0;
+	}
+
 	/**
 	 * statusData
 	 *
@@ -55,6 +63,11 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	 */
 	public StatusData getStatusData() {
 		return statusData;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() + statusData.hashCode();
 	}
 
 }

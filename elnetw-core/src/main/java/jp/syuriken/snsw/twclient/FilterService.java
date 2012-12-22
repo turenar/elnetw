@@ -372,22 +372,6 @@ public class FilterService implements ClientMessageListener {
 	}
 
 	@Override
-	public void onRetweet(final User source, final User target, final Status retweetedStatus) {
-		filter(new FilterDispatcher() {
-
-			@Override
-			protected boolean callDispatch(MessageFilter messageFilter) {
-				return messageFilter.onRetweet(source, target, retweetedStatus);
-			}
-
-			@Override
-			protected void notifyClientMessage(ClientMessageListener notifyListener) {
-				notifyListener.onRetweet(source, target, retweetedStatus);
-			}
-		});
-	}
-
-	@Override
 	public void onScrubGeo(final long userId, final long upToStatusId) {
 		filter(new FilterDispatcher() {
 

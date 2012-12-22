@@ -17,9 +17,9 @@ public class ActionButtonConfigType implements ConfigType {
 
 	private final String buttonText;
 
-	private final String actionCommand;
+	/*package*/final String actionCommand;
 
-	private final ClientFrameApi frameApi;
+	/*package*/final ClientFrameApi frameApi;
 
 	private final ActionListener ACTION_LISTENER = new ActionListener() {
 

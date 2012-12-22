@@ -21,7 +21,7 @@ public class ConfigFrameBuilder {
 	 * <p>サブグループは、まとめられます</p>
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public class Config implements Comparable<Config> {
+	public static class Config implements Comparable<Config> {
 
 		private final String group;
 
@@ -108,6 +108,14 @@ public class ConfigFrameBuilder {
 			return result;
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Config == false) {
+				return false;
+			}
+			return compareTo((Config) obj) == 0;
+		}
+
 		/**
 		 * 設定キーを取得する
 		 *
@@ -169,6 +177,14 @@ public class ConfigFrameBuilder {
 		 */
 		public ConfigType getType() {
 			return type;
+		}
+
+		@Override
+		public int hashCode() {
+			int h = group.hashCode();
+			h = h * 31 + subgroup.hashCode();
+			h = h * 31 + priority;
+			return h;
 		}
 	}
 

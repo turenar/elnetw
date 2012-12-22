@@ -118,7 +118,7 @@ public class TwitterClientMain {
 		}
 
 		if (debugMode) {
-			URL resource = getClass().getResource("/logback-debug.xml");
+			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
 			if (resource == null) {
 				logger.error("resource /logback-debug.xml is not found");
 			} else {
@@ -138,12 +138,7 @@ public class TwitterClientMain {
 		File configRootDir = new File(configuration.getConfigRootDir());
 		if (portable == false && configRootDir.exists() == false) {
 			if (configRootDir.mkdirs()) {
-				configRootDir.setReadable(false, false);
-				configRootDir.setWritable(false, false);
-				configRootDir.setExecutable(false, false);
-				configRootDir.setReadable(true, true);
-				configRootDir.setWritable(true, true);
-				configRootDir.setExecutable(true, true);
+				setConfigRootDirPermission(configRootDir);
 			} else {
 				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
 			}
@@ -158,7 +153,7 @@ public class TwitterClientMain {
 
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
-			InputStream stream = getClass().getResourceAsStream("config.properties");
+			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
 			if (stream == null) {
 				logger.error("リソース(default) config.properties を読み込めません");
 			} else {
@@ -255,6 +250,16 @@ public class TwitterClientMain {
 		fetchScheduler.cleanUp();
 
 		return 0;
+	}
+
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+	private void setConfigRootDirPermission(File configRootDir) {
+		configRootDir.setReadable(false, false);
+		configRootDir.setWritable(false, false);
+		configRootDir.setExecutable(false, false);
+		configRootDir.setReadable(true, true);
+		configRootDir.setWritable(true, true);
+		configRootDir.setExecutable(true, true);
 	}
 
 	/**

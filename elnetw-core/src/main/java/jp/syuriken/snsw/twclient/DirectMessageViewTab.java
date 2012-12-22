@@ -56,7 +56,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 		public void onDirectMessage(twitter4j.DirectMessage directMessage) {
 			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
 
-			if (configData.mentionIdStrictMatch) {
+			if (configProperties.getBoolean(ClientConfiguration.PROPERTY_ID_STRICT_MATCH)) {
 				if (directMessage.getSenderId() == frameApi.getLoginUser().getId()) {
 					statusData.foregroundColor = Color.BLUE;
 				}
@@ -145,7 +145,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 		}
 		selectingPost = (StatusPanel) e.getComponent();
 		selectingPost.setBackground(Utility.blendColor(selectingPost.getStatusData().backgroundColor,
-				frameApi.getConfigData().colorOfFocusList));
+				configProperties.getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
 
 		StatusData statusData = selectingPost.getStatusData();
 		if (statusData.tag instanceof DirectMessage) {

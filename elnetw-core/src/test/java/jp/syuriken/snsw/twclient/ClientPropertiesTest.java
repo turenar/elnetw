@@ -18,6 +18,17 @@ import org.junit.Test;
  */
 public class ClientPropertiesTest {
 
+	/*package*/static final class PropertyChangeListenerTestImpl implements PropertyChangeListener {
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			assertEquals("test", evt.getPropertyName());
+			assertEquals(null, evt.getOldValue());
+			assertEquals("aaa", evt.getNewValue());
+		}
+	}
+
+
 	private static final int BENCH_COUNT = 100000;
 
 	/* **********************
@@ -44,15 +55,7 @@ public class ClientPropertiesTest {
 	@Test
 	public void testAddPropertyChangedListener() {
 		ClientProperties clientProperties = new ClientProperties();
-		clientProperties.addPropertyChangedListener(new PropertyChangeListener() {
-
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				assertEquals("test", evt.getPropertyName());
-				assertEquals(null, evt.getOldValue());
-				assertEquals("aaa", evt.getNewValue());
-			}
-		});
+		clientProperties.addPropertyChangedListener(new PropertyChangeListenerTestImpl());
 		clientProperties.setProperty("test", "aaa");
 	}
 

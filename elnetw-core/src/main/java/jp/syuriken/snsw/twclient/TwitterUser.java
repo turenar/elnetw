@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
@@ -18,8 +19,9 @@ import twitter4j.json.DataObjectFactory;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class TwitterUser implements User, TwitterExtendedObject {
+
+	private static final long serialVersionUID = -345155522353480502L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
 
@@ -97,21 +99,19 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	private int statusesCount;
 
-	private URL url;
+	private String url;
 
 	private String profileBackgroundImageUrl;
 
 	private String profileBackgroundImageUrlHttps;
 
-	private URL profileImageUrl;
+	private String profileImageUrl;
 
-	private URL profileImageUrlHttps;
-
-	private transient final int accessLevel;
-
-	private transient final RateLimitStatus rateLimitStatus;
+	private String profileImageUrlHttps;
 
 	private final String json;
+
+	private String profileBannerImageUrl;
 
 
 	/**
@@ -139,11 +139,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		lang = originalUser.getLang();
 		url = originalUser.getURL();
 		profileBackgroundColor = originalUser.getProfileBackgroundColor();
-		profileBackgroundImageUrl = originalUser.getProfileBackgroundImageUrl();
+		profileBackgroundImageUrl = originalUser.getProfileBackgroundImageURL();
 		profileBackgroundImageUrlHttps = originalUser.getProfileBackgroundImageUrlHttps();
 		profileBackgroundTiled = originalUser.isProfileBackgroundTiled();
 		profileImageUrl = originalUser.getProfileImageURL();
-		profileImageUrlHttps = originalUser.getProfileImageUrlHttps();
+		profileImageUrlHttps = originalUser.getProfileImageURLHttps();
 		profileLinkColor = originalUser.getProfileLinkColor();
 		profileSidebarBorderColor = originalUser.getProfileSidebarBorderColor();
 		profileSidebarFillColor = originalUser.getProfileSidebarFillColor();
@@ -163,8 +163,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		name = originalUser.getName();
 		screenName = originalUser.getScreenName();
 		statusesCount = originalUser.getStatusesCount();
-		accessLevel = originalUser.getAccessLevel();
-		rateLimitStatus = originalUser.getRateLimitStatus();
+		profileBannerImageUrl = originalUser.getProfileBannerURL();
 
 		json = jsonObject == null ? null : jsonObject.toString();
 
@@ -184,8 +183,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 			if (cachedStatus == null) {
 				status = new TwitterStatus(configuration, status, statusJsonObject);
 				cachedStatus = cacheManager.cacheStatusIfAbsent(status);
-				if (cachedStatus == null) {
-					cachedStatus = status;
+				if (cachedStatus != null) {
+					status = cachedStatus;
 				}
 			}
 		}
@@ -217,14 +216,27 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return ((User) obj).getId() == id;
 	}
 
+	/**
+	 * -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない)
+	 */
 	@Override
 	public int getAccessLevel() {
-		return accessLevel;
+		return -1;
+	}
+
+	@Override
+	public String getBiggerProfileImageURL() {
+		return toResizedURL(profileImageUrl, "_bigger");
+	}
+
+	@Override
+	public String getBiggerProfileImageURLHttps() {
+		return toResizedURL(profileImageUrlHttps, "_bigger");
 	}
 
 	@Override
 	public Date getCreatedAt() {
-		return createdAt;
+		return (Date) createdAt.clone();
 	}
 
 	@Override
@@ -273,8 +285,28 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
+	public String getMiniProfileImageURL() {
+		return toResizedURL(profileImageUrl, "_mini");
+	}
+
+	@Override
+	public String getMiniProfileImageURLHttps() {
+		return toResizedURL(profileImageUrlHttps, "_mini");
+	}
+
+	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getOriginalProfileImageURL() {
+		return toResizedURL(profileImageUrl, "");
+	}
+
+	@Override
+	public String getOriginalProfileImageURLHttps() {
+		return toResizedURL(profileImageUrlHttps, "");
 	}
 
 	@Override
@@ -282,8 +314,17 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBackgroundColor;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
+	@SuppressWarnings("deprecation")
+	@Deprecated
 	@Override
 	public String getProfileBackgroundImageUrl() {
+		return profileBackgroundImageUrl;
+	}
+
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
+	@Override
+	public String getProfileBackgroundImageURL() {
 		return profileBackgroundImageUrl;
 	}
 
@@ -293,12 +334,53 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
-	public URL getProfileImageURL() {
-		return profileImageUrl;
+	public String getProfileBannerIPadRetinaURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad_retina" : null;
 	}
 
 	@Override
+	public String getProfileBannerIPadURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad" : null;
+	}
+
+	@Override
+	public String getProfileBannerMobileRetinaURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad_retina" : null;
+	}
+
+	@Override
+	public String getProfileBannerMobileURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/mobile" : null;
+	}
+
+	@Override
+	public String getProfileBannerRetinaURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/web_retina" : null;
+	}
+
+	@Override
+	public String getProfileBannerURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/web" : null;
+	}
+
+	@Override
+	public String getProfileImageURL() {
+		return profileImageUrl;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Deprecated
+	@Override
 	public URL getProfileImageUrlHttps() {
+		try {
+			return new URL(profileImageUrlHttps);
+		} catch (MalformedURLException e) {
+			return null;
+		}
+	}
+
+	@Override
+	public String getProfileImageURLHttps() {
 		return profileImageUrlHttps;
 	}
 
@@ -322,9 +404,12 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileTextColor;
 	}
 
+	/**
+	 * nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
+	 */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
-		return rateLimitStatus;
+		return null;
 	}
 
 	@Override
@@ -348,7 +433,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
-	public URL getURL() {
+	public String getURL() {
 		return url;
 	}
 
@@ -408,6 +493,22 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	/**
+	 * Original Code: twitter4j.internal.json.UserJSONImpl (v3.0.2)
+	 *
+	 * @param originalURL オリジナルURL
+	 * @param sizeSuffix サイズ指定子
+	 * @return URL
+	 */
+	private String toResizedURL(String originalURL, String sizeSuffix) {
+		if (null != originalURL) {
+			int index = originalURL.lastIndexOf("_");
+			int suffixIndex = originalURL.lastIndexOf(".");
+			return originalURL.substring(0, index) + sizeSuffix + originalURL.substring(suffixIndex);
+		}
+		return null;
+	}
+
+	/**
 	 * このユーザーのプロフィールを指定したユーザーのプロフィールでアップデートする
 	 *
 	 * @param user 新しい情報が含まれたユーザー
@@ -425,10 +526,10 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		listedCount = user.getListedCount();
 		location = user.getLocation();
 		name = user.getName();
-		profileBackgroundImageUrl = user.getProfileBackgroundImageUrl();
+		profileBackgroundImageUrl = user.getProfileBackgroundImageURL();
 		profileBackgroundImageUrlHttps = user.getProfileBackgroundImageUrlHttps();
 		profileImageUrl = user.getProfileImageURL();
-		profileImageUrlHttps = user.getProfileImageUrlHttps();
+		profileImageUrlHttps = user.getProfileImageURLHttps();
 		isProtected = user.isProtected();
 		screenName = user.getScreenName();
 		status = user.getStatus();

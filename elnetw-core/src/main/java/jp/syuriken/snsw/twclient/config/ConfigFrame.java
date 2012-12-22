@@ -40,7 +40,7 @@ public class ConfigFrame extends JFrame {
 	}
 
 
-	private static ConfigFrame openingFrame;
+	/*package*/static ConfigFrame openingFrame;
 
 	private static Object staticHolder = new Object();
 
@@ -127,7 +127,7 @@ public class ConfigFrame extends JFrame {
 	}
 
 
-	private final ClientProperties properties;
+	/*package*/final ClientProperties properties;
 
 
 	private ConfigFrame(ClientConfiguration configuration) {

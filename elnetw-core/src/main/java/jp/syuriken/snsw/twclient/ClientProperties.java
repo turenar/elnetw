@@ -7,6 +7,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -21,11 +22,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class ClientProperties extends Properties {
 
+	private static final long serialVersionUID = 3574097790007133367L;
+
 	/** リスナの配列 */
-	protected ArrayList<PropertyChangeListener> listeners;
+	protected transient ArrayList<PropertyChangeListener> listeners;
 
 	/** 保存先のファイル */
 	protected File storeFile;
@@ -121,6 +123,17 @@ public class ClientProperties extends Properties {
 		for (PropertyChangeListener listener : listeners) {
 			listener.propertyChange(evt);
 		}
+	}
+
+	/**
+	 * スペースで区切られた設定値を配列にして返す。この関数はキャッシュされません。
+	 *
+	 * @param key キー
+	 * @return space-separated array
+	 */
+	public synchronized String[] getArray(String key) {
+		String accountListString = getProperty(key, "");
+		return accountListString.split(" ");
 	}
 
 	/**
@@ -304,6 +317,12 @@ public class ClientProperties extends Properties {
 		hashCode += 19 * listeners.hashCode();
 		hashCode += 19 * storeFile.hashCode();
 		return hashCode;
+	}
+
+	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		listeners = new ArrayList<PropertyChangeListener>();
+		cacheTable = new Hashtable<String, Object>();
 	}
 
 	@Override

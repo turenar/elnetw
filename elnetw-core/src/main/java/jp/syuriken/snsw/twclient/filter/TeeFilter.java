@@ -139,13 +139,6 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	}
 
 	@Override
-	public void onRetweet(User source, User target, Status retweetedStatus) {
-		if (filterQuery.filter(retweetedStatus) == false) {
-			renderer.onRetweet(source, target, retweetedStatus);
-		}
-	}
-
-	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 		renderer.onScrubGeo(userId, upToStatusId);
 	}

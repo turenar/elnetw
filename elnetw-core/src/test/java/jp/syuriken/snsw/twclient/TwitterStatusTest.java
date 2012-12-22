@@ -30,6 +30,18 @@ import twitter4j.json.DataObjectFactory;
  */
 public class TwitterStatusTest {
 
+	private static final class ClientConfigurationExtension extends ClientConfiguration {
+
+		private ClientConfigurationExtension(boolean isTestMethod) {
+			super(isTestMethod);
+		}
+
+		@Override
+		public Twitter getTwitterForRead() {
+			return null;
+		}
+	}
+
 	/*package*/static class TestObj {
 
 		/*package*/String json;
@@ -101,13 +113,7 @@ public class TwitterStatusTest {
 	 */
 	@Test
 	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
-		ClientConfiguration configuration = new ClientConfiguration(true) {
-
-			@Override
-			public Twitter getTwitterForRead() {
-				return null;
-			}
-		};
+		ClientConfiguration configuration = new ClientConfigurationExtension(true);
 		ClientProperties clientProperties = new ClientProperties();
 		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
 				"UTF-8"));

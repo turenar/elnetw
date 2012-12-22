@@ -63,11 +63,22 @@ public class CacheManager {
 	}
 
 	/**
+	 * Status-&gt;id
+	 */
+	private static final class StatusValueConverter implements ValueConverter<Long, Status> {
+
+		@Override
+		public Long getKey(Status value) {
+			return value.getId();
+		}
+	}
+
+	/**
 	 * ユーザーを取得するジョブ
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	protected class UserFetcher extends TwitterRunnable implements ParallelRunnable {
+	private class UserFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		private long[] userIds;
 
@@ -101,6 +112,17 @@ public class CacheManager {
 		@Override
 		protected ClientConfiguration getConfiguration() {
 			return configuration;
+		}
+	}
+
+	/**
+	 * User-&gt;id
+	 */
+	private static final class UserValueConverter implements ValueConverter<Long, User> {
+
+		@Override
+		public Long getKey(User value) {
+			return value.getId();
 		}
 	}
 
@@ -149,20 +171,12 @@ public class CacheManager {
 		int initialCapacity = properties.getInteger("core.cache.data.initial_capacity");
 		frameApi = configuration.getFrameApi();
 
-		statusCacheMap = new ConcurrentSoftHashMap<Long, Status>(configuration, new ValueConverter<Long, Status>() {
-
-			@Override
-			public Long getKey(Status value) {
-				return value.getId();
-			}
-		}, concurrency, loadFactor, initialCapacity);
-		userCacheMap = new ConcurrentSoftHashMap<Long, User>(configuration, new ValueConverter<Long, User>() {
-
-			@Override
-			public Long getKey(User value) {
-				return value.getId();
-			}
-		}, concurrency, loadFactor, initialCapacity);
+		statusCacheMap =
+				new ConcurrentSoftHashMap<Long, Status>(configuration, new StatusValueConverter(), concurrency,
+						loadFactor, initialCapacity);
+		userCacheMap =
+				new ConcurrentSoftHashMap<Long, User>(configuration, new UserValueConverter(), concurrency, loadFactor,
+						initialCapacity);
 		userCacheQueue = new ConcurrentLinkedQueue<Long>();
 		userCacheQueueLength = new AtomicInteger();
 		twitter = configuration.getTwitterForRead();
