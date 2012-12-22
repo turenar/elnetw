@@ -15,8 +15,9 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings("serial")
 public class InitialMessage implements DirectMessage {
+
+	private static final long serialVersionUID = -646279578339845549L;
 
 	private final DirectMessage originalMessage;
 

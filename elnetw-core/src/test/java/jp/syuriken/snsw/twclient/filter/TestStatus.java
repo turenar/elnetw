@@ -12,9 +12,8 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-@SuppressWarnings({
-	"serial",
-})
+@edu.umd.cs.findbugs.annotations.SuppressWarnings
+@SuppressWarnings("serial")
 /*package*/class TestStatus implements Status {
 
 	private final TestUser user;

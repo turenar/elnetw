@@ -7,6 +7,7 @@ import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.User;
 
+@edu.umd.cs.findbugs.annotations.SuppressWarnings
 @SuppressWarnings("serial")
 class TestUser implements User {
 

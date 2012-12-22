@@ -17,7 +17,7 @@ public class ActionButtonConfigType implements ConfigType {
 
 	private final String buttonText;
 
-	private final String actionCommand;
+	/*package*/final String actionCommand;
 
 	/*package*/final ClientFrameApi frameApi;
 

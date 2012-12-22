@@ -115,7 +115,6 @@ public class QuoteTweetActionHandler implements ActionHandler {
 				}
 				fat += end - start - 20;
 			}
-			lastFat = fat;
 
 			final int qtEnd = qtMatcher.end();
 			int offset = qtEnd; // Position's char includes
@@ -124,7 +123,6 @@ public class QuoteTweetActionHandler implements ActionHandler {
 			}
 			final Matcher tokenMatcher = tokenPattern.matcher(original);
 			while (tokenMatcher.find(offset - 1)) { // preceeding char
-				lastFat = fat;
 				lastTokenStart = tokenMatcher.start() + 1; // NOT first char, Ignore Preceeding char
 				offset = tokenMatcher.end();
 				if (lastTokenStart - fat > MAX_TWEET_LENGTH) { // no breaking token

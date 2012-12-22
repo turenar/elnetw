@@ -18,7 +18,7 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	private final TweetLengthUpdater updater;
 
 	/** URLパターン */
-	public static Pattern urlPattern = Regex.VALID_URL;
+	public static final Pattern urlPattern = Regex.VALID_URL;
 
 
 	/**

@@ -17,10 +17,10 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-@SuppressWarnings({
-	"serial",
-})
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
 public class NullStatus implements Status {
+
+	private static final long serialVersionUID = -5283262110868599454L;
 
 	/** 使いまわし用のインスタンス */
 	public static final NullStatus INSTANCE = new NullStatus();
@@ -29,6 +29,11 @@ public class NullStatus implements Status {
 	@Override
 	public int compareTo(Status o) {
 		return 0;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof NullStatus;
 	}
 
 	@Override
@@ -129,6 +134,11 @@ public class NullStatus implements Status {
 	@Override
 	public UserMentionEntity[] getUserMentionEntities() {
 		return null;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
 	}
 
 	@Override

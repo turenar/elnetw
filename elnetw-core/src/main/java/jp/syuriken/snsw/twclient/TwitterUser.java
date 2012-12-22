@@ -314,6 +314,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBackgroundColor;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
@@ -321,6 +322,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBackgroundImageUrl;
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
 	@Override
 	public String getProfileBackgroundImageURL() {
 		return profileBackgroundImageUrl;

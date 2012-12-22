@@ -21,7 +21,7 @@ public class HTMLFactoryDelegator extends HTMLFactory {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public class ParagraphViewDelegator extends ParagraphView {
+	public static class ParagraphViewDelegator extends ParagraphView {
 
 		/**
 		 * インスタンスを生成する。

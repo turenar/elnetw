@@ -13,8 +13,9 @@ import twitter4j.User;
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  * @see NullStatus
  */
-@SuppressWarnings("serial")
 public class NullUser implements User {
+
+	private static final long serialVersionUID = -709770915229434160L;
 
 	/** 使いまわし用のインスタンス */
 	public static final NullUser INSTANCE = new NullUser();
@@ -23,6 +24,11 @@ public class NullUser implements User {
 	@Override
 	public int compareTo(User o) {
 		return 0;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof NullUser;
 	}
 
 	@Override
@@ -232,6 +238,11 @@ public class NullUser implements User {
 	@Override
 	public int getUtcOffset() {
 		return -1;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
 	}
 
 	@Override

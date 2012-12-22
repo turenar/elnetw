@@ -51,11 +51,11 @@ public class UrlActionHandler implements ActionHandler {
 				for (URLEntity entity : status.getURLEntities()) {
 					JMenuItem urlMenu = new JMenuItem();
 					if (entity.getDisplayURL() == null) {
-						urlMenu.setText(entity.getURL().toString());
+						urlMenu.setText(entity.getURL());
 					} else {
 						urlMenu.setText(entity.getDisplayURL());
 					}
-					urlMenu.setActionCommand("url!" + entity.getURL().toString());
+					urlMenu.setActionCommand("url!" + entity.getURL());
 					for (ActionListener listener : menu.getActionListeners()) {
 						urlMenu.addActionListener(listener);
 					}

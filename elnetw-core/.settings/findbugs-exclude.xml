@@ -70,5 +70,6 @@
 		<Bug pattern="MS_SHOULD_BE_REFACTORED_TO_BE_FINAL" />
 		<Bug pattern="RI_REDUNDANT_INTERFACES" />
 		<Bug pattern="UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS" />
+		<Bug pattern="CD_CIRCULAR_DEPENDENCY" />
 	</Match>
 </FindBugsFilter>

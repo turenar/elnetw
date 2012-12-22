@@ -10,6 +10,7 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+@edu.umd.cs.findbugs.annotations.SuppressWarnings
 @SuppressWarnings("serial")
 class TestMessage implements DirectMessage {
 

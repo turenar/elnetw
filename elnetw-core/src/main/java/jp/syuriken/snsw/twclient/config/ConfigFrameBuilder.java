@@ -21,7 +21,7 @@ public class ConfigFrameBuilder {
 	 * <p>サブグループは、まとめられます</p>
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public class Config implements Comparable<Config> {
+	public static class Config implements Comparable<Config> {
 
 		private final String group;
 
