@@ -65,9 +65,9 @@ import twitter4j.UserList;
  */
 public class UserInfoViewActionHandler implements ActionHandler {
 
-	/*package*/static final class HTMLEditorKitExtension extends HTMLEditorKit {
+	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
 
-		private static final long serialVersionUID = -4658062223359389042L;
+		private static final long serialVersionUID = -7712141245995951602L;
 
 		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
 
@@ -75,6 +75,37 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public ViewFactory getViewFactory() {
 			return viewFactory;
+		}
+	}
+
+	/*package*/static final class UserFetcher extends TwitterRunnable {
+
+		private final ClientConfiguration configuration;
+
+		private final String userScreenName;
+
+		private User user = null;
+
+
+		protected UserFetcher(ClientFrameApi api, String actionName) {
+			super(false);
+			configuration = api.getClientConfiguration();
+			userScreenName = actionName.substring(actionName.indexOf('!') + 1);
+		}
+
+		@Override
+		protected void access() throws TwitterException {
+			user = configuration.getTwitterForRead().showUser(userScreenName);
+		}
+
+		@Override
+		protected ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+
+		protected User getUser() {
+			run();
+			return user;
 		}
 	}
 
@@ -317,11 +348,14 @@ public class UserInfoViewActionHandler implements ActionHandler {
 								String command = url.substring("http://command/".length());
 								handleAction(command);
 							} else {
-								openBrowser(url);
+								try {
+									getConfiguration().getUtility().openBrowser(url);
+								} catch (Exception e1) {
+									getRenderer().onException(e1);
+								}
 							}
 						}
 					}
-
 				});
 
 				Color bkgrnd = getComponentLocation().getBackground();
@@ -423,7 +457,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ClientProperties configProperties = getConfigProperties();
+						ClientProperties configProperties = getConfiguration().getConfigProperties();
 						String idsString = configProperties.getProperty("core.filter.user.ids");
 						if (muteCheckBox.isSelected()) {
 							idsString =
@@ -445,15 +479,15 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 				try {
 					final JLabel closeIcon =
-							new JLabel(
-									new ImageIcon(ImageIO.read(UserInfoFrameTab.class.getResource("../close16.png"))));
+							new JLabel(new ImageIcon(ImageIO.read(UserInfoViewActionHandler.class
+								.getResource("../close16.png"))));
 					closeIcon.setText("閉じる");
 					closeIcon.setFont(operationFont);
 					closeIcon.addMouseListener(new MouseAdapter() {
 
 						@Override
 						public void mouseClicked(MouseEvent e) {
-							removeFrameTab(UserInfoFrameTab.this);
+							getConfiguration().removeFrameTab(UserInfoFrameTab.this);
 						}
 					});
 					componentOperationsPanel.add(closeIcon);
@@ -567,8 +601,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return componentUserURL;
 		}
 
-		/*package*/ClientProperties getConfigProperties() {
-			return configProperties;
+		/*package*/ClientConfiguration getConfiguration() {
+			return configuration;
 		}
 
 		@Override
@@ -618,23 +652,6 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			// use other way for display requirements...
 			//super.initTimeline();
 		}
-
-		/**
-		 * ブラウザを開く
-		 *
-		 * @param url URL
-		 */
-		protected void openBrowser(String url) {
-			try {
-				configuration.getUtility().openBrowser(url);
-			} catch (Exception e1) {
-				getRenderer().onException(e1);
-			}
-		}
-
-		/*package*/void removeFrameTab(UserInfoFrameTab tab) {
-			configuration.removeFrameTab(tab);
-		}
 	}
 
 	/**
@@ -642,7 +659,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	protected static final class UserTimelineFetcher extends TwitterRunnable {
+	private static final class UserTimelineFetcher extends TwitterRunnable {
 
 		private final UserInfoFrameTab tab;
 
@@ -695,9 +712,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
 		User user = null;
 		if (actionName.contains("!")) {
-			user =
-					api.getClientConfiguration().getCacheManager()
-						.getUser(Long.parseLong(actionName.substring(actionName.indexOf('!') + 1)));
+			user = new UserFetcher(api, actionName).getUser();
 		} else if (statusData != null && statusData.tag instanceof Status) {
 			Status status = (Status) statusData.tag;
 			if (status.isRetweet()) {
