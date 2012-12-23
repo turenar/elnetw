@@ -45,64 +45,91 @@ public class InListProperty implements FilterProperty {
 	 */
 	protected class UserFollewedByListFetcher implements ParallelRunnable {
 
+		/** リストID */
+		protected int listId;
+
 		private Logger logger = LoggerFactory.getLogger(UserFollewedByListFetcher.class);
 
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param listIdentifier リスト指定子 (:&lt;listId&gt;|&lt;listName&gt;|@&lt;owner&gt;/&lt;listName&gt;)
+		 * @throws IllegalSyntaxException エラー
+		 */
+		public UserFollewedByListFetcher(String listIdentifier) throws IllegalSyntaxException {
+			if (listIdentifier.startsWith(":")) {
+				listId = Integer.parseInt(listIdentifier.substring(1));
+			} else {
+				String listOwner;
+				String slug;
+				if (listIdentifier.startsWith("@")) {
+					int indexOf = listIdentifier.indexOf('/');
+					if (indexOf == -1) {
+						throw new IllegalSyntaxException(
+								"[inlist] specify listIdentifier as :<listId> or <listName> or @<listOwner>/<listName>");
+					}
+					listOwner = listIdentifier.substring(1, indexOf);
+					slug = listIdentifier.substring(indexOf);
+				} else {
+					listOwner =
+							configuration.getCacheManager()
+								.getUser(Long.parseLong(configuration.getAccountIdForRead())).getScreenName();
+					slug = listIdentifier;
+				}
+
+				int life = 3;
+				while (true) {
+					try {
+						listId = configuration.getTwitterForRead().showUserList(listOwner, slug).getId();
+						break;
+					} catch (TwitterException e) {
+						if (e.getStatusCode() >= 500) {
+							life--;
+							if (life <= 0) {
+								throw new IllegalSyntaxException("[inlist] Could not retrieve ListInformation: @"
+										+ listOwner + "/" + slug, e);
+							}
+						} else if (e.getStatusCode() == 404) {
+							throw new IllegalSyntaxException("[inlist] Not Found list: @" + listOwner + "/" + slug);
+						}
+					}
+				}
+			}
+		}
 
 		@Override
 		public void run() {
 			ArrayList<User> userListMembers = new ArrayList<User>();
-			if (listIdentifier.startsWith(":")) { // with listId
-				int listId = Integer.parseInt(listIdentifier.substring(1));
-				long cursor = -1;
-				do {
-					try {
-						PagableResponseList<User> userListMembersResponseList;
-						userListMembersResponseList =
-								configuration.getTwitterForRead().getUserListMembers(listId, cursor);
-						cursor = userListMembersResponseList.getNextCursor();
-						for (User user : userListMembersResponseList) {
-							userListMembers.add(user);
-						}
-					} catch (TwitterException e) {
-						int statusCode = e.getStatusCode();
-						if (500 <= statusCode) {
-							continue; // with (prev) cursor
-						} else if (statusCode == HttpResponseCode.NOT_FOUND) {
-							logger.info("failed retrieving listMembers (Not Found): listId={}", listId);
-							return; // fail fetcher
-						} else {
-							logger.warn("Twitter#getUserListMembers(listId=" + listId + ") returned " + statusCode, e);
-							return; // fail fetcher
-						}
+			int listId = this.listId;
+			long cursor = -1;
+			int life = 10;
+			do {
+				try {
+					PagableResponseList<User> userListMembersResponseList;
+					userListMembersResponseList = configuration.getTwitterForRead().getUserListMembers(listId, cursor);
+					cursor = userListMembersResponseList.getNextCursor();
+					for (User user : userListMembersResponseList) {
+						userListMembers.add(user);
 					}
-				} while (cursor != 0);
-			} else { // with listIdentifier
-				long cursor = -1;
-				long userId = Long.parseLong(configuration.getAccountIdForRead());
-				do {
-					try {
-						PagableResponseList<User> userListMembersResponseList;
-						userListMembersResponseList =
-								configuration.getTwitterForRead().getUserListMembers(userId, listIdentifier, cursor);
-						cursor = userListMembersResponseList.getNextCursor();
-						for (User user : userListMembersResponseList) {
-							userListMembers.add(user);
-						}
-					} catch (TwitterException e) {
-						int statusCode = e.getStatusCode();
-						if (500 <= statusCode) {
-							continue; // with savedCursor
-						} else if (statusCode == HttpResponseCode.NOT_FOUND) {
-							logger.info("failed retrieving listMembers (Not Found): userIdentifier={}", listIdentifier);
-							return; // fail fetcher
-						} else {
-							logger.warn("failed retrieving UserListMembers(listIdentifier=" + listIdentifier
-									+ ") returned " + statusCode, e);
+				} catch (TwitterException e) {
+					int statusCode = e.getStatusCode();
+					if (500 <= statusCode) {
+						life--;
+						if (life <= 0) {
+							logger.info("failed retrieving listMembers (over retry limit)");
 							return; // fail fetcher
 						}
+						continue; // with (prev) cursor
+					} else if (statusCode == HttpResponseCode.NOT_FOUND) {
+						logger.info("failed retrieving listMembers (Not Found): listId={}", listId);
+						return; // fail fetcher
+					} else {
+						logger.warn("Twitter#getUserListMembers(listId=" + listId + ") returned " + statusCode, e);
+						return; // fail fetcher
 					}
-				} while (cursor != 0);
-			}
+				}
+			} while (cursor != 0);
 
 			long[] users = new long[userListMembers.size()];
 			int i = 0;
@@ -135,7 +162,7 @@ public class InListProperty implements FilterProperty {
 
 	private boolean isEqual;
 
-	/** (:&lt;listId&gt;|&lt;listName&gt;) */
+	/** (:&lt;listId&gt;|&lt;listName&gt;|@&lt;owner&gt;/&lt;listName&gt;) */
 	protected String listIdentifier;
 
 	/** リストでフォローされているユーザーIDの配列 (ソート済み) */
@@ -176,9 +203,9 @@ public class InListProperty implements FilterProperty {
 			throw new IllegalSyntaxException("[in_list] valueは文字列であるべきです");
 		}
 		isEqual = (FilterOperator.compileOperatorString(operatorStr) == FilterOperator.EQ);
-		listIdentifier = (String) value;
 
-		listFetcher = new UserFollewedByListFetcher();
+		listIdentifier = (String) value;
+		listFetcher = new UserFollewedByListFetcher(listIdentifier);
 		listFetcher.run();
 		configuration.getFrameApi().getTimer().schedule(new ListFetcherScheduler(), 60 * 60 * 1000);
 	}

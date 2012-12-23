@@ -653,8 +653,6 @@ import twitter4j.User;
 	/** UIフォント: TODO from config */
 	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
 
-	/*package*/User loginUser;
-
 	/*package*/transient Timer timer;
 
 	/*package*/ClientProperties configProperties;
@@ -1030,14 +1028,7 @@ import twitter4j.User;
 	 */
 	@Override
 	public User getLoginUser() {
-		if (loginUser == null) {
-			try {
-				loginUser = configuration.getTwitterForRead().verifyCredentials();
-			} catch (TwitterException e) {
-				handleException(e);
-			}
-		}
-		return loginUser;
+		return configuration.getCacheManager().getUser(Long.parseLong(configuration.getAccountIdForRead()));
 	}
 
 	private JButton getPostActionButton() {
