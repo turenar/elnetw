@@ -179,12 +179,9 @@
 				<artifactId>findbugs-maven-plugin</artifactId>
 				<version>2.5.1</version>
 				<configuration>
-					<excludeFilterFile>.settings/findbugs-exclude.xml</excludeFilterFile>
-					<findbugsXmlOutput>true</findbugsXmlOutput>
-					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
-					<effort>Max</effort>
-					<sourceEncoding>${file.encoding}</sourceEncoding>
-					<xmlOutput>true</xmlOutput>
+					<effort>Min</effort>
+					<onlyAnalyze></onlyAnalyze>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>
