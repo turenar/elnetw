@@ -717,7 +717,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected JLabel tweetViewOtherButton;
 
 	/** {@link ClientProperties} */
-	protected ClientProperties configProperties;
+	protected final ClientProperties configProperties;
 
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
@@ -764,11 +764,12 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected DefaultClientTab(ClientConfiguration configuration, JSONObject serializedJson) throws JSONException {
 		this.configuration = configuration;
-		uniqId = serializedJson.getString("uniqId");
+		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
+		uniqId = serializedJson.getString("uniqId");
 		init(configuration);
 	}
 
@@ -1400,6 +1401,9 @@ public abstract class DefaultClientTab implements ClientTab {
 
 			@Override
 			public Rectangle translate(JComponent component) {
+				if (component instanceof StatusPanel == false) {
+					throw new AssertionError();
+				}
 				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
 			}
 		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));

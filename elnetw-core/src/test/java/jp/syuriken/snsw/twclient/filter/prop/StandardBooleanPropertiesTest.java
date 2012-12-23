@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -38,8 +39,18 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 		constructor.setAccessible(true);
 		configuration = constructor.newInstance(true);
 		ClientProperties defaultProperties = new ClientProperties();
-		defaultProperties.load(ClientConfiguration.class
-			.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties"));
+
+		InputStream resourceStream = null;
+		try {
+			resourceStream =
+					ClientConfiguration.class.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties");
+			defaultProperties.load(resourceStream);
+		} finally {
+			if (resourceStream != null) {
+				resourceStream.close();
+			}
+		}
+
 		configuration.setConfigDefaultProperties(defaultProperties);
 		ClientProperties properties = new ClientProperties(defaultProperties);
 		properties

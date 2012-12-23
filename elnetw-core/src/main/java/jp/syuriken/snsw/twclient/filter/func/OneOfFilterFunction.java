@@ -44,6 +44,7 @@ public class OneOfFilterFunction implements FilterFunction {
 	 * @param child 子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")
 	public OneOfFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length == 0) {
 			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");

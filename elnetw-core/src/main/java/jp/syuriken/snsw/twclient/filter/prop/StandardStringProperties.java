@@ -36,7 +36,7 @@ public class StandardStringProperties implements FilterProperty {
 			factory =
 					StandardStringProperties.class.getConstructor(ClientConfiguration.class, String.class,
 							String.class, Object.class);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new AssertionError(e);
 		}
 	}

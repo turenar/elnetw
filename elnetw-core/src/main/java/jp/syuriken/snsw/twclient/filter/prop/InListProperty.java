@@ -45,6 +45,9 @@ public class InListProperty implements FilterProperty {
 	 */
 	protected class UserFollewedByListFetcher implements ParallelRunnable {
 
+		private Logger logger = LoggerFactory.getLogger(UserFollewedByListFetcher.class);
+
+
 		@Override
 		public void run() {
 			ArrayList<User> userListMembers = new ArrayList<User>();
@@ -132,7 +135,8 @@ public class InListProperty implements FilterProperty {
 
 	private boolean isEqual;
 
-	private String listIdentifier;
+	/** (:&lt;listId&gt;|&lt;listName&gt;) */
+	protected String listIdentifier;
 
 	/** リストでフォローされているユーザーIDの配列 (ソート済み) */
 	protected long[] userIdsFollowedByList;
@@ -144,7 +148,7 @@ public class InListProperty implements FilterProperty {
 			factory =
 					InListProperty.class.getConstructor(ClientConfiguration.class, String.class, String.class,
 							Object.class);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new AssertionError(e);
 		}
 	}

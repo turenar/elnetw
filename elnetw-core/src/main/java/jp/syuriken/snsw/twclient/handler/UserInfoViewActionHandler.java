@@ -282,13 +282,13 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			new TwitterRunnable() {
 
 				@Override
-				protected void access() throws TwitterException {
-					user = configuration.getFrameApi().getTwitterForRead().showUser(userId); // TODO use cache
+				protected void access() {
+					user = getClientConfiguration().getCacheManager().getUser(userId);
 				}
 
 				@Override
 				protected ClientConfiguration getConfiguration() {
-					return configuration;
+					return getClientConfiguration();
 				}
 			}.run();
 			configuration.getFrameApi().addJob(new TwitterRunnable() {
@@ -296,7 +296,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				@Override
 				protected void access() throws TwitterException {
 					ResponseList<Status> timeline =
-							configuration.getFrameApi().getTwitterForRead().getUserTimeline(userId);
+							getClientConfiguration().getFrameApi().getTwitterForRead().getUserTimeline(userId);
 					for (Status status : timeline) {
 						getRenderer().onStatus(status);
 					}
@@ -305,7 +305,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 				@Override
 				protected ClientConfiguration getConfiguration() {
-					return configuration;
+					return getClientConfiguration();
 				}
 
 				@Override
@@ -366,7 +366,10 @@ public class UserInfoViewActionHandler implements ActionHandler {
 			return renderer;
 		}
 
-		@SuppressWarnings("serial")
+		/*package*/ClientConfiguration getClientConfiguration() {
+			return configuration;
+		}
+
 		private Component getComponentBio() {
 			if (componentBio == null) {
 				componentBio = new JScrollPane();

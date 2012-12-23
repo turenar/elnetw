@@ -1,10 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.awt.Color;
 import java.awt.TrayIcon;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -15,15 +11,12 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.imageio.ImageIO;
-
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.Paging;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -87,6 +80,15 @@ public class ClientConfiguration {
 	 */
 	public static Constructor<? extends ClientTab> getClientTabConstructor(String id) {
 		return clientTabConstructorsMap.get(id);
+	}
+
+	/**
+	 * {@link ClientConfiguration} インスタンスを返す。一度もインスタンスが生成されていないときは <code>null</code>
+	 *
+	 * @return インスタンス
+	 */
+	public static ClientConfiguration getInstance() {
+		return instance;
 	}
 
 	private static void init(ClientConfiguration instance, boolean b) {
@@ -182,15 +184,6 @@ public class ClientConfiguration {
 
 	private List<String> args;
 
-
-	/**
-	 * {@link ClientConfiguration} インスタンスを返す。一度もインスタンスが生成されていないときは <code>null</code>
-	 *
-	 * @return インスタンス
-	 */
-	public static ClientConfiguration getInstance() {
-		return instance;
-	}
 
 	/**
 	 * インスタンスを生成する。
@@ -371,10 +364,7 @@ public class ClientConfiguration {
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null) {
-			String[] accountIds = getAccountList();
-			if (accountIds != null) {
-				accountId = getAccountList()[0];
-			}
+			accountId = getAccountList()[0];
 		}
 		return accountId;
 	}

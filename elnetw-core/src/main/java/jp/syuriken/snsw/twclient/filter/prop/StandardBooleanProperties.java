@@ -44,7 +44,7 @@ public class StandardBooleanProperties implements FilterProperty {
 			factory =
 					StandardBooleanProperties.class.getConstructor(ClientConfiguration.class, String.class,
 							String.class, Object.class);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new AssertionError(e);
 		}
 	}

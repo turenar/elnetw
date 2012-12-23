@@ -29,9 +29,9 @@ public class UserFilterTest {
 
 	private static final String PROPERTY_FILTER_ID_NAME = "core.filter.user.ids";
 
-	private static ClientConfiguration configuration;
+	private ClientConfiguration configuration;
 
-	private static UserFilter userFilter;
+	private UserFilter userFilter;
 
 	private ClientProperties properties;
 

@@ -3,6 +3,7 @@ package jp.syuriken.snsw.twclient.filter;
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -85,26 +86,22 @@ public class FilterCompiler implements FilterParserVisitor {
 
 
 	/** constructor ( FilterDispatcherBase ) */
-	protected static HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories;
+	protected static final HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories =
+			new HashMap<String, Constructor<? extends FilterFunction>>();
 
 	/** constructor ( String, String, String) */
-	protected static HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories;
+	protected static final HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories =
+			new HashMap<String, Constructor<? extends FilterProperty>>();
 
 	private ClientConfiguration configuration;
 
 	static {
-		HashMap<String, Constructor<? extends FilterFunction>> ffMap =
-				new HashMap<String, Constructor<? extends FilterFunction>>();
-		FilterCompiler.filterFunctionFactories = ffMap;
 		putFilterFunction("or", OrFilterFunction.getFactory());
 		putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
 		putFilterFunction("and", AndFilterFunction.getFactory());
 		putFilterFunction("not", NotFilterFunction.getFactory());
 		putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
 
-		HashMap<String, Constructor<? extends FilterProperty>> pfMap =
-				new HashMap<String, Constructor<? extends FilterProperty>>();
-		FilterCompiler.filterPropertyFactories = pfMap;
 		Constructor<? extends FilterProperty> properties;
 		properties = StandardIntProperties.getFactory();
 		putFilterProperty("userid", properties);
@@ -179,7 +176,7 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * @param args argv
 	 */
 	public static void main(String[] args) {
-		Scanner scanner = new Scanner(System.in);
+		Scanner scanner = new Scanner(System.in, Charset.defaultCharset().name());
 		System.out.print("> ");
 		while (scanner.hasNextLine()) {
 			String query = scanner.nextLine();
@@ -255,6 +252,10 @@ public class FilterCompiler implements FilterParserVisitor {
 		String functionName = functionData.name;
 		Constructor<? extends FilterFunction> factory = functionData.factory;
 		try {
+			if (factory == null) {
+				// If valid query, factory must be not null
+				throw new WrappedException(new IllegalSyntaxException("関数名が見つかりません"));
+			}
 			return factory.newInstance(functionName, args);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -296,6 +297,10 @@ public class FilterCompiler implements FilterParserVisitor {
 		Object value = propertyData.value;
 		Constructor<? extends FilterProperty> factory = propertyData.factory;
 		try {
+			if (factory == null) {
+				// If valid query, factory must be not null
+				throw new WrappedException(new IllegalSyntaxException("プロパティ名が見つかりません"));
+			}
 			return factory.newInstance(configuration, propertyName, propertyOperator, value);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
