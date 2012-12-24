@@ -179,15 +179,18 @@
 				<artifactId>findbugs-maven-plugin</artifactId>
 				<version>2.5.1</version>
 				<configuration>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
 					<effort>Min</effort>
-					<onlyAnalyze></onlyAnalyze>
-					<skip>true</skip>
+					<sourceEncoding>${file.encoding}</sourceEncoding>
+					<classFilesDirectory>${project.build.testOutputDirectory}</classFilesDirectory>
+					<includeTests>false</includeTests>
+					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>
 	<properties>
-		<twitter4j.version>3.0.0-SNAPSHOT</twitter4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 </project>
