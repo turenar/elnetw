@@ -176,6 +176,7 @@
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
 					<effort>Max</effort>
 					<sourceEncoding>${file.encoding}</sourceEncoding>
+					<includeTests>true</includeTests>
 					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
