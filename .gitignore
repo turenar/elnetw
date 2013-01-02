@@ -1,5 +1,19 @@
-/target
-/.settings/org.eclipse.core.resources.prefs
 *.bak
+*.diff
+*.log
+*.patch
+*.tmp
 *~
 
+/elnetw-launcher/elnetw.cfg
+
+# For Maven
+/elnetw-*/target
+/target
+
+# For IDE
+.project
+.classpath
+.settings/*
+.idea/*
+*.iml
