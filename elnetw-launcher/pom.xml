@@ -34,6 +34,11 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>gcode</id>
+			<name>Elnetw's Maven Repository</name>
+			<url>http://maven.turetwcl.googlecode.com/git/</url>
+		</repository>
 	</repositories>
 
 	<!-- SVNの設定 -->
