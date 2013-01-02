@@ -17,6 +17,19 @@
 		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>Google Code</system>
+		<url>http://code.google.com/p/turetwcl/issues/list</url>
+	</issueManagement>
+
 	<!-- Mavenのリポジトリの設定 -->
 	<repositories>
 		<repository>
