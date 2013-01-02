@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 
-<!--
-    This configuration file was written by the eclipse-cs plugin configuration editor
--->
-<!--
-    Checkstyle-Configuration: nikkei-software checks
-    Description: none
--->
 <module name="Checker">
   <property name="severity" value="warning"/>
+  <module name="FileLength"/>
+  <module name="FileTabCharacter">
+    <property name="severity" value="ignore"/>
+  </module>
   <module name="TreeWalker">
     <module name="FileContentsHolder"/>
     <module name="JavadocMethod">
@@ -57,9 +54,6 @@
     <module name="NoWhitespaceBefore"/>
     <module name="OperatorWrap">
       <property name="tokens" value="BAND,BOR,BSR,BXOR,COLON,DIV,EQUAL,GE,GT,LAND,LE,LITERAL_INSTANCEOF,LOR,LT,MINUS,MOD,NOT_EQUAL,PLUS,SL,SR,STAR"/>
-    </module>
-    <module name="TabCharacter">
-      <property name="severity" value="ignore"/>
     </module>
     <module name="WhitespaceAfter"/>
     <module name="WhitespaceAround">
@@ -116,9 +110,6 @@
     </module>
     <module name="ArrayTypeStyle"/>
     <module name="FinalParameters">
-      <property name="severity" value="ignore"/>
-    </module>
-    <module name="GenericIllegalRegexp">
       <property name="severity" value="ignore"/>
     </module>
     <module name="TodoComment">
@@ -183,7 +174,6 @@
       <property name="severity" value="ignore"/>
     </module>
   </module>
-  <module name="FileLength"/>
   <module name="NewlineAtEndOfFile"/>
   <module name="Translation"/>
   <module name="SuppressionCommentFilter"/>
