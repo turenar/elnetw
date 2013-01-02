@@ -1,9 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
-
-import java.awt.GraphicsEnvironment;
 import java.awt.TrayIcon;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,22 +7,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import jp.syuriken.snsw.twclient.filter.RootFilter;
-import jp.syuriken.snsw.twclient.filter.UserFilter;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
-
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
+import jp.syuriken.snsw.twclient.filter.RootFilter;
+import jp.syuriken.snsw.twclient.filter.UserFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -42,19 +37,18 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	private static final String CONFIG_FILE_NAME = "elnetw.cfg";
 
-	/** 設定データ */
-	protected ClientProperties configProperties;
-
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	/** 設定データ */
+	protected ClientProperties configProperties;
 
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
 
-	private Getopt getopt;
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
+	private Getopt getopt;
 
 	/**
 	 * インスタンスを生成する。
@@ -64,10 +58,10 @@ public class TwitterClientMain {
 	public TwitterClientMain(String[] args) {
 		configuration = new ClientConfiguration();
 		configuration.setOpts(args);
-		LongOpt[] longOpts = new LongOpt[] {
-			new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
+		LongOpt[] longOpts = new LongOpt[]{
+				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
-		getopt = new Getopt("elnetw", args, "d", longOpts);
+		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
 
 		try {
 			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -77,27 +71,11 @@ public class TwitterClientMain {
 	}
 
 	/**
-	 * 環境チェック
-	 *
-	 */
-	private void checkEnvironment() {
-		if (Charset.isSupported("UTF-8") == false) {
-			throw new AssertionError("UTF-8 エンコードがサポートされていないようです。UTF-8 エンコードがサポートされていない環境では"
-					+ "このソフトを動かすことはできません。Java VMの開発元に問い合わせてみてください。");
-		}
-		if (GraphicsEnvironment.isHeadless()) {
-			throw new AssertionError("お使いのJava VMないし環境ではGUI出力がサポートされていないようです。GUIモードにするか、Java VMにGUIサポートを組み込んでください");
-		}
-	}
-
-	/**
 	 * 起動する。
-	 * @return 終了値
 	 *
+	 * @return 終了値
 	 */
 	public int run() {
-		checkEnvironment();
-
 		Getopt getopt = this.getopt;
 		int c;
 		boolean portable = Boolean.getBoolean("config.portable");
@@ -108,6 +86,9 @@ public class TwitterClientMain {
 					portable = true;
 					debugMode = true;
 					break;
+				case 'L':
+				case 'D':
+					break; // do nothing
 				default:
 					break;
 			}
@@ -220,6 +201,7 @@ public class TwitterClientMain {
 
 	/**
 	 * OAuthアクセストークンの取得を試す
+	 *
 	 * @return アクセストークン
 	 */
 	private boolean tryGetOAuthAccessToken() {

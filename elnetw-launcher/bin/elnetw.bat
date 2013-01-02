@@ -85,14 +85,9 @@ if "%BATCH_DIR%"=="%WORKDIR%\" cd ..
 
 REM targetが存在するならポータブル設定
 if exist "%BATCH_PARENT_DIR%\target\elnetw-dist.jar" set PORTABLE_CFG=true
-if exist "%BATCH_DIR%\target\elnetw-dist.jar" set PORTABLE_CFG=true
 
 if exist "%BATCH_PARENT_DIR%\target\elnetw-dist.jar" (
   set TTJAR=%BATCH_PARENT_DIR%\target\elnetw-dist.jar
-  goto ttstart
-)
-if exist "%BATCH_DIR%\target\elnetw-dist.jar" (
-  set TTJAR=%BATCH_DIR%\target\elnetw-dist.jar
   goto ttstart
 )
 if exist "%BATCH_PARENT_DIR%\bin\launcher.jar" (
@@ -113,10 +108,10 @@ goto error
 set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% %TURETWCL_JAVA_ARGS%
 
 if "%TURETWCL_VIEW_LOG%"=="1" (
-  "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" %*
+  "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" -L%BATCH_PARENT_DIR% %*
   pause
 ) else (
-  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" %*
+  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" -L %BATCH_PARENT_DIR% %*
 )
 if not errorlevel 0 goto error
 goto end

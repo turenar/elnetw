@@ -29,9 +29,9 @@ if test -z "${JAVA_HOME}"; then
   else
     # 見つからないときはエラー
     echo
-    echo ERROR: JAVA_HOME not found in your environment.
-    echo Please set the JAVA_HOME variable in your environment to match the
-    echo location of your Java installation
+    echo "ERROR: JAVA_HOME not found in your environment."
+    echo "Please set the JAVA_HOME variable in your environment to match the"
+    echo "location of your Java installation"
     echo
     exit 1
   fi
@@ -41,11 +41,11 @@ fi
 
 if test \! -x "${JAVA_BIN}"; then
   echo
-  echo ERROR: JAVA_HOME is set to an invalid directory.
-  echo JAVA_HOME = \"${JAVA_HOME}\"
-  echo Please set the JAVA_HOME environment variable to match the
-  echo   location of your Java installation
-  echo  or install JRE \(not JDK\) to store \'java\' in your PATH.
+  echo "ERROR: JAVA_HOME is set to an invalid directory."
+  echo "JAVA_HOME = \"${JAVA_HOME}\""
+  echo "Please set the JAVA_HOME environment variable to match the"
+  echo "  location of your Java installation"
+  echo " or install JRE \(not JDK\) to store \'java\' in your PATH."
   echo
   exit 1
 fi
@@ -67,22 +67,19 @@ if test "${BATCH_DIR}" = "${WORKDIR}";then cd ..; fi
 if test -e "${BATCH_PARENT_DIR}/target/elnetw-dist.jar"; then
   TTJAR="${BATCH_PARENT_DIR}/target/elnetw-dist.jar"
   PORTABLE_CFG=true
-elif test -e "${BATCH_DIR}/target/elnetw-dist.jar"; then
-  TTJAR="${BATCH_DIR$}/target/elnetw-dist.jar"
-  PORTABLE_CFG=true
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
   TTJAR="${BATCH_PARENT_DIR}/bin/launcher.jar"
 else
   # jarが見つからない
   echo
-  echo ERROR: Usable jar is not found.
-  echo Please re-install or,
-  echo  if you compile from source, run 'mvn assembly:assembly'
-  echo   in elnetw-launcher directory.
+  echo "ERROR: Usable jar is not found."
+  echo "Please re-install or,"
+  echo " if you compile from source, run 'mvn assembly:assembly'"
+  echo "  in elnetw-launcher directory."
   echo
   exit 1
 fi
 
 JAVA_ARGS="-Dconfig.portable=${PORTABLE_CFG} ${TURETWCL_JAVA_ARGS}"
 
-"${JAVA_BIN}" ${JAVA_ARGS} -jar "${TTJAR}" $@
+"${JAVA_BIN}" ${JAVA_ARGS} -jar "${TTJAR}" "-L${BATCH_PARENT_DIR}/lib" $@

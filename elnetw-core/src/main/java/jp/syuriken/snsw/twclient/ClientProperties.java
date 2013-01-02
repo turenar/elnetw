@@ -26,6 +26,8 @@ public class ClientProperties extends Properties {
 
 	private static final long serialVersionUID = 3574097790007133367L;
 
+	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
+
 	/** リスナの配列 */
 	protected transient ArrayList<PropertyChangeListener> listeners;
 
@@ -33,9 +35,6 @@ public class ClientProperties extends Properties {
 	protected File storeFile;
 
 	private transient Hashtable<String, Object> cacheTable;
-
-	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
-
 
 	/**
 	 * インスタンスを生成する。
@@ -132,8 +131,12 @@ public class ClientProperties extends Properties {
 	 * @return space-separated array
 	 */
 	public synchronized String[] getArray(String key) {
-		String accountListString = getProperty(key, "");
-		return accountListString.split(" ");
+		String accountListString = getProperty(key, "").trim();
+		if (accountListString.isEmpty()) {
+			return new String[0];
+		} else {
+			return accountListString.split(" ");
+		}
 	}
 
 	/**

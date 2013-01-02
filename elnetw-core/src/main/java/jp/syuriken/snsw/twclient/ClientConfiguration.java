@@ -59,31 +59,36 @@ public class ClientConfiguration {
 	/** タイムライン初期取得のページングのプロパティ名 */
 	public static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
 
-	private TrayIcon trayIcon;
+	/** 環境依存の改行コード */
+	public static final String NEW_LINE = System.getProperty("line.separator");
 
-	/*package*/ClientProperties configProperties;
-
-	/*package*/ClientProperties configDefaultProperties;
-
-	private boolean isShutdownPhase = false;
-
-	private TwitterClientFrame frameApi;
+	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 
 	private final Utility utility = new Utility(this);
 
+	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
+
+	/*package*/ ClientProperties configProperties;
+
+	/*package*/ ClientProperties configDefaultProperties;
+
+	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+
+	private TrayIcon trayIcon;
+
+	private boolean isShutdownPhase = false;
+
+	private TwitterClientFrame frameApi;
+
 	private boolean isInitializing = true;
 
 	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
 
-	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-
 	private volatile FilterService rootFilterService;
 
 	private volatile ImageCacher imageCacher;
-
-	/*package*/ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
 
 	private String accountIdForRead;
 
@@ -93,17 +98,11 @@ public class ClientConfiguration {
 
 	private boolean portabledConfiguration;
 
-	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
-
-	/** 環境依存の改行コード */
-	public static final String NEW_LINE = System.getProperty("line.separator");
-
 	private volatile CacheManager cacheManager;
 
 	private Object lockObject = new Object();
 
 	private List<String> args;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -718,12 +717,4 @@ public class ClientConfiguration {
 		}
 		return null;
 	}
-}
-
-class TestCacher extends ImageCacher {
-
-	public TestCacher(ClientConfiguration configuration) {
-		super(configuration);
-	}
-
 }

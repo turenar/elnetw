@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.launcher;
 
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,7 +31,6 @@ public class TwitterClientLauncher {
 			return name.endsWith(".jar");
 		}
 	};
-
 
 	private static void addURL(List<URL> urlList, Map<String, URL> fileMap, File file) {
 		if (file.isDirectory() == false) {
@@ -66,21 +67,71 @@ public class TwitterClientLauncher {
 		}
 	}
 
+	/** 環境チェック */
+	private static void checkEnvironment() {
+		if (Charset.isSupported("UTF-8") == false) {
+			throw new AssertionError("UTF-8 エンコードがサポートされていないようです。UTF-8 エンコードがサポートされていない環境では"
+					+ "このソフトを動かすことはできません。Java VMの開発元に問い合わせてみてください。");
+		}
+		if (GraphicsEnvironment.isHeadless()) {
+			throw new AssertionError("お使いのJava VMないし環境ではGUI出力がサポートされていないようです。GUIモードにするか、Java VMにGUIサポートを組み込んでください");
+		}
+	}
+
 	/**
 	 * Launch
 	 *
 	 * @param args アプリケーション引数
 	 */
 	public static void main(String[] args) {
+		checkEnvironment();
+		new TwitterClientLauncher(args).run();
+	}
+
+	private final String[] args;
+
+	private ArrayList<String> classpath = new ArrayList<String>();
+
+	public TwitterClientLauncher(String[] args) {
+		for (String arg : args) {
+			if (arg.startsWith("-D")) {
+				int indexOf = arg.indexOf('=');
+				if (indexOf == -1) {
+					System.clearProperty(arg.substring(2));
+				} else {
+					System.getProperties().setProperty(arg.substring(2, indexOf), arg.substring(indexOf + 1));
+				}
+			} else if (arg.startsWith("-L")) {
+				classpath.add(arg.substring(2));
+			}
+		}
+		this.args = args;
+	}
+
+	private URLClassLoader prepareClassLoader() {
+		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
+		boolean skipCurrentDir = false;
+
+		ArrayList<URL> libList = new ArrayList<URL>();
+		HashMap<String, URL> fileMap = new HashMap<String, URL>();
+		addURL(libList, fileMap, new File(System.getProperty("user.home"), ".elnetw/lib"));
+
+		// Handle -L option
+		for (String classpathEntry : classpath) {
+			addURL(libList, fileMap, new File(classpathEntry));
+		}
+
+		URL[] urls = libList.toArray(new URL[libList.size()]);
+		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
+	}
+
+	public void run() {
 		URLClassLoader classLoader = prepareClassLoader();
 		Class<?> clazz;
 		try {
 			clazz = Class.forName("jp.syuriken.snsw.twclient.TwitterClientMain", false, classLoader);
-			// TwitterClientMain twitterClientMain = new
-			// TwitterClientMain(args);
 			Constructor<?> constructor = clazz.getConstructor(String[].class);
 			Object instance = constructor.newInstance((Object) args);
-			// twitterClientMain.run();
 			Method method = clazz.getMethod("run");
 			method.invoke(instance);
 		} catch (ClassNotFoundException e) {
@@ -89,7 +140,6 @@ public class TwitterClientLauncher {
 			System.err.println("[launcher] ClassLoaderの検索先は次のとおりです。");
 			System.err.println("[launcher] " + Arrays.toString(classLoader.getURLs()));
 			System.exit(1);
-			return;
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 			System.exit(16);
@@ -102,37 +152,6 @@ public class TwitterClientLauncher {
 			System.err.println("[launcher] 起動することができませんでした。");
 			e.printStackTrace();
 			System.exit(1);
-			return;
 		}
-	}
-
-	private static URLClassLoader prepareClassLoader() {
-		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
-		File baseDir = null;
-		boolean skipCurrentDir = false;
-
-		if (classpath.length == 1) { // run with "-jar" Option
-			try {
-				baseDir = new File(classpath[0]).getCanonicalFile().getParentFile();
-			} catch (IOException e) {
-				// do nothing
-			}
-		}
-		if (baseDir == null) {
-			baseDir = new File(".");
-			skipCurrentDir = true;
-		}
-		ArrayList<URL> libList = new ArrayList<URL>();
-		HashMap<String, URL> fileMap = new HashMap<String, URL>();
-		if (Boolean.getBoolean("config.portable") == false) {
-			addURL(libList, fileMap, new File(baseDir, "../lib"));
-		}
-		addURL(libList, fileMap, new File(System.getProperty("user.home"), ".elnetw/lib"));
-		if (skipCurrentDir == false) {
-			addURL(libList, fileMap, new File("lib"));
-		}
-
-		URL[] urls = libList.toArray(new URL[libList.size()]);
-		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 }
