@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.concurrent.CancellationException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -24,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 
 /**
@@ -95,20 +95,7 @@ public class TwitterClientMain {
 		}
 
 		if (debugMode) {
-			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
-			if (resource == null) {
-				logger.error("resource /logback-debug.xml is not found");
-			} else {
-				LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-				try {
-					JoranConfigurator configurator = new JoranConfigurator();
-					configurator.setContext(context);
-					context.reset();
-					configurator.doConfigure(resource);
-				} catch (JoranException je) {
-					// StatusPrinter will handle this
-				}
-			}
+			setDebugLogger();
 		}
 
 		configuration.setPortabledConfiguration(portable);
@@ -154,7 +141,14 @@ public class TwitterClientMain {
 			}
 		}
 		configuration.setConfigProperties(configProperties);
-		tryGetOAuthAccessToken();
+
+		try {
+			tryGetOAuthAccessToken();
+		} catch (CancellationException e) {
+			return 0; // user operation
+		} catch (RuntimeException e) {
+			return 1;
+		}
 
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		configuration.addFilter(new RootFilter(configuration));
@@ -199,6 +193,23 @@ public class TwitterClientMain {
 		configRootDir.setExecutable(true, true);
 	}
 
+	private void setDebugLogger() {
+		URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
+		if (resource == null) {
+			logger.error("resource /logback-debug.xml is not found");
+		} else {
+			LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+			try {
+				JoranConfigurator configurator = new JoranConfigurator();
+				configurator.setContext(context);
+				context.reset();
+				configurator.doConfigure(resource);
+			} catch (JoranException je) {
+				// StatusPrinter will handle this
+			}
+		}
+	}
+
 	/**
 	 * OAuthアクセストークンの取得を試す
 	 *
@@ -208,17 +219,35 @@ public class TwitterClientMain {
 		if (configuration.getAccountList().length != 0) {
 			return false;
 		}
-		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
-		AccessToken accessToken = new OAuthFrame(configuration).show(twitter);
+
+		Twitter twitter;
+		AccessToken accessToken;
+		do {
+			try {
+				twitter = new OAuthFrame(configuration).show();
+				if (twitter == null) {
+					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", TwitterClientFrame.APPLICATION_NAME,
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (button == JOptionPane.YES_OPTION) {
+						throw new CancellationException();
+					}
+				} else {
+					accessToken = twitter.getOAuthAccessToken();
+					break;
+				}
+			} catch (TwitterException e) {
+				throw new RuntimeException(e);
+			}
+		} while (true);
 
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
 			userId = String.valueOf(twitter.verifyCredentials().getId());
-		} catch (TwitterException e1) {
-			JOptionPane.showMessageDialog(null, "ユーザー情報の取得に失敗しました。時間をおいて試してみて下さい: " + e1.getLocalizedMessage(), "エラー",
+		} catch (TwitterException e) {
+			JOptionPane.showMessageDialog(null, "ユーザー情報の取得に失敗しました。時間をおいて試してみて下さい: " + e.getLocalizedMessage(), "エラー",
 					JOptionPane.ERROR_MESSAGE);
-			throw new RuntimeException(e1);
+			throw new RuntimeException(e);
 		}
 		configProperties.setProperty("twitter.oauth.access_token.list", userId);
 		configProperties.setProperty("oauth.access_token.default", userId);

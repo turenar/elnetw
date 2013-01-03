@@ -5,7 +5,7 @@
 *.tmp
 *~
 
-/elnetw-launcher/elnetw.cfg
+elnetw.cfg
 
 # For Maven
 /elnetw-*/target

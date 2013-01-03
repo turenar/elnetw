@@ -85,7 +85,7 @@ public class TwitterClientLauncher {
 	 */
 	public static void main(String[] args) {
 		checkEnvironment();
-		new TwitterClientLauncher(args).run();
+		System.exit(new TwitterClientLauncher(args).run());
 	}
 
 	private final String[] args;
@@ -125,7 +125,7 @@ public class TwitterClientLauncher {
 		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 
-	public void run() {
+	public int run() {
 		URLClassLoader classLoader = prepareClassLoader();
 		Class<?> clazz;
 		try {
@@ -133,16 +133,17 @@ public class TwitterClientLauncher {
 			Constructor<?> constructor = clazz.getConstructor(String[].class);
 			Object instance = constructor.newInstance((Object) args);
 			Method method = clazz.getMethod("run");
-			method.invoke(instance);
+			Integer retCode = (Integer) method.invoke(instance);
+			return retCode;
 		} catch (ClassNotFoundException e) {
 			System.err.println("[launcher] 起動に必要なクラスの準備に失敗しました。");
 			e.printStackTrace();
 			System.err.println("[launcher] ClassLoaderの検索先は次のとおりです。");
 			System.err.println("[launcher] " + Arrays.toString(classLoader.getURLs()));
-			System.exit(1);
+			return 16;
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
-			System.exit(16);
+			return 1;
 			// } catch (SecurityException e) {
 			// } catch (NoSuchMethodException e) {
 			// } catch (IllegalArgumentException e) {
@@ -151,7 +152,7 @@ public class TwitterClientLauncher {
 		} catch (Exception e) {
 			System.err.println("[launcher] 起動することができませんでした。");
 			e.printStackTrace();
-			System.exit(1);
+			return 16;
 		}
 	}
 }

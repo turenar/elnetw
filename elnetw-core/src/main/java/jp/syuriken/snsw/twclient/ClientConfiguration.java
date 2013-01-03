@@ -687,8 +687,14 @@ public class ClientConfiguration {
 	 * @return 取得を試して発生した例外。ない場合はnull
 	 */
 	public Exception tryGetOAuthToken() {
-		Twitter twitter = new TwitterFactory(getTwitterConfigurationBuilder().build()).getInstance();
-		AccessToken accessToken = new OAuthFrame(this).show(twitter);
+		Twitter twitter;
+		AccessToken accessToken;
+		try {
+			twitter = new OAuthFrame(this).show();
+			accessToken = twitter.getOAuthAccessToken();
+		} catch (TwitterException e) {
+			return e;
+		}
 
 		//将来の参照用に accessToken を永続化する
 		String userId;

@@ -4,9 +4,11 @@ import java.util.concurrent.CancellationException;
 
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.auth.AccessToken;
+import twitter4j.TwitterFactory;
 import twitter4j.auth.RequestToken;
 
 /**
@@ -16,8 +18,9 @@ import twitter4j.auth.RequestToken;
  */
 public class OAuthFrame {
 
-	private final ClientConfiguration configuration;
+	private static final Logger logger = LoggerFactory.getLogger(OAuthFrame.class);
 
+	private final ClientConfiguration configuration;
 
 	/**
 	 * インスタンスを生成する。
@@ -30,40 +33,53 @@ public class OAuthFrame {
 	/**
 	 * AccessTokenを取得するために、Twitterのoauthページを開き、PINコードを入力させる。
 	 *
-	 * @param twitter Twitter
-	 * @return アクセストークン
+	 * @return アクセストークンが設定されたTwitterオブジェクト。キャンセルされたときはnullを返す。
+	 * @throws TwitterException リクエストトークンが取得できない。メッセージダイアログは表示される。
 	 */
-	public AccessToken show(Twitter twitter) {
+	public Twitter show() throws CancellationException, TwitterException {
 		RequestToken requestToken = null;
+		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
 
 		try {
 			requestToken = twitter.getOAuthRequestToken();
 		} catch (TwitterException e) {
-			e.printStackTrace();
+			logger.warn("Could not retrieve requestToken", e);
+			JOptionPane.showMessageDialog(null, "リクエストトークンが取得できませんでした。しばらく経ってからお試しください。\n\n" + e.getLocalizedMessage(),
+					TwitterClientFrame.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+			throw e;
 		}
 
-		AccessToken accessToken = null;
+		String message = null;
 
-		while (null == accessToken) {
+		while (true) {
 			String strURL = requestToken.getAuthorizationURL();
 
 			try {
 				configuration.getUtility().openBrowser(strURL);
 			} catch (Exception e) {
-				JOptionPane.showMessageDialog(null, "PIN codeを表示するためのブラウザが設定できませんでした。\n\n" + e.getLocalizedMessage(),
+				JOptionPane.showMessageDialog(null, "PIN codeを表示するためのブラウザを検索できませんでした。\n\n" + e.getLocalizedMessage(),
 						"エラー", JOptionPane.ERROR_MESSAGE);
 			}
 
+			String viewMessage = "Please input PIN code";
+			if (message != null) {
+				viewMessage = viewMessage + "\n\n" + message;
+				message = null;
+			}
 			String pin =
-					JOptionPane.showInputDialog(null, "Please input PIN code", "PIN CODE",
+					JOptionPane.showInputDialog(null, viewMessage, "PIN CODE",
 							JOptionPane.INFORMATION_MESSAGE);
 
 			try {
-				if (pin != null && pin.length() > 0) {
-					accessToken = twitter.getOAuthAccessToken(requestToken, pin);
+				if (pin != null) {
+					if (pin.length() > 0) {
+						twitter.getOAuthAccessToken(requestToken, pin);
+						return twitter;
+					} else {
+						message = "PIN codeを入力してください。";
+					}
 				} else {
-					JOptionPane.showMessageDialog(null, "bye", "exit", JOptionPane.ERROR_MESSAGE);
-					throw new CancellationException();
+					return null;
 				}
 			} catch (TwitterException te) {
 				if (401 == te.getStatusCode()) {
@@ -75,7 +91,6 @@ public class OAuthFrame {
 				}
 			}
 		}
-		return accessToken;
 	}
 
 }
