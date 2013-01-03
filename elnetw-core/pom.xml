@@ -84,7 +84,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>urbanophile</groupId>
+			<groupId>gnu.getopt</groupId>
 			<artifactId>java-getopt</artifactId>
 			<version>[1.0,)</version>
 			<scope>compile</scope>
