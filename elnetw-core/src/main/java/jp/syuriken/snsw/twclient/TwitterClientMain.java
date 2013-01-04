@@ -108,39 +108,9 @@ public class TwitterClientMain {
 			}
 		}
 
-		try {
-			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
-					"jp/syuriken/snsw/twclient/img/icon16.png")), TwitterClientFrame.APPLICATION_NAME));
-		} catch (IOException e) {
-			logger.error("icon ファイルの読み込みに失敗。");
-		}
-
-		ClientProperties defaultConfig = new ClientProperties();
-		try {
-			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
-			if (stream == null) {
-				logger.error("リソース(default) config.properties を読み込めません");
-			} else {
-				InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
-				defaultConfig.load(reader);
-			}
-		} catch (IOException e) {
-			logger.error("デフォルト設定が読み込めません", e);
-		}
-		configuration.setConfigDefaultProperties(defaultConfig);
-		configProperties = new ClientProperties(defaultConfig);
-		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-		configProperties.setStoreFile(configFile);
-		if (configFile.exists()) {
-			logger.debug(CONFIG_FILE_NAME + " is found.");
-			try {
-				InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
-				configProperties.load(reader);
-			} catch (IOException e) {
-				logger.warn("設定ファイルの読み込み中にエラー", e);
-			}
-		}
-		configuration.setConfigProperties(configProperties);
+		setTrayIcon();
+		setDefaultConfigProperties();
+		setConfigProperties();
 
 		try {
 			tryGetOAuthAccessToken();
@@ -150,6 +120,8 @@ public class TwitterClientMain {
 			return 1;
 		}
 
+		startJobWorkerThread();
+
 		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
 		configuration.addFilter(new RootFilter(configuration));
 		configuration.addFilter(new UserFilter(configuration));
@@ -158,6 +130,7 @@ public class TwitterClientMain {
 		configuration.addFrameTab(new DirectMessageViewTab(configuration));
 		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
 		configuration.setFetchScheduler(fetchScheduler);
+		configuration.setInitializing(false);
 		java.awt.EventQueue.invokeLater(new Runnable() {
 
 			@Override
@@ -181,6 +154,22 @@ public class TwitterClientMain {
 		fetchScheduler.cleanUp();
 
 		return 0;
+	}
+
+	private void setConfigProperties() {
+		configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
+		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+		configProperties.setStoreFile(configFile);
+		if (configFile.exists()) {
+			logger.debug(CONFIG_FILE_NAME + " is found.");
+			try {
+				InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+				configProperties.load(reader);
+			} catch (IOException e) {
+				logger.warn("設定ファイルの読み込み中にエラー", e);
+			}
+		}
+		configuration.setConfigProperties(configProperties);
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
@@ -210,6 +199,36 @@ public class TwitterClientMain {
 		}
 	}
 
+	private void setDefaultConfigProperties() {
+		ClientProperties defaultConfig = new ClientProperties();
+		try {
+			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
+			if (stream == null) {
+				logger.error("リソース(default) config.properties を読み込めません");
+			} else {
+				InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+				defaultConfig.load(reader);
+			}
+		} catch (IOException e) {
+			logger.error("デフォルト設定が読み込めません", e);
+		}
+		configuration.setConfigDefaultProperties(defaultConfig);
+	}
+
+	private void setTrayIcon() {
+		try {
+			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
+					"jp/syuriken/snsw/twclient/img/icon16.png")), ClientConfiguration.APPLICATION_NAME));
+		} catch (IOException e) {
+			logger.error("icon ファイルの読み込みに失敗。");
+		}
+	}
+
+	private void startJobWorkerThread() {
+		JobWorkerThread jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
+		jobWorkerThread.start();
+	}
+
 	/**
 	 * OAuthアクセストークンの取得を試す
 	 *
@@ -226,7 +245,7 @@ public class TwitterClientMain {
 			try {
 				twitter = new OAuthFrame(configuration).show();
 				if (twitter == null) {
-					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", TwitterClientFrame.APPLICATION_NAME,
+					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
 						throw new CancellationException();

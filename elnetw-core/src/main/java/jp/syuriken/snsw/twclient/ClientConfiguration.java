@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -62,6 +63,8 @@ public class ClientConfiguration {
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 
+	public static final String APPLICATION_NAME = "elnetw";
+
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
@@ -69,6 +72,8 @@ public class ClientConfiguration {
 	private final Utility utility = new Utility(this);
 
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
+
+	private transient final JobQueue jobQueue = new JobQueue();
 
 	/*package*/ ClientProperties configProperties;
 
@@ -115,7 +120,9 @@ public class ClientConfiguration {
 	 * <strong>テスト用</strong>インスタンスを生成する。HeadlessExceptionを無視
 	 *
 	 * @param isTestMethod テストメソッドですよ。悪用（？）禁止
+	 * @Deprecated いまのところ使う意味がありません
 	 */
+	@Deprecated
 	protected ClientConfiguration(boolean isTestMethod) {
 	}
 
@@ -131,11 +138,13 @@ public class ClientConfiguration {
 	/**
 	 * 新しいタブを追加する。
 	 *
-	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
 	 */
-	public boolean addFrameTab(final ClientTab tab) {
+	public boolean addFrameTab(final ClientTab tab) throws IllegalStateException {
+		ensureRunningInDispatcherThread();
+
 		if (tab == null) {
 			return false;
 		}
@@ -153,6 +162,25 @@ public class ClientConfiguration {
 		return result;
 	}
 
+	/**
+	 * ジョブを追加する。 {@link ParallelRunnable}の場合は並列的に起動されます。
+	 *
+	 * @param priority 優先度
+	 * @param job      ジョブ
+	 */
+	public void addJob(JobQueue.Priority priority, Runnable job) {
+		jobQueue.addJob(priority, job);
+	}
+
+	/**
+	 * ジョブを追加する。 {@link ParallelRunnable}の場合は並列的に起動されます。
+	 *
+	 * @param job ジョブ
+	 */
+	public void addJob(Runnable job) {
+		jobQueue.addJob(job);
+	}
+
 	private boolean checkValidAccountId(String accountId) {
 		for (String account : getAccountList()) {
 			if (Utility.equalString(account, accountId)) {
@@ -162,13 +190,21 @@ public class ClientConfiguration {
 		return false;
 	}
 
+	private void ensureRunningInDispatcherThread() throws IllegalStateException {
+		if (!(isInitializing || EventQueue.isDispatchThread())) {
+			throw new IllegalStateException("Please run in EventDispatcherThread");
+		}
+	}
+
 	/**
 	 * 指定されたタブをフォーカスする。
 	 *
-	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 */
-	public void focusFrameTab(final ClientTab tab) {
+	public void focusFrameTab(final ClientTab tab) throws IllegalStateException {
+		ensureRunningInDispatcherThread();
+
 		try {
 			tabsListLock.readLock().lock();
 			final int indexOf = tabsList.indexOf(tab);
@@ -361,6 +397,14 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * ジョブキューを取得する。
+	 * @return ジョブキュー
+	 */
+	public JobQueue getJobQueue() {
+		return jobQueue;
+	}
+
+	/**
 	 * アプリケーション実行時に指定されたオプションの変更できないリストを取得する。
 	 * なお、内容はGetoptによって並び替えられている
 	 *
@@ -482,11 +526,13 @@ public class ClientConfiguration {
 	/**
 	 * 指定したタブが選択されているかどうかを取得する
 	 *
-	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 選択されているかどうか
 	 */
-	public boolean isFocusTab(ClientTab tab) {
+	public boolean isFocusTab(ClientTab tab) throws IllegalStateException {
+		ensureRunningInDispatcherThread();
+
 		boolean result;
 		try {
 			tabsListLock.readLock().lock();
@@ -543,10 +589,12 @@ public class ClientConfiguration {
 	/**
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
 	 *
-	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 */
-	public void refreshTab(final ClientTab tab) {
+	public void refreshTab(final ClientTab tab) throws IllegalStateException {
+		ensureRunningInDispatcherThread();
+
 		try {
 			tabsListLock.readLock().lock();
 			final int indexOf = tabsList.indexOf(tab);
@@ -561,11 +609,13 @@ public class ClientConfiguration {
 	/**
 	 * タブを削除する
 	 *
-	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
 	 */
-	public boolean removeFrameTab(final ClientTab tab) {
+	public boolean removeFrameTab(final ClientTab tab) throws IllegalStateException {
+		ensureRunningInDispatcherThread();
+
 		final int indexOf;
 		try {
 			tabsListLock.writeLock().lock();

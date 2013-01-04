@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -11,7 +12,6 @@ import javax.swing.JLabel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -25,6 +25,8 @@ import twitter4j.UserList;
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class TimelineViewTab extends DefaultClientTab {
+
+	/*package*/ static final Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
 
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
@@ -40,7 +42,7 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.backgroundColor = Color.LIGHT_GRAY;
 			statusData.foregroundColor = Color.BLACK;
 			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel(TwitterClientFrame.APPLICATION_NAME);
+			statusData.sentBy = new JLabel(ClientConfiguration.APPLICATION_NAME);
 			if (forWrite) {
 				statusData.user = "!core.change.account!write";
 				statusData.data = new JLabel("書き込み用アカウントを変更しました。");
@@ -283,12 +285,9 @@ public class TimelineViewTab extends DefaultClientTab {
 		}
 	};
 
-	private boolean focusGained;
+	private volatile boolean focusGained;
 
-	private boolean isDirty;
-
-	/*package*/Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
-
+	private volatile boolean isDirty;
 
 	/**
 	 * インスタンスを生成する。
@@ -303,7 +302,11 @@ public class TimelineViewTab extends DefaultClientTab {
 	public StatusPanel addStatus(StatusData statusData) {
 		if (focusGained == false && isDirty == false) {
 			isDirty = true;
-			configuration.refreshTab(this);
+			EventQueue.invokeLater(new Runnable() {
+				public void run() {
+					configuration.refreshTab(TimelineViewTab.this);
+				}
+			});
 		}
 		return super.addStatus(statusData);
 	}
@@ -313,7 +316,11 @@ public class TimelineViewTab extends DefaultClientTab {
 		super.focusGained();
 		focusGained = true;
 		isDirty = false;
-		configuration.refreshTab(this);
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				configuration.refreshTab(TimelineViewTab.this);
+			}
+		});
 	}
 
 	@Override

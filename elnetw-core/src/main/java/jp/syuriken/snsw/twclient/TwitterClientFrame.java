@@ -45,6 +45,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
@@ -88,10 +89,8 @@ import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -105,6 +104,16 @@ import twitter4j.User;
  */
 @SuppressWarnings("serial")
 /*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
+
+	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
+
+		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
+
+		@Override
+		public ViewFactory getViewFactory() {
+			return viewFactory;
+		}
+	}
 
 	/**
 	 * アカウント認証するアクションハンドラ
@@ -273,7 +282,6 @@ import twitter4j.User;
 
 		private static final String END_TAG = DEL_FTAG + "</span>" + DEL_ETAG;
 
-
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (tweetViewingTab != null) {
@@ -377,17 +385,6 @@ import twitter4j.User;
 		}
 	}
 
-	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
-
-		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
-
-
-		@Override
-		public ViewFactory getViewFactory() {
-			return viewFactory;
-		}
-	}
-
 	/**
 	 * 設定フレームを表示するアクションハンドラ
 	 *
@@ -396,7 +393,6 @@ import twitter4j.User;
 	private class MenuConfiguratorActionHandler implements ActionHandler {
 
 		private Method showMethod;
-
 
 		private MenuConfiguratorActionHandler() {
 			try {
@@ -493,7 +489,6 @@ import twitter4j.User;
 
 		private final boolean forWrite;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -534,16 +529,15 @@ import twitter4j.User;
 
 		public final String[] accountList = configuration.getAccountList();
 
+		final UserInfoFetcher this$uif = UserInfoFetcher.this;
+
+		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
+
 		public int offset = 0;
 
 		public JMenuItem[] readTimelineMenuItems;
 
 		public JMenuItem[] postToMenuItems;
-
-		final UserInfoFetcher this$uif = UserInfoFetcher.this;
-
-		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -621,15 +615,33 @@ import twitter4j.User;
 		}
 	}
 
-
-	/** アプリケーション名 */
+	/**
+	 * アプリケーション名
+	 * @Deprecated use {@link ClientConfiguration#APPLICATION_NAME}
+	 */
+	@Deprecated
 	public static final String APPLICATION_NAME = "elnetw";
+
+	/** デフォルトフォント: TODO from config */
+	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+
+	/** UIフォント: TODO from config */
+	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
+
+	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
+
+	/*package*/transient final ClientConfiguration configuration;
+
+	/*package*/transient final ActionListener menuActionListener = new ActionListenerImplementation();
+
+	/*package*/final Object mainThreadHolder;
+
+	/*package*/transient final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
+			new DefaultTweetLengthCalculator(this);
 
 	/*package*/transient Hashtable<String, ActionHandler> actionHandlerTable;
 
-	/*package*/Status inReplyToStatus = null;
-
-	/*package*/transient final JobQueue jobQueue = new JobQueue();
+	/*package*/ Status inReplyToStatus = null;
 
 	/*package*/transient JobWorkerThread jobWorkerThread;
 
@@ -647,12 +659,6 @@ import twitter4j.User;
 
 	/*package*/JTabbedPane viewTab;
 
-	/** デフォルトフォント: TODO from config */
-	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-
-	/** UIフォント: TODO from config */
-	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
-
 	/*package*/User loginUser;
 
 	/*package*/transient Timer timer;
@@ -660,10 +666,6 @@ import twitter4j.User;
 	/*package*/ClientProperties configProperties;
 
 	/*package*/JMenuBar clientMenu;
-
-	/*package*/transient final ClientConfiguration configuration;
-
-	/*package*/transient final ActionListener menuActionListener = new ActionListenerImplementation();
 
 	/*package*/JPanel tweetViewPanel;
 
@@ -681,10 +683,6 @@ import twitter4j.User;
 
 	/*package*/JLabel tweetViewCreatedAtLabel;
 
-	/*package*/final Object mainThreadHolder;
-
-	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
-
 	/*package*/transient ImageCacher imageCacher;
 
 	/*package*/JLabel tweetViewUserIconLabel;
@@ -696,9 +694,6 @@ import twitter4j.User;
 	/*package*/JLabel postLengthLabel;
 
 	protected transient ClientTab selectingTab;
-
-	/*package*/transient final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
-			new DefaultTweetLengthCalculator(this);
 
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 
@@ -718,7 +713,6 @@ import twitter4j.User;
 
 	/*package*/int tweetViewTextOverlayFlag;
 
-
 	/**
 	 * Creates new form TwitterClientFrame
 	 * @param configuration 設定
@@ -729,8 +723,7 @@ import twitter4j.User;
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
 		initConfigurator();
-		jobWorkerThread = new JobWorkerThread(jobQueue, configuration);
-		jobWorkerThread.start();
+
 		rootFilterService = configuration.getRootFilterService();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
@@ -740,14 +733,11 @@ import twitter4j.User;
 		initShortcutKey();
 
 		getLoginUser();
-		generatePopupMenu(new ActionListenerImplementation());
 		initComponents();
-		// timer.schedule(updatePostListDispatcher, configData.intervalOfPostListUpdate,
-		//		configData.intervalOfPostListUpdate);
 
 		imageCacher = new ImageCacher(configuration);
 
-		logger.info("initialized");
+		logger.info("frame initialized");
 	}
 
 	@Override
@@ -755,25 +745,16 @@ import twitter4j.User;
 		return actionHandlerTable.put(name, handler);
 	}
 
-	/**
-	 * ジョブを追加する
-	 *
-	 * @param priority 優先度
-	 * @param job ジョブ
-	 */
 	@Override
+	@Deprecated
 	public void addJob(Priority priority, Runnable job) {
-		jobQueue.addJob(priority, job);
+		configuration.addJob(priority, job);
 	}
 
-	/**
-	 * ジョブを追加する
-	 *
-	 * @param job ジョブ
-	 */
 	@Override
+	@Deprecated
 	public void addJob(Runnable job) {
-		jobQueue.addJob(job);
+		configuration.addJob(job);
 	}
 
 	@Override

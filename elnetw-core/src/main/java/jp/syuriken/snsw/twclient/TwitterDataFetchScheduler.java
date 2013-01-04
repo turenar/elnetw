@@ -32,7 +32,6 @@ public class TwitterDataFetchScheduler {
 			for (DirectMessage directMessage : directMessages) {
 				rootFilterService.onDirectMessage(new InitialMessage(directMessage));
 			}
-			configuration.setInitializing(false);
 		}
 
 		@Override

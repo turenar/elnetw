@@ -30,7 +30,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/** ポインタ時に何もしない */
 	public static final int DO_NOTHING_WHEN_POINTED = 0;
 
-
 	/**
 	 * アクションハンドラを追加する
 	 *
@@ -41,18 +40,22 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	ActionHandler addActionHandler(String name, ActionHandler handler);
 
 	/**
-	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
+	 * ジョブを追加する
 	 *
 	 * @param priority 優先度
 	 * @param job ジョブ
+	 * @Deprecated use {@link ClientConfiguration#addJob(Priority, Runnable)}
 	 */
+	@Deprecated
 	void addJob(Priority priority, Runnable job);
 
 	/**
-	 * ジョブを追加する。ParallelRunnableを継承したジョブの場合は並列的に起動する場合があります。
+	 * ジョブを追加する
 	 *
 	 * @param job ジョブ
+	 * @Deprecated use {@link ClientConfiguration#addJob(Runnable)}
 	 */
+	@Deprecated
 	void addJob(Runnable job);
 
 	/**
