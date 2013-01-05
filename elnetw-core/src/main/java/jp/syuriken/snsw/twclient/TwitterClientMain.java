@@ -50,6 +50,8 @@ public class TwitterClientMain {
 
 	private Getopt getopt;
 
+	private JobWorkerThread jobWorkerThread;
+
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -151,7 +153,9 @@ public class TwitterClientMain {
 		}
 		logger.info("Exiting elnetw...");
 		frame.cleanUp();
+		configuration.getTimer().cancel();
 		fetchScheduler.cleanUp();
+		jobWorkerThread.cleanUp();
 
 		return 0;
 	}
@@ -223,9 +227,8 @@ public class TwitterClientMain {
 			logger.error("icon ファイルの読み込みに失敗。");
 		}
 	}
-
 	private void startJobWorkerThread() {
-		JobWorkerThread jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
+		jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
 		jobWorkerThread.start();
 	}
 

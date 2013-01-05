@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -63,6 +64,7 @@ public class ClientConfiguration {
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 
+	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
 
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
@@ -89,7 +91,7 @@ public class ClientConfiguration {
 
 	private boolean isInitializing = true;
 
-	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
+	private ConfigFrameBuilder configBuilder;
 
 	private volatile FilterService rootFilterService;
 
@@ -109,21 +111,14 @@ public class ClientConfiguration {
 
 	private List<String> args;
 
+	private transient Timer timer = new Timer("timer");
+
 	/**
 	 * インスタンスを生成する。
 	 *
 	 */
 	protected ClientConfiguration() {
-	}
-
-	/**
-	 * <strong>テスト用</strong>インスタンスを生成する。HeadlessExceptionを無視
-	 *
-	 * @param isTestMethod テストメソッドですよ。悪用（？）禁止
-	 * @Deprecated いまのところ使う意味がありません
-	 */
-	@Deprecated
-	protected ClientConfiguration(boolean isTestMethod) {
+		configBuilder = new ConfigFrameBuilder(this);
 	}
 
 	/**
@@ -428,6 +423,16 @@ public class ClientConfiguration {
 			}
 		}
 		return rootFilterService;
+	}
+
+	/**
+	 * タイマーを取得する。
+	 *
+	 * @return タイマー
+	 * @Deprecated {@link ClientConfiguration#getTimer()}
+	 */
+	public Timer getTimer() {
+		return timer;
 	}
 
 	/**

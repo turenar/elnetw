@@ -17,7 +17,6 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +27,29 @@ import org.slf4j.LoggerFactory;
  */
 public class Utility {
 
+	/**
+	 * 通知が送信されるクラスのインターフェース
+	 *
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 */
+	protected interface NotifySender {
+
+		/**
+		 * 通知を送信する
+		 *
+		 * @param summary   概要
+		 * @param text      テキスト
+		 * @param imageFile アイコン。ない場合はnull
+		 * @throws IOException 外部プロセスの起動に失敗
+		 */
+		public void sendNotify(String summary, String text, File imageFile) throws IOException;
+	}
+
 	private static class KVEntry {
 
 		final String key;
 
 		final String value;
-
 
 		public KVEntry(String key, String value) {
 			this.key = key;
@@ -71,51 +87,19 @@ public class Utility {
 	}
 
 	/**
-	 * 通知が送信されるクラスのインターフェース
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	protected interface NotifySender {
-
-		/**
-		 * 通知を送信する
-		 * @param summary 概要
-		 * @param text テキスト
-		 * @param imageFile アイコン。ない場合はnull
-		 * @throws IOException 外部プロセスの起動に失敗
-		 */
-		public void sendNotify(String summary, String text, File imageFile) throws IOException;
-	}
-
-	/**
-	 * OSの種別を判断する。
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public enum OSType {
-		/** Windows環境 */
-		WINDOWS,
-		/** MacOS環境 */
-		MAC,
-		/** その他 (*nixなど) */
-		OTHER;
-	}
-
-	/**
 	 * TrayIconを使用して通知する。
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	public static class TrayIconNotifySender implements NotifySender, ParallelRunnable {
 
+		private final ClientConfiguration configuration;
+
 		private TrayIcon trayIcon;
 
 		private LinkedList<Object[]> queue = new LinkedList<Object[]>();
 
-		private final ClientConfiguration configuration;
-
 		private long lastNotified;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -133,7 +117,7 @@ public class Utility {
 				long tempTime = lastNotified + 5000; //TODO 5000 from configure
 				if (tempTime > System.currentTimeMillis()) {
 
-					configuration.getFrameApi().getTimer().schedule(new TimerTask() {
+					configuration.getTimer().schedule(new TimerTask() {
 
 						@Override
 						public void run() {
@@ -151,7 +135,7 @@ public class Utility {
 				trayIcon.displayMessage(summary, text, MessageType.INFO);
 				lastNotified = System.currentTimeMillis();
 				if (queue.size() > 0) {
-					configuration.getFrameApi().addJob(Priority.LOW, this);
+					configuration.addJob(Priority.LOW, this);
 				}
 			}
 		}
@@ -164,12 +148,37 @@ public class Utility {
 					text
 				/*,imageFile*/});
 				if (queue.size() == 1) {
-					configuration.getFrameApi().addJob(Priority.LOW, this);
+					configuration.addJob(Priority.LOW, this);
 				}
 			}
 		}
 	}
 
+	/**
+	 * OSの種別を判断する。
+	 *
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 */
+	public enum OSType {
+		/** Windows環境 */
+		WINDOWS,
+		/** MacOS環境 */
+		MAC,
+		/** その他 (*nixなど) */
+		OTHER;
+	}
+
+	/** 秒→ミリセカンド */
+	public static final long SEC2MS = 1000;
+
+	/** 分→ミリセカンド */
+	public static final long MINUTE2MS = SEC2MS * 60;
+
+	/** 時→ミリセカンド */
+	public static final long HOUR2MS = MINUTE2MS * 60;
+
+	/** 日→ミリセカンド */
+	public static final long DAY2MS = HOUR2MS * 24;
 
 	private static volatile OSType ostype;
 
@@ -222,19 +231,6 @@ public class Utility {
 			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		}
 	};
-
-	/** 秒→ミリセカンド */
-	public static final long SEC2MS = 1000;
-
-	/** 分→ミリセカンド */
-	public static final long MINUTE2MS = SEC2MS * 60;
-
-	/** 時→ミリセカンド */
-	public static final long HOUR2MS = MINUTE2MS * 60;
-
-	/** 日→ミリセカンド */
-	public static final long DAY2MS = HOUR2MS * 24;
-
 
 	/**
 	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
@@ -427,7 +423,6 @@ public class Utility {
 		return toKeyString(e.getKeyCode(), e.getModifiersEx(), e.getID() == KeyEvent.KEY_RELEASED);
 	}
 
-
 	private final ClientConfiguration configuration;
 
 	private Logger logger = LoggerFactory.getLogger(Utility.class);
@@ -436,7 +431,6 @@ public class Utility {
 
 	/** 通知を送信するクラス */
 	public volatile NotifySender notifySender = null;
-
 
 	/**
 	 * インスタンスを生成する。

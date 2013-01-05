@@ -1,8 +1,5 @@
 package jp.syuriken.snsw.twclient.filter;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
@@ -23,15 +20,16 @@ import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.Utility;
-
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * RootFilter のためのテスト
@@ -42,14 +40,9 @@ public class RootFilterTest {
 
 	private static final class MyClientConfiguration extends ClientConfiguration {
 
-		private ClientProperties clientProperties;
-
 		private static final Logger logger = LoggerFactory.getLogger(MyClientConfiguration.class);
 
-
-		/*package*/MyClientConfiguration() {
-			super(true);
-		}
+		private ClientProperties clientProperties;
 
 		@Override
 		public ClientProperties getConfigProperties() {
@@ -90,7 +83,6 @@ public class RootFilterTest {
 		}
 	}
 
-
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.RootFilter#onStatus(twitter4j.Status)} のためのテスト・メソッド。
 	 */
@@ -111,10 +103,12 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
+	@Deprecated
 	@Override
 	public void addJob(Priority priority, Runnable job) {
 	}
 
+	@Deprecated
 	@Override
 	public void addJob(Runnable job) {
 	}
@@ -180,6 +174,7 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
+	@Deprecated
 	@Override
 	public Timer getTimer() {
 		return null;

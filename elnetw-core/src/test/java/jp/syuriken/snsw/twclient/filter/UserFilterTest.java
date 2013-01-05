@@ -22,7 +22,8 @@ public class UserFilterTest {
 	private static final class MyClientConfiguration extends ClientConfiguration {
 
 		/*package*/MyClientConfiguration() {
-			super(true);
+			// protected access
+			super();
 		}
 	}
 

@@ -156,7 +156,9 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * タイマーを取得する。
 	 *
 	 * @return タイマー
+	 * @Deprecated {@link ClientConfiguration#getTimer()}
 	 */
+	@Deprecated
 	Timer getTimer();
 
 	/**

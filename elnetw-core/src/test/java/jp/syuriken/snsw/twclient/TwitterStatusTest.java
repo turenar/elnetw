@@ -1,9 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -13,7 +9,6 @@ import java.util.Scanner;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -22,6 +17,10 @@ import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.json.DataObjectFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * TwitterStatusのためのテスト
@@ -32,10 +31,6 @@ public class TwitterStatusTest {
 
 	private static final class ClientConfigurationExtension extends ClientConfiguration {
 
-		private ClientConfigurationExtension(boolean isTestMethod) {
-			super(isTestMethod);
-		}
-
 		@Override
 		public Twitter getTwitterForRead() {
 			return null;
@@ -44,20 +39,16 @@ public class TwitterStatusTest {
 
 	/*package*/static class TestObj {
 
-		/*package*/String json;
+		/*package*/ String json;
 
-		/*package*/List<String> entity = new ArrayList<String>();
+		/*package*/ List<String> entity = new ArrayList<String>();
 
 		public Object text;
 	}
 
-
 	private static ArrayList<TestObj> tests;
 
-
-	/**
-	 * クラス初期化
-	 */
+	/** クラス初期化 */
 	@BeforeClass
 	public static void init() {
 		Scanner scanner = new Scanner(TwitterStatusTest.class.getResourceAsStream("entity-test.txt"), "UTF-8");
@@ -107,13 +98,14 @@ public class TwitterStatusTest {
 
 	/**
 	 * {@link TwitterStatus#TwitterStatus(ClientConfiguration, Status)} のためのテスト・メソッド。
-	 * @throws TwitterException json例外
-	 * @throws IOException IO例外
+	 *
+	 * @throws TwitterException             json例外
+	 * @throws IOException                  IO例外
 	 * @throws UnsupportedEncodingException UTF-8がサポートされていない
 	 */
 	@Test
 	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
-		ClientConfiguration configuration = new ClientConfigurationExtension(true);
+		ClientConfiguration configuration = new ClientConfigurationExtension();
 		ClientProperties clientProperties = new ClientProperties();
 		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
 				"UTF-8"));

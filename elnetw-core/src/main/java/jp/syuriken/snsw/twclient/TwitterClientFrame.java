@@ -643,8 +643,6 @@ import twitter4j.User;
 
 	/*package*/ Status inReplyToStatus = null;
 
-	/*package*/transient JobWorkerThread jobWorkerThread;
-
 	/*package*/JPanel editPanel;
 
 	/*package*/JPanel postPanel;
@@ -661,7 +659,7 @@ import twitter4j.User;
 
 	/*package*/User loginUser;
 
-	/*package*/transient Timer timer;
+
 
 	/*package*/ClientProperties configProperties;
 
@@ -727,7 +725,6 @@ import twitter4j.User;
 		rootFilterService = configuration.getRootFilterService();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
-		timer = new Timer("timer");
 		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		initActionHandlerTable();
 		initShortcutKey();
@@ -772,8 +769,6 @@ import twitter4j.User;
 	 */
 	public void cleanUp() {
 		configuration.setShutdownPhase(true);
-		timer.cancel();
-		jobWorkerThread.cleanUp();
 	}
 
 	@Override
@@ -1163,9 +1158,10 @@ import twitter4j.User;
 	 *
 	 * @return タイマー
 	 */
+	@Deprecated
 	@Override
 	public Timer getTimer() {
-		return timer;
+		return configuration.getTimer();
 	}
 
 	/*package*/JLabel getTweetViewCreatedAtLabel() {

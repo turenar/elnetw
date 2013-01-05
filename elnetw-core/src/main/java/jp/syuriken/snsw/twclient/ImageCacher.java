@@ -16,10 +16,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.User;
 
 /**
@@ -39,6 +37,9 @@ public class ImageCacher {
 		/** イメージURL */
 		public final URL url;
 
+		/** 画像キー */
+		public final String imageKey;
+
 		/** Image インスタンス */
 		public Image image;
 
@@ -51,15 +52,11 @@ public class ImageCacher {
 		/** すでに書きこまれたかどうか */
 		protected volatile boolean isWritten = false;
 
-		/** 画像キー */
-		public final String imageKey;
-
 		/** 指定時間内の出現回数 */
 		public volatile int appearCount;
 
 		/** カウント終了時間 (ms) */
 		public volatile long countEndTime;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -106,7 +103,6 @@ public class ImageCacher {
 		/** イメージアイコンを設定するJLabel */
 		public final JLabel label;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -146,7 +142,6 @@ public class ImageCacher {
 
 		private ImageEntry entry;
 
-
 		/**
 		 * インスタンスを生成する。
 		 * @param entry イメージエントリ
@@ -161,18 +156,10 @@ public class ImageCacher {
 		}
 	}
 
-
 	/** Buffersize */
 	private static final int BUFSIZE = 65536;
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
-
 	private final ClientConfiguration configuration;
-
-	/*private*/ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
-
-	/** キャッシュ有効時間 */
-	private long cacheExpire;
 
 	/** キャッシュ出力先ディレクトリ */
 	public final File CACHE_DIR;
@@ -180,12 +167,18 @@ public class ImageCacher {
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File USER_ICON_CACHE_DIR;
 
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
+
+	/** キャッシュ有効時間 */
+	private long cacheExpire;
+
 	private int flushThreshold;
 
 	private ClientFrameApi frameApi;
 
 	private int flushResetInterval;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -398,7 +391,7 @@ public class ImageCacher {
 		}
 		int appearCount = ++entry.appearCount;
 		if (appearCount > flushThreshold) {
-			configuration.getFrameApi().addJob(Priority.LOW, new ImageFlusher(entry));
+			configuration.addJob(Priority.LOW, new ImageFlusher(entry));
 		}
 	}
 
@@ -444,7 +437,7 @@ public class ImageCacher {
 			} catch (MalformedURLException e) {
 				throw new AssertionError(e); // would never happen
 			}
-			frameApi.addJob(new ImageFetcher(imageEntry, null));
+			configuration.addJob(new ImageFetcher(imageEntry, null));
 		}
 	}
 
@@ -460,7 +453,7 @@ public class ImageCacher {
 		String urlString = url.toString();
 		ImageEntry entry = cacheManager.get(urlString);
 		if (entry == null) {
-			frameApi.addJob(new ImageFetcher(new ImageEntry(url, urlString), label));
+			configuration.addJob(new ImageFetcher(new ImageEntry(url, urlString), label));
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
@@ -488,7 +481,7 @@ public class ImageCacher {
 				throw new AssertionError(e); // would never happen
 			}
 			entry.cacheFile = getImageFilename(user);
-			frameApi.addJob(new ImageFetcher(entry, label));
+			configuration.addJob(new ImageFetcher(entry, label));
 			return false;
 		} else {
 			label.setIcon(getImageIcon(entry.image));
