@@ -51,35 +51,27 @@ void Query(): {}
 	( LOOKAHEAD(2) Function() | Property() )
 }
 
-void Property(): {}
-{
-	PropertyName() (PropertyOperator() (PropertyValue())? )?
-}
-
-void PropertyName(): { Token t; }
+void Property(): { Token t; }
 {
 	t=<ALPHASTR> { jjtThis.jjtSetValue(t.image); }
+	 (PropertyOperator() (PropertyValue())? )?
 }
 
-void PropertyOperator(): { Token t;}
+void PropertyOperator(): { Token t; }
 {
 	t=<OPERATOR> { jjtThis.jjtSetValue(t.image); }
 }
 
-void PropertyValue(): { Token t;}
+void PropertyValue(): { Token t; }
 {
 	(t=<INT_LITERAL> | t=<BOOL_LITERAL> | t=<STRING_LITERAL>) { jjtThis.jjtSetValue(t.image); }
 }
 
-void Function(): {}
+void Function(): { Token t; }
 {
-	FunctionName() "(" (
+	t=<ALPHASTR> { jjtThis.jjtSetValue(t.image); }
+	"(" (
 		( LOOKAHEAD(2) Function() | Property() )
 		( "," (LOOKAHEAD(2) Function() | Property() ))*
 	)? ")"
-}
-
-void FunctionName(): { Token t; }
-{
-	t=<ALPHASTR> { jjtThis.jjtSetValue(t.image); }
 }

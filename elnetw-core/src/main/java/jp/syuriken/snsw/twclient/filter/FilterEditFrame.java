@@ -3,24 +3,30 @@ package jp.syuriken.snsw.twclient.filter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
+import jp.syuriken.snsw.twclient.filter.tokenizer.Node;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionName;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyName;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenQuery;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
 import jp.syuriken.snsw.twclient.filter.tokenizer.SimpleNode;
+
+import static javax.swing.GroupLayout.Alignment.LEADING;
+import static javax.swing.GroupLayout.Alignment.TRAILING;
+import static javax.swing.GroupLayout.DEFAULT_SIZE;
+import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
 /**
  * フィルタを編集するためのフレーム
@@ -30,27 +36,29 @@ import jp.syuriken.snsw.twclient.filter.tokenizer.SimpleNode;
 @SuppressWarnings("serial")
 public class FilterEditFrame extends JFrame implements WindowListener {
 
-	/**
-	 * クエリを見やすくするフォーマッタ
-	 *
-	 */
+	/** クエリを見やすくするフォーマッタ */
 	protected static class FilterQueryFormatter implements FilterParserVisitor {
 
 		/** 関数の深さ */
 		protected transient int queryDepth;
 
+		/** 抽出設定かどうか */
+		protected boolean isExtract;
+
+		/** 抽出設定かどうかを取得する */
+		public boolean isExtractFilter() {
+			return isExtract;
+		}
 
 		@Override
 		public Object visit(QueryTokenFunction node, Object data) {
 			StringBuilder stringBuilder = (StringBuilder) data;
 
-			int childrenCount = node.jjtGetNumChildren();
-			node.jjtGetChild(0).jjtAccept(this, data);
-
 			queryDepth++;
-			stringBuilder.append("(\n");
+			stringBuilder.append(node.jjtGetValue()).append("(\n");
 
-			for (int i = 1; i < childrenCount; i++) {
+			int childrenCount = node.jjtGetNumChildren();
+			for (int i = 0; i < childrenCount; i++) {
 				for (int d = 0; d < queryDepth; d++) {
 					stringBuilder.append("  ");
 				}
@@ -68,19 +76,9 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		}
 
 		@Override
-		public Object visit(QueryTokenFunctionName node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
-		}
-
-		@Override
 		public Object visit(QueryTokenProperty node, Object data) {
+			((StringBuilder) data).append(node.jjtGetValue());
 			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyName node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
-
 		}
 
 		@Override
@@ -95,6 +93,22 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 		@Override
 		public Object visit(QueryTokenQuery node, Object data) {
+			if (node.jjtGetNumChildren() >= 1) { // extract(..)を処理
+				Node childNode = node.jjtGetChild(0);
+				if (childNode instanceof QueryTokenFunction) {
+					if ("extract".equals(((QueryTokenFunction) childNode).jjtGetValue())) {
+						isExtract = true;
+						// "extract("と")"の部分は表示しない。
+						int argCount = childNode.jjtGetNumChildren();
+						if (argCount == 0) { // argが指定されていないときは処理終わり
+							return data;
+						} else {
+							((QueryTokenFunction) childNode).childrenAccept(this, data);
+						}
+					}
+				}
+			}
+			// extract(..)がない→除外
 			return node.childrenAccept(this, data);
 		}
 
@@ -110,40 +124,30 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 	}
 
-	/**
-	 * スペースを削除するフィルタクエリビジター
-	 */
+	/** スペースを削除するフィルタクエリビジター */
 	protected static class FilterQueryNormalizer implements FilterParserVisitor {
 
 		@Override
 		public Object visit(QueryTokenFunction node, Object data) {
 			StringBuilder stringBuilder = (StringBuilder) data;
-			QueryTokenFunctionName name = (QueryTokenFunctionName) node.jjtGetChild(0);
-			stringBuilder.append(name.jjtGetValue()).append('(');
+			stringBuilder.append(node.jjtGetValue()).append('(');
 
 			int count = node.jjtGetNumChildren();
-			for (int i = 1; i < count; i++) {
-				node.jjtGetChild(i).jjtAccept(this, data);
-				stringBuilder.append(',');
+			if (count >= 0) {
+				for (int i = 0; i < count; i++) {
+					node.jjtGetChild(i).jjtAccept(this, data);
+					stringBuilder.append(',');
+				}
+				stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 			}
-			stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 			stringBuilder.append(')');
 			return null;
 		}
 
 		@Override
-		public Object visit(QueryTokenFunctionName node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
-		}
-
-		@Override
 		public Object visit(QueryTokenProperty node, Object data) {
+			((StringBuilder) data).append(node.jjtGetValue());
 			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyName node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
 		}
 
 		@Override
@@ -172,7 +176,6 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		}
 
 	}
-
 
 	private String propertyKey;
 
@@ -180,12 +183,15 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 	private JTextArea filterEditTextArea;
 
+	private JRadioButton excludeOptionButton;
+
+	private JRadioButton extractOptionButton;
 
 	/**
 	 * インスタンスを生成する。
 	 *
 	 * @param displayString 表示名
-	 * @param propertyKey プロパティキー
+	 * @param propertyKey   プロパティキー
 	 */
 	public FilterEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
@@ -194,32 +200,72 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		initComponents(displayString);
 	}
 
+	private JRadioButton getComponentExcludeOption() {
+		if (excludeOptionButton == null) {
+			excludeOptionButton = new JRadioButton("除外");
+		}
+		return excludeOptionButton;
+	}
+
+	private JRadioButton getComponentExtractOption() {
+		if (extractOptionButton == null) {
+			extractOptionButton = new JRadioButton("抽出");
+		}
+		return extractOptionButton;
+	}
+
 	private JTextArea getComponentFilterEditTextArea() {
 		if (filterEditTextArea == null) {
 			filterEditTextArea = new JTextArea();
-
-			String filterQuery = properties.getProperty(propertyKey);
-			if (filterQuery != null) {
-				StringBuilder stringBuilder = new StringBuilder(filterQuery.length());
-				try {
-					QueryTokenStart filterCompiler = FilterCompiler.tokenize(filterQuery);
-					filterCompiler.jjtAccept(new FilterQueryFormatter(), stringBuilder);
-				} catch (ParseException e) {
-					stringBuilder.append(filterQuery).append("\n\n/* クエリのパース中にエラー: ").append(e.getLocalizedMessage())
-						.append("\n*/");
-				}
-				filterEditTextArea.setText(stringBuilder.toString());
-			}
 		}
 		return filterEditTextArea;
 	}
 
 	private void initComponents(String displayString) {
-		GroupLayout layout = new GroupLayout(this);
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(getComponentFilterEditTextArea()));
-		layout.setVerticalGroup(layout.createSequentialGroup().addComponent(getComponentFilterEditTextArea()));
+		ButtonGroup buttonGroup = new ButtonGroup();
+		buttonGroup.add(getComponentExcludeOption());
+		buttonGroup.add(getComponentExtractOption());
+
+		GroupLayout layout = new GroupLayout(getContentPane());
+		getContentPane().setLayout(layout);
+		layout.setHorizontalGroup(layout.createParallelGroup(LEADING) //
+				.addGroup(LEADING,
+						layout.createSequentialGroup() //
+								.addComponent(getComponentExcludeOption()) //
+								.addGap(0, 16, Short.MAX_VALUE) //
+								.addComponent(
+										getComponentExtractOption())) //
+				.addComponent(getComponentFilterEditTextArea(), LEADING));
+		layout.setVerticalGroup(layout.createSequentialGroup() //
+				.addGroup(
+						layout.createParallelGroup(LEADING) //
+								.addComponent(getComponentExcludeOption(), LEADING, PREFERRED_SIZE, PREFERRED_SIZE,
+										PREFERRED_SIZE) //
+								.addComponent(getComponentExtractOption(),
+										TRAILING, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)) //
+				.addComponent(getComponentFilterEditTextArea(), 16, DEFAULT_SIZE, Short.MAX_VALUE));
 		addWindowListener(this);
 		setTitle("フィルタの編集 (" + displayString + ": " + propertyKey + ")");
+
+		String filterQuery = properties.getProperty(propertyKey);
+		if (filterQuery != null) {
+			StringBuilder stringBuilder = new StringBuilder(filterQuery.length());
+			try {
+				QueryTokenStart tokenStart = FilterCompiler.tokenize(filterQuery);
+				FilterQueryFormatter queryFormatter = new FilterQueryFormatter();
+				tokenStart.jjtAccept(queryFormatter, stringBuilder);
+				if (queryFormatter.isExtractFilter()) {
+					getComponentExtractOption().setSelected(true);
+				} else {
+					getComponentExcludeOption().setSelected(true);
+				}
+			} catch (ParseException e) {
+				stringBuilder.append(filterQuery).append("\n\n/* クエリのパース中にエラー: ").append(e.getLocalizedMessage())
+						.append("\n*/");
+			}
+			getComponentFilterEditTextArea().setText(stringBuilder.toString());
+		}
+
 		pack();
 		setSize(400, 400);
 	}
@@ -240,6 +286,11 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 			StringBuilder stringBuilder = new StringBuilder();
 
 			tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
+
+			if (getComponentExtractOption().isSelected()) {
+				stringBuilder.insert(0, "extract(");
+				stringBuilder.append(')');
+			}
 			properties.setProperty(propertyKey, stringBuilder.toString());
 			dispose();
 		} catch (ParseException ex) {

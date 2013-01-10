@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
@@ -21,9 +22,7 @@ import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionName;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyName;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenQuery;
@@ -38,25 +37,8 @@ import jp.syuriken.snsw.twclient.filter.tokenizer.TokenMgrError;
  */
 public class FilterCompiler implements FilterParserVisitor {
 
-	/**
-	 * 関数のデータを格納するクラス
-	 */
-	protected static class FunctionData {
-
-		/** ファクトリ */
-		protected Constructor<? extends FilterFunction> factory;
-
-		/** 名前 */
-		protected String name;
-	}
-
-	/**
-	 * プロパティのデータを格納するクラス
-	 */
+	/** プロパティのデータを格納するクラス */
 	protected static class PropertyData {
-
-		/** ファクトリ */
-		protected Constructor<? extends FilterProperty> factory;
 
 		/** 名前 */
 		protected String name;
@@ -68,9 +50,7 @@ public class FilterCompiler implements FilterParserVisitor {
 		protected Object value;
 	}
 
-	/**
-	 * 例外をラップする
-	 */
+	/** 例外をラップする */
 	@SuppressWarnings("serial")
 	public static class WrappedException extends RuntimeException {
 
@@ -84,7 +64,6 @@ public class FilterCompiler implements FilterParserVisitor {
 		}
 	}
 
-
 	/** constructor ( FilterDispatcherBase ) */
 	protected static final HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories =
 			new HashMap<String, Constructor<? extends FilterFunction>>();
@@ -93,41 +72,11 @@ public class FilterCompiler implements FilterParserVisitor {
 	protected static final HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories =
 			new HashMap<String, Constructor<? extends FilterProperty>>();
 
-	private ClientConfiguration configuration;
-
-	static {
-		putFilterFunction("or", OrFilterFunction.getFactory());
-		putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
-		putFilterFunction("and", AndFilterFunction.getFactory());
-		putFilterFunction("not", NotFilterFunction.getFactory());
-		putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
-
-		Constructor<? extends FilterProperty> properties;
-		properties = StandardIntProperties.getFactory();
-		putFilterProperty("userid", properties);
-		putFilterProperty("in_reply_to_userid", properties);
-		putFilterProperty("rtcount", properties);
-		putFilterProperty("timediff", properties);
-		properties = StandardBooleanProperties.getFactory();
-		putFilterProperty("retweeted", properties);
-		putFilterProperty("mine", properties);
-		putFilterProperty("protected", properties);
-		putFilterProperty("verified", properties);
-		putFilterProperty("status", properties);
-		putFilterProperty("dm", properties);
-		properties = StandardStringProperties.getFactory();
-		putFilterProperty("user", properties);
-		putFilterProperty("text", properties);
-		putFilterProperty("client", properties);
-
-		putFilterProperty("in_list", InListProperty.getFactory());
-	}
-
-
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
+	 *
 	 * @param configuration 設定
-	 * @param query クエリ
+	 * @param query         クエリ
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
@@ -196,7 +145,7 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * フィルタ関数を追加する
 	 *
 	 * @param functionName 関数名
-	 * @param constructor ({@link String}, {@link FilterDispatcherBase})コンストラクタ
+	 * @param constructor  ({@link String}, {@link FilterDispatcherBase})コンストラクタ
 	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
 	 */
 	public static Constructor<? extends FilterFunction> putFilterFunction(String functionName,
@@ -208,7 +157,7 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * フィルタプロパティを追加する
 	 *
 	 * @param propertyName プロパティ名
-	 * @param constructor ({@link String}, {@link String}, {@link Object})コンストラクタ
+	 * @param constructor  ({@link String}, {@link String}, {@link Object})コンストラクタ
 	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
 	 */
 	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
@@ -235,6 +184,37 @@ public class FilterCompiler implements FilterParserVisitor {
 		return filterParser.Start();
 	}
 
+	private ClientConfiguration configuration;
+
+	static {
+		putFilterFunction("or", OrFilterFunction.getFactory());
+		putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
+		putFilterFunction("and", AndFilterFunction.getFactory());
+		putFilterFunction("not", NotFilterFunction.getFactory());
+		putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
+		putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
+
+		Constructor<? extends FilterProperty> properties;
+		properties = StandardIntProperties.getFactory();
+		putFilterProperty("userid", properties);
+		putFilterProperty("in_reply_to_userid", properties);
+		putFilterProperty("rtcount", properties);
+		putFilterProperty("timediff", properties);
+		properties = StandardBooleanProperties.getFactory();
+		putFilterProperty("retweeted", properties);
+		putFilterProperty("mine", properties);
+		putFilterProperty("protected", properties);
+		putFilterProperty("verified", properties);
+		putFilterProperty("status", properties);
+		putFilterProperty("dm", properties);
+		properties = StandardStringProperties.getFactory();
+		putFilterProperty("user", properties);
+		putFilterProperty("text", properties);
+		putFilterProperty("client", properties);
+
+		putFilterProperty("in_list", InListProperty.getFactory());
+	}
+
 	private FilterCompiler(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -242,15 +222,19 @@ public class FilterCompiler implements FilterParserVisitor {
 	@Override
 	public Object visit(QueryTokenFunction node, Object data) {
 		int childrenCount = node.jjtGetNumChildren();
-		FunctionData functionData = new FunctionData();
-		node.jjtGetChild(0).jjtAccept(this, functionData);
-		FilterDispatcherBase[] args = new FilterDispatcherBase[childrenCount - 1];
-		for (int i = 1; i < childrenCount; i++) {
-			args[i - 1] = (FilterDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
+
+		String functionName = (String) node.jjtGetValue();
+		Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(functionName);
+		if (factory == null) {
+			throw new WrappedException(new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
+					+ ">は見つかりません"));
 		}
 
-		String functionName = functionData.name;
-		Constructor<? extends FilterFunction> factory = functionData.factory;
+		FilterDispatcherBase[] args = new FilterDispatcherBase[childrenCount];
+		for (int i = 0; i < childrenCount; i++) {
+			args[i] = (FilterDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
+		}
+
 		try {
 			if (factory == null) {
 				// If valid query, factory must be not null
@@ -274,28 +258,22 @@ public class FilterCompiler implements FilterParserVisitor {
 	}
 
 	@Override
-	public Object visit(QueryTokenFunctionName node, Object data) {
-		String name = (String) node.jjtGetValue();
-		Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(name);
-		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: function<" + name
-					+ ">は見つかりません"));
-		}
-		FunctionData functionData = (FunctionData) data;
-		functionData.name = name;
-		functionData.factory = factory;
-		return functionData;
-	}
-
-	@Override
 	public Object visit(QueryTokenProperty node, Object data) {
 		PropertyData propertyData = new PropertyData();
+
+		String propertyName = (String) node.jjtGetValue();
+
+		Constructor<? extends FilterProperty> factory = getFilterProperty(propertyName);
+		if (factory == null) {
+			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + propertyName + ">は見つかりません。"));
+		}
+
+		propertyData.name = propertyName;
+
 		node.childrenAccept(this, propertyData);
 
-		String propertyName = propertyData.name;
 		String propertyOperator = propertyData.operator;
 		Object value = propertyData.value;
-		Constructor<? extends FilterProperty> factory = propertyData.factory;
 		try {
 			if (factory == null) {
 				// If valid query, factory must be not null
@@ -315,20 +293,6 @@ public class FilterCompiler implements FilterParserVisitor {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
 					+ ">に関連付けられたConstructorは正しくありません", e);
 		}
-	}
-
-	@Override
-	public Object visit(QueryTokenPropertyName node, Object data) {
-		String name = (String) node.jjtGetValue();
-		Constructor<? extends FilterProperty> factory = getFilterProperty(name);
-		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + name + ">は見つかりません。"));
-		}
-
-		PropertyData propertyData = (PropertyData) data;
-		propertyData.name = name;
-		propertyData.factory = factory;
-		return factory;
 	}
 
 	@Override

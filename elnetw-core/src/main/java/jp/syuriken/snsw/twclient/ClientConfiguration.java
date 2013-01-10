@@ -13,10 +13,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -66,11 +64,17 @@ public class ClientConfiguration {
 	/** タイムライン初期取得のページングのプロパティ名 */
 	public static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
 
+	private static final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
+
+	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
+
+	/** 環境依存の改行コード */
+	public static final String NEW_LINE = System.getProperty("line.separator");
+
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<String, Constructor<? extends ClientTab>>();
 
-	private static final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-
+	private static ClientConfiguration instance;
 
 	/**
 	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
@@ -105,12 +109,14 @@ public class ClientConfiguration {
 	 * タブ復元時に使用するコンストラクタを追加する。
 	 * この関数は {@link #putClientTabConstructor(String, Constructor)} を内部で呼び出します。
 	 * {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタがあるクラスである必要があります。
-	 * @param id タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 *
+	 * @param id     タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
 	 * @return 以前 id に関連付けられていたコンストラクタ
 	 * @see #putClientTabConstructor(String, Constructor)
 	 */
-	public static Constructor<? extends ClientTab> putClientTabConstructor(String id, Class<? extends ClientTab> class1) {
+	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
+			Class<? extends ClientTab> class1) {
 		try {
 			return putClientTabConstructor(id, class1.getConstructor(ClientConfiguration.class, String.class));
 		} catch (Exception e) {
@@ -121,7 +127,8 @@ public class ClientConfiguration {
 	/**
 	 * タブ復元時に使用するコンストラクタを追加する。
 	 * コンストラクタは {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタである必要があります。
-	 * @param id タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 *
+	 * @param id          タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param constructor タブ復元時に呼ばれるコンストラクタ
 	 * @return 以前 id に関連付けられていたコンストラクタ
 	 */
@@ -132,36 +139,36 @@ public class ClientConfiguration {
 				&& parameterTypes[1].isAssignableFrom(String.class)) {
 			return clientTabConstructorsMap.put(id, constructor);
 		} else {
-			throw new IllegalArgumentException("ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
+			throw new IllegalArgumentException(
+					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
 		}
 	}
-
-
-	private TrayIcon trayIcon;
-
-	/*package*/ClientProperties configProperties;
-
-	/*package*/ClientProperties configDefaultProperties;
-
-	private boolean isShutdownPhase = false;
-
-	private TwitterClientFrame frameApi;
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 
 	private final Utility utility = new Utility(this);
 
+	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
+
+	private TrayIcon trayIcon;
+
+	/*package*/ ClientProperties configProperties;
+
+	/*package*/ ClientProperties configDefaultProperties;
+
+	private boolean isShutdownPhase = false;
+
+	private TwitterClientFrame frameApi;
+
 	private boolean isInitializing = true;
 
 	private ConfigFrameBuilder configBuilder = new ConfigFrameBuilder(this);
-
-	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 
 	private volatile FilterService rootFilterService;
 
 	private volatile ImageCacher imageCacher;
 
-	/*package*/ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
 
 	private String accountIdForRead;
 
@@ -171,24 +178,13 @@ public class ClientConfiguration {
 
 	private boolean portabledConfiguration;
 
-	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
-
-	/** 環境依存の改行コード */
-	public static final String NEW_LINE = System.getProperty("line.separator");
-
 	private volatile CacheManager cacheManager;
 
 	private Object lockObject = new Object();
 
-	private static ClientConfiguration instance;
-
 	private List<String> args;
 
-
-	/**
-	 * インスタンスを生成する。
-	 *
-	 */
+	/** インスタンスを生成する。 */
 	protected ClientConfiguration() {
 		init(this, true);
 	}
@@ -215,6 +211,7 @@ public class ClientConfiguration {
 	 * 新しいタブを追加する。
 	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 *
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
 	 */
@@ -249,6 +246,7 @@ public class ClientConfiguration {
 	 * 指定されたタブをフォーカスする。
 	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 *
 	 * @param tab タブ
 	 */
 	public void focusFrameTab(final ClientTab tab) {
@@ -363,8 +361,13 @@ public class ClientConfiguration {
 	 */
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
-		if (accountId == null) {
-			accountId = getAccountList()[0];
+		if (accountId == null || accountId.isEmpty()) {
+			String[] accountList = getAccountList();
+			if (accountList.length > 0) {
+				accountId = accountList[0];
+			} else {
+				accountId = null;
+			}
 		}
 		return accountId;
 	}
@@ -430,6 +433,7 @@ public class ClientConfiguration {
 
 	/**
 	 * ImageCacherインスタンスを取得する。
+	 *
 	 * @return イメージキャッシャ
 	 */
 	public ImageCacher getImageCacher() {
@@ -497,15 +501,17 @@ public class ClientConfiguration {
 	}
 
 	/**
-	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 *
-	* @return Twitter Configuration
-	*/
+	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。
+	 *
+	 * @return Twitter Configuration
+	 */
 	public Configuration getTwitterConfiguration() {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
 
 	/**
 	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
+	 *
 	 * @param accountId アカウントID
 	 * @return Twitter Configuration
 	 */
@@ -515,9 +521,9 @@ public class ClientConfiguration {
 				configProperties.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", accountId));
 
 		return getTwitterConfigurationBuilder() //
-			.setOAuthAccessToken(accessTokenString) //
-			.setOAuthAccessTokenSecret(accessTokenSecret) //
-			.build();
+				.setOAuthAccessToken(accessTokenString) //
+				.setOAuthAccessTokenSecret(accessTokenSecret) //
+				.build();
 	}
 
 	/**
@@ -530,9 +536,9 @@ public class ClientConfiguration {
 		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
 
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
-			.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
-			.setClientURL(VersionInfo.getSupportUrl());
+				.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
+				.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
+				.setClientURL(VersionInfo.getSupportUrl());
 	}
 
 	/**
@@ -566,6 +572,7 @@ public class ClientConfiguration {
 	 * 指定したタブが選択されているかどうかを取得する
 	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 *
 	 * @param tab タブ
 	 * @return 選択されているかどうか
 	 */
@@ -627,6 +634,7 @@ public class ClientConfiguration {
 
 	/**
 	 * 自分のアカウントなのかを調べる
+	 *
 	 * @param accountId ユーザーユニークID
 	 * @return 自分のアカウントかどうか
 	 * @see #isMyAccount(long)
@@ -654,6 +662,7 @@ public class ClientConfiguration {
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
 	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 *
 	 * @param tab タブ
 	 */
 	public void refreshTab(final ClientTab tab) {
@@ -672,6 +681,7 @@ public class ClientConfiguration {
 	 * タブを削除する
 	 *
 	 * <p><b>このメソッドはEventDispatcherThread内で動かしてください。</b></p>
+	 *
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
 	 */
@@ -776,6 +786,7 @@ public class ClientConfiguration {
 
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
+	 *
 	 * @param isShutdownPhase シャットダウンフェーズかどうか。
 	 */
 	public void setShutdownPhase(boolean isShutdownPhase) {

@@ -9,7 +9,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * どれかマッチすることを確認するフィルタ関数
+ * notフィルタ関数
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
@@ -41,7 +41,7 @@ public class NotFilterFunction implements FilterFunction {
 	 * インスタンスを生成する。
 	 *
 	 * @param functionName 関数名
-	 * @param child 子要素の配列
+	 * @param child        子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
 	public NotFilterFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
