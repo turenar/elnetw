@@ -283,7 +283,7 @@ public class TwitterClientMain {
 			throw new RuntimeException(e1);
 		}
 		configProperties.setProperty("twitter.oauth.access_token.list", userId);
-		configProperties.setProperty("oauth.access_token.default", userId);
+		configProperties.setProperty("twitter.oauth.access_token.default", userId);
 		configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
 		configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
 				accessToken.getTokenSecret());
