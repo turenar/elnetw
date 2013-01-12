@@ -44,7 +44,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public UserFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		configuration.getConfigBuilder().getGroup("フィルタ")
-			.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
+			.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
 		configuration.getConfigProperties().addPropertyChangedListener(this);
 		filterIds = new TreeSet<Long>();
 		initFilterIds();

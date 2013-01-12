@@ -193,10 +193,10 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	 * @param displayString 表示名
 	 * @param propertyKey   プロパティキー
 	 */
-	public FilterEditFrame(String displayString, String propertyKey) {
+	public FilterEditFrame(ClientConfiguration configuration, String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		properties = ClientConfiguration.getInstance().getConfigProperties();
+		properties = configuration.getConfigProperties();
 		initComponents(displayString);
 	}
 

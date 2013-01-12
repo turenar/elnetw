@@ -45,7 +45,8 @@ public class RootFilterTest {
 		private ClientProperties clientProperties;
 
 		/*package*/MyClientConfiguration() {
-			super(false);
+			// protected access
+			super();
 		}
 
 		@Override

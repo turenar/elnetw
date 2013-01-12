@@ -66,15 +66,15 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 	 * インスタンスを生成する。
 	 *
 	 */
-	public FilterConfigurator() {
-		configuration = ClientConfiguration.getInstance();
+	public FilterConfigurator(ClientConfiguration configuration) {
+		this.configuration = configuration;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JComboBox componentFilterChooser = getComponentFilterChooser();
 		KVItem kvItem = (KVItem) componentFilterChooser.getSelectedItem();
-		FilterEditFrame editFrame = new FilterEditFrame(kvItem.displayString, kvItem.propertyKey);
+		FilterEditFrame editFrame = new FilterEditFrame(configuration, kvItem.displayString, kvItem.propertyKey);
 		editFrame.setVisible(true);
 		editFrame.toFront();
 	}
