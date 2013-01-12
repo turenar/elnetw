@@ -35,12 +35,6 @@ public class TimelineViewTab extends DefaultClientTab {
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
 		@Override
-		public void onBlock(User source, User blockedUser) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
 		public void onChangeAccount(boolean forWrite) {
 			StatusData statusData = new StatusData(null, new Date());
 			statusData.backgroundColor = Color.LIGHT_GRAY;
@@ -179,18 +173,6 @@ public class TimelineViewTab extends DefaultClientTab {
 		}
 
 		@Override
-		public void onFriendList(long[] friendIds) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onFriendList: count={}, {}", friendIds.length, Arrays.toString(friendIds));
-			}
-		}
-
-		@Override
-		public void onScrubGeo(long userId, long upToStatusId) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
 		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 			logger.trace("onTrackLimitationNotice: {}", numberOfLimitedStatuses);
 			StatusData statusData = new StatusData(null, new Date());
@@ -202,11 +184,6 @@ public class TimelineViewTab extends DefaultClientTab {
 			statusData.data =
 					new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
 			addStatus(statusData, getInfoSurviveTime() * 2);
-		}
-
-		@Override
-		public void onUnblock(User source, User unblockedUser) {
-			// TODO Auto-generated method stub
 		}
 
 		@Override
