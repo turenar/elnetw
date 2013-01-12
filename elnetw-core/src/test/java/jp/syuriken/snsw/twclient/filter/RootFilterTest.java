@@ -44,6 +44,10 @@ public class RootFilterTest {
 
 		private ClientProperties clientProperties;
 
+		/*package*/MyClientConfiguration() {
+			super(false);
+		}
+
 		@Override
 		public ClientProperties getConfigProperties() {
 			if (clientProperties == null) {

@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import twitter4j.Status;
@@ -30,19 +30,22 @@ public class UserFilterTest {
 
 	private static final String PROPERTY_FILTER_ID_NAME = "core.filter.user.ids";
 
-	private static ClientConfiguration configuration;
+	private ClientConfiguration configuration;
 
-	private static UserFilter userFilter;
+	private UserFilter userFilter;
+
+	private ClientProperties properties;
 
 
 	/**
 	 * テスト前の準備
 	 */
-	@BeforeClass
-	public static void tearUpClass() {
+	@Before
+	public void tearUp() {
 		configuration = new MyClientConfiguration();
-		ClientProperties properties = new ClientProperties();
+		properties = new ClientProperties();
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "1 2 3");
+		properties.setProperty("core.filter.queries", "");
 		configuration.setConfigProperties(properties);
 		userFilter = new UserFilter(configuration);
 	}
@@ -52,10 +55,6 @@ public class UserFilterTest {
 	 */
 	@Test
 	public void testIllegalFilterIds() {
-		ClientConfiguration configuration = new MyClientConfiguration();
-		ClientProperties properties = new ClientProperties();
-		configuration.setConfigProperties(properties);
-
 		UserFilter userFilter = new UserFilter(configuration);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
 

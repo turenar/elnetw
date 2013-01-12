@@ -42,6 +42,7 @@ import jp.syuriken.snsw.twclient.DefaultClientTab;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TabRenderer;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 
@@ -57,6 +58,8 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserList;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ユーザー情報を表示するアクションハンドラ
@@ -258,8 +261,10 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 
 
+		private static final String TAB_ID = "userinfo";
+
 		/** 指定されたユーザー */
-		protected final User user;
+		protected User user;
 
 		/** レンダラ */
 		protected TabRenderer renderer = new UserInfoTweetsRenderer();
@@ -297,6 +302,67 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		 * インスタンスを生成する。
 		 *
 		 * @param clientConfiguration 設定
+		 * @param jsonObject 設定が格納されたJSONオブジェクト
+		 * @throws JSONException JSON例外
+		 * @throws IllegalSyntaxException クエリエラー
+		 */
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, JSONObject jsonObject) throws JSONException,
+				IllegalSyntaxException {
+			super(clientConfiguration, jsonObject);
+			final long userId = jsonObject.getJSONObject("extended").getLong("userId");
+			new TwitterRunnable() {
+
+				@Override
+				protected void access() {
+					user = getClientConfiguration().getCacheManager().getUser(userId);
+				}
+
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return getClientConfiguration();
+				}
+			}.run();
+			configuration.getFrameApi().addJob(new TwitterRunnable() {
+
+				@Override
+				protected void access() throws TwitterException {
+					ResponseList<Status> timeline =
+							getClientConfiguration().getFrameApi().getTwitterForRead().getUserTimeline(userId);
+					for (Status status : timeline) {
+						getRenderer().onStatus(status);
+					}
+
+				}
+
+				@Override
+				protected ClientConfiguration getConfiguration() {
+					return getClientConfiguration();
+				}
+
+				@Override
+				protected void handleException(TwitterException ex) {
+					getConfiguration().getRootFilterService().onException(ex);
+				}
+			});
+		}
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param clientConfiguration 設定
+		 * @param jsonString シリアル化されたデータ
+		 * @throws JSONException JSON例外
+		 * @throws IllegalSyntaxException クエリエラー
+		 */
+		public UserInfoFrameTab(ClientConfiguration clientConfiguration, String jsonString) throws JSONException,
+				IllegalSyntaxException {
+			this(clientConfiguration, new JSONObject(jsonString));
+		}
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param clientConfiguration 設定
 		 * @param user ユーザー
 		 */
 		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) {
@@ -324,6 +390,15 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		@Override
 		public void focusLost() {
 			focusGained = false;
+		}
+
+		@Override
+		public TabRenderer getActualRenderer() {
+			return renderer;
+		}
+
+		/*package*/ClientConfiguration getClientConfiguration() {
+			return configuration;
 		}
 
 		private Component getComponentBio() {
@@ -612,8 +687,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 
 		@Override
-		public TabRenderer getRenderer() {
-			return renderer;
+		protected Object getSerializedExtendedData() throws JSONException {
+			return new JSONObject().put("userId", user.getId());
 		}
 
 		@Override
@@ -630,6 +705,11 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				.addComponent(getComponentUserInfo(), 96, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE) //
 				.addComponent(getComponentTweetsScrollPane()));
 			return tabComponent;
+		}
+
+		@Override
+		public String getTabId() {
+			return TAB_ID;
 		}
 
 		@Override

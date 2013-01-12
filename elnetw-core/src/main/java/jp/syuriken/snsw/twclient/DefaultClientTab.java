@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -56,6 +57,8 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 
@@ -72,6 +75,9 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserList;
 import twitter4j.UserMentionEntity;
+import twitter4j.internal.org.json.JSONArray;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ツイート表示用のタブ
@@ -552,6 +558,9 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 
+	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
+	protected static final Random random = new Random();
+
 	/** ポストリストの間のパディング */
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
 
@@ -708,7 +717,26 @@ public abstract class DefaultClientTab implements ClientTab {
 	protected JLabel tweetViewOtherButton;
 
 	/** {@link ClientProperties} */
-	protected ClientProperties configProperties;
+	protected final ClientProperties configProperties;
+
+	/**
+	 * {@link TeeFilter} インスタンスを格納する変数。
+	 *
+	 * <p>
+	 * これは {@link #getActualRenderer()} を用いて最初の {@link #getRenderer()} 呼び出し時に
+	 * 初期化されます (それまでは null です)。
+	 *
+	 * フィルタクエリの解析中にエラーが発生したときは、 {@link #getActualRenderer()} が代わりに
+	 * 代入されます。
+	 * </p>
+	 */
+	protected TabRenderer teeFilter;
+
+	/**
+	 * 他のタブと区別するためのユニークなID。
+	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
+	 */
+	protected final String uniqId;
 
 
 	/**
@@ -723,29 +751,37 @@ public abstract class DefaultClientTab implements ClientTab {
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
-		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
-		int str12width = fontMetrics.stringWidth("0123456789abc");
-		fontHeight = fontMetrics.getHeight();
-		int height = Math.max(18, fontHeight);
-		linePanelSizeOfSentBy = new Dimension(str12width, height);
-		iconSize = new Dimension(64, height);
-		frameApi.getTimer().schedule(new PostListUpdater(),
-				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
-				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
-		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
-		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
+		init(configuration);
+	}
 
-		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param configuration 設定
+	 * @param serializedJson シリアル化されたJSON
+	 * @throws JSONException JSONの形式が正しくないか必要とするキーが存在しない
+	 */
+	protected DefaultClientTab(ClientConfiguration configuration, JSONObject serializedJson) throws JSONException {
+		this.configuration = configuration;
+		configProperties = configuration.getConfigProperties();
+		imageCacher = configuration.getImageCacher();
+		frameApi = configuration.getFrameApi();
+		utility = configuration.getUtility();
+		sortedPostListPanel = new SortedPostListPanel();
+		uniqId = serializedJson.getString("uniqId");
+		init(configuration);
+	}
 
-			@Override
-			public Rectangle translate(JComponent component) {
-				if (component instanceof StatusPanel) {
-					return sortedPostListPanel.getBoundsOf((StatusPanel) component);
-				} else {
-					throw new AssertionError("component must be instance of StatusPanel");
-				}
-			}
-		}, configProperties.getBoolean("gui.scrool.momentumEnabled"));
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param configuration 設定
+	 * @param serializedJson シリアル化されたJSON
+	 * @throws JSONException JSONの復号化中に例外
+	 */
+	protected DefaultClientTab(ClientConfiguration configuration, String serializedJson) throws JSONException {
+		this(configuration, new JSONObject(serializedJson));
 	}
 
 	/**
@@ -1043,12 +1079,42 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
+	 * 実際に描画するレンダラ。
+	 *
+	 * @return レンダラ
+	 * @see #getRenderer()
+	 */
+	public abstract TabRenderer getActualRenderer();
+
+	/**
 	 * {@link #getScrollPane()}の子コンポーネント
 	 *
 	 * @return {@link SortedPostListPanel}インスタンス
 	 */
 	protected JComponent getChildComponent() {
 		return getSortedPostListPanel();
+	}
+
+	/**
+	 * 描画する前にフィルタする、クラスを取得する。
+	 *
+	 * <p>フィルタクエリの解析中にエラーが発生したときは、 {@link #getActualRenderer()} が代わりに
+	 * 返り値として使用されます。</p>
+	 * @return TeeFilterインスタンス ({@link #teeFilter}変数)
+	 * @see #getActualRenderer()
+	 * @see #teeFilter
+	 */
+	@Override
+	public TabRenderer getRenderer() {
+		if (teeFilter == null) {
+			try {
+				teeFilter = new TeeFilter(configuration, uniqId, getActualRenderer());
+			} catch (IllegalSyntaxException e) {
+				logger.error("TeeFilterを初期化できません。filter queryは無視されます", e);
+				teeFilter = getActualRenderer();
+			}
+		}
+		return teeFilter;
 	}
 
 	/**
@@ -1085,6 +1151,37 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return postListScrollPane;
 	}
+
+	/**
+	 * このクラスではJSONが返されます。
+	 */
+	@Override
+	public String getSerializedData() {
+		try {
+			return new JSONObject().put("twitterId", "reader").put("uniqId", getUniqId()).put("tabId", getTabId())
+				.put("extended", getSerializedExtendedData()).toString();
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 次回タブ復元時に必要なデータを取得する。
+	 *
+	 * <p>
+	 * この関数によって返されたデータは、次回のタブ復元によるインスタンス作成時に
+	 * JSONで、&quot;extended&quot;キーに格納されます。
+	 * {@link JSONObject} や {@link JSONArray} なども使用出来ます。特に保存するデータがないときは
+	 * {@link JSONObject#NULL} を使用してください。
+	 * </p>
+	 * <p>
+	 * JSON例外を返すことができます。その他の例外は推奨されませんが {@link RuntimeException} などに
+	 * ラップしてください。
+	 * </p>
+	 * @return 次回タブ復元時に必要なデータ
+	 * @throws JSONException JSON例外
+	 */
+	protected abstract Object getSerializedExtendedData() throws JSONException;
 
 	/**
 	 * SortedPostListPanelを取得する(レンダラ用)
@@ -1279,8 +1376,37 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	@Override
+	public String getUniqId() {
+		return uniqId;
+	}
+
+	@Override
 	public void handleAction(String command) {
 		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
+	}
+
+	private void init(ClientConfiguration configuration) {
+		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
+		int str12width = fontMetrics.stringWidth("0123456789abc");
+		fontHeight = fontMetrics.getHeight();
+		int height = Math.max(18, fontHeight);
+		linePanelSizeOfSentBy = new Dimension(str12width, height);
+		iconSize = new Dimension(64, height);
+		frameApi.getTimer().schedule(new PostListUpdater(),
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
+		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
+		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
+
+			@Override
+			public Rectangle translate(JComponent component) {
+				if (component instanceof StatusPanel == false) {
+					throw new AssertionError();
+				}
+				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
+			}
+		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
 	}
 
 	/**

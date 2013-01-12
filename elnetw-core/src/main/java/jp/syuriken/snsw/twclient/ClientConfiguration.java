@@ -2,10 +2,12 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.EventQueue;
 import java.awt.TrayIcon;
+import java.lang.reflect.Constructor;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +18,7 @@ import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.UserMentionEntity;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
@@ -68,6 +71,60 @@ public class ClientConfiguration {
 	public static final String APPLICATION_NAME = "elnetw";
 
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
+
+	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
+			new HashMap<String, Constructor<? extends ClientTab>>();
+
+	private static ClientConfiguration instance;
+
+	/**
+	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
+	 *
+	 * @param id タブID
+	 * @return コンストラクタ。idに関連付けられたコンストラクタがない場合 <code>null</code>
+	 */
+	public static Constructor<? extends ClientTab> getClientTabConstructor(String id) {
+		return clientTabConstructorsMap.get(id);
+	}
+
+	/**
+	 * タブ復元時に使用するコンストラクタを追加する。
+	 * この関数は {@link #putClientTabConstructor(String, Constructor)} を内部で呼び出します。
+	 * {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタがあるクラスである必要があります。
+	 *
+	 * @param id     タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
+	 * @return 以前 id に関連付けられていたコンストラクタ
+	 * @see #putClientTabConstructor(String, Constructor)
+	 */
+	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
+			Class<? extends ClientTab> class1) {
+		try {
+			return putClientTabConstructor(id, class1.getConstructor(ClientConfiguration.class, String.class));
+		} catch (Exception e) {
+			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(ClientConfiguration, String)を持ちません", e);
+		}
+	}
+
+	/**
+	 * タブ復元時に使用するコンストラクタを追加する。
+	 * コンストラクタは {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタである必要があります。
+	 *
+	 * @param id          タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 * @param constructor タブ復元時に呼ばれるコンストラクタ
+	 * @return 以前 id に関連付けられていたコンストラクタ
+	 */
+	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
+			Constructor<? extends ClientTab> constructor) {
+		Class<?>[] parameterTypes = constructor.getParameterTypes();
+		if (parameterTypes.length == 2 && parameterTypes[0].isAssignableFrom(ClientConfiguration.class)
+				&& parameterTypes[1].isAssignableFrom(String.class)) {
+			return clientTabConstructorsMap.put(id, constructor);
+		} else {
+			throw new IllegalArgumentException(
+					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
+		}
+	}
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 
@@ -311,8 +368,13 @@ public class ClientConfiguration {
 	 */
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
-		if (accountId == null) {
-			accountId = getAccountList()[0];
+		if (accountId == null || accountId.isEmpty()) {
+			String[] accountList = getAccountList();
+			if (accountList.length > 0) {
+				accountId = accountList[0];
+			} else {
+				accountId = null;
+			}
 		}
 		return accountId;
 	}
@@ -378,6 +440,7 @@ public class ClientConfiguration {
 
 	/**
 	 * ImageCacherインスタンスを取得する。
+	 *
 	 * @return イメージキャッシャ
 	 */
 	public ImageCacher getImageCacher() {
@@ -463,15 +526,17 @@ public class ClientConfiguration {
 	}
 
 	/**
-	* デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。	 *
-	* @return Twitter Configuration
-	*/
+	 * デフォルトのアカウントのTwitterの {@link Configuration} インスタンスを取得する。
+	 *
+	 * @return Twitter Configuration
+	 */
 	public Configuration getTwitterConfiguration() {
 		return getTwitterConfiguration(getDefaultAccountId());
 	}
 
 	/**
 	 * 指定されたアカウントIDのTwitterの {@link Configuration} インスタンスを取得する。
+	 *
 	 * @param accountId アカウントID
 	 * @return Twitter Configuration
 	 */
@@ -481,9 +546,9 @@ public class ClientConfiguration {
 				configProperties.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", accountId));
 
 		return getTwitterConfigurationBuilder() //
-			.setOAuthAccessToken(accessTokenString) //
-			.setOAuthAccessTokenSecret(accessTokenSecret) //
-			.build();
+				.setOAuthAccessToken(accessTokenString) //
+				.setOAuthAccessTokenSecret(accessTokenSecret) //
+				.build();
 	}
 
 	/**
@@ -496,9 +561,9 @@ public class ClientConfiguration {
 		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
 
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
-			.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
-			.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
-			.setClientURL(VersionInfo.getSupportUrl());
+				.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
+				.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
+				.setClientURL(VersionInfo.getSupportUrl());
 	}
 
 	/**
@@ -577,6 +642,34 @@ public class ClientConfiguration {
 				if (userMentionEntity.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
 					return true;
 				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 自分のアカウントなのかを調べる
+	 *
+	 * @param id ユーザーユニークID ({@link User#getId()})
+	 * @return 自分のアカウントかどうか
+	 * @see #isMyAccount(String)
+	 */
+	public boolean isMyAccount(long id) {
+		return isMyAccount(String.valueOf(id));
+	}
+
+	/**
+	 * 自分のアカウントなのかを調べる
+	 *
+	 * @param accountId ユーザーユニークID
+	 * @return 自分のアカウントかどうか
+	 * @see #isMyAccount(long)
+	 */
+	public boolean isMyAccount(String accountId) {
+		String[] accountList = getAccountList();
+		for (String account : accountList) {
+			if (Utility.equalString(accountId, account)) {
+				return true;
 			}
 		}
 		return false;
@@ -721,6 +814,7 @@ public class ClientConfiguration {
 
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
+	 *
 	 * @param isShutdownPhase シャットダウンフェーズかどうか。
 	 */
 	public void setShutdownPhase(boolean isShutdownPhase) {

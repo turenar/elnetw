@@ -30,6 +30,7 @@
 	<modules>
 		<module>elnetw-core</module>
 		<module>elnetw-launcher</module>
+		<module>elnetw-filter-tokenizer</module>
 	</modules>
 
 	<pluginRepositories>
@@ -45,6 +46,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>jp.syuriken.snsw</groupId>
+				<artifactId>elnetw-filter-tokenizer</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>jp.syuriken.snsw</groupId>
 				<artifactId>elnetw-core</artifactId>
@@ -159,7 +165,9 @@
 				<version>1.0.1</version>
 				<executions>
 					<execution>
-						<goals><goal>set-properties</goal></goals>
+						<goals>
+							<goal>set-properties</goal>
+						</goals>
 						<configuration>
 							<tstampFormat>yyyyMMdd</tstampFormat>
 						</configuration>

@@ -21,7 +21,7 @@ import twitter4j.User;
 import twitter4j.UserList;
 
 /**
- * ルートフィルター
+ * ごにょごにょ用のフィルターハンドラー。キャッシュとか通知の作成とか
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
@@ -84,6 +84,7 @@ public class RootFilter implements MessageFilter {
 
 	@Override
 	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		cacheManager.removeCachedStatus(statusDeletionNotice.getStatusId());
 		return statusDeletionNotice;
 	}
 

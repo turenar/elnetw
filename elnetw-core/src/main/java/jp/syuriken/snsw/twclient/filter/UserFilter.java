@@ -23,13 +23,17 @@ import twitter4j.UserMentionEntity;
  */
 public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 
-	private static final String CORE_FILTER_USER_IDS = "core.filter.user.ids";
+	private static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
+
+	private static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 
 	private TreeSet<Long> filterIds;
 
 	private final ClientConfiguration configuration;
 
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
+
+	private FilterDispatcherBase query;
 
 
 	/**
@@ -39,8 +43,12 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	*/
 	public UserFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		configuration.getConfigBuilder().getGroup("フィルタ")
+			.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
+		configuration.getConfigProperties().addPropertyChangedListener(this);
 		filterIds = new TreeSet<Long>();
 		initFilterIds();
+		initFilterQueries();
 	}
 
 	private boolean filterUser(long userId) {
@@ -56,7 +64,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	}
 
 	private void initFilterIds() {
-		String idsString = configuration.getConfigProperties().getProperty(CORE_FILTER_USER_IDS);
+		String idsString = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_IDS);
 		if (idsString == null) {
 			return;
 		}
@@ -72,6 +80,19 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 				logger.warn("filterIdsの読み込み中にエラー: {} は数値ではありません", idString);
 			}
 			offset = end + 1;
+		}
+	}
+
+	private void initFilterQueries() {
+		String query = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
+		if (query == null || query.trim().isEmpty()) {
+			this.query = NullFilter.getInstance();
+		} else {
+			try {
+				this.query = FilterCompiler.getCompiledObject(configuration, query);
+			} catch (IllegalSyntaxException e) {
+				logger.warn("#initFilterQueries()", e);
+			}
 		}
 	}
 
@@ -91,6 +112,9 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 		filtered = filterUser(message.getSenderId());
 		if (filtered == false) {
 			filtered = filterUser(message.getRecipientId());
+		}
+		if (filtered == false) {
+			filtered = query.filter(message);
 		}
 		return filtered ? null : message;
 	}
@@ -128,6 +152,9 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 		if (filtered == false) {
 			filtered = onStatus(retweetedStatus) == null;
 		}
+		if (filtered == false) {
+			filtered = query.filter(retweetedStatus);
+		}
 		return filtered;
 	}
 
@@ -152,6 +179,9 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 			for (int i = 0; filtered == false && i < length; i++) {
 				filtered = filterUser(userMentionEntities[i].getId());
 			}
+		}
+		if (filtered == false) {
+			filtered = query.filter(status);
 		}
 		return filtered ? null : status;
 	}
@@ -241,8 +271,10 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(CORE_FILTER_USER_IDS)) {
+		if (evt.getPropertyName().equals(PROPERTY_KEY_FILTER_IDS)) {
 			initFilterIds();
+		} else if (evt.getPropertyName().equals(PROPERTY_KEY_FILTER_GLOBAL_QUERY)) {
+			initFilterQueries();
 		}
 	}
 }

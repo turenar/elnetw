@@ -12,6 +12,8 @@ import jp.syuriken.snsw.twclient.internal.ConcurrentSoftHashMap.ValueConverter;
 import jp.syuriken.snsw.twclient.internal.NullStatus;
 import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -26,14 +28,35 @@ import twitter4j.User;
 public class CacheManager {
 
 	/**
+	 * Status-&gt;id
+	 */
+	private static final class StatusValueConverter implements ValueConverter<Long, Status> {
+
+		@Override
+		public Long getKey(Status value) {
+			return value.getId();
+		}
+	}
+
+	/** User-&gt;id */
+	private static final class UserValueConverter implements ValueConverter<Long, User> {
+
+		@Override
+		public Long getKey(User value) {
+			return value.getId();
+		}
+	}
+
+	/**
 	 * Statusを取得するジョブ
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
 	protected class StatusFetcher extends TwitterRunnable implements ParallelRunnable {
 
-		private long statusId;
+		private final Logger logger = LoggerFactory.getLogger(StatusFetcher.class);
 
+		private long statusId;
 
 		/**
 		 * インスタンスを生成する。
@@ -57,19 +80,9 @@ public class CacheManager {
 		@Override
 		protected void handleException(TwitterException ex) {
 			if (ex.getStatusCode() == TwitterException.NOT_FOUND) {
+				logger.info("not found: statusId={}", statusId);
 				statusCacheMap.put(statusId, ERROR_STATUS);
 			}
-		}
-	}
-
-	/**
-	 * Status-&gt;id
-	 */
-	private static final class StatusValueConverter implements ValueConverter<Long, Status> {
-
-		@Override
-		public Long getKey(Status value) {
-			return value.getId();
 		}
 	}
 
@@ -80,8 +93,9 @@ public class CacheManager {
 	 */
 	private class UserFetcher extends TwitterRunnable implements ParallelRunnable {
 
-		private long[] userIds;
+		private final Logger logger = LoggerFactory.getLogger(UserFetcher.class);
 
+		private long[] userIds;
 
 		/**
 		 * インスタンスを生成する。
@@ -99,11 +113,11 @@ public class CacheManager {
 		protected void access() throws TwitterException {
 			ResponseList<User> users = twitter.lookupUsers(userIds);
 			for (User user : users) {
-				userIds[Arrays.binarySearch(userIds, user.getId())] = -1;
 				cacheUser(user);
 			}
 			for (long userId : userIds) {
-				if (userId != -1) {
+				if (isCachedUser(userId) == false) {
+					logger.info("not found: userId={}", userId);
 					userCacheMap.put(userId, ERROR_USER);
 				}
 			}
@@ -115,23 +129,14 @@ public class CacheManager {
 		}
 	}
 
-	/**
-	 * User-&gt;id
-	 */
-	private static final class UserValueConverter implements ValueConverter<Long, User> {
-
-		@Override
-		public Long getKey(User value) {
-			return value.getId();
-		}
-	}
-
-
 	/** エラー時に格納するUser */
 	protected static final User ERROR_USER = new NullUser();
 
 	/** エラー時に格納するStatus */
 	protected static final Status ERROR_STATUS = new NullStatus();
+
+	/** リクエストごとの最大User要求数 */
+	protected static final int MAX_USERS_PER_LOOKUP_REQUEST = 100;
 
 	/** StatusをキャッシュするMap */
 	protected final ConcurrentSoftHashMap<Long, Status> statusCacheMap;
@@ -148,15 +153,11 @@ public class CacheManager {
 	/** Twitterインスタンス */
 	protected final Twitter twitter;
 
-	/** リクエストごとの最大User要求数 */
-	protected static final int MAX_USERS_PER_LOOKUP_REQUEST = 100;
-
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 
 	/** {@link ClientFrameApi}インスタンス */
 	protected final ClientFrameApi frameApi;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -185,38 +186,50 @@ public class CacheManager {
 	/**
 	 * Statusをキャッシュする。
 	 *
-	 * @param status キャッシュするStatus
+	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
 	 */
 	public void cacheStatus(Status status) {
+		if (status == null) {
+			throw new NullPointerException();
+		}
 		statusCacheMap.put(status.getId(), status);
 	}
 
 	/**
 	 * キャッシュされていない場合のみStatusをキャッシュする。
 	 *
-	 * @param status キャッシュするStatus
+	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
 	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
 	 */
 	public Status cacheStatusIfAbsent(Status status) {
+		if (status == null) {
+			throw new NullPointerException();
+		}
 		return statusCacheMap.putIfAbsent(status.getId(), status);
 	}
 
 	/**
 	 * Userをキャッシュする
 	 *
-	 * @param user キャッシュするUser
+	 * @param user キャッシュするUser。nullだとぬるぽ投げます。
 	 */
 	public void cacheUser(User user) {
+		if (user == null) {
+			throw new NullPointerException();
+		}
 		userCacheMap.put(user.getId(), user);
 	}
 
 	/**
 	 * キャッシュされていない場合のみUserをキャッシュする。
 	 *
-	 * @param user キャッシュするStatus
+	 * @param user キャッシュするStatus。nullだとぬるぽ投げます。
 	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
 	 */
 	public User cacheUserIfAbsent(User user) {
+		if (user == null) {
+			throw new NullPointerException();
+		}
 		return userCacheMap.putIfAbsent(user.getId(), user);
 	}
 
@@ -291,10 +304,12 @@ public class CacheManager {
 	public User getUser(long userId) {
 		User user = userCacheMap.get(userId);
 		if (user == null) {
-			while (runUserFetcher(userCacheQueueLength.get(), false) == false) {
-				// compareAndSetがうまく行くまでループ
-			}
-			return userCacheMap.get(userId);
+			userCacheQueue.add(userId);
+			int len = userCacheQueueLength.incrementAndGet();
+			do {
+				runUserFetcher(len, false);
+			} while ((len = userCacheQueueLength.get()) > 0);
+			user = userCacheMap.get(userId);
 		}
 		return extract(user);
 	}
@@ -357,11 +372,29 @@ public class CacheManager {
 			return;
 		}
 
-		userCacheQueue.add(userId);
+		userCacheQueue.offer(userId);
 		int len = userCacheQueueLength.incrementAndGet();
 		if (len > MAX_USERS_PER_LOOKUP_REQUEST) {
 			runUserFetcher(len, true);
 		}
+	}
+
+	/**
+	 * 指定したステータスのキャッシュを削除する
+	 *
+	 * @param statusId ステータスID
+	 */
+	public void removeCachedStatus(long statusId) {
+		statusCacheMap.remove(statusId);
+	}
+
+	/**
+	 * 指定したユーザーのキャッシュを削除する
+	 *
+	 * @param userId ユーザーID
+	 */
+	public void removeCachedUser(long userId) {
+		userCacheMap.remove(userId);
 	}
 
 	/**
@@ -374,11 +407,15 @@ public class CacheManager {
 	 * @return {@link #userCacheQueue} が更新されたと思われる場合false。 正常にキューできたときはtrue。
 	 */
 	protected boolean runUserFetcher(int expectedLength, boolean intoQueue) {
-		int len = (expectedLength >= MAX_USERS_PER_LOOKUP_REQUEST ? expectedLength - MAX_USERS_PER_LOOKUP_REQUEST : 0);
-		if (userCacheQueueLength.compareAndSet(expectedLength, len) == false) {
+		int newLength = expectedLength - MAX_USERS_PER_LOOKUP_REQUEST;
+		if (newLength < 0) {
+			newLength = 0;
+		}
+		if (userCacheQueueLength.compareAndSet(expectedLength, newLength) == false) {
 			return false;
 		}
 
+		int len = expectedLength - newLength;
 		long[] arr = new long[len];
 		int i = 0;
 		for (; i < len; i++) {
