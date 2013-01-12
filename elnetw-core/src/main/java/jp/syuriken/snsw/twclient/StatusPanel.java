@@ -12,8 +12,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 
-	private transient final StatusData statusData;
-
+	private final transient StatusData statusData;
 
 	/**
 	 * インスタンスを生成する。

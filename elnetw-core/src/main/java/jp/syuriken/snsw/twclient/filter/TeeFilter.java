@@ -7,10 +7,8 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.TabRenderer;
 import jp.syuriken.snsw.twclient.Utility;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;

@@ -1,8 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
@@ -45,7 +42,6 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
@@ -97,6 +93,9 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 /**
  * elnetwのメインウィンドウ
@@ -630,13 +629,13 @@ import twitter4j.User;
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
 
-	/*package*/transient final ClientConfiguration configuration;
+	/*package*/final transient ClientConfiguration configuration;
 
-	/*package*/transient final ActionListener menuActionListener = new ActionListenerImplementation();
+	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
 
 	/*package*/final Object mainThreadHolder;
 
-	/*package*/transient final TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
+	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
 
 	/*package*/transient Hashtable<String, ActionHandler> actionHandlerTable;
@@ -658,8 +657,6 @@ import twitter4j.User;
 	/*package*/JTabbedPane viewTab;
 
 	/*package*/User loginUser;
-
-
 
 	/*package*/ClientProperties configProperties;
 

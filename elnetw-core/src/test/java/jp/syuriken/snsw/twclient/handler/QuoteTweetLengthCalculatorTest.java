@@ -1,14 +1,13 @@
 package jp.syuriken.snsw.twclient.handler;
 
-import static junit.framework.Assert.assertEquals;
-
 import java.awt.Color;
 
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler.QuoteTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdaterImpl;
-
 import org.junit.Test;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * {@link QuoteTweetLengthCalculator}のためのテスト
@@ -25,7 +24,6 @@ public class QuoteTweetLengthCalculatorTest {
 		}
 	}
 
-
 	private static final String URL1 = "http://example.com/?test="; // 20char
 
 	private static final String HASHTAG1 = "#aaaaaaaaa"; // 10char
@@ -39,8 +37,7 @@ public class QuoteTweetLengthCalculatorTest {
 	/** 長さ10のQTヘッダ */
 	private static final String QT_10LEN = " QT @aaaa:"; // 10char
 
-
-	private static final String getString(int width) {
+	private static String getString(int width) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < width; i++) {
 			stringBuilder.append("あ");
@@ -48,9 +45,7 @@ public class QuoteTweetLengthCalculatorTest {
 		return stringBuilder.toString();
 	}
 
-
 	private String lastLengthString;
-
 
 	private String calcTweetLength(TweetLengthCalculator calculator, String str) {
 		calculator.calcTweetLength(str);

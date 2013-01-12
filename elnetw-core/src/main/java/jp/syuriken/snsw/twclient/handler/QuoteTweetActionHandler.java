@@ -7,15 +7,13 @@ import java.util.regex.Pattern;
 
 import javax.swing.JMenuItem;
 
+import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
-
-import com.twitter.Regex;
-
 import twitter4j.Status;
 
 /**

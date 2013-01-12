@@ -1,9 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
-import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
-import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -61,10 +57,8 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -78,6 +72,10 @@ import twitter4j.UserMentionEntity;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
+
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 
 /**
  * ツイート表示用のタブ

@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient.internal;
 
-import static java.lang.Math.abs;
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -10,6 +8,8 @@ import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
+
+import static java.lang.Math.abs;
 
 /**
  * y軸方向の慣性スクロールを実現させるためのクラス
@@ -23,7 +23,7 @@ public class ScrollUtility {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public static interface BoundsTranslator {
+	public interface BoundsTranslator {
 
 		/**
 		 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換する
@@ -34,21 +34,19 @@ public class ScrollUtility {
 		Rectangle translate(JComponent component);
 	}
 
+	private static final int MAX_SPEED = 100;
 
 	private final JScrollPane scrollPane;
 
-	/*package*/int deltaY;
+	private final BoundsTranslator translator;
 
-	private static final int MAX_SPEED = 100;
+	/*package*/int deltaY;
 
 	/*package*/Timer scrollTimer;
 
 	/*package*/JComponent target;
 
-	private final BoundsTranslator translator;
-
 	private boolean momemtumEnabled;
-
 
 	/**
 	 * インスタンスを生成する。

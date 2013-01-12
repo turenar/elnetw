@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentMap;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +23,94 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  * @param <K> キー型パラメータ。
- *   {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link K#equals(Object)} はfalseを
+ *   {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link Object#equals(Object)} はfalseを
  *   返さなければなりません。
  * @param <V> 値型パラメータ。hashCodeはキャッシュされるため、hashCodeが変わらないオブジェクトであることが要求されます。
  */
 public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
+
+	/**
+	 * 型Vを型Kに変換するためのユーティリティクラス。
+	 *
+	 * @param <K> キー型パラメータ
+	 * @param <V> 値型パラメータ
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 */
+	public interface ValueConverter<K, V> {
+
+		/**
+		 * Vを識別するキーを取得する。
+		 * 異なるVには異なるキーを返さなければなりません。
+		 *
+		 * @param value 値
+		 * @return キー
+		 */
+		K getKey(V value);
+	}
+
+	/**
+	 * {@link SoftReference}に {@link #equals(Object)} と {@link #hashCode()} サポートを追加する
+	 * クラス。
+	 *
+	 * @param <K> キー型パラメータ。
+	 *            {@link #equals(Object)} の比較に使われるため、V型インスタンスが異なれば {@link Object#equals(Object)} はfalseを
+	 *            返さなければなりません。
+	 * @param <V> 値型パラメータ。
+	 *            {@link #hashCode()} のために {@link Object#hashCode()} はキャッシュされます。ハッシュコードの変更は許可されません。
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 */
+	protected static class SoftReferenceUtil<K, V> extends SoftReference<V> {
+
+		private final int hashCode;
+
+		/** キー */
+		protected final K key;
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param referent リファレントオブジェクト
+		 * @param key      キー
+		 */
+		public SoftReferenceUtil(V referent, K key) {
+			super(referent);
+			this.key = key;
+			hashCode = referent.hashCode();
+		}
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param referent       リファレントオブジェクト
+		 * @param referenceQueue キュー
+		 * @param key            キー
+		 */
+		public SoftReferenceUtil(V referent, ReferenceQueue<V> referenceQueue, K key) {
+			super(referent, referenceQueue);
+			this.key = key;
+			hashCode = referent.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof SoftReferenceUtil) {
+				SoftReferenceUtil<?, ?> reference = (SoftReferenceUtil<?, ?>) obj;
+				return hashCode == reference.hashCode && key.equals(reference.key);
+			} else {
+				return false;
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			return hashCode;
+		}
+
+		@Override
+		public String toString() {
+			return "SoftReferenceUtil{hash=" + hashCode + ",key=" + key + "}";
+		}
+	}
 
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} を扱うエントリーイテレータ
@@ -38,7 +120,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	public class EntryIterator implements Iterator<Entry<K, V>> {
 
 		private final Iterator<Entry<K, SoftReferenceUtil<K, V>>> iterator;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -74,7 +155,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 		private final Set<Entry<K, SoftReferenceUtil<K, V>>> set;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -103,7 +183,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	protected class ReferenceCleaner implements ParallelRunnable {
 
 		private volatile boolean isQueued = false;
-
 
 		/**
 		 * ジョブキューに追加する
@@ -136,90 +215,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	}
 
 	/**
-	 * {@link SoftReference}に {@link #equals(Object)} と {@link #hashCode()} サポートを追加する
-	 * クラス。
-	 *
-	 * @param <K> キー型パラメータ。
-	 *   {@link #equals(Object)} の比較に使われるため、V型インスタンスが異なれば {@link K#equals(Object)} はfalseを
-	 *   返さなければなりません。
-	 * @param <V> 値型パラメータ。
-	 *   {@link #hashCode()} のために {@link V#hashCode()} はキャッシュされます。ハッシュコードの変更は許可されません。
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	protected static class SoftReferenceUtil<K, V> extends SoftReference<V> {
-
-		private final int hashCode;
-
-		/** キー */
-		protected final K key;
-
-
-		/**
-		 * インスタンスを生成する。
-		 *
-		 * @param referent リファレントオブジェクト
-		 * @param key キー
-		 */
-		public SoftReferenceUtil(V referent, K key) {
-			super(referent);
-			this.key = key;
-			hashCode = referent.hashCode();
-		}
-
-		/**
-		 * インスタンスを生成する。
-		 *
-		 * @param referent リファレントオブジェクト
-		 * @param referenceQueue キュー
-		 * @param key キー
-		 */
-		public SoftReferenceUtil(V referent, ReferenceQueue<V> referenceQueue, K key) {
-			super(referent, referenceQueue);
-			this.key = key;
-			hashCode = referent.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof SoftReferenceUtil) {
-				SoftReferenceUtil<?, ?> reference = (SoftReferenceUtil<?, ?>) obj;
-				return hashCode == reference.hashCode && key.equals(reference.key);
-			} else {
-				return false;
-			}
-		}
-
-		@Override
-		public int hashCode() {
-			return hashCode;
-		}
-
-		@Override
-		public String toString() {
-			return "SoftReferenceUtil{hash=" + hashCode + ",key=" + key + "}";
-		}
-	}
-
-	/**
-	 * 型Vを型Kに変換するためのユーティリティクラス。
-	 *
-	 * @param <K> キー型パラメータ
-	 * @param <V> 値型パラメータ
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public static interface ValueConverter<K, V> {
-
-		/**
-		 * Vを識別するキーを取得する。
-		 * 異なるVには異なるキーを返さなければなりません。
-		 *
-		 * @param value 値
-		 * @return キー
-		 */
-		K getKey(V value);
-	}
-
-	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} をラップするバリューイテレータ
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
@@ -227,7 +222,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	public class ValueIterator implements Iterator<V> {
 
 		private Iterator<SoftReferenceUtil<K, V>> iterator;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -264,7 +258,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 		private Collection<SoftReferenceUtil<K, V>> values;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -294,7 +287,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 		private final Entry<K, SoftReferenceUtil<K, V>> entry;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -321,7 +313,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 	}
 
-
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ConcurrentSoftHashMap.class);
 
 	/** ClientConfigurationインスタンス */
@@ -336,6 +327,9 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/** {@link #referenceQueue}掃除機 */
 	protected final ReferenceCleaner referenceCleaner = new ReferenceCleaner();
 
+	/** 値→キーするユーティリティクラス。 */
+	protected final ValueConverter<K, V> valueConverter;
+
 	/** キーセット (キャッシュ) */
 	protected transient Set<K> keySet;
 
@@ -344,10 +338,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 	/** バリューセット (キャッシュ) */
 	protected transient Values values;
-
-	/** 値→キーするユーティリティクラス。 */
-	protected final ValueConverter<K, V> valueConverter;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -536,7 +526,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		return values;
 	}
 
-	private final SoftReferenceUtil<K, V> wrapReference(V obj) {
+	private  SoftReferenceUtil<K, V> wrapReference(V obj) {
 		return new SoftReferenceUtil<K, V>(obj, referenceQueue, valueConverter.getKey(obj));
 	}
 }

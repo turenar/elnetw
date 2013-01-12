@@ -4,9 +4,8 @@ import java.awt.Color;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jp.syuriken.snsw.twclient.TweetLengthCalculator;
-
 import com.twitter.Regex;
+import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 
 /**
  * デフォルトのツイートの長さを計算するクラス。URL変換を行った上での長さを計算する。

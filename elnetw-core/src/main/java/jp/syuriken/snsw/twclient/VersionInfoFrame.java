@@ -45,7 +45,6 @@ public class VersionInfoFrame extends JFrame {
 		/** ライブラリ情報。ライセンスなど */
 		protected String info;
 
-
 		/**
 		 * インスタンスを生成する。
 		 *
@@ -76,6 +75,29 @@ public class VersionInfoFrame extends JFrame {
 		}
 	}
 
+	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
+
+	private static List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
+
+	static {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("elnetw (エルナト): version");
+		stringBuilder.append(VersionInfo.getUniqueVersion());
+		stringBuilder.append("\nTwitter Client for hitobasira");
+		stringBuilder.append("\n\n開発元: Turenai Project (@ture7)");
+		stringBuilder.append("\n配布元: http://code.google.com/p/turetwcl");
+		stringBuilder.append("\n\nThis software included library:\n - twitter4j (");
+		stringBuilder.append(twitter4j.Version.getVersion());
+		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
+
+		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
+		addLibraryInfo(new LibraryInfo("elnetw", getData("elnetw.txt")));
+		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
+		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
+		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
+		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
+		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
+	}
 
 	/**
 	 * ライブラリ情報を追加する。
@@ -87,7 +109,7 @@ public class VersionInfoFrame extends JFrame {
 		return libraryInfoList.add(libraryInfo);
 	}
 
-	private static final String getData(String resourceName) {
+	private static String getData(String resourceName) {
 		BufferedReader bufferedReader = null;
 		try {
 			InputStream stream = VersionInfoFrame.class.getClassLoader().getResourceAsStream(resourceName);
@@ -117,7 +139,6 @@ public class VersionInfoFrame extends JFrame {
 		}
 	}
 
-
 	private JSplitPane splitPane;
 
 	private JScrollPane libraryListScrollPane;
@@ -127,31 +148,6 @@ public class VersionInfoFrame extends JFrame {
 	private JTextArea infoTextPane;
 
 	private JList libraryList;
-
-	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
-
-	private static List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
-
-	static {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("elnetw (エルナト): version");
-		stringBuilder.append(VersionInfo.getUniqueVersion());
-		stringBuilder.append("\nTwitter Client for hitobasira");
-		stringBuilder.append("\n\n開発元: Turenai Project (@ture7)");
-		stringBuilder.append("\n配布元: http://code.google.com/p/turetwcl");
-		stringBuilder.append("\n\nThis software included library:\n - twitter4j (");
-		stringBuilder.append(twitter4j.Version.getVersion());
-		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
-
-		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
-		addLibraryInfo(new LibraryInfo("elnetw", getData("elnetw.txt")));
-		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
-		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
-		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
-		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
-		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
-	}
-
 
 	/**
 	 * インスタンスを生成する

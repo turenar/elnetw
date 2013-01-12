@@ -1,9 +1,5 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
@@ -11,12 +7,14 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import twitter4j.DirectMessage;
 import twitter4j.Status;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * {@link StandardBooleanProperties}のためのテスト
@@ -27,7 +25,6 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 
 	private static ClientConfiguration configuration;
 
-
 	/**
 	 * テスト前に呼ばれる関数
 	 *
@@ -35,9 +32,9 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@BeforeClass
 	public static void tearUpClass() throws Exception {
-		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(boolean.class); // テスト用メソッド
+		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(); // テスト用メソッド
 		constructor.setAccessible(true);
-		configuration = constructor.newInstance(true);
+		configuration = constructor.newInstance();
 		ClientProperties defaultProperties = new ClientProperties();
 
 		InputStream resourceStream = null;
@@ -54,7 +51,7 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 		configuration.setConfigDefaultProperties(defaultProperties);
 		ClientProperties properties = new ClientProperties(defaultProperties);
 		properties
-			.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
+				.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
 		configuration.setConfigProperties(properties);
 	}
 
@@ -67,10 +64,10 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	}
 
 	/**
-	* status のテスト
-	*
-	* @throws IllegalSyntaxException エラー
-	*/
+	 * status のテスト
+	 *
+	 * @throws IllegalSyntaxException エラー
+	 */
 	@Test
 	public void testFilterDirectMessage() throws IllegalSyntaxException {
 		assertFalse(testIs("dm", STATUS_1));
@@ -143,9 +140,7 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 		assertFalse(testIs("status", DM_1));
 	}
 
-	/**
-	 * 無知の名前に対するテスト
-	 */
+	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
 		try {

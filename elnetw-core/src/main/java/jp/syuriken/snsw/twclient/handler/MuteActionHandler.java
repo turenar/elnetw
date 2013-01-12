@@ -16,10 +16,8 @@ import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.StatusData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.Status;
 import twitter4j.User;
 

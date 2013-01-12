@@ -42,20 +42,20 @@ public enum FilterOperator {
 			switch (operator.charAt(0)) {
 				case ':':
 				case '=':
-					return FilterOperator.EQ;
+					return EQ;
 				case '?':
 					return IS;
 				case '!':
-					return FilterOperator.IS_NOT;
+					return IS_NOT;
 				default:
 					return null;
 			}
 		} else if (Utility.equalString("!?", operator)) {
 			return IS_NOT;
 		} else if (Utility.equalString("==", operator)) {
-			return FilterOperator.EQ;
+			return EQ;
 		} else if (Utility.equalString("!=", operator) || Utility.equalString("!:", operator)) {
-			return FilterOperator.NE;
+			return NE;
 		}
 		return null;
 	}

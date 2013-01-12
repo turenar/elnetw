@@ -7,7 +7,6 @@ import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.Utility;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

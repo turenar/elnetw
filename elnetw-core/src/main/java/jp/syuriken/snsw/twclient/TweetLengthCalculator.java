@@ -8,10 +8,10 @@ package jp.syuriken.snsw.twclient;
 public interface TweetLengthCalculator {
 
 	/** ツイートの最大長 */
-	public static final int MAX_TWEET_LENGTH = 140;
+	/*public*/static final int MAX_TWEET_LENGTH = 140;
 
 	/** 警告を発するツイートの長さ */
-	public static final int WARN_TWEET_LENGTH = 120;
+	/*public*/static final int WARN_TWEET_LENGTH = 120;
 
 
 	/**

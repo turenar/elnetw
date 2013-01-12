@@ -3,7 +3,6 @@ package jp.syuriken.snsw.twclient;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 import javax.swing.Icon;

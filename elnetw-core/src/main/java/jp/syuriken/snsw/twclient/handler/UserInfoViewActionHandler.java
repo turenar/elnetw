@@ -34,6 +34,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
+import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
@@ -45,12 +46,8 @@ import jp.syuriken.snsw.twclient.TabRenderer;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
-
-import com.twitter.Regex;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.ResponseList;
 import twitter4j.Status;

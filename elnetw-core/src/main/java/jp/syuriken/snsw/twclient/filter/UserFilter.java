@@ -5,10 +5,8 @@ import java.beans.PropertyChangeListener;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;

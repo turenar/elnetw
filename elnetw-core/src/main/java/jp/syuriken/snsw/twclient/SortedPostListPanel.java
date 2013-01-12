@@ -82,13 +82,12 @@ public class SortedPostListPanel extends JPanel {
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
 	 */
-	public final static class ComponentComparator implements Comparator<Component>, Serializable {
+	public static final class ComponentComparator implements Comparator<Component>, Serializable {
 
 		private static final long serialVersionUID = 5164218366463800406L;
 
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
-
 
 		private ComponentComparator() {
 		}
@@ -103,9 +102,7 @@ public class SortedPostListPanel extends JPanel {
 		}
 	}
 
-
 	private static final long serialVersionUID = 5744052485948702454L;
-
 
 	/**
 	 * {@link StatusPanel} を日時で比較する。
@@ -117,6 +114,9 @@ public class SortedPostListPanel extends JPanel {
 		return a.compareTo(b);
 	}
 
+	private final int leafSize;
+
+	private final int maxContainSize;
 
 	private LinkedList<JPanel> branches;
 
@@ -125,11 +125,6 @@ public class SortedPostListPanel extends JPanel {
 	private JPanel firstPanel;
 
 	private int size;
-
-	private final int leafSize;
-
-	private final int maxContainSize;
-
 
 	/**
 	 * インスタンスを生成する。

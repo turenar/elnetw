@@ -42,7 +42,7 @@ public class Utility {
 		 * @param imageFile アイコン。ない場合はnull
 		 * @throws IOException 外部プロセスの起動に失敗
 		 */
-		public void sendNotify(String summary, String text, File imageFile) throws IOException;
+		void sendNotify(String summary, String text, File imageFile) throws IOException;
 	}
 
 	private static class KVEntry {

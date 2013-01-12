@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
-
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.text.MessageFormat;
@@ -10,14 +8,14 @@ import java.util.regex.Matcher;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-
 import com.twitter.Regex;
-
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.User;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
+
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 
 /**
  * ダイレクトメッセージを表示するタブ

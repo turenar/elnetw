@@ -35,6 +35,32 @@ import javax.swing.table.TableRowSorter;
 public class PropertyEditorFrame extends JFrame {
 
 	/**
+	 * テーブルモデル
+	 *
+	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 */
+	private static final class DefaultTableModelExtension extends DefaultTableModel {
+
+		private static final long serialVersionUID = 1L;
+
+		Class<?>[] types = new Class<?>[]{
+				String.class,
+				String.class,
+		};
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return types[columnIndex];
+
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return column == 1;
+		}
+	}
+
+	/**
 	 * セルレンダラ。
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
@@ -43,7 +69,6 @@ public class PropertyEditorFrame extends JFrame {
 	private final class DefaultTableCellRendererExtension extends DefaultTableCellRenderer {
 
 		private final DefaultTableModelExtension model;
-
 
 		/**
 		 * インスタンスを生成する。
@@ -72,34 +97,6 @@ public class PropertyEditorFrame extends JFrame {
 		}
 	}
 
-	/**
-	 * テーブルモデル
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	private static final class DefaultTableModelExtension extends DefaultTableModel {
-
-		private static final long serialVersionUID = 1L;
-
-		Class<?>[] types = new Class<?>[] {
-			String.class,
-			String.class,
-		};
-
-
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			return types[columnIndex];
-
-		}
-
-		@Override
-		public boolean isCellEditable(int row, int column) {
-			return column == 1;
-		}
-	}
-
-
 	private static final long serialVersionUID = 1L;
 
 	/*
@@ -120,20 +117,19 @@ public class PropertyEditorFrame extends JFrame {
 	}
 	*/
 
+	/** 設定 */
+	protected final transient ClientConfiguration configuration;
+
 	private JScrollPane paneListProperties;
 
 	private JButton btnExit;
 
 	private JButton btnDefault;
 
-	/** 設定 */
-	protected transient final ClientConfiguration configuration;
-
 	private JTable tableProperties;
 
 	/** テーブルモデル */
 	protected DefaultTableModelExtension tableModel;
-
 
 	/**
 	 * インスタンスを生成する

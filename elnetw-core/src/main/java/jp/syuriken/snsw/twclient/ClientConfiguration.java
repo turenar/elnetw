@@ -132,7 +132,7 @@ public class ClientConfiguration {
 
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 
-	private transient final JobQueue jobQueue = new JobQueue();
+	private final transient JobQueue jobQueue = new JobQueue();
 
 	/*package*/ ClientProperties configProperties;
 
@@ -154,9 +154,9 @@ public class ClientConfiguration {
 
 	private volatile ImageCacher imageCacher;
 
-	private String accountIdForRead;
+	private volatile String accountIdForRead;
 
-	private String accountIdForWrite;
+	private volatile String accountIdForWrite;
 
 	private TwitterDataFetchScheduler fetchScheduler;
 

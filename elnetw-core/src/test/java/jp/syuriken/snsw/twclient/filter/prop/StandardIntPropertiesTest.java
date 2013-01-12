@@ -1,10 +1,5 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
@@ -12,12 +7,15 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import twitter4j.DirectMessage;
 import twitter4j.Status;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * {@link StandardIntProperties}のためのテスト
@@ -28,7 +26,6 @@ public class StandardIntPropertiesTest extends FilterConstants {
 
 	private static ClientConfiguration configuration;
 
-
 	/**
 	 * テスト前に呼ばれる関数
 	 *
@@ -36,9 +33,9 @@ public class StandardIntPropertiesTest extends FilterConstants {
 	 */
 	@BeforeClass
 	public static void tearUpClass() throws Exception {
-		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(boolean.class); // テスト用メソッド
+		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(); // テスト用メソッド
 		constructor.setAccessible(true);
-		configuration = constructor.newInstance(true);
+		configuration = constructor.newInstance();
 		ClientProperties defaultProperties = new ClientProperties();
 
 		InputStream resourceStream = null;

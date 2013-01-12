@@ -9,10 +9,8 @@ import jp.syuriken.snsw.twclient.ImageCacher;
 import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.TwitterUser;
 import jp.syuriken.snsw.twclient.internal.InitialMessage;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
