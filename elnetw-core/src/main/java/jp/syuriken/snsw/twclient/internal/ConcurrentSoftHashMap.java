@@ -30,25 +30,6 @@ import org.slf4j.LoggerFactory;
 public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 	/**
-	 * 型Vを型Kに変換するためのユーティリティクラス。
-	 *
-	 * @param <K> キー型パラメータ
-	 * @param <V> 値型パラメータ
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public interface ValueConverter<K, V> {
-
-		/**
-		 * Vを識別するキーを取得する。
-		 * 異なるVには異なるキーを返さなければなりません。
-		 *
-		 * @param value 値
-		 * @return キー
-		 */
-		K getKey(V value);
-	}
-
-	/**
 	 * {@link SoftReference}に {@link #equals(Object)} と {@link #hashCode()} サポートを追加する
 	 * クラス。
 	 *
@@ -190,7 +171,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		protected void queue() {
 			synchronized (this) {
 				if (isQueued == false) {
-					configuration.getFrameApi().addJob(Priority.HIGH, this);
+					configuration.addJob(Priority.LOW, this);
 					isQueued = true;
 				}
 			}
@@ -308,7 +289,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 		@Override
 		public V setValue(V value) {
-			return expandReference(entry.setValue(wrapReference(value)));
+			return expandReference(entry.setValue(wrapReference(getKey(), value)));
 		}
 
 	}
@@ -327,9 +308,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/** {@link #referenceQueue}掃除機 */
 	protected final ReferenceCleaner referenceCleaner = new ReferenceCleaner();
 
-	/** 値→キーするユーティリティクラス。 */
-	protected final ValueConverter<K, V> valueConverter;
-
 	/** キーセット (キャッシュ) */
 	protected transient Set<K> keySet;
 
@@ -343,11 +321,9 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param valueConverter {@link ValueConverter}インスタンス
 	 */
-	public ConcurrentSoftHashMap(ClientConfiguration configuration, ValueConverter<K, V> valueConverter) {
+	public ConcurrentSoftHashMap(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		this.valueConverter = valueConverter;
 		hashMap = new ConcurrentHashMap<K, SoftReferenceUtil<K, V>>();
 		referenceQueue = new ReferenceQueue<V>();
 	}
@@ -356,14 +332,12 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param valueConverter {@link ValueConverter}インスタンス
 	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
 	 * @throws IllegalArgumentException 初期容量が負である場合
 	 */
-	public ConcurrentSoftHashMap(ClientConfiguration configuration, ValueConverter<K, V> valueConverter,
+	public ConcurrentSoftHashMap(ClientConfiguration configuration,
 			int initialCapacity) {
 		this.configuration = configuration;
-		this.valueConverter = valueConverter;
 		hashMap = new ConcurrentHashMap<K, SoftReferenceUtil<K, V>>(initialCapacity);
 		referenceQueue = new ReferenceQueue<V>();
 	}
@@ -372,17 +346,14 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param valueConverter {@link ValueConverter}インスタンス
 	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
 	 * @param loadFactor
 	 *   サイズ変更の制御に使用される負荷係数のしきい値。
 	 *   サイズ変更は、ビンごとの要素の平均数がこのしきい値を超えた場合に実行できる
 	 * @throws IllegalArgumentException 初期容量が負であるか、負荷係数が正ではない場合
 	 */
-	public ConcurrentSoftHashMap(ClientConfiguration configuration, ValueConverter<K, V> valueConverter,
-			int initialCapacity, float loadFactor) {
+	public ConcurrentSoftHashMap(ClientConfiguration configuration, int initialCapacity, float loadFactor) {
 		this.configuration = configuration;
-		this.valueConverter = valueConverter;
 		hashMap = new ConcurrentHashMap<K, SoftReferenceUtil<K, V>>(initialCapacity, loadFactor);
 		referenceQueue = new ReferenceQueue<V>();
 	}
@@ -391,7 +362,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param valueConverter {@link ValueConverter}インスタンス
 	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
 	 * @param loadFactor
 	 *   サイズ変更の制御に使用される負荷係数のしきい値。
@@ -399,10 +369,9 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * @param concurrencyLevel 並行して更新中のスレッドの推定数。多数のスレッドに適合するよう、実装は内部のサイズ設定を実行する
 	 * @throws IllegalArgumentException 初期容量が負であるか、負荷係数または concurrencyLevel が正ではない場合
 	 */
-	public ConcurrentSoftHashMap(ClientConfiguration configuration, ValueConverter<K, V> valueConverter,
+	public ConcurrentSoftHashMap(ClientConfiguration configuration,
 			int initialCapacity, float loadFactor, int concurrencyLevel) throws IllegalArgumentException {
 		this.configuration = configuration;
-		this.valueConverter = valueConverter;
 		hashMap = new ConcurrentHashMap<K, SoftReferenceUtil<K, V>>(initialCapacity, loadFactor, concurrencyLevel);
 		referenceQueue = new ReferenceQueue<V>();
 	}
@@ -417,10 +386,15 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		return hashMap.containsKey(key);
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * この実装では、常に {@link UnsupportedOperationException} を投げる。
+	 * {@link #containsKey(Object)}を用いること。
+	 *
+	 * {@inheritDoc}
+	 */
 	@Override
-	public boolean containsValue(Object value) throws ClassCastException {
-		return hashMap.containsValue(wrapReference((V) value));
+	public boolean containsValue(Object value) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -468,19 +442,19 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 	@Override
 	public V put(K key, V value) {
-		return expandReference(hashMap.put(key, wrapReference(value)));
+		return expandReference(hashMap.put(key, wrapReference(key, value)));
 	}
 
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
-			hashMap.put(e.getKey(), wrapReference(e.getValue()));
+			hashMap.put(e.getKey(), wrapReference(e.getKey(), e.getValue()));
 		}
 	}
 
 	@Override
 	public V putIfAbsent(K key, V value) {
-		return expandReference(hashMap.putIfAbsent(key, wrapReference(value)));
+		return expandReference(hashMap.putIfAbsent(key, wrapReference(key, value)));
 	}
 
 	private void queueCleaner() {
@@ -500,17 +474,17 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 			return false;
 		}
 		queueCleaner();
-		return hashMap.remove(key, wrapReference((V) value));
+		return hashMap.remove(key, wrapReference((K) key, (V) value));
 	}
 
 	@Override
 	public V replace(K key, V value) {
-		return expandReference(hashMap.replace(key, wrapReference(value)));
+		return expandReference(hashMap.replace(key, wrapReference(key, value)));
 	}
 
 	@Override
 	public boolean replace(K key, V oldValue, V newValue) {
-		return hashMap.replace(key, wrapReference(oldValue), wrapReference(newValue));
+		return hashMap.replace(key, wrapReference(key, oldValue), wrapReference(key, newValue));
 	}
 
 	@Override
@@ -526,7 +500,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		return values;
 	}
 
-	private  SoftReferenceUtil<K, V> wrapReference(V obj) {
-		return new SoftReferenceUtil<K, V>(obj, referenceQueue, valueConverter.getKey(obj));
+	private SoftReferenceUtil<K, V> wrapReference(K key, V obj) {
+		return new SoftReferenceUtil<K, V>(obj, referenceQueue, key);
 	}
 }

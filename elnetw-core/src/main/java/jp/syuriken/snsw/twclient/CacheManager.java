@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.syuriken.snsw.twclient.internal.ConcurrentSoftHashMap;
-import jp.syuriken.snsw.twclient.internal.ConcurrentSoftHashMap.ValueConverter;
 import jp.syuriken.snsw.twclient.internal.NullStatus;
 import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
@@ -26,26 +25,6 @@ import twitter4j.User;
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class CacheManager {
-
-	/**
-	 * Status-&gt;id
-	 */
-	private static final class StatusValueConverter implements ValueConverter<Long, Status> {
-
-		@Override
-		public Long getKey(Status value) {
-			return value.getId();
-		}
-	}
-
-	/** User-&gt;id */
-	private static final class UserValueConverter implements ValueConverter<Long, User> {
-
-		@Override
-		public Long getKey(User value) {
-			return value.getId();
-		}
-	}
 
 	/**
 	 * Statusを取得するジョブ
@@ -173,10 +152,10 @@ public class CacheManager {
 		frameApi = configuration.getFrameApi();
 
 		statusCacheMap =
-				new ConcurrentSoftHashMap<Long, Status>(configuration, new StatusValueConverter(), concurrency,
+				new ConcurrentSoftHashMap<Long, Status>(configuration, concurrency,
 						loadFactor, initialCapacity);
 		userCacheMap =
-				new ConcurrentSoftHashMap<Long, User>(configuration, new UserValueConverter(), concurrency, loadFactor,
+				new ConcurrentSoftHashMap<Long, User>(configuration, concurrency, loadFactor,
 						initialCapacity);
 		userCacheQueue = new ConcurrentLinkedQueue<Long>();
 		userCacheQueueLength = new AtomicInteger();
