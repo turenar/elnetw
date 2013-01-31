@@ -3,6 +3,7 @@ package jp.syuriken.snsw.twclient;
 import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +67,12 @@ public class ClientConfiguration {
 
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
+
+	public static final Charset UTF8_CHARSET;
+
+	static {
+		UTF8_CHARSET = Charset.forName("UTF-8");
+	}
 
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";

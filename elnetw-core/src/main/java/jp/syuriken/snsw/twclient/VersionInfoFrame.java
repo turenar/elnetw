@@ -117,7 +117,7 @@ public class VersionInfoFrame extends JFrame {
 				logger.error("Error reading resource, Class#getResourceAsStream returned null");
 				return "Error reading resource, Class#getResourceAsStream returned null";
 			}
-			bufferedReader = new BufferedReader(new InputStreamReader(stream, Charset.forName("UTF-8")));
+			bufferedReader = new BufferedReader(new InputStreamReader(stream, ClientConfiguration.UTF8_CHARSET));
 			char[] buf = new char[0x10000];
 			int len;
 			StringBuffer stringBuffer = new StringBuffer();
