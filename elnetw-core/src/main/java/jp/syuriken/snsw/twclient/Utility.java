@@ -1,22 +1,21 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
-import java.awt.TrayIcon;
-import java.awt.TrayIcon.MessageType;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.TimerTask;
+import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 
-import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,24 +25,6 @@ import org.slf4j.LoggerFactory;
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class Utility {
-
-	/**
-	 * 通知が送信されるクラスのインターフェース
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	protected interface NotifySender {
-
-		/**
-		 * 通知を送信する
-		 *
-		 * @param summary   概要
-		 * @param text      テキスト
-		 * @param imageFile アイコン。ない場合はnull
-		 * @throws IOException 外部プロセスの起動に失敗
-		 */
-		void sendNotify(String summary, String text, File imageFile) throws IOException;
-	}
 
 	private static class KVEntry {
 
@@ -58,99 +39,14 @@ public class Utility {
 
 	}
 
-	/**
-	 * notify-sendを使用して通知を送信するクラス。
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public static class LibnotifySender implements NotifySender {
+	private static class MessageNotifierEntry {
+		protected int priority;
 
-		@Override
-		public void sendNotify(String summary, String text, File imageFile) throws IOException {
-			if (imageFile == null) {
-				Runtime.getRuntime().exec(new String[] {
-					"notify-send",
-					summary,
-					text
-				});
-			} else {
-				Runtime.getRuntime().exec(new String[] {
-					"notify-send",
-					"-i",
-					imageFile.getPath(),
-					summary,
-					text
-				});
-			}
-		}
+		protected Class<? extends MessageNotifier> messageNotifierClass;
 
-	}
-
-	/**
-	 * TrayIconを使用して通知する。
-	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
-	 */
-	public static class TrayIconNotifySender implements NotifySender, ParallelRunnable {
-
-		private final ClientConfiguration configuration;
-
-		private TrayIcon trayIcon;
-
-		private LinkedList<Object[]> queue = new LinkedList<Object[]>();
-
-		private long lastNotified;
-
-		/**
-		 * インスタンスを生成する。
-		 *
-		 * @param configuration 設定
-		 */
-		public TrayIconNotifySender(ClientConfiguration configuration) {
-			this.configuration = configuration;
-			trayIcon = configuration.getTrayIcon();
-		}
-
-		@Override
-		public void run() {
-			synchronized (queue) {
-				long tempTime = lastNotified + 5000; //TODO 5000 from configure
-				if (tempTime > System.currentTimeMillis()) {
-
-					configuration.getTimer().schedule(new TimerTask() {
-
-						@Override
-						public void run() {
-							TrayIconNotifySender.this.run();
-						}
-					}, tempTime - System.currentTimeMillis());
-					return;
-				}
-				Object[] arr = queue.poll();
-				if (arr == null) {
-					return;
-				}
-				String summary = (String) arr[0];
-				String text = (String) arr[1];
-				trayIcon.displayMessage(summary, text, MessageType.INFO);
-				lastNotified = System.currentTimeMillis();
-				if (queue.size() > 0) {
-					configuration.addJob(Priority.LOW, this);
-				}
-			}
-		}
-
-		@Override
-		public void sendNotify(String summary, String text, File imageFile) {
-			synchronized (queue) {
-				queue.add(new Object[] {
-					summary,
-					text
-				/*,imageFile*/});
-				if (queue.size() == 1) {
-					configuration.addJob(Priority.LOW, this);
-				}
-			}
+		protected MessageNotifierEntry(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
+			this.priority = priority;
+			this.messageNotifierClass = messageNotifierClass;
 		}
 	}
 
@@ -179,6 +75,10 @@ public class Utility {
 
 	/** 日→ミリセカンド */
 	public static final long DAY2MS = HOUR2MS * 24;
+
+	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
+
+	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<MessageNotifierEntry>();
 
 	private static volatile OSType ostype;
 
@@ -233,11 +133,60 @@ public class Utility {
 	};
 
 	/**
+	 * Register MessageNotifier.
+	 *
+	 * <p>Elnetw select notifier which has higher priority and is usable.</p>
+	 *
+	 * <p>TODO: use Annotation</p>
+	 * @param priority higher priority will be selected.
+	 * @param messageNotifierClass Class object.
+	 *                             messageNotifierClass must implement static method 'checkUsable(ClientConfiguration)'
+	 *                             and constructor '&lt;init&gt;(ClientConfiguration)'
+	 */
+	public static void addMessageNotifier(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
+		try {
+			messageNotifierClass.getMethod("checkUsable", ClientConfiguration.class);
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(
+					"messageNotifierClass must implement static method 'checkUsable(ClientConfiguration'", e);
+		}
+		try {
+			messageNotifierClass.getConstructor(
+					ClientConfiguration.class);
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException("messageNotifierClass must implement <init>(ClientConfiguration)", e);
+		}
+		synchronized (messageNotifiers) {
+			ListIterator<MessageNotifierEntry> listIterator = messageNotifiers.listIterator();
+			while (true) {
+				if (listIterator.hasNext()) {
+					MessageNotifierEntry entry = listIterator.next();
+					int entryPriority = entry.priority;
+					// First element is the highest priority MessageNotifier.
+					// If MessageNotifier which has same priority is already regeistered,
+					//  <messageNotifier> will be put after it.
+					if (entryPriority < priority) {
+						listIterator.previous();
+						listIterator.add(new MessageNotifierEntry(priority, messageNotifierClass));
+						break;
+					} else if (entryPriority == priority) {
+						priority--;
+					}
+				} else {
+					listIterator.add(new MessageNotifierEntry(priority, messageNotifierClass));
+					break;
+				}
+			}
+		}
+	}
+
+	/**
 	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
 	 * @param target 下の色
 	 * @param source 上の色
 	 * @return 合成済みColor
 	 */
+
 	public static Color blendColor(Color target, Color source) {
 		double alpha = (double) source.getAlpha() / 255;
 		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
@@ -425,12 +374,10 @@ public class Utility {
 
 	private final ClientConfiguration configuration;
 
-	private Logger logger = LoggerFactory.getLogger(Utility.class);
-
 	private String detectedBrowser = null;
 
 	/** 通知を送信するクラス */
-	public volatile NotifySender notifySender = null;
+	public volatile MessageNotifier notifySender = null;
 
 	/**
 	 * インスタンスを生成する。
@@ -490,22 +437,31 @@ public class Utility {
 	 */
 	private void detectNotifier() {
 		if (notifySender == null) {
-			if (getOstype() == OSType.OTHER) {
-				try {
-					if (Runtime.getRuntime().exec(new String[] {
-						"which",
-						"notify-send"
-					}).waitFor() == 0) {
-						notifySender = new LibnotifySender();
+			synchronized (messageNotifiers) {
+				for (MessageNotifierEntry entry : messageNotifiers) {
+					Class<? extends MessageNotifier> messageNotifierClass = entry.messageNotifierClass;
+					try {
+						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable", ClientConfiguration.class);
+						boolean usability = (Boolean) checkUsableMethod.invoke(null, configuration);
+						if (usability) {
+							Constructor<? extends MessageNotifier> constructor = messageNotifierClass.getConstructor(
+									ClientConfiguration.class
+							);
+							MessageNotifier messageNotifier = constructor.newInstance(configuration);
+							notifySender = messageNotifier;
+							logger.info("use {} as MessageNotifier", notifySender);
+							break;
+						}
+					} catch (NoSuchMethodException e) {
+						logger.warn("#detectNotifier", e);
+					} catch (InvocationTargetException e) {
+						logger.warn("#detectNotifier", e);
+					} catch (IllegalAccessException e) {
+						logger.warn("#detectNotifier", e);
+					} catch (InstantiationException e) {
+						logger.warn("#detectNotifier", e);
 					}
-				} catch (InterruptedException e) {
-					// do nothing
-				} catch (IOException e) {
-					logger.warn("#detectNotifier: whichの呼び出しに失敗");
 				}
-			}
-			if (notifySender == null) {
-				notifySender = new TrayIconNotifySender(configuration);
 			}
 		}
 	}

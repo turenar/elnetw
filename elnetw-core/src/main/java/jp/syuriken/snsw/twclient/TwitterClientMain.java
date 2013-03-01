@@ -25,6 +25,9 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
+import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
+import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -61,8 +64,9 @@ public class TwitterClientMain {
 	 *
 	 * @param args コマンドラインオプション
 	 */
-	public TwitterClientMain(String[] args) {
+	public TwitterClientMain(String[] args, ClassLoader classLoader) {
 		configuration = new ClientConfiguration();
+		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
 		LongOpt[] longOpts = new LongOpt[]{
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
@@ -117,6 +121,7 @@ public class TwitterClientMain {
 		setTrayIcon();
 		setDefaultConfigProperties();
 		setConfigProperties();
+		setMessageNotifiers();
 
 		try {
 			tryGetOAuthAccessToken();
@@ -263,6 +268,12 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
+	private void setMessageNotifiers() {
+		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
+		Utility.addMessageNotifier(1000, NotifySendMessageNotifier.class);
+		Utility.addMessageNotifier(0, TrayIconMessageNotifier.class);
+	}
+
 	private void setTrayIcon() {
 		try {
 			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
@@ -271,6 +282,7 @@ public class TwitterClientMain {
 			logger.error("icon ファイルの読み込みに失敗。");
 		}
 	}
+
 	private void startJobWorkerThread() {
 		jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
 		jobWorkerThread.start();

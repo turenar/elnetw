@@ -127,6 +127,12 @@
 			<groupId>jp.syuriken.snsw</groupId>
 			<artifactId>elnetw-filter-tokenizer</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>net.sourceforge.java-gnome</groupId>
+            <artifactId>java-gnome</artifactId>
+            <version>[4.1,]</version>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 
 	<organization>

@@ -13,9 +13,7 @@ import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * TwitterClient のためのランチャ
@@ -32,37 +30,39 @@ public class TwitterClientLauncher {
 		}
 	};
 
-	private static void addURL(List<URL> urlList, Map<String, URL> fileMap, File file) {
-		if (file.isDirectory() == false) {
+	private static void addURL(List<URL> urlList, File file, boolean onlyIncludeJarFile) {
+		if (file.exists() == false) {
+			System.err.println("[launcher] Specified classpath is not found: " + file.getPath());
 			return;
 		}
-		try {
-			file = file.getCanonicalFile();
-		} catch (IOException e) {
-			System.err.println("[launcher] Failed getting full-path:");
-			e.printStackTrace();
-		}
-		if (fileMap.containsKey(file.getPath())) {
-			System.out.println("skipped");
-			return; //同じディレクトリを検索したときはスキップする
-		}
-		fileMap.put(file.getPath(), null); //フルパス=path.separatorが含まれているので衝突は考えない
-		File[] files = file.listFiles(jarFilter);
-		for (File childFile : files) {
-			if (childFile.isFile()) {
-				String jarName = childFile.getName();
-				URL url = fileMap.get(jarName);
-				if (url != null) {
-					urlList.remove(url);
+
+		if (onlyIncludeJarFile) {
+			if (file.isDirectory()) { // directory traversal
+				File[] files = file.listFiles(jarFilter);
+				for (File childFile : files) {
+					addURL(urlList, childFile, onlyIncludeJarFile);
 				}
+			} else {
 				try {
-					url = childFile.toURI().toURL();
-					fileMap.put(jarName, url);
+					URL url = file.toURI().toURL();
 					urlList.add(url);
 				} catch (MalformedURLException e) {
 					System.err.println("[launcher] Failed convert to URL");
 					e.printStackTrace();
+				} catch (IOException e) {
+					System.err.println("[launcher] Failed getting canonical file name");
+					e.printStackTrace();
 				}
+			}
+		} else {
+			if (file.isDirectory()) {
+				file = new File(file.getPath() + "/");
+			}
+			try {
+				urlList.add(file.toURI().toURL());
+			} catch (MalformedURLException e) {
+				System.err.println("[launcher] Failed convert to URL");
+				e.printStackTrace();
 			}
 		}
 	}
@@ -109,20 +109,23 @@ public class TwitterClientLauncher {
 	}
 
 	private URLClassLoader prepareClassLoader() {
-		String[] classpath = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
-		boolean skipCurrentDir = false;
-
 		ArrayList<URL> libList = new ArrayList<URL>();
-		HashMap<String, URL> fileMap = new HashMap<String, URL>();
-		addURL(libList, fileMap, new File(System.getProperty("user.home"), ".elnetw/lib"));
 
 		// Handle -L option
 		for (String classpathEntry : classpath) {
-			addURL(libList, fileMap, new File(classpathEntry));
+			addURL(libList, new File(classpathEntry), true);
 		}
 
+		// handle ~/.elnetw/lib
+		addURL(libList, new File(System.getProperty("user.home"), ".elnetw/lib"), true);
+
 		URL[] urls = libList.toArray(new URL[libList.size()]);
-		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
+
+		System.out.print("[launcher] classpath=");
+		System.out.println(Arrays.toString(urls));
+
+		URLClassLoader classLoader = new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
+		return classLoader;
 	}
 
 	public int run() {
@@ -130,16 +133,14 @@ public class TwitterClientLauncher {
 		Class<?> clazz;
 		try {
 			clazz = Class.forName("jp.syuriken.snsw.twclient.TwitterClientMain", false, classLoader);
-			Constructor<?> constructor = clazz.getConstructor(String[].class);
-			Object instance = constructor.newInstance((Object) args);
+			Constructor<?> constructor = clazz.getConstructor(String[].class, ClassLoader.class);
+			Object instance = constructor.newInstance(args, classLoader);
 			Method method = clazz.getMethod("run");
 			Integer retCode = (Integer) method.invoke(instance);
 			return retCode;
 		} catch (ClassNotFoundException e) {
 			System.err.println("[launcher] 起動に必要なクラスの準備に失敗しました。");
 			e.printStackTrace();
-			System.err.println("[launcher] ClassLoaderの検索先は次のとおりです。");
-			System.err.println("[launcher] " + Arrays.toString(classLoader.getURLs()));
 			return 16;
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();

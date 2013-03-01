@@ -177,6 +177,8 @@ public class ClientConfiguration {
 
 	private transient Timer timer = new Timer("timer");
 
+	private ClassLoader extraClassLoader;
+
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -384,6 +386,10 @@ public class ClientConfiguration {
 			}
 		}
 		return accountId;
+	}
+
+	public ClassLoader getExtraClassLoader() {
+		return extraClassLoader;
 	}
 
 	/**
@@ -787,6 +793,10 @@ public class ClientConfiguration {
 	 */
 	public void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
+	}
+
+	/*package*/ void setExtraClassLoader(ClassLoader extraClassLoader) {
+		this.extraClassLoader = extraClassLoader;
 	}
 
 	/*package*/void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
