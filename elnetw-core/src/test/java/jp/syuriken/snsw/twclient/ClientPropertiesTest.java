@@ -1,15 +1,20 @@
 package jp.syuriken.snsw.twclient;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.util.Scanner;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * ClientPropertiesのためのテスト
@@ -28,8 +33,28 @@ public class ClientPropertiesTest {
 		}
 	}
 
-
 	private static final int BENCH_COUNT = 100000;
+
+	/**
+	 * obfuscate string
+	 *
+	 * @param args no effect
+	 * @throws IOException         error
+	 * @throws InvalidKeyException error
+	 */
+	public static void main(String[] args) throws IOException, InvalidKeyException {
+		ClientProperties configProperties = new ClientProperties();
+
+		Scanner scanner = new Scanner(System.in);
+		String key = "/testtest/";
+		System.out.print("value> ");
+		String value = scanner.nextLine().trim();
+		System.out.print("passphrase> ");
+		String passphrase = scanner.nextLine().trim();
+		configProperties.setPrivateString(key, value, passphrase);
+		System.out.print("Obfuscated value: ");
+		System.out.println(configProperties.getProperty(key));
+	}
 
 	/* **********************
 	 *== bench report: BENCH_COUNT=10^7
@@ -47,7 +72,6 @@ public class ClientPropertiesTest {
 	 *  getLong: 627ms
 	 * ***********************/
 	private long timerDate;
-
 
 	/**
 	 * {@link ClientProperties#addPropertyChangedListener(PropertyChangeListener)} のためのテスト・メソッド。
@@ -199,6 +223,42 @@ public class ClientPropertiesTest {
 		timerStop("getLong");
 		assertEquals(Long.MAX_VALUE, clientProperties.getLong("aaa"));
 		assertEquals(Long.MIN_VALUE, clientProperties.getLong("bbb"));
+	}
+
+	/**
+	 * {@link ClientProperties#getPrivateString(String, String)}
+	 */
+	@Test
+	public void testGetPrivateString() throws InvalidKeyException {
+		ClientProperties clientProperties = new ClientProperties();
+		clientProperties.setPrivateString("aaa", "abcdefg", "0xcafebabe");
+		clientProperties.setPrivateString("bbb", "hijklmn", "elnetw");
+		clientProperties.setPrivateString("ccc", "opqrstu", ClientProperties.makeKey("cipher"));
+		clientProperties.setProperty("fff", "vwxyz");
+
+		timerStart();
+		for (int i = 0; i < BENCH_COUNT; i++) {
+			clientProperties.getPrivateString("aaa", "0xcafebabe");
+		}
+		timerStop("getPrivateString");
+
+		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", "0xcafebabe"));
+		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", ClientProperties.makeKey("0xcafebabe")));
+		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "elnetw"));
+		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "test", "elnetw"));
+		assertEquals("opqrstu", clientProperties.getPrivateString("ccc", "cipher"));
+		assertNull(clientProperties.getPrivateString("ddd", "test"));
+		assertEquals("terminal", clientProperties.getPrivateString("ddd", "terminal", "test"));
+		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "kill me baby"));
+		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "$priv$0", "kill me baby"));
+
+		try { // illegal key
+			clientProperties.getPrivateString("aaa", "Oxcafebaby");
+			fail("InvalidKey");
+		} catch (InvalidKeyException e) {
+			// success
+		}
+
 	}
 
 	private void timerStart() {

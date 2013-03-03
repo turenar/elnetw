@@ -9,11 +9,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Properties;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
+import net.iharder.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +38,92 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientProperties extends Properties {
 
-	private static final long serialVersionUID = 3574097790007133367L;
+	private static final long serialVersionUID = 7476401456972225006L;
 
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
+
+	private static final int KEY_BIT = 128;
+
+	private static final String ENCRYPT_HEADER = "$priv$0$";
+
+	private static final String ENCRYPT_FOOTER = "$";
+
+	private static byte[] decrypt(byte[] src, Key decryptKey) throws InvalidKeyException {
+		try {
+			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+			int ivLength = (src[0] & 0xff) + ((src[1] << 8) & 0xff00);
+			byte[] iv = Arrays.copyOfRange(src, 2, 2 + ivLength);
+			byte[] dat = Arrays.copyOfRange(src, 2 + ivLength, src.length);
+
+			AlgorithmParameters algorithmParameters = AlgorithmParameters.getInstance("AES");
+			algorithmParameters.init(iv);
+
+			cipher.init(Cipher.DECRYPT_MODE, decryptKey, algorithmParameters);
+			return cipher.doFinal(dat);
+		} catch (IllegalBlockSizeException e) {
+			throw new RuntimeException(e);
+		} catch (BadPaddingException e) {
+			// BadPadding is because of InvalidKey
+			throw new InvalidKeyException("passphrase seems to be illegal", e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchPaddingException e) {
+			throw new RuntimeException(e);
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static byte[] encrypt(byte[] src, Key encryptKey) throws InvalidKeyException {
+		try {
+			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, encryptKey);
+
+			byte[] iv = cipher.getParameters().getEncoded();
+			byte[] enc = cipher.doFinal(src);
+			byte[] ret = new byte[2 + iv.length + enc.length];
+			ret[0] = (byte) (iv.length & 0xff);
+			ret[1] = (byte) ((iv.length >> 8) & 0xff);
+			System.arraycopy(iv, 0, ret, 2, iv.length);
+			System.arraycopy(enc, 0, ret, 2 + iv.length, enc.length);
+
+			return ret;
+		} catch (IllegalBlockSizeException e) {
+			throw new RuntimeException(e);
+		} catch (BadPaddingException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchPaddingException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Make key for ciphering.
+	 * This is for {@link #getPrivateString(String, java.security.Key)}
+	 * or {@link #setPrivateString(String, String, java.security.Key)}
+	 *
+	 * @param passphrase Passphrase
+	 * @return {@link Key} instance
+	 */
+	public static Key makeKey(String passphrase) {
+		MessageDigest messageDigest;
+		try {
+			messageDigest = MessageDigest.getInstance("SHA");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+		messageDigest.update(passphrase.getBytes(ClientConfiguration.UTF8_CHARSET));
+		byte[] digest = messageDigest.digest();
+		byte[] keyBytes = Arrays.copyOf(digest, KEY_BIT / 8);
+		return new SecretKeySpec(keyBytes, "AES");
+	}
 
 	/** リスナの配列 */
 	protected transient ArrayList<PropertyChangeListener> listeners;
@@ -35,7 +132,6 @@ public class ClientProperties extends Properties {
 	protected File storeFile;
 
 	private transient Hashtable<String, Object> cacheTable;
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -314,6 +410,93 @@ public class ClientProperties extends Properties {
 		return long1;
 	}
 
+	/**
+	 * Get decrypted value
+	 *
+	 * @param key          property key
+	 * @param defaultValue if value related linked with key is not found, return defaultValue
+	 * @param passphrase   Passphrase.
+	 * @return original value
+	 * @throws InvalidKeyException passphrase seems to be wrong
+	 * @throws RuntimeException    Exception occured while decrypting
+	 */
+	public synchronized String getPrivateString(String key, String defaultValue, String passphrase)
+			throws InvalidKeyException, RuntimeException {
+		String value = getPrivateString(key, passphrase);
+		return value == null ? defaultValue : value;
+	}
+
+	/**
+	 * Get decrypted value
+	 *
+	 * @param key          property key
+	 * @param defaultValue if value related linked with key is not found, return defaultValue
+	 * @param decryptKey   {@link Key} instance. use {@link #makeKey(String)}
+	 * @return original value
+	 * @throws InvalidKeyException passphrase seems to be wrong
+	 * @throws RuntimeException    Exception occured while decrypting
+	 */
+	public synchronized String getPrivateString(String key, String defaultValue, Key decryptKey)
+			throws InvalidKeyException {
+		String value = getPrivateString(key, decryptKey);
+		return value == null ? defaultValue : value;
+	}
+
+	/**
+	 * Get decrypted value
+	 *
+	 * @param key        property key
+	 * @param decryptKey {@link Key} instance. use {@link #makeKey(String)}
+	 * @return original value
+	 * @throws InvalidKeyException passphrase seems to be wrong
+	 * @throws RuntimeException    Exception occured while decrypting
+	 */
+	public synchronized String getPrivateString(String key, Key decryptKey) throws InvalidKeyException {
+		String value = getProperty(key);
+		if (value == null) {
+			return null;
+		}
+		if (value.startsWith(ENCRYPT_HEADER) && value.endsWith(ENCRYPT_FOOTER)) {
+			value = value.substring(ENCRYPT_HEADER.length(), value.length() - ENCRYPT_FOOTER.length());
+			try {
+				byte[] decrypted = decrypt(Base64.decode(value), decryptKey);
+				return new String(decrypted, ClientConfiguration.UTF8_CHARSET);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			return value;
+		}
+	}
+
+	/**
+	 * Get decrypted value
+	 *
+	 * @param key        property key
+	 * @param passphrase Passphrase.
+	 * @return original value
+	 * @throws InvalidKeyException passphrase seems to be wrong
+	 * @throws RuntimeException    Exception occured while decrypting
+	 */
+	public synchronized String getPrivateString(String key, String passphrase) throws InvalidKeyException {
+		String value = getProperty(key);
+		if (value == null) {
+			return null;
+		}
+		if (value.startsWith(ENCRYPT_HEADER) && value.endsWith(ENCRYPT_FOOTER)) {
+			value = value.substring(ENCRYPT_HEADER.length(), value.length() - ENCRYPT_FOOTER.length());
+			Key decryptKey = makeKey(passphrase);
+			try {
+				byte[] decrypted = decrypt(Base64.decode(value), decryptKey);
+				return new String(decrypted, ClientConfiguration.UTF8_CHARSET);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			return value;
+		}
+	}
+
 	@Override
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
@@ -422,6 +605,33 @@ public class ClientProperties extends Properties {
 	public synchronized void setLong(String key, long value) {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
+	}
+
+	/**
+	 * Set value.
+	 * But actual value is obfuscated, so you should use {@link #getPrivateString(String, String)} etc.
+	 *
+	 * @param key        property key
+	 * @param value      property value
+	 * @param passphrase Passphrase
+	 * @throws InvalidKeyException
+	 */
+	public synchronized void setPrivateString(String key, String value, String passphrase) throws InvalidKeyException {
+		setPrivateString(key, value, makeKey(passphrase));
+	}
+
+	/**
+	 * Set value.
+	 * But actual value is obfuscated, so you should use {@link #getPrivateString(String, Key)} etc.
+	 * @param key property key
+	 * @param value property value
+	 * @param encryptKey Key for encryption. Use {@link #makeKey(String)}.
+	 * @throws InvalidKeyException
+	 */
+	public synchronized void setPrivateString(String key, String value, Key encryptKey) throws InvalidKeyException {
+		byte[] bytes = value.getBytes(ClientConfiguration.UTF8_CHARSET);
+		String encoded = Base64.encodeBytes(encrypt(bytes, encryptKey));
+		setProperty(key, ENCRYPT_HEADER + encoded + ENCRYPT_FOOTER);
 	}
 
 	/**
