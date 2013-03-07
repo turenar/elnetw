@@ -132,10 +132,8 @@ public class ClientProperties extends Properties {
 	protected File storeFile;
 
 	private transient Hashtable<String, Object> cacheTable;
-	/**
-	 * インスタンスを生成する。
-	 *
-	 */
+
+	/** インスタンスを生成する。 */
 	public ClientProperties() {
 		this(null);
 	}
@@ -153,6 +151,7 @@ public class ClientProperties extends Properties {
 
 	/**
 	 * PropertyChangedListnerを追加する
+	 *
 	 * @param listener リスナ。nullは不可
 	 */
 	public synchronized void addPropertyChangedListener(PropertyChangeListener listener) {
@@ -165,7 +164,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * 変換済みの値をキャッシュする。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	protected synchronized void cacheValue(String key, Object value) {
@@ -207,12 +206,12 @@ public class ClientProperties extends Properties {
 	}
 
 	/**
-	* プロパティーが変更されたことを通知する。
-	*
-	* @param key キー
-	* @param oldValue 古い値
-	* @param newValue 新しい値
-	*/
+	 * プロパティーが変更されたことを通知する。
+	 *
+	 * @param key      キー
+	 * @param oldValue 古い値
+	 * @param newValue 新しい値
+	 */
 	public synchronized void firePropetyChanged(String key, String oldValue, String newValue) {
 		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
 		for (PropertyChangeListener listener : listeners) {
@@ -239,6 +238,7 @@ public class ClientProperties extends Properties {
 	 * keyと関連付けられた値を利用して、boolean値を取得する。変換できない場合はfalseを返す。
 	 *
 	 * <p>書式：(true|false)</p>
+	 *
 	 * @param key キー
 	 * @return boolean値
 	 */
@@ -257,14 +257,13 @@ public class ClientProperties extends Properties {
 	/**
 	 * キャッシュされた値を取得する。
 	 *
-	 * @param key キー
+	 * @param key           キー
 	 * @param expectedClass 期待するClass
-	 * @return
-	 * 	キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
-	 * 	それ以外はキャッシュされた値
+	 * @return キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
+	 *         それ以外はキャッシュされた値
 	 */
 	@SuppressWarnings("unchecked")
-	protected synchronized <T>T getCachedValue(String key, Class<T> expectedClass) {
+	protected synchronized <T> T getCachedValue(String key, Class<T> expectedClass) {
 		Object cachedValue = cacheTable.get(key);
 		if (cachedValue == null || expectedClass.isInstance(cachedValue) == false) {
 			return null;
@@ -277,10 +276,11 @@ public class ClientProperties extends Properties {
 	 * keyと関連付けられた値を利用して、Colorインスタンスを作成する。
 	 *
 	 * <p>書式：int,int,int[,int]</p>
+	 *
 	 * @param key キー
 	 * @return Colorインスタンス
 	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません
-	 * @throws NumberFormatException 数値に変換できない値です
+	 * @throws NumberFormatException    数値に変換できない値です
 	 */
 	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
 		Color color = getCachedValue(key, Color.class);
@@ -310,6 +310,7 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、Dimensionを取得する。
 	 *
 	 * 書式：int,int
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたDimension
 	 * @throws IllegalArgumentException 正しくない設定値
@@ -338,6 +339,7 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、doubleを取得する。
 	 *
 	 * 書式：double
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたdouble
 	 */
@@ -357,6 +359,7 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、floatを取得する。
 	 *
 	 * 書式：float
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたfloat
 	 */
@@ -376,6 +379,7 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、intを取得する。
 	 *
 	 * 書式：int
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたint
 	 */
@@ -395,6 +399,7 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、longを取得する。
 	 *
 	 * 書式：long
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたlong
 	 */
@@ -530,7 +535,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにbooleanを関連付ける。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	public synchronized void setBoolean(String key, boolean value) {
@@ -541,7 +546,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにColorを関連付ける。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param color Colorインスタンス。null不可。
 	 */
 	public synchronized void setColor(String key, Color color) {
@@ -555,7 +560,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにDimensionを関連付ける。
 	 *
-	 * @param key キー
+	 * @param key       キー
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
 	public synchronized void setDimension(String key, Dimension dimension) {
@@ -566,7 +571,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにdoubleを関連付ける。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	public synchronized void setDouble(String key, double value) {
@@ -577,7 +582,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにfloatを関連付ける
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	public synchronized void setFloat(String key, float value) {
@@ -588,7 +593,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにintを関連付ける
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	public synchronized void setInteger(String key, int value) {
@@ -599,7 +604,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにlongを関連付ける。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 */
 	public synchronized void setLong(String key, long value) {
@@ -623,8 +628,9 @@ public class ClientProperties extends Properties {
 	/**
 	 * Set value.
 	 * But actual value is obfuscated, so you should use {@link #getPrivateString(String, Key)} etc.
-	 * @param key property key
-	 * @param value property value
+	 *
+	 * @param key        property key
+	 * @param value      property value
 	 * @param encryptKey Key for encryption. Use {@link #makeKey(String)}.
 	 * @throws InvalidKeyException
 	 */
@@ -654,18 +660,16 @@ public class ClientProperties extends Properties {
 		this.storeFile = storeFile;
 	}
 
-	/**
-	 * ファイルに保存する。
-	 *
-	 */
+	/** ファイルに保存する。 */
 	public void store() {
 		store("Auto generated by jp.syuriken.snsw.twclient.ClientProperties");
 	}
 
 	/**
-	* ファイルに保存する
-	* @param comments ファイルのコメント
-	*/
+	 * ファイルに保存する
+	 *
+	 * @param comments ファイルのコメント
+	 */
 	public synchronized void store(String comments) {
 		FileOutputStream stream = null;
 		OutputStreamWriter writer = null;
