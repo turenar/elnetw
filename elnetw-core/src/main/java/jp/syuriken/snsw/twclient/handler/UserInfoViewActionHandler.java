@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -48,13 +49,10 @@ import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.DirectMessage;
 import twitter4j.ResponseList;
 import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.UserList;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
 
@@ -67,10 +65,9 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
 
-		private static final long serialVersionUID = -7712141245995951602L;
+		private static final long serialVersionUID = 7554202708087468592L;
 
 		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
-
 
 		@Override
 		public ViewFactory getViewFactory() {
@@ -125,67 +122,6 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 			private final TreeSet<Long> treeSet = new TreeSet<Long>();
 
-
-			@Override
-			public void onBlock(User source, User blockedUser) {
-				// do nothing
-			}
-
-			@Override
-			public void onChangeAccount(boolean forWrite) {
-				// do nothing
-			}
-
-			@Override
-			public void onCleanUp() {
-				// do nothing
-			}
-
-			@Override
-			public void onConnect() {
-				// do nothing
-			}
-
-			@Override
-			public void onDeletionNotice(long directMessageId, long userId) {
-				// do nothing
-			}
-
-			@Override
-			public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-				// do nothing
-			}
-
-			@Override
-			public void onDirectMessage(DirectMessage directMessage) {
-				// do nothing
-			}
-
-			@Override
-			public void onDisconnect() {
-				// do nothing
-			}
-
-			@Override
-			public void onFavorite(User source, User target, Status favoritedStatus) {
-				// do nothing
-			}
-
-			@Override
-			public void onFollow(User source, User followedUser) {
-				// do nothing
-			}
-
-			@Override
-			public void onFriendList(long[] friendIds) {
-				// do nothing
-			}
-
-			@Override
-			public void onScrubGeo(long userId, long upToStatusId) {
-				// do nothing
-			}
-
 			@Override
 			public void onStatus(Status originalStatus) {
 				if (originalStatus.getUser().getId() == user.getId()) {
@@ -199,66 +135,11 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					addStatus(originalStatus);
 				}
 			}
-
-			@Override
-			public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-				// do nothing
-			}
-
-			@Override
-			public void onUnblock(User source, User unblockedUser) {
-				// do nothing
-			}
-
-			@Override
-			public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListCreation(User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListDeletion(User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserListUpdate(User listOwner, UserList list) {
-				// do nothing
-			}
-
-			@Override
-			public void onUserProfileUpdate(User updatedUser) {
-				// do nothing
-			}
-
 		}
 
-
 		private static final String TAB_ID = "userinfo";
+
+		private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
 
 		/** 指定されたユーザー */
 		protected User user;
@@ -289,8 +170,6 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		private StringBuilder stringBuilder = new StringBuilder();
 
 		/*package*/JCheckBox muteCheckBox;
-
-		private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
 
 		private JLabel componentTwitterLogo;
 
@@ -371,7 +250,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		public StatusPanel addStatus(StatusData statusData) {
 			if (focusGained == false && isDirty == false) {
 				isDirty = true;
-				configuration.refreshTab(this);
+				EventQueue.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						configuration.refreshTab(UserInfoFrameTab.this);
+					}
+				});
 			}
 			return super.addStatus(statusData);
 		}
@@ -775,9 +659,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 		}
 	}
 
-
 	private static Logger logger = LoggerFactory.getLogger(UserInfoViewActionHandler.class);
-
 
 	@Override
 	public JMenuItem createJMenuItem(String commandName) {
