@@ -4,6 +4,7 @@ import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -370,6 +371,17 @@ public class ClientConfiguration {
 		return portabledConfiguration ? "." : HOME_BASE_DIR;
 	}
 
+	private String[] getConsumerPair() {
+		String[] consumerPair;
+		try {
+			consumerPair
+					= configProperties.getPrivateString("twitter.oauth.consumer_pair", "X4b:mZ\"p4").split(":");
+		} catch (InvalidKeyException e) {
+			throw new RuntimeException(e);
+		}
+		return consumerPair;
+	}
+
 	/**
 	 * デフォルトで使用するアカウントのIDを取得する。
 	 *
@@ -554,13 +566,20 @@ public class ClientConfiguration {
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration(String accountId) {
-		String accessTokenString = configProperties.getProperty("twitter.oauth.access_token." + accountId);
-		String accessTokenSecret =
-				configProperties.getProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", accountId));
+		String[] accessToken;
+		try {
+			String accessTokenString = configProperties.getPrivateString("twitter.oauth.access_token." + accountId,
+					"X4b:mZ\"p4");
+			accessToken = accessTokenString.split(":");
+		} catch (InvalidKeyException e) {
+			throw new RuntimeException(e);
+		}
 
 		return getTwitterConfigurationBuilder() //
-				.setOAuthAccessToken(accessTokenString) //
-				.setOAuthAccessTokenSecret(accessTokenSecret) //
+				.setOAuthAccessToken(accessToken[0]) //
+				.setOAuthAccessTokenSecret(accessToken[1]) //
+				.setOAuthConsumerKey(accessToken[2]) //
+				.setOAuthConsumerSecret(accessToken[3]) //
 				.build();
 	}
 
@@ -570,8 +589,9 @@ public class ClientConfiguration {
 	 * @return Twitter ConfigurationBuilder
 	 */
 	public ConfigurationBuilder getTwitterConfigurationBuilder() {
-		String consumerKey = configProperties.getProperty("twitter.oauth.consumer");
-		String consumerSecret = configProperties.getProperty("twitter.oauth.consumer_secret");
+		String[] consumerPair = getConsumerPair();
+		String consumerKey = consumerPair[0];
+		String consumerSecret = consumerPair[1];
 
 		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
 				.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
@@ -848,6 +868,22 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * store User's access token.
+	 * @param accessToken accessToken Instance
+	 */
+	public void storeAccessToken(AccessToken accessToken) {
+		String[] consumerKeys = getConsumerPair();
+		StringBuilder stringBuilder = new StringBuilder().append(accessToken.getToken()).append(':').append(
+				accessToken.getTokenSecret()).append(':').append(consumerKeys[0]).append(':').append(consumerKeys[1]);
+		try {
+			configProperties.setPrivateString("twitter.oauth.access_token." + accessToken.getUserId(),
+					stringBuilder.toString(), "X4b:mZ\"p4");
+		} catch (InvalidKeyException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * OAuthトークンの取得を試みる。実行中のスレッドをブロックします。
 	 *
 	 * @return 取得を試して発生した例外。ない場合はnull
@@ -865,7 +901,7 @@ public class ClientConfiguration {
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
-			userId = String.valueOf(twitter.verifyCredentials().getId());
+			userId = String.valueOf(twitter.getId());
 		} catch (TwitterException e1) {
 			return e1;
 		}
@@ -882,9 +918,11 @@ public class ClientConfiguration {
 				configProperties.setProperty("twitter.oauth.access_token.list", MessageFormat.format("{0} {1}",
 						configProperties.getProperty("twitter.oauth.access_token.list"), userId));
 			}
-			configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
-			configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
-					accessToken.getTokenSecret());
+			try {
+				storeAccessToken(twitter.getOAuthAccessToken());
+			} catch (TwitterException e) {
+				return e;
+			}
 			configProperties.store();
 		}
 		return null;

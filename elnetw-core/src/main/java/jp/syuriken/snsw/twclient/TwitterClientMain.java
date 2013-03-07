@@ -128,6 +128,7 @@ public class TwitterClientMain {
 		} catch (CancellationException e) {
 			return 0; // user operation
 		} catch (RuntimeException e) {
+			e.printStackTrace();
 			return 1;
 		}
 
@@ -321,7 +322,7 @@ public class TwitterClientMain {
 		//将来の参照用に accessToken を永続化する
 		String userId;
 		try {
-			userId = String.valueOf(twitter.verifyCredentials().getId());
+			userId = String.valueOf(twitter.getId());
 		} catch (TwitterException e) {
 			JOptionPane.showMessageDialog(null, "ユーザー情報の取得に失敗しました。時間をおいて試してみて下さい: " + e.getLocalizedMessage(), "エラー",
 					JOptionPane.ERROR_MESSAGE);
@@ -329,9 +330,7 @@ public class TwitterClientMain {
 		}
 		configProperties.setProperty("twitter.oauth.access_token.list", userId);
 		configProperties.setProperty("twitter.oauth.access_token.default", userId);
-		configProperties.setProperty("twitter.oauth.access_token." + userId, accessToken.getToken());
-		configProperties.setProperty(MessageFormat.format("twitter.oauth.access_token.{0}_secret", userId),
-				accessToken.getTokenSecret());
+		configuration.storeAccessToken(accessToken);
 		configProperties.store();
 		return true;
 	}
