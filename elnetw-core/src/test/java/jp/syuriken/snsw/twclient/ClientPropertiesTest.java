@@ -6,6 +6,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.util.Scanner;
 
 import org.junit.Test;
@@ -236,14 +237,22 @@ public class ClientPropertiesTest {
 		clientProperties.setPrivateString("ccc", "opqrstu", ClientProperties.makeKey("cipher"));
 		clientProperties.setProperty("fff", "vwxyz");
 
+		int benchCount = BENCH_COUNT / 100;
 		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
+		for (int i = 0; i < benchCount; i++) {
 			clientProperties.getPrivateString("aaa", "0xcafebabe");
 		}
-		timerStop("getPrivateString");
+		timerStop("getPrivateString (without Key)", 100);
+
+		Key keyCafebabe = ClientProperties.makeKey("0xcafebabe");
+		timerStart();
+		for (int i = 0; i < benchCount; i++) {
+			clientProperties.getPrivateString("aaa", keyCafebabe);
+		}
+		timerStop("getPrivateString (with Key)", 100);
 
 		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", "0xcafebabe"));
-		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", ClientProperties.makeKey("0xcafebabe")));
+		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", keyCafebabe));
 		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "elnetw"));
 		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "test", "elnetw"));
 		assertEquals("opqrstu", clientProperties.getPrivateString("ccc", "cipher"));
@@ -265,9 +274,13 @@ public class ClientPropertiesTest {
 		timerDate = System.currentTimeMillis();
 	}
 
-	private void timerStop(String messagePrefix) {
-		long processTime = System.currentTimeMillis() - timerDate;
+	private void timerStop(String messagePrefix, int scaler) {
+		long processTime = (System.currentTimeMillis() - timerDate) * scaler;
 		System.out.println(messagePrefix + ": " + processTime + "ms");
+	}
+
+	private void timerStop(String messagePrefix) {
+		timerStop(messagePrefix, 1);
 	}
 
 }
