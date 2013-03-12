@@ -40,6 +40,28 @@ public class DynamicInitializeServiceTest {
 	}
 
 	@InitProviderClass
+	protected static class InitConditionInitializer {
+		protected static boolean isCalled;
+
+		@Initializer(name = "initcond", phase = "initcond")
+		public static void testInitConditionInitializer(InitCondition initCondition) {
+			assertTrue(initCondition.isInitializingPhase());
+			isCalled = true;
+		}
+	}
+
+	@InitProviderClass
+	protected static class InitFailInitializer {
+		protected static boolean isCalled = false;
+
+		@Initializer(name = "initfail", phase
+				= "initfail")
+		public static void a(InitCondition condition) {
+			condition.setFailStatus("test", 0xf0000000);
+		}
+	}
+
+	@InitProviderClass
 	protected static class InstanceInitializer {
 
 		/** loaded from DynamicInitializeService */
@@ -143,7 +165,7 @@ public class DynamicInitializeServiceTest {
 
 	private InitializeService getInitService() throws Exception {
 		if (isRegistered == false) {
-			DynamicInitializeService.use();
+			DynamicInitializeService.use(null);
 			isRegistered = true;
 		}
 		return InitializeService.getService();
@@ -156,11 +178,19 @@ public class DynamicInitializeServiceTest {
 			fail();
 		}
 		try {
-			DynamicInitializeService.use();
+			DynamicInitializeService.use(null);
 			fail();
 		} catch (IllegalStateException e) {
 			// success
 		}
+	}
+
+	@Test
+	public void test_01_initConditionUsedInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		initService.register(InitConditionInitializer.class);
+		initService.enterPhase("initcond");
+		assertTrue(InitConditionInitializer.isCalled);
 	}
 
 	@Test
@@ -177,6 +207,21 @@ public class DynamicInitializeServiceTest {
 		initService.register(StaticInitializer.class);
 		initService.enterPhase("static");
 		assertTrue(StaticInitializer.isCalled);
+	}
+
+	@Test
+	public void test_02_initFailInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		initService.register(InitFailInitializer.class);
+		try {
+			initService.enterPhase("initfail");
+			fail();
+		} catch (InitializeException e) {
+			assertEquals(0xf0000000, e.getExitCode());
+			assertEquals("test", e.getMessage());
+			assertEquals(InitFailInitializer.class.getMethod("a", InitCondition.class),
+					e.getInitializerInfo().getInitializer());
+		}
 	}
 
 	@Test

@@ -9,13 +9,57 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Dynamic dependencies resolver */
 public class DynamicInitializeService extends InitializeService {
+	protected class InitConditionImpl implements InitCondition {
+
+		private final InitializerInfoImpl initializerInfo;
+
+		private final boolean initializingPhase;
+
+		private InitializeException failException;
+
+		protected InitConditionImpl(InitializerInfoImpl info, boolean isInitializingPhase) {
+			this.initializerInfo = info;
+			initializingPhase = isInitializingPhase;
+		}
+
+		@Override
+		public void clearFailStatus() {
+			failException = null;
+		}
+
+		@Override
+		public ClientConfiguration getConfiguration() {
+			return configuration;
+		}
+
+		protected InitializeException getException() {
+			return failException;
+		}
+
+		@Override
+		public boolean isInitializingPhase() {
+			return initializingPhase;
+		}
+
+		@Override
+		public boolean isSetFailStatus() {
+			return failException != null;
+		}
+
+		@Override
+		public void setFailStatus(String reason, int exitCode) {
+			failException = new InitializeException(initializerInfo, reason, exitCode);
+		}
+	}
+
 	/** store initializer's information */
-	protected class InitializerInfo {
+	protected class InitializerInfoImpl implements InitializerInfo {
 		private final Method initializer;
 
 		private final Initializer annotation;
@@ -37,7 +81,7 @@ public class DynamicInitializeService extends InitializeService {
 		 * @param initializer initializer method
 		 * @param annotation  initializer.getAnnotation(Initializer.class)
 		 */
-		public InitializerInfo(Object instance, Method initializer, Initializer annotation) {
+		public InitializerInfoImpl(Object instance, Method initializer, Initializer annotation) {
 			this.initializer = initializer;
 			this.instance = instance;
 			this.annotation = annotation;
@@ -59,9 +103,9 @@ public class DynamicInitializeService extends InitializeService {
 				if (initializedSet.contains(dependency)) {
 					iterator.remove();
 				} else {
-					ArrayList<InitializerInfo> initializerInfos = initializerDependencyMap.get(dependency);
+					ArrayList<InitializerInfoImpl> initializerInfos = initializerDependencyMap.get(dependency);
 					if (initializerInfos == null) {
-						initializerInfos = new ArrayList<InitializerInfo>();
+						initializerInfos = new ArrayList<InitializerInfoImpl>();
 						initializerDependencyMap.put(dependency, initializerInfos);
 					}
 					initializerInfos.add(this);
@@ -71,38 +115,22 @@ public class DynamicInitializeService extends InitializeService {
 			this.depCount = remainDependencies.size();
 		}
 
-		/**
-		 * get Initializer Annotation
-		 *
-		 * @return annotation
-		 */
+		@Override
 		public Initializer getAnnotation() {
 			return annotation;
 		}
 
-		/**
-		 * get count of dependencies which is not resolved yet.
-		 *
-		 * @return dependency count
-		 */
+		@Override
 		public int getDepCount() {
 			return depCount;
 		}
 
-		/**
-		 * get all dependencies (including resolved)
-		 *
-		 * @return dependencies array
-		 */
+		@Override
 		public String[] getDependencies() {
 			return dependencies;
 		}
 
-		/**
-		 * get initializer method
-		 *
-		 * @return method
-		 */
+		@Override
 		public Method getInitializer() {
 			return initializer;
 		}
@@ -116,29 +144,17 @@ public class DynamicInitializeService extends InitializeService {
 			return instance;
 		}
 
-		/**
-		 * get initializer's name
-		 *
-		 * @return name
-		 */
+		@Override
 		public String getName() {
 			return annotation.name();
 		}
 
-		/**
-		 * get initializer's phase
-		 *
-		 * @return phase
-		 */
+		@Override
 		public String getPhase() {
 			return phase;
 		}
 
-		/**
-		 * get dependencies which is not resolved yet.
-		 *
-		 * @return
-		 */
+		@Override
 		public LinkedList<String> getRemainDependencies() {
 			return remainDependencies;
 		}
@@ -160,9 +176,23 @@ public class DynamicInitializeService extends InitializeService {
 		 *
 		 * @throws InitializeException exception occured
 		 */
-		public void run() throws InitializeException {
+		public void run(boolean initializePhase) throws InitializeException {
 			try {
-				initializer.invoke(instance);
+				Class<?>[] parameterTypes = initializer.getParameterTypes();
+				int parameterCount = parameterTypes.length;
+				if (parameterCount == 0) {
+					if (initializePhase) {
+						initializer.invoke(instance);
+					} // if no argument, method cannot determine to be initializing
+				} else if (parameterCount == 1 && parameterTypes[0].isAssignableFrom(InitCondition.class)) {
+					InitConditionImpl initCondition = new InitConditionImpl(this, initializePhase);
+					initializer.invoke(instance, initCondition);
+					if (initCondition.isSetFailStatus()) {
+						throw initCondition.getException();
+					}
+				} else {
+					throw new InitializeException("Registered exception has non-usable initializer");
+				}
 			} catch (IllegalAccessException e) {
 				logger.error("not accessible", e);
 				throw new InitializeException(e);
@@ -170,6 +200,11 @@ public class DynamicInitializeService extends InitializeService {
 				logger.warn("caught exception", e);
 				throw new InitializeException(e.getCause());
 			}
+		}
+
+		public String toString() {
+			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName() +
+					")";
 		}
 	}
 
@@ -182,44 +217,53 @@ public class DynamicInitializeService extends InitializeService {
 	 * @return this instance
 	 * @throws IllegalStateException something is already registered to InitializeService
 	 */
-	public static DynamicInitializeService use() throws IllegalStateException {
-		DynamicInitializeService service = new DynamicInitializeService();
+	public static DynamicInitializeService use(ClientConfiguration configuration) throws IllegalStateException {
+		DynamicInitializeService service = new DynamicInitializeService(configuration);
 		InitializeService.setService(service);
 		return service;
 	}
+
+	protected final ClientConfiguration configuration;
 
 	/** List of called initializer's name */
 	protected final HashSet<String> initializedSet;
 
 	/** Map of initializer's */
-	protected HashMap<String, InitializerInfo> initializerInfoMap;
+	protected HashMap<String, InitializerInfoImpl> initializerInfoMap;
 
 	/** K=name, V=List of depending on K */
-	protected HashMap<String, ArrayList<InitializerInfo>> initializerDependencyMap;
+	protected HashMap<String, ArrayList<InitializerInfoImpl>> initializerDependencyMap;
 
 	/** Queue to invoke initializer */
-	protected LinkedList<InitializerInfo> initQueue;
+	protected LinkedList<InitializerInfoImpl> initQueue;
 
-	private DynamicInitializeService() {
-		initializerInfoMap = new HashMap<String, InitializerInfo>();
-		initializerDependencyMap = new HashMap<String, ArrayList<InitializerInfo>>();
-		initQueue = new LinkedList<InitializerInfo>();
+	private DynamicInitializeService(ClientConfiguration configuration) {
+		this.configuration = configuration;
+		initializerInfoMap = new HashMap<String, InitializerInfoImpl>();
+		initializerDependencyMap = new HashMap<String, ArrayList<InitializerInfoImpl>>();
+		initQueue = new LinkedList<InitializerInfoImpl>();
 		initializedSet = new HashSet<String>();
 	}
 
 	@Override
-	public void enterPhase(String phase) throws InitializeException {
+	public synchronized void enterPhase(String phase) throws InitializeException {
+		logger.info("Entering phase {}", phase);
 		resolve("phase-" + phase);
 		runResolvedInitializer();
 	}
 
 	@Override
-	public boolean isInitialized(String name) {
+	public synchronized boolean isInitialized(String name) {
 		return initializedSet.contains(name);
 	}
 
 	@Override
-	public void register(Class<?> initClass) {
+	public synchronized boolean isRegistered(String name) {
+		return initializerInfoMap.containsKey(name);
+	}
+
+	@Override
+	public synchronized void register(Class<?> initClass) throws IllegalArgumentException {
 		Field[] declaredFields = initClass.getDeclaredFields();
 		Object instance = null;
 		for (Field field : declaredFields) {
@@ -245,7 +289,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public void register(Object instance, Method method) {
+	public synchronized void register(Object instance, Method method) throws IllegalArgumentException {
 		Initializer initializer = method.getAnnotation(Initializer.class);
 		if (initializer != null) {
 			register(instance, method, initializer);
@@ -254,9 +298,13 @@ public class DynamicInitializeService extends InitializeService {
 		}
 	}
 
-	private void register(Object instance, Method method, Initializer initializer) {
+	private void register(Object instance, Method method, Initializer initializer) throws IllegalArgumentException {
 		String name = initializer.name();
-		InitializerInfo initializerInfo = new InitializerInfo(instance, method, initializer);
+		if (initializerInfoMap.containsKey(name)) {
+			throw new IllegalArgumentException("'" + name + "' is already registered");
+		}
+
+		InitializerInfoImpl initializerInfo = new InitializerInfoImpl(instance, method, initializer);
 		initializerInfoMap.put(name, initializerInfo);
 
 		if (initializerInfo.depCount <= 0) {
@@ -271,12 +319,12 @@ public class DynamicInitializeService extends InitializeService {
 
 		initializedSet.add(name);
 
-		ArrayList<InitializerInfo> infos = initializerDependencyMap.get(name);
+		ArrayList<InitializerInfoImpl> infos = initializerDependencyMap.get(name);
 		if (infos == null) {
 			return;
 		}
 
-		for (InitializerInfo info : infos) {
+		for (InitializerInfoImpl info : infos) {
 			info.resolveDependency(name);
 			if (info.getDepCount() <= 0) {
 				initQueue.push(info);
@@ -286,8 +334,9 @@ public class DynamicInitializeService extends InitializeService {
 
 	private void runResolvedInitializer() throws InitializeException {
 		while (initQueue.isEmpty() == false) {
-			InitializerInfo info = initQueue.poll();
-			info.run();
+			InitializerInfoImpl info = initQueue.poll();
+			logger.trace(" init:{}", info);
+			info.run(true);
 			resolve(info.getName());
 		}
 	}

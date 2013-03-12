@@ -44,11 +44,18 @@ public abstract class InitializeService {
 	public abstract boolean isInitialized(String name);
 
 	/**
+	 * check initializer which has specified name is already registered.
+	 * @param name initializer name
+	 * @return registered?
+	 */
+	public abstract boolean isRegistered(String name);
+
+	/**
 	 * register initializer
 	 *
 	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
 	 */
-	public abstract void register(Class<?> initClass);
+	public abstract void register(Class<?> initClass) throws IllegalArgumentException;
 
 	/**
 	 * register initializer
@@ -56,5 +63,5 @@ public abstract class InitializeService {
 	 * @param instance instance to invoke instance-method
 	 * @param method   method object
 	 */
-	public abstract void register(Object instance, Method method);
+	public abstract void register(Object instance, Method method) throws IllegalArgumentException;
 }
