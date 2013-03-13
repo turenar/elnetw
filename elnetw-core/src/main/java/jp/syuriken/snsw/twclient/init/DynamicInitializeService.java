@@ -54,6 +54,11 @@ public class DynamicInitializeService extends InitializeService {
 		}
 
 		@Override
+		public void setFailStatus(Throwable cause, String reason, int exitCode) {
+			failException = new InitializeException(initializerInfo, cause, reason, exitCode);
+		}
+
+		@Override
 		public void setFailStatus(String reason, int exitCode) {
 			failException = new InitializeException(initializerInfo, reason, exitCode);
 		}
@@ -87,6 +92,9 @@ public class DynamicInitializeService extends InitializeService {
 			this.instance = instance;
 			this.annotation = annotation;
 			this.phase = annotation.phase();
+			if (!phaseSet.contains(phase)) {
+				logger.warn("{} has unknown phase: {}", toString(), phase);
+			}
 			this.dependencies = annotation.dependencies();
 			LinkedList<String> remainDependencies = new LinkedList<String>();
 			this.remainDependencies = remainDependencies;
@@ -242,6 +250,8 @@ public class DynamicInitializeService extends InitializeService {
 	/** stack to invoke de-initializer */
 	protected Stack<InitializerInfoImpl> uninitStack;
 
+	private HashSet<String> phaseSet = new HashSet<String>();
+
 	private DynamicInitializeService(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initializerInfoMap = new HashMap<String, InitializerInfoImpl>();
@@ -330,6 +340,11 @@ public class DynamicInitializeService extends InitializeService {
 		if (initializerInfo.depCount <= 0) {
 			initQueue.push(initializerInfo);
 		}
+	}
+
+	@Override
+	public void registerPhase(String phase) {
+		phaseSet.add(phase);
 	}
 
 	private void resolve(String name) {

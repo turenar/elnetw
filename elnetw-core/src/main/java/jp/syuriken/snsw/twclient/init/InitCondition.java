@@ -32,6 +32,15 @@ public interface InitCondition {
 	/**
 	 * set status as fail
 	 *
+	 * @param cause cause of failure
+	 * @param reason   fail reason
+	 * @param exitCode exit code
+	 */
+	void setFailStatus(Throwable cause, String reason, int exitCode);
+
+	/**
+	 * set status as fail
+	 *
 	 * @param reason   fail reason
 	 * @param exitCode exit code
 	 */

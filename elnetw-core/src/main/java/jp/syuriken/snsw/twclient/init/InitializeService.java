@@ -66,6 +66,13 @@ public abstract class InitializeService {
 	public abstract void register(Object instance, Method method) throws IllegalArgumentException;
 
 	/**
+	 * register phase.
+	 *
+	 * @param phase the name of phase.
+	 */
+	public abstract void registerPhase(String phase);
+
+	/**
 	 * un-initialize initializer
 	 *
 	 * <p>Once called this method, calling all other methods is act indefinitely</p>

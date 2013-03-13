@@ -20,16 +20,21 @@ public class InitializeException extends Exception {
 	}
 
 	public InitializeException(InitializerInfo initializerInfo, String reason, int exitCode) {
-		super(reason);
-		this.initializerInfo = initializerInfo;
-		this.reason = reason;
-		this.exitCode = exitCode;
+		this(initializerInfo, null, reason, exitCode);
 	}
 
 	public InitializeException(String message) {
 		super(message);
 		reason = message;
 		exitCode = -1;
+	}
+
+	public InitializeException(InitializerInfo initializerInfo, Throwable cause,
+			String reason, int exitCode) {
+		super(reason, cause);
+		this.initializerInfo = initializerInfo;
+		this.reason = reason;
+		this.exitCode = exitCode;
 	}
 
 	public int getExitCode() {
