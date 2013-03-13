@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Stack;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
@@ -223,6 +224,7 @@ public class DynamicInitializeService extends InitializeService {
 		return service;
 	}
 
+	/** configuration */
 	protected final ClientConfiguration configuration;
 
 	/** List of called initializer's name */
@@ -237,16 +239,28 @@ public class DynamicInitializeService extends InitializeService {
 	/** Queue to invoke initializer */
 	protected LinkedList<InitializerInfoImpl> initQueue;
 
+	/** stack to invoke de-initializer */
+	protected Stack<InitializerInfoImpl> uninitStack;
+
 	private DynamicInitializeService(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initializerInfoMap = new HashMap<String, InitializerInfoImpl>();
 		initializerDependencyMap = new HashMap<String, ArrayList<InitializerInfoImpl>>();
 		initQueue = new LinkedList<InitializerInfoImpl>();
 		initializedSet = new HashSet<String>();
+		uninitStack = new Stack<InitializerInfoImpl>();
+	}
+
+	private void ensureNotCalledUninit() {
+		if (uninitStack == null) {
+			throw new IllegalStateException("Already #uninit() is called!");
+		}
 	}
 
 	@Override
 	public synchronized void enterPhase(String phase) throws InitializeException {
+		ensureNotCalledUninit();
+
 		logger.info("Entering phase {}", phase);
 		resolve("phase-" + phase);
 		runResolvedInitializer();
@@ -254,12 +268,26 @@ public class DynamicInitializeService extends InitializeService {
 
 	@Override
 	public synchronized boolean isInitialized(String name) {
+		ensureNotCalledUninit();
+
 		return initializedSet.contains(name);
 	}
 
 	@Override
 	public synchronized boolean isRegistered(String name) {
+		ensureNotCalledUninit();
+
 		return initializerInfoMap.containsKey(name);
+	}
+
+	@Override
+	public synchronized void register(Object instance, Method method) throws IllegalArgumentException {
+		Initializer initializer = method.getAnnotation(Initializer.class);
+		if (initializer != null) {
+			register(instance, method, initializer);
+		} else {
+			throw new IllegalArgumentException("method must have @Initializer annotation.");
+		}
 	}
 
 	@Override
@@ -288,17 +316,9 @@ public class DynamicInitializeService extends InitializeService {
 		}
 	}
 
-	@Override
-	public synchronized void register(Object instance, Method method) throws IllegalArgumentException {
-		Initializer initializer = method.getAnnotation(Initializer.class);
-		if (initializer != null) {
-			register(instance, method, initializer);
-		} else {
-			throw new IllegalArgumentException("method must have @Initializer annotation.");
-		}
-	}
-
 	private void register(Object instance, Method method, Initializer initializer) throws IllegalArgumentException {
+		ensureNotCalledUninit();
+
 		String name = initializer.name();
 		if (initializerInfoMap.containsKey(name)) {
 			throw new IllegalArgumentException("'" + name + "' is already registered");
@@ -337,7 +357,18 @@ public class DynamicInitializeService extends InitializeService {
 			InitializerInfoImpl info = initQueue.poll();
 			logger.trace(" init:{}", info);
 			info.run(true);
+			uninitStack.push(info);
 			resolve(info.getName());
 		}
+	}
+
+	@Override
+	public void uninit() throws InitializeException {
+		while (uninitStack.isEmpty() == false) {
+			InitializerInfoImpl info = uninitStack.pop();
+			logger.trace(" uninit: {}", info);
+			info.run(false);
+		}
+		uninitStack = null;
 	}
 }

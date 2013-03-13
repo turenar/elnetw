@@ -25,7 +25,7 @@ public interface InitCondition {
 	/**
 	 * Check already called {@link #setFailStatus(String, int)}
 	 *
-	 * @return
+	 * @return whether fail status is set
 	 */
 	boolean isSetFailStatus();
 

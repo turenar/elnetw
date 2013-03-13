@@ -36,7 +36,7 @@ public abstract class InitializeService {
 	 * enter phase.
 	 *
 	 * @param phase phase name
-	 * @throws InitializeException exception occured. this shows something is not initialized successfully
+	 * @throws InitializeException exception occurred. this shows something is not initialized successfully
 	 */
 	public abstract void enterPhase(String phase) throws InitializeException;
 
@@ -64,4 +64,13 @@ public abstract class InitializeService {
 	 * @param method   method object
 	 */
 	public abstract void register(Object instance, Method method) throws IllegalArgumentException;
+
+	/**
+	 * un-initialize initializer
+	 *
+	 * <p>Once called this method, calling all other methods is act indefinitely</p>
+	 *
+	 * @throws InitializeException exception occurred.
+	 */
+	public abstract void uninit() throws InitializeException;
 }
