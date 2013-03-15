@@ -3,7 +3,7 @@
 		<file>elnetw.log</file>
 		<encoder>
 			<Pattern>
-				%d{HH:mm:ss.SSS} [%-4level %logger{36}] %msg%n
+				%d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n
 			</Pattern>
 		</encoder>
 	</appender>
@@ -11,7 +11,7 @@
 		<Target>System.out</Target>
 		<encoder>
 			<Pattern>
-				%d{HH:mm:ss.SSS} [%-4level %logger{36}] %msg%n
+				%d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n
 			</Pattern>
 		</encoder>
 	</appender>
