@@ -73,7 +73,6 @@ public class FilterService implements ClientMessageListener {
 		}
 	}
 
-
 	/** 設定情報 */
 	protected final ClientConfiguration configuration;
 
@@ -129,7 +128,7 @@ public class FilterService implements ClientMessageListener {
 	 * @param runnable 仕事
 	 */
 	protected void addJob(Runnable runnable) {
-		configuration.getFrameApi().addJob(runnable);
+		configuration.addJob(runnable);
 	}
 
 	/**
@@ -148,9 +147,7 @@ public class FilterService implements ClientMessageListener {
 
 		Status cachedStatus = cacheManager.getCachedStatus(originalStatus.getId());
 		if (cachedStatus == null) {
-			Status status =
-					(originalStatus instanceof TwitterStatus) ? originalStatus : new TwitterStatus(configuration,
-							originalStatus);
+			Status status = new TwitterStatus(configuration, originalStatus);
 			cachedStatus = cacheManager.cacheStatusIfAbsent(status);
 			if (cachedStatus == null) {
 				cachedStatus = status;
@@ -250,7 +247,6 @@ public class FilterService implements ClientMessageListener {
 
 			private StatusDeletionNotice obj = statusDeletionNotice;
 
-
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
 				obj = messageFilter.onDeletionNotice(obj);
@@ -269,7 +265,6 @@ public class FilterService implements ClientMessageListener {
 		filter(new FilterDispatcher() {
 
 			private DirectMessage message = directMessage;
-
 
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
@@ -305,7 +300,6 @@ public class FilterService implements ClientMessageListener {
 		filter(new FilterDispatcher() {
 
 			private Exception obj = ex;
-
 
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
@@ -356,7 +350,6 @@ public class FilterService implements ClientMessageListener {
 		filter(new FilterDispatcher() {
 
 			long[] arr = friendIds;
-
 
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {
@@ -410,7 +403,6 @@ public class FilterService implements ClientMessageListener {
 		filter(new FilterDispatcher() {
 
 			private Status obj = status;
-
 
 			@Override
 			protected boolean callDispatch(MessageFilter messageFilter) {

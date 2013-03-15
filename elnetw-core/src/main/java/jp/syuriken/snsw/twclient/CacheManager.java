@@ -135,9 +135,6 @@ public class CacheManager {
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 
-	/** {@link ClientFrameApi}インスタンス */
-	protected final ClientFrameApi frameApi;
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -149,7 +146,6 @@ public class CacheManager {
 		int concurrency = properties.getInteger("core.cache.data.concurrency");
 		float loadFactor = properties.getFloat("core.cache.data.load_factor");
 		int initialCapacity = properties.getInteger("core.cache.data.initial_capacity");
-		frameApi = configuration.getFrameApi();
 
 		statusCacheMap =
 				new ConcurrentSoftHashMap<Long, Status>(configuration, concurrency,
@@ -338,7 +334,7 @@ public class CacheManager {
 	 * @param statusId Status ID
 	 */
 	public void queueFetchingStatus(long statusId) {
-		frameApi.addJob(new StatusFetcher(statusId));
+		configuration.addJob(new StatusFetcher(statusId));
 	}
 
 	/**
@@ -410,7 +406,7 @@ public class CacheManager {
 
 		UserFetcher userFetcher = new UserFetcher(arr, intoQueue);
 		if (intoQueue) {
-			frameApi.addJob(userFetcher);
+			configuration.addJob(userFetcher);
 		} else {
 			userFetcher.run();
 		}

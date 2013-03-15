@@ -33,7 +33,7 @@ public class InListProperty implements FilterProperty {
 
 		@Override
 		public void run() {
-			configuration.getFrameApi().addJob(listFetcher);
+			configuration.addJob(listFetcher);
 		}
 
 	}
@@ -205,7 +205,7 @@ public class InListProperty implements FilterProperty {
 		listIdentifier = (String) value;
 		listFetcher = new UserFollewedByListFetcher(listIdentifier);
 		listFetcher.run();
-		configuration.getFrameApi().getTimer().schedule(new ListFetcherScheduler(), 60 * 60 * 1000);
+		configuration.getTimer().schedule(new ListFetcherScheduler(), 60 * 60 * 1000);
 	}
 
 	@Override

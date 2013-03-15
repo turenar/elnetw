@@ -198,7 +198,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					return getClientConfiguration();
 				}
 			}.run();
-			configuration.getFrameApi().addJob(new TwitterRunnable() {
+			configuration.addJob(new TwitterRunnable() {
 
 				@Override
 				protected void access() throws TwitterException {
@@ -683,11 +683,12 @@ public class UserInfoViewActionHandler implements ActionHandler {
 					"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
 		}
 
-		final UserInfoFrameTab tab = new UserInfoFrameTab(api.getClientConfiguration(), user);
+		ClientConfiguration configuration = api.getClientConfiguration();
+		final UserInfoFrameTab tab = new UserInfoFrameTab(configuration, user);
 		final long userId = user.getId();
-		api.addJob(new UserTimelineFetcher(tab, userId, api));
-		api.getClientConfiguration().addFrameTab(tab);
-		api.getClientConfiguration().focusFrameTab(tab);
+		configuration.addJob(new UserTimelineFetcher(tab, userId, api));
+		configuration.addFrameTab(tab);
+		configuration.focusFrameTab(tab);
 	}
 
 	@Override

@@ -62,7 +62,7 @@ public abstract class TwitterRunnable implements Runnable {
 			if ((502 <= statusCode && statusCode <= 504) && life >= 0) {
 				// Twitter is down or overloaded
 				if (intoQueue) {
-					getConfiguration().getFrameApi().addJob(this);
+					getConfiguration().addJob(this);
 				} else {
 					run();
 				}

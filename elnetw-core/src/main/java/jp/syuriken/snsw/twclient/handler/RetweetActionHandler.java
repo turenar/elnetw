@@ -28,7 +28,7 @@ public class RetweetActionHandler implements ActionHandler {
 	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
 			final Status retweetStatus = (Status) statusData.tag;
-			api.addJob(new ParallelRunnable() {
+			api.getClientConfiguration().addJob(new ParallelRunnable() {
 
 				@Override
 				public void run() {

@@ -103,8 +103,6 @@ public class TwitterDataFetchScheduler {
 	}
 
 
-	/*package*/final ClientFrameApi frameApi;
-
 	/*package*/Twitter twitterForRead;
 
 	/*package*/final FilterService rootFilterService;
@@ -123,7 +121,6 @@ public class TwitterDataFetchScheduler {
 	 */
 	/*package*/TwitterDataFetchScheduler(final ClientConfiguration configuration) {
 		this.configuration = configuration;
-		frameApi = configuration.getFrameApi();
 		configProperties = configuration.getConfigProperties();
 		twitterForRead = configuration.getTwitterForRead();
 		rootFilterService = configuration.getRootFilterService();
@@ -179,23 +176,23 @@ public class TwitterDataFetchScheduler {
 	}
 
 	private void scheduleFirstDirectMessage() {
-		frameApi.addJob(new FirstDirectMessageFetcher());
+		configuration.addJob(new FirstDirectMessageFetcher());
 	}
 
 	private void scheduleFirstMentions() {
-		frameApi.addJob(new FirstMentionFetcher());
+		configuration.addJob(new FirstMentionFetcher());
 	}
 
 	private void scheduleFirstTimeline() {
-		frameApi.addJob(new FirstTimelineFetcher());
+		configuration.addJob(new FirstTimelineFetcher());
 	}
 
 	private void scheduleGettingTimeline() {
-		frameApi.getTimer().schedule(new TimerTask() {
+		configuration.getTimer().schedule(new TimerTask() {
 
 			@Override
 			public void run() {
-				frameApi.addJob(new HomeTimelineFetcher());
+				configuration.addJob(new HomeTimelineFetcher());
 			}
 		}, configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE));

@@ -54,7 +54,7 @@ public class RemoveTweetActionHandler implements ActionHandler {
 					public void propertyChange(PropertyChangeEvent evt) {
 						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 							if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-								api.addJob(new ParallelRunnable() {
+								api.getClientConfiguration().addJob(new ParallelRunnable() {
 
 									@Override
 									public void run() {

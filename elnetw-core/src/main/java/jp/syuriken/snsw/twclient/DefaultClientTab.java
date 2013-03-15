@@ -1390,7 +1390,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);
-		frameApi.getTimer().schedule(new PostListUpdater(),
+		configuration.getTimer().schedule(new PostListUpdater(),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
@@ -1457,7 +1457,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param delay 遅延ミリ秒
 	 */
 	public void removeStatus(final StatusData statusData, int delay) {
-		frameApi.getTimer().schedule(new TimerTask() {
+		configuration.getTimer().schedule(new TimerTask() {
 
 			@Override
 			public void run() {

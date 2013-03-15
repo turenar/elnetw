@@ -28,7 +28,7 @@ public class FavoriteActionHandler implements ActionHandler {
 	@Override
 	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
 		if (statusData.tag instanceof Status) {
-			api.addJob(new ParallelRunnable() {
+			api.getClientConfiguration().addJob(new ParallelRunnable() {
 
 				@Override
 				public void run() {
