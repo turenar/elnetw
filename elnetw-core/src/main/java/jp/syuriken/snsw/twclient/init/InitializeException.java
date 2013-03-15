@@ -14,11 +14,11 @@ public class InitializeException extends Exception {
 	 * @param cause cause
 	 */
 	public InitializeException(Throwable cause) {
-		super(cause);
-		reason = cause.getLocalizedMessage();
-		exitCode = -1;
+		this(null, cause);
 	}
-
+	public InitializeException(InitializerInfo initializerInfo, String reason) {
+		this(initializerInfo, null, reason);
+	}
 	public InitializeException(InitializerInfo initializerInfo, String reason, int exitCode) {
 		this(initializerInfo, null, reason, exitCode);
 	}
@@ -30,11 +30,21 @@ public class InitializeException extends Exception {
 	}
 
 	public InitializeException(InitializerInfo initializerInfo, Throwable cause,
+			String reason) {
+		this(initializerInfo, cause, reason, -1);
+	}
+
+	public InitializeException(InitializerInfo initializerInfo, Throwable cause,
 			String reason, int exitCode) {
 		super(reason, cause);
 		this.initializerInfo = initializerInfo;
 		this.reason = reason;
 		this.exitCode = exitCode;
+	}
+
+	public InitializeException(String message, Throwable cause) {
+		reason = cause.getLocalizedMessage();
+		exitCode = -1;
 	}
 
 	public int getExitCode() {
@@ -43,6 +53,11 @@ public class InitializeException extends Exception {
 
 	public InitializerInfo getInitializerInfo() {
 		return initializerInfo;
+	}
+
+	@Override
+	public String getLocalizedMessage() {
+		return getMessage() + "\ninitializer:" + initializerInfo;
 	}
 
 	public String getReason() {

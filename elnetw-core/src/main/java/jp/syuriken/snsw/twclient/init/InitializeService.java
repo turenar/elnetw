@@ -36,9 +36,10 @@ public abstract class InitializeService {
 	 * enter phase.
 	 *
 	 * @param phase phase name
+	 * @return this object
 	 * @throws InitializeException exception occurred. this shows something is not initialized successfully
 	 */
-	public abstract void enterPhase(String phase) throws InitializeException;
+	public abstract InitializeService enterPhase(String phase) throws InitializeException;
 
 	/** check initializer which has [name] is initialized */
 	public abstract boolean isInitialized(String name);
@@ -51,26 +52,37 @@ public abstract class InitializeService {
 	public abstract boolean isRegistered(String name);
 
 	/**
-	 * register initializer
-	 *
-	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
+	 * provide null-initializer as name
+	 * @param name initializer's name
+	 * @return this object
+	 * @throws IllegalArgumentException name is already registered
 	 */
-	public abstract void register(Class<?> initClass) throws IllegalArgumentException;
+	public abstract InitializeService provideInitializer(String name) throws IllegalArgumentException;
 
 	/**
 	 * register initializer
 	 *
 	 * @param instance instance to invoke instance-method
 	 * @param method   method object
+	 * @return this object
 	 */
-	public abstract void register(Object instance, Method method) throws IllegalArgumentException;
+	public abstract InitializeService register(Object instance, Method method) throws IllegalArgumentException;
+
+	/**
+	 * register initializer
+	 *
+	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
+	 * @return this object
+	 */
+	public abstract InitializeService register(Class<?> initClass) throws IllegalArgumentException;
 
 	/**
 	 * register phase.
 	 *
 	 * @param phase the name of phase.
+	 * @return this object
 	 */
-	public abstract void registerPhase(String phase);
+	public abstract InitializeService registerPhase(String phase);
 
 	/**
 	 * un-initialize initializer

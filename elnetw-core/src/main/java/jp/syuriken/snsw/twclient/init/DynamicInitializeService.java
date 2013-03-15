@@ -80,6 +80,10 @@ public class DynamicInitializeService extends InitializeService {
 
 		private int depCount;
 
+		private boolean isExecuted;
+
+		private boolean uninitable;
+
 		/**
 		 * init
 		 *
@@ -93,7 +97,7 @@ public class DynamicInitializeService extends InitializeService {
 			this.annotation = annotation;
 			this.phase = annotation.phase();
 			if (!phaseSet.contains(phase)) {
-				logger.warn("{} has unknown phase: {}", toString(), phase);
+				logger.warn("QA: {} has unknown phase: {}", toString(), phase);
 			}
 			this.dependencies = annotation.dependencies();
 			LinkedList<String> remainDependencies = new LinkedList<String>();
@@ -114,7 +118,8 @@ public class DynamicInitializeService extends InitializeService {
 				} else {
 					ArrayList<InitializerInfoImpl> initializerInfos = initializerDependencyMap.get(dependency);
 					if (initializerInfos == null) {
-						initializerInfos = new ArrayList<InitializerInfoImpl>();
+						// initializer is hardly depended by over 10 initializers
+						initializerInfos = new ArrayList<InitializerInfoImpl>(1);
 						initializerDependencyMap.put(dependency, initializerInfos);
 					}
 					initializerInfos.add(this);
@@ -122,6 +127,11 @@ public class DynamicInitializeService extends InitializeService {
 			}
 
 			this.depCount = remainDependencies.size();
+
+			Class<?>[] parameterTypes = initializer.getParameterTypes();
+			if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(InitCondition.class)) {
+				uninitable = true;
+			}
 		}
 
 		@Override
@@ -168,6 +178,10 @@ public class DynamicInitializeService extends InitializeService {
 			return remainDependencies;
 		}
 
+		public boolean isUninitable() {
+			return uninitable;
+		}
+
 		/**
 		 * resolve dependency.
 		 *
@@ -183,32 +197,54 @@ public class DynamicInitializeService extends InitializeService {
 		/**
 		 * invoke initializer
 		 *
-		 * @throws InitializeException exception occured
+		 * @throws InitializeException exception occurred
 		 */
 		public void run(boolean initializePhase) throws InitializeException {
+			if (initializePhase && isExecuted) {
+				logger.error("BUG:{} is already initialized", this);
+				return;
+			}
+			if (!initializePhase) { // un-initialize phase
+				if (!isExecuted) {
+					logger.error("BUG:{} is to be uninitialized, but not executed", this);
+					return;
+				} else if (!isUninitable()) {
+					return;
+				} else {
+					logger.trace(" uninit: {}", this);
+				}
+			}
+
 			try {
 				Class<?>[] parameterTypes = initializer.getParameterTypes();
 				int parameterCount = parameterTypes.length;
 				if (parameterCount == 0) {
 					if (initializePhase) {
-						initializer.invoke(instance);
+						try {
+							initializer.invoke(instance);
+						} catch (NullPointerException e) {
+							throw new InitializeException(this, e, "initializer is not static method!!");
+						}
 					} // if no argument, method cannot determine to be initializing
 				} else if (parameterCount == 1 && parameterTypes[0].isAssignableFrom(InitCondition.class)) {
 					InitConditionImpl initCondition = new InitConditionImpl(this, initializePhase);
-					initializer.invoke(instance, initCondition);
+					try {
+						initializer.invoke(instance, initCondition);
+					} catch (NullPointerException e) {
+						throw new InitializeException(this, e, "initializer is not static method!!");
+					}
 					if (initCondition.isSetFailStatus()) {
 						throw initCondition.getException();
 					}
 				} else {
-					throw new InitializeException("Registered exception has non-usable initializer");
+					throw new InitializeException(this, "Registered exception has non-usable initializer");
 				}
 			} catch (IllegalAccessException e) {
-				logger.error("not accessible", e);
-				throw new InitializeException(e);
+				throw new InitializeException(this, e, "not accessible");
 			} catch (InvocationTargetException e) {
-				logger.warn("caught exception", e);
-				throw new InitializeException(e.getCause());
+				throw new InitializeException(this, e.getCause(), null);
 			}
+			isExecuted = true;
 		}
 
 		public String toString() {
@@ -268,12 +304,13 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public synchronized void enterPhase(String phase) throws InitializeException {
+	public synchronized InitializeService enterPhase(String phase) throws InitializeException {
 		ensureNotCalledUninit();
 
-		logger.info("Entering phase {}", phase);
+		logger.info("Entering {} phase", phase);
 		resolve("phase-" + phase);
 		runResolvedInitializer();
+		return this;
 	}
 
 	@Override
@@ -291,17 +328,28 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public synchronized void register(Object instance, Method method) throws IllegalArgumentException {
+	public InitializeService provideInitializer(String name) throws IllegalArgumentException {
+		if (initializerInfoMap.containsKey(name)) {
+			throw new IllegalArgumentException(name + " is already registered as initializer");
+		}
+
+		resolve(name);
+		return this;
+	}
+
+	@Override
+	public synchronized InitializeService register(Object instance, Method method) throws IllegalArgumentException {
 		Initializer initializer = method.getAnnotation(Initializer.class);
 		if (initializer != null) {
 			register(instance, method, initializer);
 		} else {
 			throw new IllegalArgumentException("method must have @Initializer annotation.");
 		}
+		return this;
 	}
 
 	@Override
-	public synchronized void register(Class<?> initClass) throws IllegalArgumentException {
+	public synchronized InitializeService register(Class<?> initClass) throws IllegalArgumentException {
 		Field[] declaredFields = initClass.getDeclaredFields();
 		Object instance = null;
 		for (Field field : declaredFields) {
@@ -324,6 +372,7 @@ public class DynamicInitializeService extends InitializeService {
 				register(instance, method, initializer);
 			}
 		}
+		return this;
 	}
 
 	private void register(Object instance, Method method, Initializer initializer) throws IllegalArgumentException {
@@ -331,7 +380,9 @@ public class DynamicInitializeService extends InitializeService {
 
 		String name = initializer.name();
 		if (initializerInfoMap.containsKey(name)) {
-			throw new IllegalArgumentException("'" + name + "' is already registered");
+			throw new IllegalArgumentException("\'" + name + "\' is already registered");
+		} else if (initializedSet.contains(name)) {
+			throw new IllegalArgumentException("\'" + name + "\' is already provided");
 		}
 
 		InitializerInfoImpl initializerInfo = new InitializerInfoImpl(instance, method, initializer);
@@ -343,8 +394,9 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public void registerPhase(String phase) {
+	public InitializeService registerPhase(String phase) {
 		phaseSet.add(phase);
+		return this;
 	}
 
 	private void resolve(String name) {
@@ -370,7 +422,7 @@ public class DynamicInitializeService extends InitializeService {
 	private void runResolvedInitializer() throws InitializeException {
 		while (initQueue.isEmpty() == false) {
 			InitializerInfoImpl info = initQueue.poll();
-			logger.trace(" init:{}", info);
+			logger.trace(" {}:{}", info.getPhase(), info);
 			info.run(true);
 			uninitStack.push(info);
 			resolve(info.getName());
@@ -379,9 +431,14 @@ public class DynamicInitializeService extends InitializeService {
 
 	@Override
 	public void uninit() throws InitializeException {
+		if (uninitStack == null) {
+			throw new IllegalStateException("already uninitialized");
+		}
+
+		logger.info("Starting uninitializing");
 		while (uninitStack.isEmpty() == false) {
 			InitializerInfoImpl info = uninitStack.pop();
-			logger.trace(" uninit: {}", info);
+			info.isUninitable();
 			info.run(false);
 		}
 		uninitStack = null;
