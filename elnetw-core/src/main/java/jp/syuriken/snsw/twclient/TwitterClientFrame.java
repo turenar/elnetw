@@ -192,7 +192,7 @@ import static java.lang.Math.max;
 			if (Utility.equalString(actionName, "core!submenu")) {
 				return;
 			} else if (Utility.equalString(actionName, "core!version")) {
-				VersionInfoFrame frame = new VersionInfoFrame();
+				VersionInfoFrame frame = new VersionInfoFrame(configuration);
 				frame.setVisible(true);
 			} else if (Utility.equalString(actionName, "core!focusinput")) {
 				getPostBox().requestFocusInWindow();

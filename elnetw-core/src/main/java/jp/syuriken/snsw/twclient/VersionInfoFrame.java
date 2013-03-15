@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +20,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 
+import jp.syuriken.snsw.twclient.jni.JavaGnome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,38 +77,6 @@ public class VersionInfoFrame extends JFrame {
 
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
 
-	private static List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
-
-	static {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("elnetw (エルナト): version");
-		stringBuilder.append(VersionInfo.getUniqueVersion());
-		stringBuilder.append("\nTwitter Client for hitobasira");
-		stringBuilder.append("\n\n開発元: Turenai Project (@ture7)");
-		stringBuilder.append("\n配布元: http://code.google.com/p/turetwcl");
-		stringBuilder.append("\n\nThis software included library:\n - twitter4j (");
-		stringBuilder.append(twitter4j.Version.getVersion());
-		stringBuilder.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text");
-
-		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
-		addLibraryInfo(new LibraryInfo("elnetw", getData("elnetw.txt")));
-		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
-		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
-		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
-		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
-		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
-	}
-
-	/**
-	 * ライブラリ情報を追加する。
-	 *
-	 * @param libraryInfo ライブラリ情報
-	 * @return 追加されたかどうか。
-	 */
-	public static boolean addLibraryInfo(LibraryInfo libraryInfo) {
-		return libraryInfoList.add(libraryInfo);
-	}
-
 	private static String getData(String resourceName) {
 		BufferedReader bufferedReader = null;
 		try {
@@ -139,6 +107,8 @@ public class VersionInfoFrame extends JFrame {
 		}
 	}
 
+	private List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
+
 	private JSplitPane splitPane;
 
 	private JScrollPane libraryListScrollPane;
@@ -153,8 +123,21 @@ public class VersionInfoFrame extends JFrame {
 	 * インスタンスを生成する
 	 *
 	 */
-	public VersionInfoFrame() {
+	public VersionInfoFrame(ClientConfiguration configuration) {
+		initLibraryInfos(configuration);
 		initComponents();
+	}
+
+	/**
+	 * ライブラリ情報を追加する。
+	 *
+	 * <p>TODO: 外部からの追加対応</p>
+	 *
+	 * @param libraryInfo ライブラリ情報
+	 * @return 追加されたかどうか。
+	 */
+	public boolean addLibraryInfo(LibraryInfo libraryInfo) {
+		return libraryInfoList.add(libraryInfo);
 	}
 
 	private JTextComponent getInfoTextPane() {
@@ -221,6 +204,36 @@ public class VersionInfoFrame extends JFrame {
 		pack();
 		setSize(600, 450);
 		getSplitPane().setDividerLocation(150);
+	}
+
+	private void initLibraryInfos(ClientConfiguration configuration) {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("elnetw (エルナト): version")
+				.append(VersionInfo.getUniqueVersion())
+				.append("\nTwitter Client for hitobasira")
+				.append("\n\n開発元: Turenai Project (@ture7)")
+				.append("\n配布元: http://code.google.com/p/turetwcl")
+				.append("\n\nThis software included library:\n - twitter4j (")
+				.append(twitter4j.Version.getVersion())
+				.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text\n - java-gnome (optional");
+
+		JavaGnome javaGnome = JavaGnome.getInstance(configuration);
+		if (javaGnome.isFound()) {
+			stringBuilder.append(";api=")
+					.append(javaGnome.getApiVersion())
+					.append(";version=")
+					.append(javaGnome.getVersion());
+		}
+		stringBuilder.append(')');
+
+		addLibraryInfo(new LibraryInfo("version", stringBuilder.toString()));
+		addLibraryInfo(new LibraryInfo("elnetw", getData("elnetw.txt")));
+		addLibraryInfo(new LibraryInfo("twitter4j", getData("twitter4j.txt")));
+		addLibraryInfo(new LibraryInfo("json.org", getData("json.txt")));
+		addLibraryInfo(new LibraryInfo("slf4j", getData("slf4j.txt")));
+		addLibraryInfo(new LibraryInfo("logback", getData("logback.txt")));
+		addLibraryInfo(new LibraryInfo("twitter-text", getData("twitter-text.txt")));
+		addLibraryInfo(new LibraryInfo("java-gnome", getData("java-gnome.txt")));
 	}
 
 	/**
