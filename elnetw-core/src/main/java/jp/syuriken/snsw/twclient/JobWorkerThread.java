@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 	private static final AtomicInteger threadNumber = new AtomicInteger();
 
-	private final int jobPerWorker;
-
 	private final int threadsCount;
 
 	private final boolean isParent;
@@ -53,12 +51,10 @@ import org.slf4j.LoggerFactory;
 		if (isParent) {
 			ClientProperties properties = configuration.getConfigProperties();
 			threadsCount = properties.getInteger("core.jobqueue.threads");
-			jobPerWorker = properties.getInteger("core.jobqueue.job_per_worker");
 			childThreads = new ArrayList<JobWorkerThread>();
 			serializeQueue = new ConcurrentLinkedQueue<Runnable>();
 		} else {
 			threadsCount = parent.threadsCount;
-			jobPerWorker = parent.jobPerWorker;
 			serializeQueue = parent.serializeQueue;
 		}
 
