@@ -3,13 +3,12 @@ package jp.syuriken.snsw.twclient.jni
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.MessageNotifier;
 import jp.syuriken.snsw.twclient.Utility;
-import org.gnome.gtk.Gtk;
-import org.gnome.notify.Notification;
-import org.gnome.notify.Notify;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,35 +21,78 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(LibnotifyMessageNotifier.class);
 
 	public static final boolean checkUsable(ClientConfiguration configuration) {
-		if (Utility.getOstype() == Utility.OSType.OTHER) {
-			if (configuration.getExtraClassLoader() != LibnotifyMessageNotifier.class.getClassLoader()) {
-				logger.warn("MainClassLoader is different from ExtraClassLoader. " +
-						"It will occur unexpected class-loading error");
+		boolean disable = Boolean.getBoolean("elnetw.java-gnome.disable");
+		if (disable) {
+			logger.info("Skip java-gnome notify system");
+			return false;
+		} else if (Utility.getOstype() == Utility.OSType.OTHER) {
+			ClassLoader extraClassLoader = configuration.getExtraClassLoader();
+			JavaGnome javaGnome = JavaGnome.getInstance(configuration);
+			if (!javaGnome.isFound()) {
+				return false;
 			}
 
 			try {
-				Class<?> aClass = Class.forName("org.gnome.notify.Notify", true, configuration.getExtraClassLoader());
-				logger.info("detected java-gnome. version:{}", org.freedesktop.bindings.Version.getVersion());
-				if (Gtk.isInitialized() == false) {
-					Gtk.init(new String[]{});
+				logger.info("detected java-gnome. version:{}", javaGnome.getVersion());
+				Class<?> gtkClass = Class.forName("org.gnome.gtk.Gtk", true, extraClassLoader);
+				Boolean isGtkInitialized = (Boolean) gtkClass.getMethod("isInitialized").invoke(null);
+				if (!isGtkInitialized) { // if(!Gtk.isInitialized){
+					// Gtk.init(new String[]{});
+					gtkClass.getMethod("init", String[].class).invoke(null, (Object) new String[]{});
 				}
-				if (Notify.isInitialized() == false) {
-					Notify.init(ClientConfiguration.APPLICATION_NAME);
+				Class<?> notifyClass = Class.forName("org.gnome.notify.Notify", true, extraClassLoader);
+				Boolean isNotifyInitialized = (Boolean) notifyClass.getMethod("isInitialized").invoke(null);
+				if (!isNotifyInitialized) { // if(!Notify.isInitialized){
+					// Notify.init(ClientConfiguration.APPLICATION_NAME);
+					notifyClass.getMethod("init", String.class).invoke(null, ClientConfiguration.APPLICATION_NAME);
 				}
-				logger.info("connected notification server. caps:{}", (Object) Notify.getServerCapabilities());
+
+				// Object serverCapabilities = Notify.getServerCapabilities();
+				Object serverCapabilities = notifyClass.getMethod("getServerCapabilities").invoke(null);
+				logger.info("connected notification server. caps:{}", serverCapabilities);
 				return true;
 			} catch (ClassNotFoundException e) {
-				logger.trace("java-gnome is not found", e);
+				logger.trace("java-gnome is partial found...", e);
+			} catch (InvocationTargetException e) {
+				logger.warn("#checkUsable", e.getCause());
+			} catch (NoSuchMethodException e) {
+				logger.warn("#checkUsable", e);
+			} catch (IllegalAccessException e) {
+				logger.warn("#checkUsable", e);
 			}
 		}
 		return false;
 	}
 
+	private final Class<?> notificationClass;
+
 	public LibnotifyMessageNotifier(ClientConfiguration configuration) {
+		try {
+			notificationClass = Class.forName("org.gnome.notify.Notification", true,
+					configuration.getExtraClassLoader());
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) throws IOException {
-		new Notification(summary, text, imageFile == null ? null : imageFile.getCanonicalPath()).show();
+		// new Notification(summary, text, imageFile == null ? null : imageFile.getCanonicalPath())
+		// .show();
+		try {
+			Constructor<?> constructor = notificationClass.getConstructor(String.class, String.class, String.class);
+			String imageFilePath = imageFile == null ? null : imageFile.getCanonicalPath();
+			Object notification = constructor.newInstance(summary, text, imageFilePath);
+
+			notificationClass.getMethod("show").invoke(notification);
+		} catch (InstantiationException e) {
+			logger.error("#sendNotify", e);
+		} catch (IllegalAccessException e) {
+			logger.error("#sendNotify", e);
+		} catch (InvocationTargetException e) {
+			logger.error("#sendNotify", e.getCause());
+		} catch (NoSuchMethodException e) {
+			logger.error("#sendNotify", e);
+		}
 	}
 }
