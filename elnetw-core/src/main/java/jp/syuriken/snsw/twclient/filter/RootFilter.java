@@ -25,9 +25,9 @@ import twitter4j.UserList;
  */
 public class RootFilter implements MessageFilter {
 
-	private TreeSet<Long> statusSet;
-
 	private final ClientConfiguration configuration;
+
+	private TreeSet<Long> statusSet;
 
 	private ImageCacher imageCacher;
 
@@ -140,20 +140,22 @@ public class RootFilter implements MessageFilter {
 
 	@Override
 	public Status onStatus(Status originalStatus) {
+		Status status;
 		synchronized (statusSet) {
 			if (statusSet.contains(originalStatus.getId())) {
 				return null;
 			} else {
-				Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
-				if ((status instanceof TwitterStatus ? ((TwitterStatus) status).isLoadedInitialization() == false
-						: true) && configuration.isMentioned(status.getUserMentionEntities())) {
-					configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
-							imageCacher.getImageFile(originalStatus.getUser()));
-				}
+				status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 				statusSet.add(originalStatus.getId());
-				return originalStatus;
 			}
 		}
+
+		if ((status instanceof TwitterStatus ? ((TwitterStatus) status).isLoadedInitialization() == false
+				: true) && configuration.isMentioned(status.getUserMentionEntities())) {
+			configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
+					imageCacher.getImageFile(originalStatus.getUser()));
+		}
+		return originalStatus;
 	}
 
 	@Override
