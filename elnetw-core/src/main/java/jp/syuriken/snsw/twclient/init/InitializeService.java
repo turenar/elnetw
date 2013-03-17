@@ -41,6 +41,15 @@ public abstract class InitializeService {
 	 */
 	public abstract InitializeService enterPhase(String phase) throws InitializeException;
 
+	/**
+	 * get initializer info of specified name. if not registered, return null
+	 *
+	 * @param name initializer's name
+	 * @return if initializer which has specified name is registered, return {@link InitializerInfo} of that.
+	 *         otherwise, return null
+	 */
+	public abstract InitializerInfo getInfo(String name);
+
 	/** check initializer which has [name] is initialized */
 	public abstract boolean isInitialized(String name);
 

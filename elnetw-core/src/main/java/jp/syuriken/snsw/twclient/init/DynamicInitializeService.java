@@ -240,7 +240,7 @@ public class DynamicInitializeService extends InitializeService {
 					throw new InitializeException(this, "Registered exception has non-usable initializer");
 				}
 			} catch (IllegalAccessException e) {
-				throw new InitializeException(this, e, "not accessible");
+				throw new InitializeException(this, e, "not accessible for " + initializer.getName());
 			} catch (InvocationTargetException e) {
 				throw new InitializeException(this, e.getCause(), null);
 			}
@@ -311,6 +311,11 @@ public class DynamicInitializeService extends InitializeService {
 		resolve("phase-" + phase);
 		runResolvedInitializer();
 		return this;
+	}
+
+	@Override
+	public InitializerInfo getInfo(String name) {
+		return initializerInfoMap.get(name);
 	}
 
 	@Override
