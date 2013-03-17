@@ -179,7 +179,10 @@ public abstract class DefaultClientTab implements ClientTab {
 					if (statusData.tag instanceof Status) {
 						Status tag = (Status) statusData.tag;
 						inReplyToStack.push(selectingPost);
-						statusMap.get(tag.getInReplyToStatusId()).requestFocusInWindow();
+						StatusPanel statusPanel = statusMap.get(tag.getInReplyToStatusId());
+						if (statusPanel != null) {
+							statusPanel.requestFocusInWindow();
+						}
 					}
 				}
 			} else if (Utility.equalString(name, REQUEST_FOCUS_BACK_REPLIED_BY)) {
