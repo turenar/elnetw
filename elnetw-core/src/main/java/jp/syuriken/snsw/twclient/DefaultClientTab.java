@@ -85,6 +85,19 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 public abstract class DefaultClientTab implements ClientTab {
 
 	/**
+	 * Entityの開始位置を比較する
+	 */
+	private static final class EntityComparator implements Comparator<Object>, Serializable {
+
+		private static final long serialVersionUID = 8166780199866981253L;
+
+		@Override
+		public int compare(Object o1, Object o2) {
+			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
+		}
+	}
+
+	/**
 	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
@@ -386,20 +399,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
-	 * Entityの開始位置を比較する
-	 */
-	private static final class EntityComparator implements Comparator<Object>, Serializable {
-
-		private static final long serialVersionUID = 8166780199866981253L;
-
-
-		@Override
-		public int compare(Object o1, Object o2) {
-			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
-		}
-	}
-
-	/**
 	 * ポストリストリスナ。
 	 *
 	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
@@ -422,6 +421,7 @@ public abstract class DefaultClientTab implements ClientTab {
 
 		@Override
 		public void keyPressed(KeyEvent e) {
+			logger.trace("{}", e);
 			frameApi.handleShortcutKey("list", e);
 		}
 
@@ -552,12 +552,8 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	}
 
-
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
-	/** inReplyTo呼び出しのスタック */
-	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
@@ -595,7 +591,6 @@ public abstract class DefaultClientTab implements ClientTab {
 			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
 	}
-
 
 	/**
 	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
@@ -648,12 +643,8 @@ public abstract class DefaultClientTab implements ClientTab {
 		return appendTo;
 	}
 
-
 	/** {@link ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
-
-	/** 現在選択しているポスト */
-	public StatusPanel selectingPost;
 
 	/** SortedPostListPanelインスタンス */
 	protected final SortedPostListPanel sortedPostListPanel;
@@ -663,6 +654,26 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
+
+	/** ポストリストリスナのシングルインスタンス */
+	protected final PostListListener postListListenerSingleton = new PostListListener();
+
+	/*package*/final Logger logger = LoggerFactory.getLogger(getClass());
+
+	/** {@link ClientProperties} */
+	protected final ClientProperties configProperties;
+
+	/**
+	 * 他のタブと区別するためのユニークなID。
+	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
+	 */
+	protected final String uniqId;
+
+	/** inReplyTo呼び出しのスタック */
+	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
+
+	/** 現在選択しているポスト */
+	public StatusPanel selectingPost;
 
 	/** 取得したフォントメトリックス (Default Font) */
 	protected FontMetrics fontMetrics;
@@ -676,9 +687,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
 
-	/** ポストリストリスナのシングルインスタンス */
-	protected final PostListListener postListListenerSingleton = new PostListListener();
-
 	/** <K=ユーザーID, V=ユーザーのツイートなど> */
 	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<String, ArrayList<StatusPanel>>();
 
@@ -687,8 +695,6 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
-
-	/*package*/final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/** UI更新キュー */
 	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
@@ -717,9 +723,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** その他用ボタン */
 	protected JLabel tweetViewOtherButton;
 
-	/** {@link ClientProperties} */
-	protected final ClientProperties configProperties;
-
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
 	 *
@@ -732,12 +735,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * </p>
 	 */
 	protected TabRenderer teeFilter;
-
-	/**
-	 * 他のタブと区別するためのユニークなID。
-	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
-	 */
-	protected final String uniqId;
 
 
 	/**
@@ -929,13 +926,6 @@ public abstract class DefaultClientTab implements ClientTab {
 		return status;
 	}
 
-	@Override
-	public void focusGained() {
-		if (selectingPost != null) {
-			selectingPost.requestFocusInWindow();
-		}
-	}
-
 	/**
 	 * ポストパネルがフォーカスを得た時のハンドラ
 	 *
@@ -1076,6 +1066,13 @@ public abstract class DefaultClientTab implements ClientTab {
 					DO_NOTHING_WHEN_POINTED);
 			frameApi.setTweetViewCreatedBy(((JLabel) statusData.image).getIcon(), statusData.user, null,
 					DO_NOTHING_WHEN_POINTED);
+		}
+	}
+
+	@Override
+	public void focusGained() {
+		if (selectingPost != null) {
+			selectingPost.requestFocusInWindow();
 		}
 	}
 
