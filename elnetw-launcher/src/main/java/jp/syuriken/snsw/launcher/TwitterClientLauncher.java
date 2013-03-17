@@ -4,7 +4,6 @@ import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -133,8 +132,8 @@ public class TwitterClientLauncher {
 		Class<?> clazz;
 		try {
 			clazz = Class.forName("jp.syuriken.snsw.twclient.TwitterClientMain", false, classLoader);
-			Constructor<?> constructor = clazz.getConstructor(String[].class, ClassLoader.class);
-			Object instance = constructor.newInstance(args, classLoader);
+			Method getInstance = clazz.getMethod("getInstance", String[].class, ClassLoader.class);
+			Object instance = getInstance.invoke(null, args, classLoader);
 			Method method = clazz.getMethod("run");
 			Integer retCode = (Integer) method.invoke(instance);
 			return retCode;

@@ -83,8 +83,6 @@ public class ClientConfiguration {
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<String, Constructor<? extends ClientTab>>();
 
-	private static ClientConfiguration instance;
-
 	/**
 	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
 	 *
@@ -172,11 +170,9 @@ public class ClientConfiguration {
 
 	private volatile CacheManager cacheManager;
 
-	private Object lockObject = new Object();
-
 	private List<String> args;
 
-	private transient Timer timer = new Timer("timer");
+	private transient Timer timer;
 
 	private ClassLoader extraClassLoader;
 
@@ -194,7 +190,7 @@ public class ClientConfiguration {
 	 * @param rootFilter フィルター
 	 */
 	public void addFilter(MessageFilter rootFilter) {
-		rootFilterService.addFilter(rootFilter);
+		getRootFilterService().addFilter(rootFilter);
 	}
 
 	/**
@@ -284,13 +280,6 @@ public class ClientConfiguration {
 	 * @return アカウントID (ユニーク)
 	 */
 	public String getAccountIdForRead() {
-		if (accountIdForRead == null) {
-			synchronized (lockObject) {
-				if (accountIdForRead == null) {
-					accountIdForRead = getDefaultAccountId();
-				}
-			}
-		}
 		return accountIdForRead;
 	}
 
@@ -300,13 +289,6 @@ public class ClientConfiguration {
 	 * @return アカウントID (ユニーク)
 	 */
 	public String getAccountIdForWrite() {
-		if (accountIdForWrite == null) {
-			synchronized (lockObject) {
-				if (accountIdForWrite == null) {
-					accountIdForWrite = getAccountIdForRead();
-				}
-			}
-		}
 		return accountIdForWrite;
 	}
 
@@ -325,13 +307,6 @@ public class ClientConfiguration {
 	 * @return キャッシュマネージャ
 	 */
 	public CacheManager getCacheManager() {
-		if (cacheManager == null) {
-			synchronized (lockObject) {
-				if (cacheManager == null) {
-					cacheManager = new CacheManager(this);
-				}
-			}
-		}
 		return cacheManager;
 	}
 
@@ -469,13 +444,6 @@ public class ClientConfiguration {
 	 * @return イメージキャッシャ
 	 */
 	public ImageCacher getImageCacher() {
-		if (imageCacher == null) {
-			synchronized (lockObject) {
-				if (imageCacher == null) {
-					imageCacher = new ImageCacher(this);
-				}
-			}
-		}
 		return imageCacher;
 	}
 
@@ -503,13 +471,6 @@ public class ClientConfiguration {
 	 * @return フィルター
 	 */
 	public FilterService getRootFilterService() {
-		if (rootFilterService == null) {
-			synchronized (lockObject) {
-				if (rootFilterService == null) {
-					rootFilterService = new FilterService(this);
-				}
-			}
-		}
 		return rootFilterService;
 	}
 
@@ -771,10 +732,12 @@ public class ClientConfiguration {
 		if (checkValidAccountId(accountId) == false) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
-		String old = getAccountIdForWrite();
-		if (old.equals(accountId) == false) {
+		String old = accountIdForRead;
+		if (old == null || old.equals(accountId) == false) {
 			accountIdForRead = accountId;
-			getRootFilterService().onChangeAccount(false);
+			if (rootFilterService != null) {
+				rootFilterService.onChangeAccount(false);
+			}
 		}
 		return old;
 	}
@@ -789,12 +752,18 @@ public class ClientConfiguration {
 		if (checkValidAccountId(accountId) == false) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
-		String old = getAccountIdForWrite();
-		if (old.equals(accountId) == false) {
+		String old = accountIdForWrite;
+		if (old == null || old.equals(accountId) == false) {
 			accountIdForWrite = accountId;
-			getRootFilterService().onChangeAccount(true);
+			if (rootFilterService != null) {
+				rootFilterService.onChangeAccount(true);
+			}
 		}
 		return old;
+	}
+
+	/*package*/void setCacheManager(CacheManager cacheManager) {
+		this.cacheManager = cacheManager;
 	}
 
 	/**
@@ -832,6 +801,10 @@ public class ClientConfiguration {
 		this.frameApi = frameApi;
 	}
 
+	/*package*/void setImageCacher(ImageCacher imageCacher) {
+		this.imageCacher = imageCacher;
+	}
+
 	/**
 	 * 初期化中/初期TLロード中であるかを設定する
 	 *
@@ -849,6 +822,10 @@ public class ClientConfiguration {
 		portabledConfiguration = portable;
 	}
 
+	/*package*/ void setRootFilterService(FilterService service) {
+		rootFilterService = service;
+	}
+
 	/**
 	 * シャットダウンフェーズであるかどうかを設定する
 	 *
@@ -856,6 +833,10 @@ public class ClientConfiguration {
 	 */
 	public void setShutdownPhase(boolean isShutdownPhase) {
 		this.isShutdownPhase = isShutdownPhase;
+	}
+
+	/*package*/ void setTimer(Timer timer) {
+		this.timer = timer;
 	}
 
 	/**

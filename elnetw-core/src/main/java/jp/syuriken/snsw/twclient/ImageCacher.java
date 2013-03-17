@@ -176,8 +176,6 @@ public class ImageCacher {
 
 	private int flushThreshold;
 
-	private ClientFrameApi frameApi;
-
 	private int flushResetInterval;
 
 	/**
@@ -186,7 +184,6 @@ public class ImageCacher {
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		frameApi = configuration.getFrameApi();
 		cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
 		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
 		flushResetInterval = configuration.getConfigProperties().getInteger("core.cache.icon.flush_reset_interval");

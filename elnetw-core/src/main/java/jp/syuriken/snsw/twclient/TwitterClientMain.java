@@ -8,9 +8,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.text.MessageFormat;
-import java.util.concurrent.CancellationException;
+import java.util.ArrayList;
+import java.util.Timer;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -25,6 +26,12 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.init.DynamicInitializeService;
+import jp.syuriken.snsw.twclient.init.InitCondition;
+import jp.syuriken.snsw.twclient.init.InitializeException;
+import jp.syuriken.snsw.twclient.init.InitializeService;
+import jp.syuriken.snsw.twclient.init.Initializer;
+import jp.syuriken.snsw.twclient.init.InitializerInstance;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
@@ -42,7 +49,18 @@ import twitter4j.auth.AccessToken;
 public class TwitterClientMain {
 
 	/** 設定ファイル名 */
-	private static final String CONFIG_FILE_NAME = "elnetw.cfg";
+	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
+
+	@InitializerInstance
+	private static TwitterClientMain SINGLETON;
+
+	public static TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
+		if (SINGLETON != null) {
+			throw new IllegalStateException("another instance always seems to be running");
+		}
+		SINGLETON = new TwitterClientMain(args, classLoader);
+		return SINGLETON;
+	}
 
 	/** 設定 */
 	protected final ClientConfiguration configuration;
@@ -55,16 +73,24 @@ public class TwitterClientMain {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private Getopt getopt;
+	protected Getopt getopt;
 
-	private JobWorkerThread jobWorkerThread;
+	protected JobWorkerThread jobWorkerThread;
+
+	protected boolean debugMode;
+
+	protected boolean portable;
+
+	protected TwitterDataFetchScheduler fetchScheduler;
+
+	protected TwitterClientFrame frame;
 
 	/**
 	 * インスタンスを生成する。
 	 *
 	 * @param args コマンドラインオプション
 	 */
-	public TwitterClientMain(String[] args, ClassLoader classLoader) {
+	private TwitterClientMain(String[] args, ClassLoader classLoader) {
 		configuration = new ClientConfiguration();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
@@ -80,69 +106,36 @@ public class TwitterClientMain {
 		}
 	}
 
-	/**
-	 * 起動する。
-	 *
-	 * @return 終了値
-	 */
-	public int run() {
-		Getopt getopt = this.getopt;
-		int c;
-		boolean portable = Boolean.getBoolean("config.portable");
-		boolean debugMode = false;
-		while ((c = getopt.getopt()) != -1) {
-			switch (c) {
-				case 'd':
-					portable = true;
-					debugMode = true;
-					break;
-				case 'L':
-				case 'D':
-					break; // do nothing
-				default:
-					break;
-			}
-		}
-
-		if (debugMode) {
-			setDebugLogger();
-		}
-
-		configuration.setPortabledConfiguration(portable);
-		File configRootDir = new File(configuration.getConfigRootDir());
-		if (portable == false && configRootDir.exists() == false) {
-			if (configRootDir.mkdirs()) {
-				setConfigRootDirPermission(configRootDir);
-			} else {
-				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
-			}
-		}
-
-		setTrayIcon();
-		setDefaultConfigProperties();
-		setConfigProperties();
-		setMessageNotifiers();
-
-		try {
-			tryGetOAuthAccessToken();
-		} catch (CancellationException e) {
-			return 0; // user operation
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-			return 1;
-		}
-
-		startJobWorkerThread();
-
-		final TwitterClientFrame frame = new TwitterClientFrame(configuration, threadHolder);
-		configuration.addFilter(new UserFilter(configuration));
-		configuration.addFilter(new RootFilter(configuration));
-
+	@Initializer(name = "internal-addClientTabConstructor", phase = "init")
+	public void addClientTabConstructor() {
 		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
 		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
 		ClientConfiguration.putClientTabConstructor("directmessage", DirectMessageViewTab.class);
 		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
+	}
 
+	@Initializer(name = "cacheManager", dependencies = {"config", "twitterAccountId"}, phase = "init")
+	public void initCacheManager() {
+		configuration.setCacheManager(new CacheManager(configuration));
+	}
+
+	@Initializer(name = "rootFilterService", dependencies = "cacheManager", phase = "init")
+	public void initFilterDispatcherService() {
+		configuration.setRootFilterService(new FilterService(configuration));
+	}
+
+	@Initializer(name = "init-gui",dependencies = {"cacheManager","twitterAccountId"},phase = "init")
+	public void initFrame() {
+		frame = new TwitterClientFrame(configuration, threadHolder);
+	}
+
+	@Initializer(name = "imageCacher", dependencies = "config", phase = "init")
+	public void initImageCacher() {
+		configuration.setImageCacher(new ImageCacher(configuration));
+	}
+
+	@Initializer(name = "recover-clientTabs", phase = "prestart")
+	public void recoverClientTabs() {
 		String tabsList = configProperties.getProperty("gui.tabs.list");
 		if (tabsList == null) {
 			try {
@@ -179,17 +172,72 @@ public class TwitterClientMain {
 				}
 			}
 		}
+	}
 
-		TwitterDataFetchScheduler fetchScheduler = new TwitterDataFetchScheduler(configuration);
-		configuration.setFetchScheduler(fetchScheduler);
-		configuration.setInitializing(false);
-		java.awt.EventQueue.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				frame.start();
+	/**
+	 * 起動する。
+	 *
+	 * @return 終了値
+	 */
+	public int run() {
+		Getopt getopt = this.getopt;
+		int c;
+		portable = Boolean.getBoolean("config.portable");
+		debugMode = false;
+		while ((c = getopt.getopt()) != -1) {
+			switch (c) {
+				case 'd':
+					portable = true;
+					debugMode = true;
+					break;
+				case 'L':
+				case 'D':
+					break; // do nothing
+				default:
+					break;
 			}
-		});
+		}
+
+		setDebugLogger();
+
+		ArrayList<String> requirement = new ArrayList<String>();
+		Method[] methods = TwitterClientMain.class.getMethods();
+		for (Method method : methods) {
+			Initializer annotation = method.getAnnotation(Initializer.class);
+			if (annotation != null) {
+				requirement.add(annotation.name());
+			}
+		}
+
+		InitializeService initializeService = DynamicInitializeService.use(configuration);
+		initializeService
+				.registerPhase("earlyinit") //
+				.registerPhase("preinit") //
+				.registerPhase("init") //
+				.registerPhase("postinit") //
+				.registerPhase("prestart") //
+				.registerPhase("start") //
+				.register(TwitterClientMain.class);
+
+		try {
+			initializeService
+					.enterPhase("earlyinit") //
+					.enterPhase("preinit") //
+					.enterPhase("init") //
+					.enterPhase("postinit") //
+					.enterPhase("prestart") //
+					.enterPhase("start");
+		} catch (InitializeException e) {
+			logger.error("failed initialization", e);
+			return e.getExitCode();
+		}
+		logger.info("Initialized");
+
+		for (String name : requirement) {
+			if (!initializeService.isInitialized(name)) {
+				logger.error("{} is not initialized!!!", name);
+			}
+		}
 
 		synchronized (threadHolder) {
 			while (configuration.isShutdownPhase() == false) {
@@ -201,16 +249,26 @@ public class TwitterClientMain {
 				}
 			}
 		}
-		logger.info("Exiting elnetw...");
-		frame.cleanUp();
-		configuration.getTimer().cancel();
-		fetchScheduler.cleanUp();
-		jobWorkerThread.cleanUp();
+
+		try {
+			initializeService.uninit();
+		} catch (InitializeException e) {
+			logger.error("failed quitting", e);
+			return e.getExitCode();
+		}
 
 		return 0;
 	}
 
-	private void setConfigProperties() {
+	@Initializer(name = "twitterAccountId", dependencies = "config", phase = "earlyinit")
+	public void setAccountId() {
+		String defaultAccountId = configuration.getDefaultAccountId();
+		configuration.setAccountIdForRead(defaultAccountId);
+		configuration.setAccountIdForWrite(defaultAccountId);
+	}
+
+	@Initializer(name = "config", dependencies = "default-config", phase = "earlyinit")
+	public void setConfigProperties() {
 		configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
 		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
 		configProperties.setStoreFile(configFile);
@@ -227,7 +285,7 @@ public class TwitterClientMain {
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-	private void setConfigRootDirPermission(File configRootDir) {
+	public void setConfigRootDirPermission(File configRootDir) {
 		configRootDir.setReadable(false, false);
 		configRootDir.setWritable(false, false);
 		configRootDir.setExecutable(false, false);
@@ -237,23 +295,26 @@ public class TwitterClientMain {
 	}
 
 	private void setDebugLogger() {
-		URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
-		if (resource == null) {
-			logger.error("resource /logback-debug.xml is not found");
-		} else {
-			LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-			try {
-				JoranConfigurator configurator = new JoranConfigurator();
-				configurator.setContext(context);
-				context.reset();
-				configurator.doConfigure(resource);
-			} catch (JoranException je) {
-				// StatusPrinter will handle this
+		if (debugMode) {
+			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
+			if (resource == null) {
+				logger.error("resource /logback-debug.xml is not found");
+			} else {
+				LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+				try {
+					JoranConfigurator configurator = new JoranConfigurator();
+					configurator.setContext(context);
+					context.reset();
+					configurator.doConfigure(resource);
+				} catch (JoranException je) {
+					// StatusPrinter will handle this
+				}
 			}
 		}
 	}
 
-	private void setDefaultConfigProperties() {
+	@Initializer(name = "default-config", dependencies = "internal-portableConfig", phase = "earlyinit")
+	public void setDefaultConfigProperties() {
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
 			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
@@ -269,13 +330,59 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	private void setMessageNotifiers() {
+	@Initializer(name = "set-filter", dependencies = {"config", "rootFilterService"}, phase = "init")
+	public void setDefaultFilter() {
+		configuration.addFilter(new UserFilter(configuration));
+		configuration.addFilter(new RootFilter(configuration));
+	}
+
+	@Initializer(name = "fetch-sched", dependencies = "recover-clientTabs", phase = "prestart")
+	public void setFetchScheduler(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			fetchScheduler = new TwitterDataFetchScheduler(configuration);
+			configuration.setFetchScheduler(fetchScheduler);
+		} else {
+			fetchScheduler.cleanUp();
+		}
+	}
+
+	@Initializer(name = "finish-initPhase", phase = "start")
+	public void setInitializePhaseFinished() {
+		configuration.setInitializing(false);
+	}
+
+	@Initializer(name = "internal-messageNotifiers", phase = "prestart")
+	public void setMessageNotifiersCandidate() {
 		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
 		Utility.addMessageNotifier(1000, NotifySendMessageNotifier.class);
 		Utility.addMessageNotifier(0, TrayIconMessageNotifier.class);
 	}
 
-	private void setTrayIcon() {
+	@Initializer(name = "internal-portableConfig", phase = "earlyinit")
+	public void setPortabledConfigDir() {
+		configuration.setPortabledConfiguration(portable);
+
+		File configRootDir = new File(configuration.getConfigRootDir());
+		if (portable == false && configRootDir.exists() == false) {
+			if (configRootDir.mkdirs()) {
+				setConfigRootDirPermission(configRootDir);
+			} else {
+				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
+			}
+		}
+	}
+
+	@Initializer(name = "timer", phase = "earlyinit")
+	public void setTimer(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			configuration.setTimer(new Timer("timer"));
+		} else {
+			configuration.getTimer().cancel();
+		}
+	}
+
+	@Initializer(name = "tray", phase = "prestart")
+	public void setTrayIcon() {
 		try {
 			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
 					"jp/syuriken/snsw/twclient/img/icon16.png")), ClientConfiguration.APPLICATION_NAME));
@@ -284,9 +391,30 @@ public class TwitterClientMain {
 		}
 	}
 
-	private void startJobWorkerThread() {
-		jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
-		jobWorkerThread.start();
+	@Initializer(name = "show-gui", phase = "start")
+	public void showFrame(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			java.awt.EventQueue.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					frame.start();
+				}
+			});
+		} else {
+			frame.cleanUp();
+			logger.info("Exiting elnetw...");
+		}
+	}
+
+	@Initializer(name = "jobqueue", dependencies = "config", phase = "preinit")
+	public void startJobWorkerThread(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
+			jobWorkerThread.start();
+		} else {
+			jobWorkerThread.cleanUp();
+		}
 	}
 
 	/**
@@ -294,9 +422,14 @@ public class TwitterClientMain {
 	 *
 	 * @return アクセストークン
 	 */
-	private boolean tryGetOAuthAccessToken() {
+	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
+	public void tryGetOAuthAccessToken(InitCondition cond) {
+		if (cond.isInitializingPhase() == false) {
+			return;
+		}
+
 		if (configuration.getAccountList().length != 0) {
-			return false;
+			return;
 		}
 
 		Twitter twitter;
@@ -308,14 +441,16 @@ public class TwitterClientMain {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
-						throw new CancellationException();
+						cond.setFailStatus("canceled", -1);
+						return;
 					}
 				} else {
 					accessToken = twitter.getOAuthAccessToken();
 					break;
 				}
 			} catch (TwitterException e) {
-				throw new RuntimeException(e);
+				cond.setFailStatus("error", 1);
+				return;
 			}
 		} while (true);
 
@@ -332,6 +467,6 @@ public class TwitterClientMain {
 		configProperties.setProperty("twitter.oauth.access_token.default", userId);
 		configuration.storeAccessToken(accessToken);
 		configProperties.store();
-		return true;
+		return;
 	}
 }
