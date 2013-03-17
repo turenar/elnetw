@@ -18,20 +18,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -64,25 +56,7 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
-import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
-import jp.syuriken.snsw.twclient.config.IntegerConfigType;
-import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
-import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
-import jp.syuriken.snsw.twclient.handler.HashtagActionHandler;
-import jp.syuriken.snsw.twclient.handler.ListActionHandler;
-import jp.syuriken.snsw.twclient.handler.MuteActionHandler;
-import jp.syuriken.snsw.twclient.handler.PostActionHandler;
-import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
-import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
-import jp.syuriken.snsw.twclient.handler.ReplyActionHandler;
-import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
-import jp.syuriken.snsw.twclient.handler.SearchActionHandler;
-import jp.syuriken.snsw.twclient.handler.TweetActionHandler;
-import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
-import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
-import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import org.slf4j.Logger;
@@ -640,8 +614,6 @@ import static java.lang.Math.max;
 	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
 
-	/*package*/transient Hashtable<String, ActionHandler> actionHandlerTable;
-
 	/*package*/ Status inReplyToStatus = null;
 
 	/*package*/JPanel editPanel;
@@ -719,14 +691,11 @@ import static java.lang.Math.max;
 		logger.info("initializing frame");
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
-		initConfigurator();
 
 		rootFilterService = configuration.getRootFilterService();
 		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
-		actionHandlerTable = new Hashtable<String, ActionHandler>();
 		initActionHandlerTable();
-		initShortcutKey();
 
 		getLoginUser();
 		initComponents();
@@ -736,9 +705,10 @@ import static java.lang.Math.max;
 		logger.info("frame initialized");
 	}
 
+	@Deprecated
 	@Override
 	public ActionHandler addActionHandler(String name, ActionHandler handler) {
-		return actionHandlerTable.put(name, handler);
+		return configuration.addActionHandler(name, handler);
 	}
 
 	@Override
@@ -899,18 +869,10 @@ import static java.lang.Math.max;
 		}
 	}
 
-	/**
-	 * アクションハンドラを取得する
-	 *
-	 * @param name アクション名。!を含んでいても可
-	 * @return アクションハンドラ
-	 */
+	@Deprecated
 	@Override
 	public ActionHandler getActionHandler(String name) {
-		int indexOf = name.indexOf('!');
-		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
-		ActionHandler actionHandler = actionHandlerTable.get(commandName);
-		return actionHandler;
+		return configuration.getActionHandler(name);
 	}
 
 	@Override
@@ -1542,22 +1504,7 @@ import static java.lang.Math.max;
 	 * アクションハンドラーテーブルを初期化する。
 	 */
 	private void initActionHandlerTable() {
-		addActionHandler("reply", new ReplyActionHandler());
-		addActionHandler("qt", new QuoteTweetActionHandler());
-		addActionHandler("unofficial_rt", new UnofficialRetweetActionHandler());
-		addActionHandler("rt", new RetweetActionHandler());
-		addActionHandler("fav", new FavoriteActionHandler());
-		addActionHandler("remove", new RemoveTweetActionHandler());
-		addActionHandler("userinfo", new UserInfoViewActionHandler());
-		addActionHandler("url", new UrlActionHandler());
-		addActionHandler("clear", new ClearPostBoxActionHandler());
-		addActionHandler("post", new PostActionHandler());
 		addActionHandler("core", new CoreFrameActionHandler());
-		addActionHandler("mute", new MuteActionHandler());
-		addActionHandler("tweet", new TweetActionHandler());
-		addActionHandler("list", new ListActionHandler());
-		addActionHandler("hashtag", new HashtagActionHandler());
-		addActionHandler("search", new SearchActionHandler());
 		addActionHandler("menu_quit", new MenuQuitActionHandler());
 		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
@@ -1589,77 +1536,6 @@ import static java.lang.Math.max;
 		if (size != null) {
 			setSize(size);
 			// setSize(500, 500);
-		}
-	}
-
-	/**
-	 * 設定ウィンドウの初期化
-	 */
-	private void initConfigurator() {
-		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
-		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
-			.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
-			.getParentGroup().getSubgroup("取得数 (ツイート数)")
-			.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
-			.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
-		configBuilder.getGroup("UI")
-			.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
-			.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
-		configBuilder
-			.getGroup("core")
-			.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒", new IntegerConfigType(1, 5, 1000))
-			.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
-					new BooleanConfigType());
-		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
-				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", this));
-	}
-
-	/**
-	 * ショートカットキーテーブルを初期化する。
-	 */
-	protected void initShortcutKey() {
-		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
-		Properties shortcutkeyProperties = new Properties();
-		if (parentConfigName.trim().isEmpty() == false) {
-			try {
-				shortcutkeyProperties.load(getClass().getClassLoader().getResourceAsStream(
-						"jp/syuriken/snsw/twclient/shortcutkey/" + parentConfigName + ".properties"));
-			} catch (IOException e) {
-				logger.error("ショートカットキーの読み込みに失敗", e);
-			}
-		}
-		File file = new File(configuration.getConfigRootDir(), "shortcutkey.cfg");
-		if (file.exists()) {
-			InputStream inputStream = null;
-			Reader reader = null;
-			try {
-				inputStream = new FileInputStream(file);
-				reader = new InputStreamReader(inputStream, "UTF-8");
-				shortcutkeyProperties.load(reader);
-			} catch (FileNotFoundException e) {
-				logger.error("ショートカットキーファイルのオープンに失敗", e);
-			} catch (IOException e) {
-				logger.error("ショートカットキーの読み込みに失敗", e);
-			} finally {
-				try {
-					if (reader != null) {
-						reader.close();
-					}
-				} catch (IOException e) {
-					logger.warn("shortcutkey.cfgのクローズに失敗", e);
-				}
-				try {
-					if (inputStream != null) {
-						inputStream.close();
-					}
-				} catch (IOException e) {
-					logger.warn("shortcutkey.cfgのクローズに失敗", e);
-				}
-			}
-		}
-		for (Object obj : shortcutkeyProperties.keySet()) {
-			String key = (String) obj;
-			addShortcutKey(key, shortcutkeyProperties.getProperty(key));
 		}
 	}
 

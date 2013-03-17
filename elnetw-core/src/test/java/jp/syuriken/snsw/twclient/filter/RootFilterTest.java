@@ -102,7 +102,7 @@ public class RootFilterTest {
 }
 
 class TestFrameApi implements ClientFrameApi {
-
+	@Deprecated
 	@Override
 	public ActionHandler addActionHandler(String name, ActionHandler handler) {
 		return null;
@@ -139,6 +139,7 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
+	@Deprecated
 	@Override
 	public ActionHandler getActionHandler(String actionCommand) {
 		return null;

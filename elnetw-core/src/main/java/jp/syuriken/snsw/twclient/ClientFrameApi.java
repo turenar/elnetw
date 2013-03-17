@@ -36,7 +36,9 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @param name ハンドラ名
 	 * @param handler ハンドラ
 	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
+	 * @deprecated use {@link ClientConfiguration#addActionHandler(String, ActionHandler)}
 	 */
+	@Deprecated
 	ActionHandler addActionHandler(String name, ActionHandler handler);
 
 	/**
@@ -99,7 +101,9 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *
 	 * @param actionCommand アクションコマンド名
 	 * @return アクションハンドラ
+	 * @deprecated use {@link ClientConfiguration#getActionHandler(String)}
 	 */
+	@Deprecated
 	ActionHandler getActionHandler(String actionCommand);
 
 	/**

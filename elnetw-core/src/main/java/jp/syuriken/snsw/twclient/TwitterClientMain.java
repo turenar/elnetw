@@ -3,14 +3,17 @@ package jp.syuriken.snsw.twclient;
 import java.awt.TrayIcon;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Timer;
 
 import javax.imageio.ImageIO;
@@ -22,9 +25,28 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
+import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
+import jp.syuriken.snsw.twclient.config.BooleanConfigType;
+import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
+import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
+import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
+import jp.syuriken.snsw.twclient.handler.HashtagActionHandler;
+import jp.syuriken.snsw.twclient.handler.ListActionHandler;
+import jp.syuriken.snsw.twclient.handler.MuteActionHandler;
+import jp.syuriken.snsw.twclient.handler.PostActionHandler;
+import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.ReplyActionHandler;
+import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.SearchActionHandler;
+import jp.syuriken.snsw.twclient.handler.TweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
+import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.init.DynamicInitializeService;
 import jp.syuriken.snsw.twclient.init.InitCondition;
@@ -114,9 +136,54 @@ public class TwitterClientMain {
 		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
 	}
 
+	@Initializer(name = "actionHandler", phase = "init")
+	public void initActionHandlerTable() {
+		configuration.addActionHandler("reply", new ReplyActionHandler());
+		configuration.addActionHandler("qt", new QuoteTweetActionHandler());
+		configuration.addActionHandler("unofficial_rt", new UnofficialRetweetActionHandler());
+		configuration.addActionHandler("rt", new RetweetActionHandler());
+		configuration.addActionHandler("fav", new FavoriteActionHandler());
+		configuration.addActionHandler("remove", new RemoveTweetActionHandler());
+		configuration.addActionHandler("userinfo", new UserInfoViewActionHandler());
+		configuration.addActionHandler("url", new UrlActionHandler());
+		configuration.addActionHandler("clear", new ClearPostBoxActionHandler());
+		configuration.addActionHandler("post", new PostActionHandler());
+		configuration.addActionHandler("mute", new MuteActionHandler());
+		configuration.addActionHandler("tweet", new TweetActionHandler());
+		configuration.addActionHandler("list", new ListActionHandler());
+		configuration.addActionHandler("hashtag", new HashtagActionHandler());
+		configuration.addActionHandler("search", new SearchActionHandler());
+	}
+
 	@Initializer(name = "cacheManager", dependencies = {"config", "twitterAccountId"}, phase = "init")
 	public void initCacheManager() {
 		configuration.setCacheManager(new CacheManager(configuration));
+	}
+
+	@Initializer(name = "configBuilder", phase = "preinit")
+	public void initConfigBuilder() {
+		configuration.setConfigBuilder(new ConfigFrameBuilder(configuration));
+	}
+
+	@Initializer(name = "configurator", dependencies = {"init-gui", "configBuilder"}, phase = "init")
+	public void initConfigurator() {
+		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
+		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
+				.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
+				.getParentGroup().getSubgroup("取得数 (ツイート数)")
+				.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
+				.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
+		configBuilder.getGroup("UI")
+				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
+				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
+		configBuilder
+				.getGroup("core")
+				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
+						new IntegerConfigType(1, 5, 1000))
+				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
+						new BooleanConfigType());
+		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
+				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
 	}
 
 	@Initializer(name = "rootFilterService", dependencies = "cacheManager", phase = "init")
@@ -124,7 +191,7 @@ public class TwitterClientMain {
 		configuration.setRootFilterService(new FilterService(configuration));
 	}
 
-	@Initializer(name = "init-gui",dependencies = {"cacheManager","twitterAccountId"},phase = "init")
+	@Initializer(name = "init-gui", dependencies = {"cacheManager", "twitterAccountId"}, phase = "init")
 	public void initFrame() {
 		frame = new TwitterClientFrame(configuration, threadHolder);
 	}
@@ -132,6 +199,54 @@ public class TwitterClientMain {
 	@Initializer(name = "imageCacher", dependencies = "config", phase = "init")
 	public void initImageCacher() {
 		configuration.setImageCacher(new ImageCacher(configuration));
+	}
+
+	/** ショートカットキーテーブルを初期化する。 */
+	@Initializer(name = "shortcutKey", dependencies = "init-gui", phase = "init")
+	public void initShortcutKey() {
+		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
+		Properties shortcutkeyProperties = new Properties();
+		if (parentConfigName.trim().isEmpty() == false) {
+			try {
+				shortcutkeyProperties.load(TwitterClientMain.class.getResourceAsStream(
+						"shortcutkey/" + parentConfigName + ".properties"));
+			} catch (IOException e) {
+				logger.error("ショートカットキーの読み込みに失敗", e);
+			}
+		}
+		File file = new File(configuration.getConfigRootDir(), "shortcutkey.cfg");
+		if (file.exists()) {
+			InputStream inputStream = null;
+			Reader reader = null;
+			try {
+				inputStream = new FileInputStream(file);
+				reader = new InputStreamReader(inputStream, "UTF-8");
+				shortcutkeyProperties.load(reader);
+			} catch (FileNotFoundException e) {
+				logger.error("ショートカットキーファイルのオープンに失敗", e);
+			} catch (IOException e) {
+				logger.error("ショートカットキーの読み込みに失敗", e);
+			} finally {
+				try {
+					if (reader != null) {
+						reader.close();
+					}
+				} catch (IOException e) {
+					logger.warn("shortcutkey.cfgのクローズに失敗", e);
+				}
+				try {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				} catch (IOException e) {
+					logger.warn("shortcutkey.cfgのクローズに失敗", e);
+				}
+			}
+		}
+		for (Object obj : shortcutkeyProperties.keySet()) {
+			String key = (String) obj;
+			frame.addShortcutKey(key, shortcutkeyProperties.getProperty(key));
+		}
 	}
 
 	@Initializer(name = "recover-clientTabs", phase = "prestart")
@@ -235,7 +350,8 @@ public class TwitterClientMain {
 
 		for (String name : requirement) {
 			if (!initializeService.isInitialized(name)) {
-				logger.error("{} is not initialized!!!", name);
+				logger.error("{} is not initialized!!! not resolved dependencies:{}", name,
+						initializeService.getInfo(name).getRemainDependencies());
 			}
 		}
 

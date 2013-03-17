@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,6 +141,8 @@ public class ClientConfiguration {
 
 	private final transient JobQueue jobQueue = new JobQueue();
 
+	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
+
 	/*package*/ ClientProperties configProperties;
 
 	/*package*/ ClientProperties configDefaultProperties;
@@ -181,7 +184,17 @@ public class ClientConfiguration {
 	 *
 	 */
 	protected ClientConfiguration() {
-		configBuilder = new ConfigFrameBuilder(this);
+	}
+
+	/**
+	 * アクションハンドラを追加する
+	 *
+	 * @param name ハンドラ名
+	 * @param handler ハンドラ
+	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
+	 */
+	public ActionHandler addActionHandler(String name, ActionHandler handler) {
+		return actionHandlerTable.put(name, handler);
 	}
 
 	/**
@@ -299,6 +312,19 @@ public class ClientConfiguration {
 	 */
 	public String[] getAccountList() {
 		return configProperties.getArray(PROPERTY_ACCOUNT_LIST);
+	}
+
+	/**
+	 * アクションハンドラを取得する
+	 *
+	 * @param name アクション名。!を含んでいても可
+	 * @return アクションハンドラ
+	 */
+	public ActionHandler getActionHandler(String name) {
+		int indexOf = name.indexOf('!');
+		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
+		ActionHandler actionHandler = actionHandlerTable.get(commandName);
+		return actionHandler;
 	}
 
 	/**
@@ -764,6 +790,10 @@ public class ClientConfiguration {
 
 	/*package*/void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
+	}
+
+	/*package*/ void setConfigBuilder(ConfigFrameBuilder configBuilder) {
+		this.configBuilder = configBuilder;
 	}
 
 	/**
