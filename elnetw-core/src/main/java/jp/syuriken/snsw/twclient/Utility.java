@@ -118,10 +118,10 @@ public class Utility {
 		keyMap.put(KeyEvent.VK_F11, "%F11");
 		keyMap.put(KeyEvent.VK_F12, "%F12");
 
-		privacyEntries = new KVEntry[] {
-			new KVEntry(System.getProperty("user.dir"), "{USER}/"),
-			new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
-			new KVEntry(System.getProperty("user.home"), "{HOME}/"),
+		privacyEntries = new KVEntry[]{
+				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
+				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
+				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
 		};
 	}
 
@@ -135,22 +135,13 @@ public class Utility {
 	};
 
 	/**
-	 * Register keyMap
-	 * @param keyCode KeyEvent.*
-	 * @param keyString "%"+name
-	 * @return old keyString
-	 */
-	public static String registerKeyMap(int keyCode, String keyString) {
-		return keyMap.put(keyCode, keyString);
-	}
-
-	/**
 	 * Register MessageNotifier.
 	 *
 	 * <p>Elnetw select notifier which has higher priority and is usable.</p>
 	 *
 	 * <p>TODO: use Annotation</p>
-	 * @param priority higher priority will be selected.
+	 *
+	 * @param priority             higher priority will be selected.
 	 * @param messageNotifierClass Class object.
 	 *                             messageNotifierClass must implement static method 'checkUsable(ClientConfiguration)'
 	 *                             and constructor '&lt;init&gt;(ClientConfiguration)'
@@ -194,6 +185,7 @@ public class Utility {
 
 	/**
 	 * sourceのalpha値を使用して色のアルファブレンドを行う。返されるalpha値はtargetを継承します。
+	 *
 	 * @param target 下の色
 	 * @param source 上の色
 	 * @return 合成済みColor
@@ -208,9 +200,7 @@ public class Utility {
 		return color;
 	}
 
-	/**
-	 * OSを確定する
-	 */
+	/** OSを確定する */
 	private static void detectOS() {
 		String osName = System.getProperty("os.name");
 		if (osName.startsWith("Mac OS")) {
@@ -260,6 +250,7 @@ public class Utility {
 	 * <p>
 	 * このメソッドで返す文字列は&quot;(\d{2}[smh])?(&lt;small&gt;)? \(yyyy/MM/dd HH:mm:ss\)(&lt;/small&gt;)?&quot;です
 	 * </p>
+	 *
 	 * @param date 日時
 	 * @param html HTMLタグを使用するかどうか。trueの場合、<strong>返す文字列には&lt;html&gt;がつきます</strong>。
 	 * @return 日時を表す文字列
@@ -336,6 +327,17 @@ public class Utility {
 	}
 
 	/**
+	 * Register keyMap
+	 *
+	 * @param keyCode   KeyEvent.*
+	 * @param keyString "%"+name
+	 * @return old keyString
+	 */
+	public static String registerKeyMap(int keyCode, String keyString) {
+		return keyMap.put(keyCode, keyString);
+	}
+
+	/**
 	 * 単にobjを配列として返すだけの
 	 *
 	 * @param obj オブジェクト
@@ -348,8 +350,8 @@ public class Utility {
 	/**
 	 * キーをキー文字列に変換する
 	 *
-	 * @param code キー
-	 * @param modifiers キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
+	 * @param code       キー
+	 * @param modifiers  キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
 	 * @param isReleased keyReleased等のイベントでコールされたかどうか
 	 * @return キー文字列
 	 */
@@ -410,21 +412,21 @@ public class Utility {
 			return detectedBrowser;
 		}
 		String[] browsers = {
-			"xdg-open",
-			"firefox",
-			"chrome",
-			"opera",
-			"konqueror",
-			"epiphany",
-			"mozilla",
+				"xdg-open",
+				"firefox",
+				"chrome",
+				"opera",
+				"konqueror",
+				"epiphany",
+				"mozilla",
 		};
 		String detectedBrowser = null;
 
 		for (String browser : browsers) {
 			try {
-				if (Runtime.getRuntime().exec(new String[] {
-					"which",
-					browser
+				if (Runtime.getRuntime().exec(new String[]{
+						"which",
+						browser
 				}).waitFor() == 0) {
 					detectedBrowser = browser;
 					break;
@@ -444,16 +446,15 @@ public class Utility {
 		return detectedBrowser;
 	}
 
-	/**
-	 * 通知を送信するクラスを設定する
-	 */
+	/** 通知を送信するクラスを設定する */
 	private void detectNotifier() {
 		if (notifySender == null) {
 			synchronized (messageNotifiers) {
 				for (MessageNotifierEntry entry : messageNotifiers) {
 					Class<? extends MessageNotifier> messageNotifierClass = entry.messageNotifierClass;
 					try {
-						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable", ClientConfiguration.class);
+						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable",
+								ClientConfiguration.class);
 						boolean usability = (Boolean) checkUsableMethod.invoke(null, configuration);
 						if (usability) {
 							Constructor<? extends MessageNotifier> constructor = messageNotifierClass.getConstructor(
@@ -482,17 +483,16 @@ public class Utility {
 	 * browserを表示する。
 	 *
 	 * @param url 開くURL
-	 * @return
-	 * 		<dl>
-	 * 		<dt>HeadlessException</dt><dd>GUIを使用できない</dd>
-	 * 		<dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 * 		<dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
-	 * 		<dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
-	 * 		<dt>IOException</dt><dd>IOエラーが発生</dd>
-	 * 		<dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 * 		<dt>SecurityException</dt><dd>セキュリティ例外</dd>
-	 * 		<dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
-	 * 		</dl>
+	 * @return <dl>
+	 *         <dt>HeadlessException</dt><dd>GUIを使用できない</dd>
+	 *         <dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 *         <dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
+	 *         <dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
+	 *         <dt>IOException</dt><dd>IOエラーが発生</dd>
+	 *         <dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 *         <dt>SecurityException</dt><dd>セキュリティ例外</dd>
+	 *         <dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
+	 *         </dl>
 	 */
 	public Throwable openBrowser(String url) {
 		detectOS();
@@ -505,18 +505,18 @@ public class Utility {
 					Class<?> fileMgr = null;
 					fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {
-						String.class
+					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[]{
+							String.class
 					});
-					openURL.invoke(null, new Object[] {
-						url.trim()
+					openURL.invoke(null, new Object[]{
+							url.trim()
 					});
 					break;
 				case OTHER:
 					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[] {
-						browser,
-						url.trim()
+					Runtime.getRuntime().exec(new String[]{
+							browser,
+							url.trim()
 					});
 					break;
 				default:
@@ -531,8 +531,9 @@ public class Utility {
 
 	/**
 	 * 通知を送信する
+	 *
 	 * @param summary 概要
-	 * @param text テキスト
+	 * @param text    テキスト
 	 */
 	public void sendNotify(String summary, String text) {
 		sendNotify(summary, text, null);
@@ -540,8 +541,9 @@ public class Utility {
 
 	/**
 	 * 通知を送信する
-	 * @param summary 概要
-	 * @param text テキスト
+	 *
+	 * @param summary   概要
+	 * @param text      テキスト
 	 * @param imageFile アイコン
 	 */
 	public void sendNotify(String summary, String text, File imageFile) {

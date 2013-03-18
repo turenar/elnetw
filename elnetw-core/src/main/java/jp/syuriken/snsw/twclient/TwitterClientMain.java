@@ -176,37 +176,7 @@ public class TwitterClientMain {
 	public void initConfigBuilder() {
 		configuration.setConfigBuilder(new ConfigFrameBuilder(configuration));
 	}
-@Initializer(name="filter-functions",phase="preinit")
-public void initFilterFunctions() {
-	FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
-	FilterCompiler.	putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
-	FilterCompiler.putFilterFunction("and", AndFilterFunction.getFactory());
-	FilterCompiler.putFilterFunction("not", NotFilterFunction.getFactory());
-	FilterCompiler.putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
-	FilterCompiler.putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
-}
-	@Initializer(name="filter-properties", phase="preinit")
-	public void initFilterProperties(){
-	Constructor<? extends FilterProperty> properties;
-	properties = StandardIntProperties.getFactory();
-		FilterCompiler.putFilterProperty("userid", properties);
-		FilterCompiler.putFilterProperty("in_reply_to_userid", properties);
-		FilterCompiler.putFilterProperty("rtcount", properties);
-		FilterCompiler.	putFilterProperty("timediff", properties);
-			properties = StandardBooleanProperties.getFactory();
-		FilterCompiler.	putFilterProperty("retweeted", properties);
-		FilterCompiler.	putFilterProperty("mine", properties);
-		FilterCompiler.	putFilterProperty("protected", properties);
-		FilterCompiler.	putFilterProperty("verified", properties);
-		FilterCompiler.	putFilterProperty("status", properties);
-		FilterCompiler.	putFilterProperty("dm", properties);
-	properties = StandardStringProperties.getFactory();
-		FilterCompiler.	putFilterProperty("user", properties);
-		FilterCompiler.	putFilterProperty("text", properties);
-		FilterCompiler.	putFilterProperty("client", properties);
 
-		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
-}
 	@Initializer(name = "configurator", dependencies = {"init-gui", "configBuilder"}, phase = "init")
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
@@ -231,6 +201,39 @@ public void initFilterFunctions() {
 	@Initializer(name = "rootFilterService", dependencies = "cacheManager", phase = "init")
 	public void initFilterDispatcherService() {
 		configuration.setRootFilterService(new FilterService(configuration));
+	}
+
+	@Initializer(name = "filter-functions", phase = "preinit")
+	public void initFilterFunctions() {
+		FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
+		FilterCompiler.putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
+		FilterCompiler.putFilterFunction("and", AndFilterFunction.getFactory());
+		FilterCompiler.putFilterFunction("not", NotFilterFunction.getFactory());
+		FilterCompiler.putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
+		FilterCompiler.putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
+	}
+
+	@Initializer(name = "filter-properties", phase = "preinit")
+	public void initFilterProperties() {
+		Constructor<? extends FilterProperty> properties;
+		properties = StandardIntProperties.getFactory();
+		FilterCompiler.putFilterProperty("userid", properties);
+		FilterCompiler.putFilterProperty("in_reply_to_userid", properties);
+		FilterCompiler.putFilterProperty("rtcount", properties);
+		FilterCompiler.putFilterProperty("timediff", properties);
+		properties = StandardBooleanProperties.getFactory();
+		FilterCompiler.putFilterProperty("retweeted", properties);
+		FilterCompiler.putFilterProperty("mine", properties);
+		FilterCompiler.putFilterProperty("protected", properties);
+		FilterCompiler.putFilterProperty("verified", properties);
+		FilterCompiler.putFilterProperty("status", properties);
+		FilterCompiler.putFilterProperty("dm", properties);
+		properties = StandardStringProperties.getFactory();
+		FilterCompiler.putFilterProperty("user", properties);
+		FilterCompiler.putFilterProperty("text", properties);
+		FilterCompiler.putFilterProperty("client", properties);
+
+		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
 	}
 
 	@Initializer(name = "init-gui", dependencies = {"cacheManager", "twitterAccountId"}, phase = "init")
@@ -489,7 +492,8 @@ public void initFilterFunctions() {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	@Initializer(name = "set-filter", dependencies = {"config", "rootFilterService", "filter-functions","filter-properties"}, phase = "init")
+	@Initializer(name = "set-filter",
+			dependencies = {"config", "rootFilterService", "filter-functions", "filter-properties"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(configuration));
 		configuration.addFilter(new RootFilter(configuration));
