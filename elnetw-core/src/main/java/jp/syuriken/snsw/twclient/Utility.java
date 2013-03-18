@@ -135,6 +135,16 @@ public class Utility {
 	};
 
 	/**
+	 * Register keyMap
+	 * @param keyCode KeyEvent.*
+	 * @param keyString "%"+name
+	 * @return old keyString
+	 */
+	public static String registerKeyMap(int keyCode, String keyString) {
+		return keyMap.put(keyCode, keyString);
+	}
+
+	/**
 	 * Register MessageNotifier.
 	 *
 	 * <p>Elnetw select notifier which has higher priority and is usable.</p>
