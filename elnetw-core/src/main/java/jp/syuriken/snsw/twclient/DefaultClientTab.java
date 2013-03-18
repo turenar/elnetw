@@ -539,7 +539,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				if (statusData == null) {
 					menuItem.setEnabled(false);
 				} else {
-					ActionHandler actionHandler = frameApi.getActionHandler(menuItem.getActionCommand());
+					ActionHandler actionHandler = configuration.getActionHandler(menuItem.getActionCommand());
 					if (actionHandler != null) {
 						actionHandler.popupMenuWillBecomeVisible(menuItem, statusData, frameApi);
 					} else {
