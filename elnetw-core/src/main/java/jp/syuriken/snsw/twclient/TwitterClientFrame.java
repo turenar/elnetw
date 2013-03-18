@@ -222,6 +222,8 @@ import static java.lang.Math.max;
 					messageName = ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT;
 				} else if (Utility.equalString(actionName, "core!postfirst")) {
 					messageName = ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT;
+				} else if (Utility.equalString(actionName, "core!postlast")) {
+					messageName = ClientMessageListener.REQUEST_FOCUS_LAST_COMPONENT;
 				} else if (Utility.equalString(actionName, "core!postwindowfirst")) {
 					messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT;
 				} else if (Utility.equalString(actionName, "core!postwindowlast")) {
