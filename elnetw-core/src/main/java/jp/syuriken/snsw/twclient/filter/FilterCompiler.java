@@ -8,16 +8,6 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
-import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
-import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
-import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
-import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
@@ -186,34 +176,6 @@ public class FilterCompiler implements FilterParserVisitor {
 
 	private ClientConfiguration configuration;
 
-	static {
-		putFilterFunction("or", OrFilterFunction.getFactory());
-		putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
-		putFilterFunction("and", AndFilterFunction.getFactory());
-		putFilterFunction("not", NotFilterFunction.getFactory());
-		putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
-		putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
-
-		Constructor<? extends FilterProperty> properties;
-		properties = StandardIntProperties.getFactory();
-		putFilterProperty("userid", properties);
-		putFilterProperty("in_reply_to_userid", properties);
-		putFilterProperty("rtcount", properties);
-		putFilterProperty("timediff", properties);
-		properties = StandardBooleanProperties.getFactory();
-		putFilterProperty("retweeted", properties);
-		putFilterProperty("mine", properties);
-		putFilterProperty("protected", properties);
-		putFilterProperty("verified", properties);
-		putFilterProperty("status", properties);
-		putFilterProperty("dm", properties);
-		properties = StandardStringProperties.getFactory();
-		putFilterProperty("user", properties);
-		putFilterProperty("text", properties);
-		putFilterProperty("client", properties);
-
-		putFilterProperty("in_list", InListProperty.getFactory());
-	}
 
 	private FilterCompiler(ClientConfiguration configuration) {
 		this.configuration = configuration;

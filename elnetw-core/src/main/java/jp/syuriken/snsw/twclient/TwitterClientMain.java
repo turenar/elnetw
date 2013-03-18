@@ -29,9 +29,21 @@ import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
+import jp.syuriken.snsw.twclient.filter.FilterCompiler;
+import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
+import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
+import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
+import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
+import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
+import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.HashtagActionHandler;
@@ -164,7 +176,37 @@ public class TwitterClientMain {
 	public void initConfigBuilder() {
 		configuration.setConfigBuilder(new ConfigFrameBuilder(configuration));
 	}
+@Initializer(name="filter-functions",phase="preinit")
+public void initFilterFunctions() {
+	FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
+	FilterCompiler.	putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
+	FilterCompiler.putFilterFunction("and", AndFilterFunction.getFactory());
+	FilterCompiler.putFilterFunction("not", NotFilterFunction.getFactory());
+	FilterCompiler.putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
+	FilterCompiler.putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
+}
+	@Initializer(name="filter-properties", phase="preinit")
+	public void initFilterProperties(){
+	Constructor<? extends FilterProperty> properties;
+	properties = StandardIntProperties.getFactory();
+		FilterCompiler.putFilterProperty("userid", properties);
+		FilterCompiler.putFilterProperty("in_reply_to_userid", properties);
+		FilterCompiler.putFilterProperty("rtcount", properties);
+		FilterCompiler.	putFilterProperty("timediff", properties);
+			properties = StandardBooleanProperties.getFactory();
+		FilterCompiler.	putFilterProperty("retweeted", properties);
+		FilterCompiler.	putFilterProperty("mine", properties);
+		FilterCompiler.	putFilterProperty("protected", properties);
+		FilterCompiler.	putFilterProperty("verified", properties);
+		FilterCompiler.	putFilterProperty("status", properties);
+		FilterCompiler.	putFilterProperty("dm", properties);
+	properties = StandardStringProperties.getFactory();
+		FilterCompiler.	putFilterProperty("user", properties);
+		FilterCompiler.	putFilterProperty("text", properties);
+		FilterCompiler.	putFilterProperty("client", properties);
 
+		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
+}
 	@Initializer(name = "configurator", dependencies = {"init-gui", "configBuilder"}, phase = "init")
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
@@ -352,6 +394,7 @@ public class TwitterClientMain {
 			if (!initializeService.isInitialized(name)) {
 				logger.error("{} is not initialized!!! not resolved dependencies:{}", name,
 						initializeService.getInfo(name).getRemainDependencies());
+				return 1;
 			}
 		}
 
@@ -446,7 +489,7 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	@Initializer(name = "set-filter", dependencies = {"config", "rootFilterService"}, phase = "init")
+	@Initializer(name = "set-filter", dependencies = {"config", "rootFilterService", "filter-functions","filter-properties"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(configuration));
 		configuration.addFilter(new RootFilter(configuration));
