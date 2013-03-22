@@ -44,7 +44,7 @@
       <property name="tabWidth" value="4"/>
     </module>
     <module name="MethodLength">
-      <property name="severity" value="info">
+      <property name="severity" value="info" />
       <property name="max" value="128"/>
     </module>
     <module name="ParameterNumber"/>
@@ -147,7 +147,7 @@
     <module name="SuperClone"/>
     <module name="SuperFinalize"/>
     <module name="UnnecessaryParentheses">
-      <property name="severity" value="info">
+      <property name="severity" value="info"/>
     </module>
     <module name="HideUtilityClassConstructor"/>
     <module name="AvoidInlineConditionals">

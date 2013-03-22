@@ -29,7 +29,6 @@
       <property name="checkEmptyJavadoc" value="true"/>
       <property name="checkFirstSentence" value="false"/>
     </module>
-    <module name="ConstantName"/>
     <module name="LocalFinalVariableName"/>
     <module name="LocalVariableName"/>
     <module name="MemberName"/>
@@ -45,7 +44,8 @@
       <property name="tabWidth" value="4"/>
     </module>
     <module name="MethodLength">
-      <property name="max" value="100"/>
+      <property name="severity" value="info" />
+      <property name="max" value="128"/>
     </module>
     <module name="ParameterNumber"/>
     <module name="EmptyForIteratorPad"/>
@@ -61,7 +61,6 @@
     </module>
     <module name="ModifierOrder"/>
     <module name="RedundantModifier"/>
-    <module name="AvoidNestedBlocks"/>
     <module name="EmptyBlock">
       <property name="option" value="text"/>
     </module>
@@ -71,26 +70,16 @@
     <module name="DoubleCheckedLocking"/>
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
-    <module name="HiddenField">
-      <property name="severity" value="info"/>
-      <property name="tokens" value="VARIABLE_DEF"/>
-      <property name="ignoreConstructorParameter" value="true"/>
-      <property name="ignoreSetter" value="true"/>
-      <property name="ignoreAbstractMethods" value="true"/>
-    </module>
     <module name="IllegalInstantiation">
       <property name="severity" value="ignore"/>
     </module>
-    <module name="InnerAssignment"/>
+    <module name="InnerAssignment">
+      <property name="severity" value="ignore"/>
+    </module>
     <module name="MagicNumber">
       <property name="ignoreNumbers" value="-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"/>
     </module>
     <module name="MissingSwitchDefault"/>
-    <module name="RedundantThrows">
-      <property name="allowUnchecked" value="true"/>
-      <property name="logLoadErrors" value="true"/>
-      <property name="suppressLoadErrors" value="true"/>
-    </module>
     <module name="SimplifyBooleanExpression">
       <property name="severity" value="ignore"/>
     </module>
@@ -141,10 +130,6 @@
     <module name="ModifiedControlVariable">
       <property name="severity" value="ignore"/>
     </module>
-    <module name="MultipleStringLiterals">
-      <property name="allowedDuplicates" value="8"/>
-      <property name="ignoreStringsRegexp" value="^&quot;unchecked&quot;$"/>
-    </module>
     <module name="MultipleVariableDeclarations">
       <property name="severity" value="info"/>
     </module>
@@ -158,13 +143,12 @@
     <module name="ParameterAssignment">
       <property name="severity" value="info"/>
     </module>
-    <module name="ReturnCount">
-      <property name="max" value="8"/>
-    </module>
     <module name="StringLiteralEquality"/>
     <module name="SuperClone"/>
     <module name="SuperFinalize"/>
-    <module name="UnnecessaryParentheses"/>
+    <module name="UnnecessaryParentheses">
+      <property name="severity" value="info"/>
+    </module>
     <module name="HideUtilityClassConstructor"/>
     <module name="AvoidInlineConditionals">
       <property name="severity" value="ignore"/>
