@@ -36,6 +36,7 @@ import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
+import jp.syuriken.snsw.twclient.filter.func.IfFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
@@ -211,6 +212,7 @@ public class TwitterClientMain {
 		FilterCompiler.putFilterFunction("not", NotFilterFunction.getFactory());
 		FilterCompiler.putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
 		FilterCompiler.putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
+		FilterCompiler.putFilterFunction("if", IfFilterFunction.getFactory());
 	}
 
 	@Initializer(name = "filter-properties", phase = "preinit")
