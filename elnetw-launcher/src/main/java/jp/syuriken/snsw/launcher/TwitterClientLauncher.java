@@ -3,7 +3,6 @@ package jp.syuriken.snsw.launcher;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -47,9 +46,6 @@ public class TwitterClientLauncher {
 					urlList.add(url);
 				} catch (MalformedURLException e) {
 					System.err.println("[launcher] Failed convert to URL");
-					e.printStackTrace();
-				} catch (IOException e) {
-					System.err.println("[launcher] Failed getting canonical file name");
 					e.printStackTrace();
 				}
 			}
