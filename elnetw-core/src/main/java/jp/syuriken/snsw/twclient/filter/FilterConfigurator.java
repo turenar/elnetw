@@ -55,7 +55,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 	}
 
 
-	private JComboBox filterChooser;
+	private JComboBox<KVItem> filterChooser;
 
 	private ClientConfiguration configuration;
 
@@ -72,7 +72,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		JComboBox componentFilterChooser = getComponentFilterChooser();
+		JComboBox<KVItem> componentFilterChooser = getComponentFilterChooser();
 		KVItem kvItem = (KVItem) componentFilterChooser.getSelectedItem();
 		FilterEditFrame editFrame = new FilterEditFrame(configuration, kvItem.displayString, kvItem.propertyKey);
 		editFrame.setVisible(true);
@@ -100,9 +100,9 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		return editButton;
 	}
 
-	private JComboBox getComponentFilterChooser() {
+	private JComboBox<KVItem> getComponentFilterChooser() {
 		if (filterChooser == null) {
-			filterChooser = new JComboBox();
+			filterChooser = new JComboBox<KVItem>();
 			filterChooser.addItem(new KVItem("(グローバル)", "core.filter._global"));
 
 			int count = configuration.getFrameTabCount();

@@ -117,7 +117,7 @@ public class VersionInfoFrame extends JFrame {
 
 	private JTextArea infoTextPane;
 
-	private JList libraryList;
+	private JList<String> libraryList;
 
 	/**
 	 * インスタンスを生成する
@@ -162,10 +162,10 @@ public class VersionInfoFrame extends JFrame {
 		return infoTextScrollPane;
 	}
 
-	private JList getLibraryList() {
+	private JList<String> getLibraryList() {
 		if (libraryList == null) {
-			libraryList = new JList();
-			DefaultListModel defaultListModel = new DefaultListModel();
+			libraryList = new JList<String>();
+			DefaultListModel<String> defaultListModel = new DefaultListModel<String>();
 			for (LibraryInfo libraryName : libraryInfoList) {
 				defaultListModel.addElement(libraryName.getName());
 			}
@@ -242,10 +242,10 @@ public class VersionInfoFrame extends JFrame {
 	 * @param e イベント (ignore)
 	 */
 	protected void updateLibraryInfo(ListSelectionEvent e) {
-		JList list = getLibraryList();
-		String selectedValue = (String) list.getSelectedValue();
+		JList<String> list = getLibraryList();
+		String selectedValue = list.getSelectedValue();
 		for (LibraryInfo libraryInfo : libraryInfoList) {
-			if (Utility.equalString(libraryInfo.name, selectedValue)) {
+			if (libraryInfo.name.equals(selectedValue) ){
 				getInfoTextPane().setText(libraryInfo.getInfo());
 				break;
 			}
