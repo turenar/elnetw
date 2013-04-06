@@ -3,7 +3,6 @@ package jp.syuriken.snsw.twclient.filter.prop;
 import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -17,8 +16,6 @@ import twitter4j.Status;
  */
 public class StandardBooleanProperties implements FilterProperty {
 
-	private static Constructor<? extends FilterProperty> factory;
-
 	private static final byte PROPERTY_ID_RETWEETED = 1;
 
 	private static final byte PROPERTY_ID_MINE = 2;
@@ -30,6 +27,17 @@ public class StandardBooleanProperties implements FilterProperty {
 	private static final byte PROPERTY_ID_DM = 5;
 
 	private static final byte PROPERTY_ID_STATUS = 6;
+
+	private static Constructor<? extends FilterProperty> factory;
+
+	/**
+	 * コンストラクターを取得する
+	 *
+	 * @return ファクトリー
+	 */
+	public static Constructor<? extends FilterProperty> getFactory() {
+		return factory;
+	}
 
 	private final FilterOperator operatorType;
 
@@ -49,15 +57,6 @@ public class StandardBooleanProperties implements FilterProperty {
 		}
 	}
 
-
-	/**
-	 * コンストラクターを取得する
-	 * @return ファクトリー
-	 */
-	public static Constructor<? extends FilterProperty> getFactory() {
-		return factory;
-	}
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -71,20 +70,27 @@ public class StandardBooleanProperties implements FilterProperty {
 			throws IllegalSyntaxException {
 		this.configuration = configuration;
 		// name 処理
-		if (Utility.equalString(name, "retweeted")) {
-			propertyId = PROPERTY_ID_RETWEETED;
-		} else if (Utility.equalString(name, "mine")) {
-			propertyId = PROPERTY_ID_MINE;
-		} else if (Utility.equalString(name, "protected")) {
-			propertyId = PROPERTY_ID_PROTECTED;
-		} else if (Utility.equalString(name, "verified")) {
-			propertyId = PROPERTY_ID_VERIFIED;
-		} else if (Utility.equalString(name, "dm")) {
-			propertyId = PROPERTY_ID_DM;
-		} else if (Utility.equalString(name, "status")) {
-			propertyId = PROPERTY_ID_STATUS;
-		} else {
-			throw new IllegalSyntaxException("[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+		switch (name) {
+			case "retweeted":
+				propertyId = PROPERTY_ID_RETWEETED;
+				break;
+			case "mine":
+				propertyId = PROPERTY_ID_MINE;
+				break;
+			case "protected":
+				propertyId = PROPERTY_ID_PROTECTED;
+				break;
+			case "verified":
+				propertyId = PROPERTY_ID_VERIFIED;
+				break;
+			case "dm":
+				propertyId = PROPERTY_ID_DM;
+				break;
+			case "status":
+				propertyId = PROPERTY_ID_STATUS;
+				break;
+			default:
+				throw new IllegalSyntaxException("[StandardBooleanProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {

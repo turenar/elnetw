@@ -155,7 +155,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			if (Utility.equalString(actionName, "core!move_between_list_and_postbox")) {
+			if (actionName.equals("core!move_between_list_and_postbox")) {
 				if (getPostBox().isFocusOwner()) {
 					actionName = "core!focuslist";
 				} else {
@@ -163,62 +163,83 @@ import static java.lang.Math.max;
 				}
 			}
 
-			if (Utility.equalString(actionName, "core!submenu")) {
-				return;
-			} else if (Utility.equalString(actionName, "core!version")) {
-				VersionInfoFrame frame = new VersionInfoFrame(configuration);
-				frame.setVisible(true);
-			} else if (Utility.equalString(actionName, "core!focusinput")) {
-				getPostBox().requestFocusInWindow();
-			} else if (Utility.equalString(actionName, "core!tabswitch_prev")) {
-				JTabbedPane tab = getViewTab();
-				int selectedIndex = tab.getSelectedIndex();
-				if (selectedIndex > 0) {
-					tab.setSelectedIndex(selectedIndex - 1);
-				}
-			} else if (Utility.equalString(actionName, "core!tabswitch_next")) {
-				JTabbedPane tab = getViewTab();
-				int selectedIndex = tab.getSelectedIndex();
-				if (selectedIndex < tab.getTabCount() - 1) {
-					tab.setSelectedIndex(selectedIndex + 1);
-				}
-			} else {
-				String messageName;
-				if (Utility.equalString(actionName, "core!focuslist")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_TAB_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postnext")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_NEXT_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postprev")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_PREV_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postuserprev")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postusernext")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postfirst")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postlast")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_LAST_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postwindowfirst")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!postwindowlast")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT;
-				} else if (Utility.equalString(actionName, "core!scroll_as_windowlast")) {
-					messageName = ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST;
-				} else if (Utility.equalString(actionName, "core!jump_inReplyTo")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO;
-				} else if (Utility.equalString(actionName, "core!jump_inReplyToBack")) {
-					messageName = ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY;
-				} else {
-					logger.warn("[core AH] {} is not command", actionName);
+			switch (actionName) {
+				case "core!submenu":
 					return;
+				case "core!version": {
+					VersionInfoFrame frame = new VersionInfoFrame(configuration);
+					frame.setVisible(true);
+					break;
 				}
-				getSelectingTab().getRenderer().onClientMessage(messageName, null);
+				case "core!focusinput":
+					getPostBox().requestFocusInWindow();
+					break;
+				case "core!tabswitch_prev": {
+					JTabbedPane tab = getViewTab();
+					int selectedIndex = tab.getSelectedIndex();
+					if (selectedIndex > 0) {
+						tab.setSelectedIndex(selectedIndex - 1);
+					}
+					break;
+				}
+				case "core!tabswitch_next": {
+					JTabbedPane tab = getViewTab();
+					int selectedIndex = tab.getSelectedIndex();
+					if (selectedIndex < tab.getTabCount() - 1) {
+						tab.setSelectedIndex(selectedIndex + 1);
+					}
+					break;
+				}
+				default:
+					String messageName;
+					switch (actionName) {
+						case "core!focuslist":
+							messageName = ClientMessageListener.REQUEST_FOCUS_TAB_COMPONENT;
+							break;
+						case "core!postnext":
+							messageName = ClientMessageListener.REQUEST_FOCUS_NEXT_COMPONENT;
+							break;
+						case "core!postprev":
+							messageName = ClientMessageListener.REQUEST_FOCUS_PREV_COMPONENT;
+							break;
+						case "core!postuserprev":
+							messageName = ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT;
+							break;
+						case "core!postusernext":
+							messageName = ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT;
+							break;
+						case "core!postfirst":
+							messageName = ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT;
+							break;
+						case "core!postlast":
+							messageName = ClientMessageListener.REQUEST_FOCUS_LAST_COMPONENT;
+							break;
+						case "core!postwindowfirst":
+							messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT;
+							break;
+						case "core!postwindowlast":
+							messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT;
+							break;
+						case "core!scroll_as_windowlast":
+							messageName = ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST;
+							break;
+						case "core!jump_inReplyTo":
+							messageName = ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO;
+							break;
+						case "core!jump_inReplyToBack":
+							messageName = ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY;
+							break;
+						default:
+							logger.warn("[core AH] {} is not command", actionName);
+							return;
+					}
+					getSelectingTab().getRenderer().onClientMessage(messageName, null);
 			}
 		}
 
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			if (Utility.equalString(menuItem.getActionCommand(), "core!submenu")) {
+			if ("core!submenu".equals(menuItem.getActionCommand())) {
 				if (menuItem instanceof JMenu == false) {
 					logger.error("\"core!submenu\" argued menuItem not as JMenu");
 					throw new AssertionError();
@@ -228,7 +249,8 @@ import static java.lang.Math.max;
 					if (subItem instanceof JMenuItem) {
 						JMenuItem subMenuItem = (JMenuItem) subItem;
 						String actionCommand = subMenuItem.getActionCommand();
-						getActionHandler(actionCommand).popupMenuWillBecomeVisible(subMenuItem, statusData, api);
+						configuration.getActionHandler(actionCommand).popupMenuWillBecomeVisible(subMenuItem,
+								statusData, api);
 					}
 				}
 			}

@@ -4,8 +4,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jp.syuriken.snsw.twclient.Utility;
-
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
  *
@@ -38,26 +36,23 @@ public enum FilterOperator {
 	public static FilterOperator compileOperatorBool(String operator) {
 		if (operator == null) {
 			return IS;
-		} else if (operator.length() == 1) {
-			switch (operator.charAt(0)) {
-				case ':':
-				case '=':
-					return EQ;
-				case '?':
-					return IS;
-				case '!':
-					return IS_NOT;
-				default:
-					return null;
-			}
-		} else if (Utility.equalString("!?", operator)) {
-			return IS_NOT;
-		} else if (Utility.equalString("==", operator)) {
-			return EQ;
-		} else if (Utility.equalString("!=", operator) || Utility.equalString("!:", operator)) {
-			return NE;
 		}
-		return null;
+		switch (operator) {
+			case ":":
+			case "=":
+			case "==":
+				return EQ;
+			case "!=":
+			case "!:":
+				return NE;
+			case "?":
+				return IS;
+			case "!":
+			case "!?":
+				return IS_NOT;
+			default:
+				return null;
+		}
 	}
 
 	/**
@@ -67,30 +62,27 @@ public enum FilterOperator {
 	 * @return 演算子
 	 */
 	public static FilterOperator compileOperatorInt(String operator) {
-		if (operator.length() == 1) {
-			switch (operator.charAt(0)) {
-				case ':':
-				case '=':
-					return FilterOperator.EQ;
-				case '!':
-					return FilterOperator.NE;
-				case '>':
-					return FilterOperator.GT;
-				case '<':
-					return FilterOperator.LT;
-				default:
-					return null;
-			}
-		} else if (Utility.equalString(">=", operator)) {
-			return FilterOperator.GTE;
-		} else if (Utility.equalString("<=", operator)) {
-			return FilterOperator.LTE;
-		} else if (Utility.equalString("==", operator)) {
-			return FilterOperator.EQ;
-		} else if (Utility.equalString("!=", operator) || Utility.equalString("!:", operator)) {
-			return FilterOperator.NE;
+
+		switch (operator) {
+			case ":":
+			case "=":
+			case "==":
+				return FilterOperator.EQ;
+			case "!":
+			case "!=":
+			case "!:":
+				return FilterOperator.NE;
+			case ">":
+				return FilterOperator.GT;
+			case ">=":
+				return FilterOperator.GTE;
+			case "<":
+				return FilterOperator.LT;
+			case "<=":
+				return FilterOperator.LTE;
+			default:
+				return null;
 		}
-		return null;
 	}
 
 	/**
@@ -100,22 +92,18 @@ public enum FilterOperator {
 	 * @return 演算子
 	 */
 	public static FilterOperator compileOperatorString(String operator) {
-		if (operator.length() == 1) {
-			switch (operator.charAt(0)) {
-				case ':':
-				case '=':
-					return FilterOperator.EQ;
-				case '!':
-					return FilterOperator.NE;
-				default:
-					return null;
-			}
-		} else if (Utility.equalString("==", operator)) {
-			return FilterOperator.EQ;
-		} else if (Utility.equalString("!=", operator) || Utility.equalString("!:", operator)) {
-			return FilterOperator.NE;
+		switch (operator) {
+			case ":":
+			case "=":
+			case "==":
+				return FilterOperator.EQ;
+			case "!":
+			case "!=":
+			case "!:":
+				return FilterOperator.NE;
+			default:
+				return null;
 		}
-		return null;
 	}
 
 	/**
@@ -217,7 +205,7 @@ public enum FilterOperator {
 					if (len > 0 && str.charAt(len - 1) == '*') { // end-wildcard
 						contains = target.startsWith(str.substring(0, len - 1));
 					} else {
-						contains = Utility.equalString(target, str);
+						contains = target.equals(str);
 					}
 				}
 				return contains == (this == EQ);
@@ -249,12 +237,15 @@ public enum FilterOperator {
 			case EQ:
 			case NE:
 				String lowerValue = value.toLowerCase(Locale.ENGLISH);
-				if (Utility.equalString(lowerValue, "false") || Utility.equalString(lowerValue, "no")) {
-					return false;
-				} else if (Utility.equalString(lowerValue, "true") || Utility.equalString(lowerValue, "yes")) {
-					return true;
-				} else {
-					throw new IllegalSyntaxException("[" + propName + "] 値がbool型ではありません");
+				switch (lowerValue) {
+					case "false":
+					case "no":
+						return false;
+					case "true":
+					case "yes":
+						return true;
+					default:
+						throw new IllegalSyntaxException("[" + propName + "] 値がbool型ではありません");
 				}
 			default:
 				throw new IllegalSyntaxException("[" + propName + "] 正しくないbool演算子です");

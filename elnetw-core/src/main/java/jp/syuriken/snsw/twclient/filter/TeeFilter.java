@@ -6,7 +6,6 @@ import java.beans.PropertyChangeListener;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.TabRenderer;
-import jp.syuriken.snsw.twclient.Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -23,15 +22,15 @@ import twitter4j.UserList;
  */
 public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
-	private FilterDispatcherBase filterQuery;
-
-	private TabRenderer renderer;
+	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 
 	private final String filterPropertyName;
 
 	private final ClientProperties configProperties;
 
-	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
+	private FilterDispatcherBase filterQuery;
+
+	private TabRenderer renderer;
 
 	private ClientConfiguration configuration;
 
@@ -213,7 +212,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		String propertyName = evt.getPropertyName();
-		if (Utility.equalString(propertyName, filterPropertyName)) {
+		if (propertyName.equals(filterPropertyName)) {
 			try {
 				init();
 			} catch (IllegalSyntaxException e) {

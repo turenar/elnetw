@@ -218,7 +218,9 @@ public class Utility {
 	 * @param a 文字列A
 	 * @param b 文字列B
 	 * @return 等しいかどうか
+	 * @deprecated use just {@link String#equals(Object)} or string-switch
 	 */
+	@Deprecated
 	public static boolean equalString(String a, String b) {
 		if (a == null && b == null) {
 			return true;
@@ -505,7 +507,7 @@ public class Utility {
 					Class<?> fileMgr = null;
 					fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[]{
+					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class<?>[]{
 							String.class
 					});
 					openURL.invoke(null, new Object[]{
