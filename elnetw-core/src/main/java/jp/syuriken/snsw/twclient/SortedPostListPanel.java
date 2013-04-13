@@ -332,9 +332,7 @@ public class SortedPostListPanel extends JPanel {
 	public StatusPanel getComponentAt(int x, int y) {
 		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
 		Point bounds = componentAt.getLocation();
-		x -= bounds.x;
-		y -= bounds.y;
-		return (StatusPanel) componentAt.getComponentAt(x, y);
+		return (StatusPanel) componentAt.getComponentAt(x - bounds.x, y - bounds.y);
 	}
 
 	/**

@@ -22,13 +22,13 @@ import twitter4j.User;
 public interface ClientFrameApi extends TweetLengthUpdater {
 
 	/** ポインタ時にはforegroundをblueに設定する */
-	/*public*/static final int SET_FOREGROUND_COLOR_BLUE = 1;
+	/*public static*/ final int SET_FOREGROUND_COLOR_BLUE = 1;
 
 	/** ポインタ時にはunderlineを引く */
-	/*public*/static final int UNDERLINE = 1 << 1;
+	/*public static*/ final int UNDERLINE = 1 << 1;
 
 	/** ポインタ時に何もしない */
-	/*public*/static final int DO_NOTHING_WHEN_POINTED = 0;
+	/*public static*/ final int DO_NOTHING_WHEN_POINTED = 0;
 
 	/**
 	 * アクションハンドラを追加する
