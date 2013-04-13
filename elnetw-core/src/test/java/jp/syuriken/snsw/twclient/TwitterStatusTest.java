@@ -14,6 +14,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
+import twitter4j.User;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.json.DataObjectFactory;
@@ -30,6 +31,15 @@ import static org.junit.Assert.fail;
 public class TwitterStatusTest {
 
 	private static final class ClientConfigurationExtension extends ClientConfiguration {
+		@Override
+		public CacheManager getCacheManager() {
+			return new CacheManager(this){
+				@Override
+				public User getCachedUser(long userId) {
+					return null;
+				}
+			};
+		}
 
 		@Override
 		public Twitter getTwitterForRead() {

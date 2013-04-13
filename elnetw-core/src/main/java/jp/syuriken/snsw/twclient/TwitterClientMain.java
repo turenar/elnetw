@@ -30,6 +30,7 @@ import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.FilterCompiler;
+import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.RootFilter;
@@ -147,6 +148,12 @@ public class TwitterClientMain {
 		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
 		ClientConfiguration.putClientTabConstructor("directmessage", DirectMessageViewTab.class);
 		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
+	}
+
+	@Initializer(name = "internal-addConfigurator-filter", dependencies = {"init-gui", "configBuilder"}, phase = "init")
+	public void addConfiguratorOfFilter() {
+		configuration.getConfigBuilder().getGroup("フィルタ")
+				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
 	}
 
 	@Initializer(name = "actionHandler", phase = "init")
