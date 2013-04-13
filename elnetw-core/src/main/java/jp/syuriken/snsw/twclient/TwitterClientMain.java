@@ -88,9 +88,9 @@ public class TwitterClientMain {
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
 
 	@InitializerInstance
-	private static TwitterClientMain SINGLETON;
+	private static volatile TwitterClientMain SINGLETON;
 
-	public static TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
+	public static synchronized TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
 		if (SINGLETON != null) {
 			throw new IllegalStateException("another instance always seems to be running");
 		}
@@ -261,11 +261,21 @@ public class TwitterClientMain {
 		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
 		Properties shortcutkeyProperties = new Properties();
 		if (parentConfigName.trim().isEmpty() == false) {
+			InputStream stream = null;
 			try {
-				shortcutkeyProperties.load(TwitterClientMain.class.getResourceAsStream(
-						"shortcutkey/" + parentConfigName + ".properties"));
+				stream = TwitterClientMain.class.getResourceAsStream(
+						"shortcutkey/" + parentConfigName + ".properties");
+				shortcutkeyProperties.load(stream);
 			} catch (IOException e) {
 				logger.error("ショートカットキーの読み込みに失敗", e);
+			} finally {
+				if (stream != null) {
+					try {
+						stream.close();
+					} catch (IOException e) {
+						logger.error("Failed closing resource", e);
+					}
+				}
 			}
 		}
 		File file = new File(configuration.getConfigRootDir(), "shortcutkey.cfg");

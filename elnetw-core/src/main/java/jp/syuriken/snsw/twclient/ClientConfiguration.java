@@ -901,10 +901,8 @@ public class ClientConfiguration {
 	 */
 	public Exception tryGetOAuthToken() {
 		Twitter twitter;
-		AccessToken accessToken;
 		try {
 			twitter = new OAuthFrame(this).show();
-			accessToken = twitter.getOAuthAccessToken();
 		} catch (TwitterException e) {
 			return e;
 		}

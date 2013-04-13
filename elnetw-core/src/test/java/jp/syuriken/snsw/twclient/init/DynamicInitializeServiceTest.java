@@ -10,7 +10,7 @@ import static org.junit.Assert.fail;
 public class DynamicInitializeServiceTest {
 	@InitProviderClass
 	protected static class CrossingPhaseInitializer {
-		protected static int data;
+		/*package*/ static int data;
 
 		@Initializer(name = "cp-1", phase = "cp1")
 		public static void a() {
@@ -41,7 +41,7 @@ public class DynamicInitializeServiceTest {
 
 	@InitProviderClass
 	protected static class InitConditionInitializer {
-		protected static boolean isCalled;
+		/*package*/ static boolean isCalled;
 
 		@Initializer(name = "initcond", phase = "initcond")
 		public static void testInitConditionInitializer(InitCondition initCondition) {
@@ -52,7 +52,7 @@ public class DynamicInitializeServiceTest {
 
 	@InitProviderClass
 	protected static class InitFailInitializer {
-		protected static boolean isCalled = false;
+		/*package*/ static boolean isCalled = false;
 
 		@Initializer(name = "initfail", phase
 				= "initfail")
@@ -68,7 +68,12 @@ public class DynamicInitializeServiceTest {
 		@InitializerInstance
 		private static final InstanceInitializer instance = new InstanceInitializer();
 
-		protected static boolean isCalled = false;
+		/*package*/
+		static InstanceInitializer getInstance() {
+			return instance;
+		}
+
+		/*package*/ boolean isCalled = false;
 
 		@Initializer(name = "instance", phase = "instance")
 		public void testInstanceInitializer() {
@@ -78,7 +83,7 @@ public class DynamicInitializeServiceTest {
 
 	@InitProviderClass
 	protected static class MultipleDependenciesInitializer {
-		protected static int data;
+		/*package*/ static int data;
 
 		@Initializer(name = "md-1", phase = "md1")
 		public static void a() {
@@ -153,7 +158,7 @@ public class DynamicInitializeServiceTest {
 
 	@InitProviderClass
 	protected static class StaticInitializer {
-		protected static boolean isCalled = false;
+		/*package*/ static boolean isCalled = false;
 
 		@Initializer(name = "static", phase = "static")
 		public static void testStaticInitializer() {
@@ -198,7 +203,7 @@ public class DynamicInitializeServiceTest {
 		InitializeService initService = getInitService();
 		initService.register(InstanceInitializer.class);
 		initService.enterPhase("instance");
-		assertTrue(InstanceInitializer.isCalled);
+		assertTrue(InstanceInitializer.getInstance().isCalled);
 	}
 
 	@Test

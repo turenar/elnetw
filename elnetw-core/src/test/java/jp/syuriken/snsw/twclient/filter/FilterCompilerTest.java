@@ -37,13 +37,8 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		}
 	}
 
-
 	private void assertNoValidToken(List<SimpleNode> list) {
 		assertTrue(list.isEmpty());
-	}
-
-	private void assertToken(Queue<SimpleNode> list, int kind) {
-		assertToken(list, kind, null);
 	}
 
 	private void assertToken(Queue<SimpleNode> list, int kind, String value) {
