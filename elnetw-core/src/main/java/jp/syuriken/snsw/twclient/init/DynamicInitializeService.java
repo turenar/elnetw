@@ -246,8 +246,8 @@ public class DynamicInitializeService extends InitializeService {
 		}
 
 		public String toString() {
-			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName() +
-					")";
+			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName()
+					+ ")";
 		}
 	}
 

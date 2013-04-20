@@ -40,19 +40,19 @@ public class ScrollUtility {
 
 	private final BoundsTranslator translator;
 
-	/*package*/int deltaY;
+	/*package*/ int deltaY;
 
-	/*package*/Timer scrollTimer;
+	/*package*/ Timer scrollTimer;
 
-	/*package*/JComponent target;
+	/*package*/ JComponent target;
 
 	private boolean momemtumEnabled;
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param scrollPane スクロールペーン
-	 * @param translator 位置情報を変換するクラス
+	 * @param scrollPane      スクロールペーン
+	 * @param translator      位置情報を変換するクラス
 	 * @param momemtumEnabled 慣性スクロールするかどうか
 	 */
 	public ScrollUtility(final JScrollPane scrollPane, BoundsTranslator translator, boolean momemtumEnabled) {
