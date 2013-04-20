@@ -6,7 +6,11 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for Java-GNOME */
+/**
+ * Java-Gnome用のユーティリティ。Java-Gnomeがクラスパスになくても使用可
+ *
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ */
 public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);
 
