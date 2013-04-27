@@ -38,6 +38,8 @@ public class VersionComparatorTest {
 		assertEqualsVersion("0.1", "0.1");
 		assertLessVersion("0.0", "0.1");
 		assertGreaterVersion("0.4", "0.1");
+		assertLessVersion("a", "b");
+		assertGreaterVersion("AC", "AB");
 	}
 
 	@Test

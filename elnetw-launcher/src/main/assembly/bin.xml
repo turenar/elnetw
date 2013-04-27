@@ -11,7 +11,22 @@
 		<dependencySet>
 			<useProjectArtifact>true</useProjectArtifact>
 			<outputDirectory>lib</outputDirectory>
-			<outputFileNameMapping>${artifact.artifactId}-${artifact.version}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
+			<outputFileNameMapping>
+				${artifact.artifactId}-${artifact.version}${dashClassifier?}.${artifact.extension}
+			</outputFileNameMapping>
+			<excludes>
+				<exclude>jp.syuriken.snsw:*</exclude>
+			</excludes>
+		</dependencySet>
+		<dependencySet>
+			<useProjectArtifact>true</useProjectArtifact>
+			<outputDirectory>lib</outputDirectory>
+			<outputFileNameMapping>
+				${artifact.artifactId}-${build-version}${dashClassifier?}.${artifact.extension}
+			</outputFileNameMapping>
+			<includes>
+				<include>jp.syuriken.snsw:*</include>
+			</includes>
 			<excludes>
 				<exclude>jp.syuriken.snsw:elnetw-launcher</exclude>
 			</excludes>
