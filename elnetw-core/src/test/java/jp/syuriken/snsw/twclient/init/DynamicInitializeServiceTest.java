@@ -188,6 +188,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_01_initConditionUsedInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("initcond");
 		initService.register(InitConditionInitializer.class);
 		initService.enterPhase("initcond");
 		assertTrue(InitConditionInitializer.isCalled);
@@ -196,6 +197,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_01_instanceInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("instance");
 		initService.register(InstanceInitializer.class);
 		initService.enterPhase("instance");
 		assertTrue(InstanceInitializer.isCalled);
@@ -204,6 +206,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_01_staticInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("static");
 		initService.register(StaticInitializer.class);
 		initService.enterPhase("static");
 		assertTrue(StaticInitializer.isCalled);
@@ -212,6 +215,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_02_initFailInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("initfail");
 		initService.register(InitFailInitializer.class);
 		try {
 			initService.enterPhase("initfail");
@@ -227,6 +231,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_02_simpleDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("sd");
 		initService.register(SimpleDependencyInitializer.class);
 		initService.enterPhase("sd");
 		SimpleDependencyInitializer.assertCalled();
@@ -235,6 +240,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_03_multipleDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("md1").registerPhase("md2");
 		initService.register(MultipleDependenciesInitializer.class);
 		initService.enterPhase("md1");
 		MultipleDependenciesInitializer.assertCalled1();
@@ -245,6 +251,7 @@ public class DynamicInitializeServiceTest {
 	@Test
 	public void test_04_crossingPhaseDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
+		initService.registerPhase("cp1").registerPhase("cp2");
 		initService.register(CrossingPhaseInitializer.class);
 		initService.enterPhase("cp1");
 		CrossingPhaseInitializer.assertCalled1();
