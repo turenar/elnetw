@@ -76,8 +76,6 @@ public class DynamicInitializeService extends InitializeService {
 
 		private LinkedList<String> remainDependencies;
 
-		private String[] dependencies;
-
 		private int depCount;
 
 		private boolean isExecuted;
@@ -99,10 +97,10 @@ public class DynamicInitializeService extends InitializeService {
 			if (!phaseSet.contains(phase)) {
 				logger.warn("QA: {} has unknown phase: {}", toString(), phase);
 			}
-			this.dependencies = annotation.dependencies();
 			LinkedList<String> remainDependencies = new LinkedList<String>();
 			this.remainDependencies = remainDependencies;
 
+			String[] dependencies = annotation.dependencies();
 			for (String dependency : dependencies) {
 				if (initializedSet.contains(dependency) == false) {
 					remainDependencies.add(dependency);
@@ -146,7 +144,7 @@ public class DynamicInitializeService extends InitializeService {
 
 		@Override
 		public String[] getDependencies() {
-			return dependencies;
+			return annotation.dependencies();
 		}
 
 		@Override
@@ -248,8 +246,8 @@ public class DynamicInitializeService extends InitializeService {
 		}
 
 		public String toString() {
-			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName() +
-					")";
+			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName()
+					+ ")";
 		}
 	}
 

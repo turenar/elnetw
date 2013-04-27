@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.util.Scanner;
@@ -46,7 +47,7 @@ public class ClientPropertiesTest {
 	public static void main(String[] args) throws IOException, InvalidKeyException {
 		ClientProperties configProperties = new ClientProperties();
 
-		Scanner scanner = new Scanner(System.in);
+		Scanner scanner = new Scanner(System.in, Charset.defaultCharset().name());
 		String key = "/testtest/";
 		System.out.print("value> ");
 		String value = scanner.nextLine().trim();

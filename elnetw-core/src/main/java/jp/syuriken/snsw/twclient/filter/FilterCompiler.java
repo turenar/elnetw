@@ -30,8 +30,8 @@ public class FilterCompiler implements FilterParserVisitor {
 	/** プロパティのデータを格納するクラス */
 	protected static class PropertyData {
 
-		/** 名前 */
-		protected String name;
+		// /** 名前 */
+		// protected String name;
 
 		/** 演算子 */
 		protected String operator;
@@ -198,10 +198,6 @@ public class FilterCompiler implements FilterParserVisitor {
 		}
 
 		try {
-			if (factory == null) {
-				// If valid query, factory must be not null
-				throw new WrappedException(new IllegalSyntaxException("関数名が見つかりません"));
-			}
 			return factory.newInstance(functionName, args);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -230,17 +226,13 @@ public class FilterCompiler implements FilterParserVisitor {
 			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + propertyName + ">は見つかりません。"));
 		}
 
-		propertyData.name = propertyName;
+		//propertyData.name = propertyName;
 
 		node.childrenAccept(this, propertyData);
 
 		String propertyOperator = propertyData.operator;
 		Object value = propertyData.value;
 		try {
-			if (factory == null) {
-				// If valid query, factory must be not null
-				throw new WrappedException(new IllegalSyntaxException("プロパティ名が見つかりません"));
-			}
 			return factory.newInstance(configuration, propertyName, propertyOperator, value);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();

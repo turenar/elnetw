@@ -1,5 +1,4 @@
-package jp.syuriken.snsw.twclient.jni
-		;
+package jp.syuriken.snsw.twclient.jni;
 
 import java.io.File;
 import java.io.IOException;

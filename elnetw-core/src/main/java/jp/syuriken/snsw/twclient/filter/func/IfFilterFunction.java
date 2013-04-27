@@ -8,9 +8,7 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-/**
- * 'if' filter function: if(expr, trueCond [, falseCond])
- */
+/** 'if' filter function: if(expr, trueCond [, falseCond]) */
 public class IfFilterFunction implements FilterFunction {
 
 	private static Constructor<IfFilterFunction> constructor;
@@ -61,7 +59,7 @@ public class IfFilterFunction implements FilterFunction {
 		if (expr.filter(directMessage)) {
 			return trueCond.filter(directMessage);
 		} else {
-			return falseCond==null?false:falseCond.filter(directMessage);
+			return falseCond == null ? false : falseCond.filter(directMessage);
 		}
 	}
 
@@ -70,7 +68,7 @@ public class IfFilterFunction implements FilterFunction {
 		if (expr.filter(status)) {
 			return trueCond.filter(status);
 		} else {
-			return falseCond==null?false: falseCond.filter(status);
+			return falseCond == null ? false : falseCond.filter(status);
 		}
 	}
 }

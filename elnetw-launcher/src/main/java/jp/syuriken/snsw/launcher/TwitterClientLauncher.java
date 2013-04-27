@@ -74,7 +74,8 @@ public class TwitterClientLauncher {
 
 	private ArrayList<String> classpath = new ArrayList<String>();
 
-	public TwitterClientLauncher(String[] args) {
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")
+	private TwitterClientLauncher(String[] args) {
 		for (String arg : args) {
 			if (arg.startsWith("-D")) {
 				int indexOf = arg.indexOf('=');

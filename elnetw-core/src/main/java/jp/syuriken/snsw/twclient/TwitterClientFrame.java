@@ -1259,9 +1259,12 @@ import static java.lang.Math.max;
 					if (minimumSize != null && prefferedSize != null && maximumSize != null) {
 						return;
 					}
-					int minw = 0, minh = 0;
-					int prefw = 0, prefh = 0;
-					int maxw = 0, maxh = 0;
+					int minw = 0;
+					int minh = 0;
+					int prefw = 0;
+					int prefh = 0;
+					int maxw = 0;
+					int maxh = 0;
 					int count = parent.getComponentCount();
 					for (int i = 0; i < count; i++) {
 						Component component = parent.getComponent(i);
@@ -1312,8 +1315,11 @@ import static java.lang.Math.max;
 						Component comp = parent.getComponent(i);
 						Dimension prefSize = comp.getPreferredSize();
 						Dimension minSize = comp.getMinimumSize();
-						int compw, x;
-						int comph, y;
+						int compw;
+						int x;
+						int comph;
+						int y;
+
 						if (abs(comp.getAlignmentX() - Component.CENTER_ALIGNMENT) < .0000001) {
 							compw = width;
 							x = 0;
