@@ -3,16 +3,15 @@ package jp.syuriken.snsw.launcher;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * TwitterClient のためのランチャ
@@ -29,39 +28,23 @@ public class TwitterClientLauncher {
 		}
 	};
 
-	private static void addURL(List<URL> urlList, File file, boolean onlyIncludeJarFile) {
+	private static void addURL(Map<String, ClasspathEntry> urlMap, File file) {
 		if (file.exists() == false) {
 			System.err.println("[launcher] Specified classpath is not found: " + file.getPath());
 			return;
 		}
 
-		if (onlyIncludeJarFile) {
-			if (file.isDirectory()) { // directory traversal
-				File[] files = file.listFiles(jarFilter);
-				for (File childFile : files) {
-					addURL(urlList, childFile, onlyIncludeJarFile);
-				}
-			} else {
-				try {
-					URL url = file.toURI().toURL();
-					urlList.add(url);
-				} catch (MalformedURLException e) {
-					System.err.println("[launcher] Failed convert to URL");
-					e.printStackTrace();
-				} catch (IOException e) {
-					System.err.println("[launcher] Failed getting canonical file name");
-					e.printStackTrace();
-				}
+		if (file.isDirectory()) { // directory traversal
+			File[] files = file.listFiles(jarFilter);
+			for (File childFile : files) {
+				addURL(urlMap, childFile);
 			}
 		} else {
-			if (file.isDirectory()) {
-				file = new File(file.getPath() + "/");
-			}
-			try {
-				urlList.add(file.toURI().toURL());
-			} catch (MalformedURLException e) {
-				System.err.println("[launcher] Failed convert to URL");
-				e.printStackTrace();
+			ClasspathEntry classpathEntry = new ClasspathEntry(file);
+			if (urlMap.containsKey(classpathEntry.getLibraryName())) {
+				urlMap.get(classpathEntry.getLibraryName()).update(classpathEntry);
+			} else {
+				urlMap.put(classpathEntry.getLibraryName(), classpathEntry);
 			}
 		}
 	}
@@ -108,17 +91,21 @@ public class TwitterClientLauncher {
 	}
 
 	private URLClassLoader prepareClassLoader() {
-		ArrayList<URL> libList = new ArrayList<URL>();
+		HashMap<String, ClasspathEntry> libMap = new HashMap<String, ClasspathEntry>();
 
 		// Handle -L option
 		for (String classpathEntry : classpath) {
-			addURL(libList, new File(classpathEntry), true);
+			addURL(libMap, new File(classpathEntry));
 		}
 
 		// handle ~/.elnetw/lib
-		addURL(libList, new File(System.getProperty("user.home"), ".elnetw/lib"), true);
+		addURL(libMap, new File(System.getProperty("user.home"), ".elnetw/lib"));
 
-		URL[] urls = libList.toArray(new URL[libList.size()]);
+		ArrayList<URL> urlList = new ArrayList<URL>();
+		for (ClasspathEntry entry : libMap.values()) {
+			urlList.add(entry.getLibraryUrl());
+		}
+		URL[] urls = urlList.toArray(new URL[urlList.size()]);
 
 		System.out.print("[launcher] classpath=");
 		System.out.println(Arrays.toString(urls));
