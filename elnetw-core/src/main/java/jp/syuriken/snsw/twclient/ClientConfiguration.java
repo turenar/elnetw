@@ -254,7 +254,7 @@ public class ClientConfiguration {
 
 	private boolean checkValidAccountId(String accountId) {
 		for (String account : getAccountList()) {
-			if (Utility.equalString(account, accountId)) {
+			if (account.equals(accountId)) {
 				return true;
 			}
 		}
@@ -688,7 +688,7 @@ public class ClientConfiguration {
 	public boolean isMyAccount(String accountId) {
 		String[] accountList = getAccountList();
 		for (String account : accountList) {
-			if (Utility.equalString(accountId, account)) {
+			if (accountId.equals(account)) {
 				return true;
 			}
 		}

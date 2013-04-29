@@ -127,180 +127,203 @@ public abstract class DefaultClientTab implements ClientTab {
 
 		@Override
 		public void onClientMessage(String name, Object arg) {
-			if (Utility.equalString(name, REQUEST_FOCUS_TAB_COMPONENT)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					selectingPost.requestFocusInWindow();
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_NEXT_COMPONENT)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					getSortedPostListPanel().requestFocusNextOf(selectingPost);
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_PREV_COMPONENT)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_PREV_COMPONENT)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
-					int indexOf = arrayList.indexOf(selectingPost);
-					if (indexOf >= 0 && indexOf < arrayList.size() - 1) {
-						arrayList.get(indexOf + 1).requestFocusInWindow();
+			switch (name) {
+				case REQUEST_FOCUS_TAB_COMPONENT:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						selectingPost.requestFocusInWindow();
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_USER_NEXT_COMPONENT)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
-					int indexOf = arrayList.indexOf(selectingPost);
-					if (indexOf > 0) {
-						arrayList.get(indexOf - 1).requestFocusInWindow();
+					break;
+				case REQUEST_FOCUS_NEXT_COMPONENT:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						getSortedPostListPanel().requestFocusNextOf(selectingPost);
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_FIRST_COMPONENT)) {
-				getSortedPostListPanel().requestFocusFirstComponent();
-			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_FIRST_COMPONENT)) {
-				getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
-					.requestFocusInWindow();
-			} else if (Utility.equalString(name, REQUEST_FOCUS_WINDOW_LAST_COMPONENT)) {
-				JViewport viewport = getScrollPane().getViewport();
-				getSortedPostListPanel().getComponentAt(0, viewport.getViewPosition().y + viewport.getHeight())
-					.requestFocusInWindow();
-			} else if (Utility.equalString(name, REQUEST_SCROLL_AS_WINDOW_LAST)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					Rectangle bounds = getSortedPostListPanel().getBoundsOf(selectingPost);
-					JViewport viewport = getScrollPane().getViewport();
-					int x = viewport.getViewPosition().x;
-					int y = bounds.y - (viewport.getHeight() - bounds.height);
-					viewport.setViewPosition(new Point(x, y));
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_IN_REPLY_TO)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status tag = (Status) statusData.tag;
-						inReplyToStack.push(selectingPost);
-						StatusPanel statusPanel = statusMap.get(tag.getInReplyToStatusId());
-						if (statusPanel != null) {
-							statusPanel.requestFocusInWindow();
+					break;
+				case REQUEST_FOCUS_PREV_COMPONENT:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
+					}
+					break;
+				case REQUEST_FOCUS_USER_PREV_COMPONENT:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
+						int indexOf = arrayList.indexOf(selectingPost);
+						if (indexOf >= 0 && indexOf < arrayList.size() - 1) {
+							arrayList.get(indexOf + 1).requestFocusInWindow();
 						}
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_FOCUS_BACK_REPLIED_BY)) {
-				if (selectingPost == null) {
-					getSortedPostListPanel().requestFocusInWindow();
-				} else {
-					if (inReplyToStack.isEmpty() == false) {
-						inReplyToStack.pop().requestFocusInWindow();
+					break;
+				case REQUEST_FOCUS_USER_NEXT_COMPONENT:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						ArrayList<StatusPanel> arrayList = listItems.get(selectingPost.getStatusData().user);
+						int indexOf = arrayList.indexOf(selectingPost);
+						if (indexOf > 0) {
+							arrayList.get(indexOf - 1).requestFocusInWindow();
+						}
 					}
+					break;
+				case REQUEST_FOCUS_FIRST_COMPONENT:
+					getSortedPostListPanel().requestFocusFirstComponent();
+					break;
+				case REQUEST_FOCUS_WINDOW_FIRST_COMPONENT:
+					getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
+							.requestFocusInWindow();
+					break;
+				case REQUEST_FOCUS_WINDOW_LAST_COMPONENT: {
+					JViewport viewport = getScrollPane().getViewport();
+					getSortedPostListPanel().getComponentAt(0, viewport.getViewPosition().y + viewport.getHeight())
+							.requestFocusInWindow();
 				}
-			} else if (Utility.equalString(name, REQUEST_COPY)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					/* TODO: StringSelection is not copied into gnome-terminal */
-					StringSelection stringSelection = new StringSelection(statusData.data.getText());
-					clipboard.setContents(stringSelection, stringSelection);
-				}
-			} else if (Utility.equalString(name, REQUEST_COPY_URL)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						status = status.isRetweet() ? status.getRetweetedStatus() : status;
-						String url =
-								"http://twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId();
+				break;
+				case REQUEST_SCROLL_AS_WINDOW_LAST:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						Rectangle bounds = getSortedPostListPanel().getBoundsOf(selectingPost);
+						JViewport viewport = getScrollPane().getViewport();
+						int x = viewport.getViewPosition().x;
+						int y = bounds.y - (viewport.getHeight() - bounds.height);
+						viewport.setViewPosition(new Point(x, y));
+					}
+					break;
+				case REQUEST_FOCUS_IN_REPLY_TO:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status tag = (Status) statusData.tag;
+							inReplyToStack.push(selectingPost);
+							StatusPanel statusPanel = statusMap.get(tag.getInReplyToStatusId());
+							if (statusPanel != null) {
+								statusPanel.requestFocusInWindow();
+							}
+						}
+					}
+					break;
+				case REQUEST_FOCUS_BACK_REPLIED_BY:
+					if (selectingPost == null) {
+						getSortedPostListPanel().requestFocusInWindow();
+					} else {
+						if (inReplyToStack.isEmpty() == false) {
+							inReplyToStack.pop().requestFocusInWindow();
+						}
+					}
+					break;
+				case REQUEST_COPY:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
 						/* TODO: StringSelection is not copied into gnome-terminal */
-						StringSelection stringSelection = new StringSelection(url);
+						StringSelection stringSelection = new StringSelection(statusData.data.getText());
 						clipboard.setContents(stringSelection, stringSelection);
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_COPY_USERID)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
+					break;
+				case REQUEST_COPY_URL:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							status = status.isRetweet() ? status.getRetweetedStatus() : status;
+							String url =
+									"http://twitter.com/" + status.getUser().getScreenName() + "/status/" +
+											status.getId();
+						/* TODO: StringSelection is not copied into gnome-terminal */
+							StringSelection stringSelection = new StringSelection(url);
+							clipboard.setContents(stringSelection, stringSelection);
+						}
+					}
+					break;
+				case REQUEST_COPY_USERID:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
 					StringSelection stringSelection = new StringSelection(statusData.user);
 					clipboard.setContents(stringSelection, stringSelection);
-				}
-			} else if (Utility.equalString(name, REQUEST_BROWSER_USER_HOME)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						status = status.isRetweet() ? status.getRetweetedStatus() : status;
-						String url = "http://twitter.com/" + status.getUser().getScreenName();
-						utility.openBrowser(url);
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_BROWSER_STATUS)
-					|| Utility.equalString(name, REQUEST_BROWSER_PERMALINK)
-					|| Utility.equalString(name, EVENT_CLICKED_CREATED_AT)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						status = status.isRetweet() ? status.getRetweetedStatus() : status;
-						String url =
-								"http://twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId();
-						utility.openBrowser(url);
-					}
-				}
-			} else if (Utility.equalString(name, REQUEST_BROWSER_IN_REPLY_TO)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						if (status.getInReplyToStatusId() != -1) {
-							String url =
-									"http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
-											+ status.getInReplyToStatusId();
+					break;
+				case REQUEST_BROWSER_USER_HOME:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							status = status.isRetweet() ? status.getRetweetedStatus() : status;
+							String url = "http://twitter.com/" + status.getUser().getScreenName();
 							utility.openBrowser(url);
 						}
 					}
-				}
-			} else if (Utility.equalString(name, REQUEST_BROWSER_OPENURLS)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						URLEntity[] urlEntities = status.getURLEntities();
-						for (URLEntity urlEntity : urlEntities) {
-							utility.openBrowser(urlEntity.getURL());
+					break;
+				case REQUEST_BROWSER_STATUS:
+				case REQUEST_BROWSER_PERMALINK:
+				case EVENT_CLICKED_CREATED_AT:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							status = status.isRetweet() ? status.getRetweetedStatus() : status;
+							String url =
+									"http://twitter.com/" + status.getUser().getScreenName() + "/status/" +
+											status.getId();
+							utility.openBrowser(url);
 						}
 					}
-				}
-			} else if (Utility.equalString(name, EVENT_CLICKED_CREATED_BY)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						if (status.isRetweet()) {
-							status = status.getRetweetedStatus();
+					break;
+				case REQUEST_BROWSER_IN_REPLY_TO:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							if (status.getInReplyToStatusId() != -1) {
+								String url =
+										"http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
+												+ status.getInReplyToStatusId();
+								utility.openBrowser(url);
+							}
 						}
-						handleAction("userinfo!" + status.getUser().getScreenName());
 					}
-				}
-			} else if (Utility.equalString(name, EVENT_CLICKED_OVERLAY_LABEL)) {
-				if (selectingPost != null) {
-					StatusData statusData = selectingPost.getStatusData();
-					if (statusData.tag instanceof Status) {
-						Status status = (Status) statusData.tag;
-						if (status.isRetweet()) {
+					break;
+				case REQUEST_BROWSER_OPENURLS:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							URLEntity[] urlEntities = status.getURLEntities();
+							for (URLEntity urlEntity : urlEntities) {
+								utility.openBrowser(urlEntity.getURL());
+							}
+						}
+					}
+					break;
+				case EVENT_CLICKED_CREATED_BY:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							if (status.isRetweet()) {
+								status = status.getRetweetedStatus();
+							}
 							handleAction("userinfo!" + status.getUser().getScreenName());
 						}
 					}
-				}
+					break;
+				case EVENT_CLICKED_OVERLAY_LABEL:
+					if (selectingPost != null) {
+						StatusData statusData = selectingPost.getStatusData();
+						if (statusData.tag instanceof Status) {
+							Status status = (Status) statusData.tag;
+							if (status.isRetweet()) {
+								handleAction("userinfo!" + status.getUser().getScreenName());
+							}
+						}
+					}
 			}
 		}
 

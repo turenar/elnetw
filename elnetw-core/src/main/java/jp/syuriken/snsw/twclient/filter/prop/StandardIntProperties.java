@@ -3,7 +3,6 @@ package jp.syuriken.snsw.twclient.filter.prop;
 import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -17,8 +16,6 @@ import twitter4j.Status;
  */
 public class StandardIntProperties implements FilterProperty {
 
-	private static Constructor<? extends FilterProperty> factory;
-
 	private static final byte PROPERTY_ID_USERID = 1;
 
 	private static final byte PROPERTY_ID_IN_REPLY_TO_USERID = 2;
@@ -26,6 +23,17 @@ public class StandardIntProperties implements FilterProperty {
 	private static final byte PROPERTY_ID_RT_COUNT = 3;
 
 	private static final byte PROPERTY_ID_TIMEDIFF = 4;
+
+	private static Constructor<? extends FilterProperty> factory;
+
+	/**
+	 * コンストラクターを取得する
+	 *
+	 * @return ファクトリー
+	 */
+	public static Constructor<? extends FilterProperty> getFactory() {
+		return factory;
+	}
 
 	private FilterOperator operatorType;
 
@@ -43,15 +51,6 @@ public class StandardIntProperties implements FilterProperty {
 		}
 	}
 
-
-	/**
-	 * コンストラクターを取得する
-	 * @return ファクトリー
-	 */
-	public static Constructor<? extends FilterProperty> getFactory() {
-		return factory;
-	}
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -64,16 +63,21 @@ public class StandardIntProperties implements FilterProperty {
 	public StandardIntProperties(ClientConfiguration configuration, String name, String operator, Object value)
 			throws IllegalSyntaxException {
 		// name 処理
-		if (Utility.equalString(name, "userid")) {
-			propertyId = PROPERTY_ID_USERID;
-		} else if (Utility.equalString(name, "in_reply_to_userid")) {
-			propertyId = PROPERTY_ID_IN_REPLY_TO_USERID;
-		} else if (Utility.equalString(name, "rtcount")) {
-			propertyId = PROPERTY_ID_RT_COUNT;
-		} else if (Utility.equalString(name, "timediff")) {
-			propertyId = PROPERTY_ID_TIMEDIFF;
-		} else {
-			throw new IllegalSyntaxException("[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+		switch (name) {
+			case "userid":
+				propertyId = PROPERTY_ID_USERID;
+				break;
+			case "in_reply_to_userid":
+				propertyId = PROPERTY_ID_IN_REPLY_TO_USERID;
+				break;
+			case "rtcount":
+				propertyId = PROPERTY_ID_RT_COUNT;
+				break;
+			case "timediff":
+				propertyId = PROPERTY_ID_TIMEDIFF;
+				break;
+			default:
+				throw new IllegalSyntaxException("[StandardIntProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {

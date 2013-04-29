@@ -3,7 +3,6 @@ package jp.syuriken.snsw.twclient.filter.prop;
 import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -17,13 +16,22 @@ import twitter4j.Status;
  */
 public class StandardStringProperties implements FilterProperty {
 
-	private static Constructor<? extends FilterProperty> factory;
-
 	private static final byte PROPERTY_ID_USER = 1;
 
 	private static final byte PROPERTY_ID_TEXT = 2;
 
 	private static final byte PROPERTY_ID_CLIENT = 3;
+
+	private static Constructor<? extends FilterProperty> factory;
+
+	/**
+	 * コンストラクターを取得する
+	 *
+	 * @return ファクトリー
+	 */
+	public static Constructor<? extends FilterProperty> getFactory() {
+		return factory;
+	}
 
 	private FilterOperator operatorType;
 
@@ -41,15 +49,6 @@ public class StandardStringProperties implements FilterProperty {
 		}
 	}
 
-
-	/**
-	 * コンストラクターを取得する
-	 * @return ファクトリー
-	 */
-	public static Constructor<? extends FilterProperty> getFactory() {
-		return factory;
-	}
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -62,14 +61,18 @@ public class StandardStringProperties implements FilterProperty {
 	public StandardStringProperties(ClientConfiguration configuration, String name, String operator, Object value)
 			throws IllegalSyntaxException {
 		// name 処理
-		if (Utility.equalString(name, "user")) {
-			propertyId = PROPERTY_ID_USER;
-		} else if (Utility.equalString(name, "text")) {
-			propertyId = PROPERTY_ID_TEXT;
-		} else if (Utility.equalString(name, "client")) {
-			propertyId = PROPERTY_ID_CLIENT;
-		} else {
-			throw new IllegalSyntaxException("[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
+		switch (name) {
+			case "user":
+				propertyId = PROPERTY_ID_USER;
+				break;
+			case "text":
+				propertyId = PROPERTY_ID_TEXT;
+				break;
+			case "client":
+				propertyId = PROPERTY_ID_CLIENT;
+				break;
+			default:
+				throw new IllegalSyntaxException("[StandardStringProperties] 対応してないプロパティ名です。バグ報告をお願いします: " + name);
 		}
 		// operator 処理
 		if (operator == null) {

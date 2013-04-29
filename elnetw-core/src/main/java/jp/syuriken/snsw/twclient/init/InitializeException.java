@@ -2,6 +2,8 @@ package jp.syuriken.snsw.twclient.init;
 
 /** exception when initializing */
 public class InitializeException extends Exception {
+	private static final long serialVersionUID = -4813918292243379594L;
+
 	private final String reason;
 
 	private final int exitCode;
