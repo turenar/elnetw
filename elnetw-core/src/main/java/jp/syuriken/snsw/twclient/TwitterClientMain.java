@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.io.File;
 import java.io.FileInputStream;
@@ -98,8 +99,19 @@ public class TwitterClientMain {
 		return SINGLETON;
 	}
 
+	/** 終了する。 */
+	public static synchronized void quit() {
+		if (SINGLETON == null) {
+			throw new IllegalStateException("no instance running!");
+		}
+		SINGLETON.MAIN_THREAD.interrupt();
+	}
+
 	/** 設定 */
 	protected final ClientConfiguration configuration;
+
+	/** for interruption */
+	private final Thread MAIN_THREAD;
 
 	/** 設定データ */
 	protected ClientProperties configProperties;
@@ -127,6 +139,7 @@ public class TwitterClientMain {
 	 * @param args コマンドラインオプション
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
+		MAIN_THREAD = Thread.currentThread();
 		configuration = new ClientConfiguration();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
@@ -426,7 +439,9 @@ public class TwitterClientMain {
 					threadHolder.wait();
 					break;
 				} catch (InterruptedException e) {
-					// do nothing
+					// interrupted shows TCM#quit() is called.
+					configuration.setShutdownPhase(true);
+					break;
 				}
 			}
 		}
@@ -586,6 +601,19 @@ public class TwitterClientMain {
 		} else {
 			frame.cleanUp();
 			logger.info("Exiting elnetw...");
+			try {
+				EventQueue.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						frame.setVisible(false);
+						frame.dispose();
+					}
+				});
+			} catch (InterruptedException e) {
+				logger.error("interrupted while closing frame", e);
+			} catch (InvocationTargetException e) {
+				logger.error("Caught error", e.getCause());
+			}
 		}
 	}
 

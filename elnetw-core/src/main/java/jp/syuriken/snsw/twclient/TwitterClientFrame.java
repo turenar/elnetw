@@ -466,8 +466,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			setVisible(false);
-			dispose();
+			TwitterClientMain.quit();
 		}
 
 		@Override
