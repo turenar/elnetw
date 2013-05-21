@@ -16,7 +16,7 @@ import twitter4j.TwitterStreamFactory;
 /**
  * Twitterからの情報を取得するためのスケジューラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterDataFetchScheduler {
 

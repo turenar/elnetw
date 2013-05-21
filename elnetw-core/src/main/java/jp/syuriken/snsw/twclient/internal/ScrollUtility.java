@@ -14,14 +14,14 @@ import static java.lang.Math.abs;
 /**
  * y軸方向の慣性スクロールを実現させるためのクラス
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ScrollUtility {
 
 	/**
 	 * 孫コンポーネントの子コンポーネントにおける相対位置を親コンポーネントにおける絶対位置に変換するためのクラス。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public interface BoundsTranslator {
 

@@ -26,7 +26,7 @@ import static org.junit.Assert.fail;
 /**
  * TwitterStatusのためのテスト
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterStatusTest {
 

@@ -10,7 +10,7 @@ import twitter4j.UserList;
 /**
  * フィルタクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MessageFilter {
 

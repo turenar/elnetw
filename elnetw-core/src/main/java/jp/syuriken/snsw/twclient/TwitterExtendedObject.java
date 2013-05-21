@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient;
 /**
  * Twitter拡張オブジェクト
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 interface TwitterExtendedObject {
 

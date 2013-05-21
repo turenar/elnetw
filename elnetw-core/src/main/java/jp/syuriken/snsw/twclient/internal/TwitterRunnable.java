@@ -6,7 +6,7 @@ import twitter4j.TwitterException;
 /**
  * Twitterがダウンしてる時か過負荷のときに再試行するユーティリティクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class TwitterRunnable implements Runnable {
 

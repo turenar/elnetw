@@ -30,7 +30,7 @@ import twitter4j.conf.ConfigurationBuilder;
 /**
  * elnetw の情報などを格納するクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientConfiguration {
 

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Java-Gnome用のユーティリティ。Java-Gnomeがクラスパスになくても使用可
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);

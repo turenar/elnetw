@@ -10,7 +10,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 /**
  * 設定フレームのビルダー
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ConfigFrameBuilder {
 
@@ -19,7 +19,7 @@ public class ConfigFrameBuilder {
 	 *
 	 * <p>グループは、フレームのタブ名です</p>
 	 * <p>サブグループは、まとめられます</p>
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static class Config implements Comparable<Config> {
 
@@ -191,7 +191,7 @@ public class ConfigFrameBuilder {
 	/**
 	 * グループの糖衣構文
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public final class ConfigGroup {
 
@@ -263,7 +263,7 @@ public class ConfigFrameBuilder {
 	/**
 	 * サブグループの糖衣構文
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public final class ConfigSubgroup {
 

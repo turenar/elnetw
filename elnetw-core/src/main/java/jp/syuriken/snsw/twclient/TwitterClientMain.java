@@ -80,7 +80,7 @@ import twitter4j.auth.AccessToken;
 /**
  * 実際に起動するランチャ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterClientMain {
 

@@ -6,7 +6,7 @@ import twitter4j.Status;
 /**
  * 何もしないフィルタ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class NullFilter implements FilterDispatcherBase {
 

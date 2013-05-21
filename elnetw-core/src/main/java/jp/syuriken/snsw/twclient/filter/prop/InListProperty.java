@@ -22,7 +22,7 @@ import twitter4j.internal.http.HttpResponseCode;
 /**
  * リストに入っているかどかを用いてフィルタする
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class InListProperty implements FilterProperty {
 

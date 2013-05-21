@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 登録済みのリスナに変更を通知できるプロパティーリストです。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientProperties extends Properties {
 

@@ -73,7 +73,7 @@ import static java.lang.Math.max;
 
 /**
  * elnetwのメインウィンドウ
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
 /*package*/class TwitterClientFrame extends javax.swing.JFrame implements WindowListener, ClientFrameApi {
@@ -91,7 +91,7 @@ import static java.lang.Math.max;
 	/**
 	 * アカウント認証するアクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class AccountVerifierActionHandler implements ActionHandler {
 
@@ -125,7 +125,7 @@ import static java.lang.Math.max;
 	/**
 	 * MenuItemのActionListenerの実装。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	private final class ActionListenerImplementation implements ActionListener {
 
@@ -144,7 +144,7 @@ import static java.lang.Math.max;
 	/**
 	 * "core!*" アクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class CoreFrameActionHandler implements ActionHandler {
 
@@ -261,7 +261,7 @@ import static java.lang.Math.max;
 	/**
 	 * JLabel および JEditorPane用
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	private final class DefaultMouseListener implements MouseListener {
 
@@ -385,7 +385,7 @@ import static java.lang.Math.max;
 	/**
 	 * 設定フレームを表示するアクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	private class MenuConfiguratorActionHandler implements ActionHandler {
 
@@ -430,7 +430,7 @@ import static java.lang.Math.max;
 	/**
 	 * メニューのプロパティエディタを開くためのアクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class MenuPropertyEditorActionHandler implements ActionHandler {
 
@@ -455,7 +455,7 @@ import static java.lang.Math.max;
 	/**
 	 * 終了するためのアクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class MenuQuitActionHandler implements ActionHandler {
 
@@ -480,7 +480,7 @@ import static java.lang.Math.max;
 	/**
 	 * リログインするためのアクションハンドラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class ReloginActionHandler implements ActionHandler {
 
@@ -520,7 +520,7 @@ import static java.lang.Math.max;
 	/**
 	 * ログイン出来るユーザー情報を取得する
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	/*package*/final class UserInfoFetcher implements Runnable {
 

@@ -17,7 +17,7 @@ import twitter4j.UserMentionEntity;
 /**
  * ユーザー設定によりフィルタを行うフィルタクラス
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 

@@ -73,14 +73,14 @@ import javax.swing.JPanel;
  * branches -&gt; [ [15:00, 14:30] <del>[14:00, 12:00]</del> ]
  * </pre>
  * </p>
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class SortedPostListPanel extends JPanel {
 
 	/**
 	 * コンポーネントを比較する
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static final class ComponentComparator implements Comparator<Component>, Serializable {
 

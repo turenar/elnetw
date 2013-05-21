@@ -15,7 +15,7 @@ import jp.syuriken.snsw.twclient.ParallelRunnable;
 /**
  * TrayIconを使用して通知する。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnable {
 

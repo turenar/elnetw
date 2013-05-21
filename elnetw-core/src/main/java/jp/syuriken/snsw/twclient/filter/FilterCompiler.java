@@ -23,7 +23,7 @@ import jp.syuriken.snsw.twclient.filter.tokenizer.TokenMgrError;
 /**
  * フィルタをコンパイルするクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class FilterCompiler implements FilterParserVisitor {
 

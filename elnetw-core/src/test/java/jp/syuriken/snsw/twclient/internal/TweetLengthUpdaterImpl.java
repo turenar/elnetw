@@ -7,7 +7,7 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 /**
  * {@link TweetLengthUpdater}のテンプレートクラス (テスト用)
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TweetLengthUpdaterImpl implements TweetLengthUpdater {
 

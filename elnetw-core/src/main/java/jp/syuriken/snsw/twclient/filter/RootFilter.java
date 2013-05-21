@@ -21,7 +21,7 @@ import twitter4j.UserList;
 /**
  * ごにょごにょ用のフィルターハンドラー。キャッシュとか通知の作成とか
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class RootFilter implements MessageFilter {
 

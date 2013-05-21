@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * ジョブワーカースレッド。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 /*package*/class JobWorkerThread extends Thread {
 

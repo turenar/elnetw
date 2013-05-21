@@ -10,7 +10,7 @@ import twitter4j.Status;
 /**
  * TODO snsoftware
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UnofficialRetweetActionHandler implements ActionHandler {
 

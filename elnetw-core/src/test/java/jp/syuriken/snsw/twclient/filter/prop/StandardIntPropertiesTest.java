@@ -20,7 +20,7 @@ import static org.junit.Assert.fail;
 /**
  * {@link StandardIntProperties}のためのテスト
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StandardIntPropertiesTest extends FilterConstants {
 

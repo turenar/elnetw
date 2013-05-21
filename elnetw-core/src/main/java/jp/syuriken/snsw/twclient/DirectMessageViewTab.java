@@ -20,7 +20,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 /**
  * ダイレクトメッセージを表示するタブ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirectMessageViewTab extends DefaultClientTab {
 

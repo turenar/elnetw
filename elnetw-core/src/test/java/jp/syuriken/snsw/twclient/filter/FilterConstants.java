@@ -14,7 +14,7 @@ import twitter4j.json.DataObjectFactory;
 /**
  * フィルタ・テスト用の定数等を格納したクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class FilterConstants implements FilterDispatcherBase {
 

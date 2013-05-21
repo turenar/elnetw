@@ -9,7 +9,7 @@ import jp.syuriken.snsw.lib.VersionComparator;
 /**
  * Classpath Entry
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClasspathEntry {
 

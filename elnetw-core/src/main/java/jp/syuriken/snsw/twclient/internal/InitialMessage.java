@@ -13,7 +13,7 @@ import twitter4j.UserMentionEntity;
 /**
  * 初期化時に読み込まれたDM。通知を発行しない。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class InitialMessage implements DirectMessage {
 

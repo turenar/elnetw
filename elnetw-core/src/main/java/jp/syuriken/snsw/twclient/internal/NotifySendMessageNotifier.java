@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 /**
  * notify-sendを使用して通知を送信するクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class NotifySendMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(NotifySendMessageNotifier.class);

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 /**
  * SoftReference を使った ConcurrentHashMap を操作するクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  * @param <K> キー型パラメータ。
  *   {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link Object#equals(Object)} はfalseを
  *   返さなければなりません。
@@ -38,7 +38,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 *            返さなければなりません。
 	 * @param <V> 値型パラメータ。
 	 *            {@link #hashCode()} のために {@link Object#hashCode()} はキャッシュされます。ハッシュコードの変更は許可されません。
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected static class SoftReferenceUtil<K, V> extends SoftReference<V> {
 
@@ -96,7 +96,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} を扱うエントリーイテレータ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class EntryIterator implements Iterator<Entry<K, V>> {
 
@@ -130,7 +130,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} を扱うエントリーセット
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class EntrySet extends AbstractSet<Entry<K, V>> {
 
@@ -159,7 +159,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * リファレンス掃除するクラス。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected class ReferenceCleaner implements ParallelRunnable {
 
@@ -198,7 +198,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil} をラップするバリューイテレータ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class ValueIterator implements Iterator<V> {
 
@@ -233,7 +233,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * {@link ConcurrentSoftHashMap.SoftReferenceUtil}を扱うバリューセット
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class Values extends AbstractCollection<V> {
 
@@ -262,7 +262,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * エントリーをラップするクラス。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class WrapEntry implements Entry<K, V> {
 

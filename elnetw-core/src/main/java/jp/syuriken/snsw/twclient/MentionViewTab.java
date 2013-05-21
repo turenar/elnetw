@@ -14,14 +14,14 @@ import twitter4j.internal.org.json.JSONObject;
 /**
  * メンション表示用タブ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MentionViewTab extends DefaultClientTab {
 
 	/**
 	 * メンションタブ用レンダラ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected class MentionRenderer extends DefaultRenderer {
 

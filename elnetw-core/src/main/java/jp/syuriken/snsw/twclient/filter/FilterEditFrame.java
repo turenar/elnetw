@@ -31,7 +31,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 /**
  * フィルタを編集するためのフレーム
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
 public class FilterEditFrame extends JFrame implements WindowListener {

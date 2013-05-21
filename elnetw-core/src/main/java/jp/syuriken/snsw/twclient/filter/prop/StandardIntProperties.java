@@ -12,7 +12,7 @@ import twitter4j.Status;
 /**
  * 標準装備された数値を処理するプロパティ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StandardIntProperties implements FilterProperty {
 

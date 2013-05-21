@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * バージョン情報を表示するクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
 public class VersionInfoFrame extends JFrame {
@@ -35,7 +35,7 @@ public class VersionInfoFrame extends JFrame {
 	/**
 	 * ライブラリ情報を格納するクラス
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static class LibraryInfo {
 

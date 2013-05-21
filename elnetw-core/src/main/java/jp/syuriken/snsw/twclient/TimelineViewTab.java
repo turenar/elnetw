@@ -23,7 +23,7 @@ import twitter4j.internal.org.json.JSONObject;
 /**
  * タイムラインビュー
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TimelineViewTab extends DefaultClientTab {
 

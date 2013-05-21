@@ -10,7 +10,7 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 /**
  * デフォルトのツイートの長さを計算するクラス。URL変換を行った上での長さを計算する。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 

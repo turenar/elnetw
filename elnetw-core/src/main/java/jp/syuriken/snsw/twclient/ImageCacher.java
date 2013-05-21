@@ -23,14 +23,14 @@ import twitter4j.User;
 /**
  * 画像をキャッシュする。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ImageCacher {
 
 	/**
 	 * 画像情報を保存するエントリ。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected static class ImageEntry {
 
@@ -93,7 +93,7 @@ public class ImageCacher {
 	/**
 	 * イメージフェッチャ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected class ImageFetcher implements ParallelRunnable {
 
@@ -136,7 +136,7 @@ public class ImageCacher {
 	/**
 	 * イメージを恒久的保存するジョブ
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected class ImageFlusher implements ParallelRunnable {
 

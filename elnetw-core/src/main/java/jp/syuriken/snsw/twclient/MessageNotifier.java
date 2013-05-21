@@ -6,7 +6,7 @@ import java.io.IOException;
 /**
  * 通知が送信されるクラスのインターフェース
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MessageNotifier {
 

@@ -59,7 +59,7 @@ import twitter4j.internal.org.json.JSONObject;
 /**
  * ユーザー情報を表示するアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserInfoViewActionHandler implements ActionHandler {
 
@@ -109,14 +109,14 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	/**
 	 * ユーザー情報を表示するFrameTab
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static class UserInfoFrameTab extends DefaultClientTab {
 
 		/**
 		 * 指定されたユーザーの発言のみを表示するレンダラ
 		 *
-		 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+		 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 		 */
 		public class UserInfoTweetsRenderer extends DefaultRenderer {
 
@@ -618,7 +618,7 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	/**
 	 * ユーザータイムラインfetcher
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	private static final class UserTimelineFetcher extends TwitterRunnable {
 

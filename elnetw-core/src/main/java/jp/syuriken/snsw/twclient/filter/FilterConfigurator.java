@@ -19,14 +19,14 @@ import jp.syuriken.snsw.twclient.config.ConfigType;
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class FilterConfigurator implements ConfigType, ActionListener {
 
 	/**
 	 * {@link #displayString}と {@link #propertyKey}を格納するだけのクラス
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected static class KVItem {
 

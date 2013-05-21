@@ -7,7 +7,7 @@ import javax.swing.JPanel;
 /**
  * StatusDataを格納するだけのなんちゃら
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
 public class StatusPanel extends JPanel implements Comparable<StatusPanel> {

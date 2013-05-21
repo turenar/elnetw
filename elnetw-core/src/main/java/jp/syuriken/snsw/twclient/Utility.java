@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * ユーティリティクラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class Utility {
 
@@ -53,7 +53,7 @@ public class Utility {
 	/**
 	 * OSの種別を判断する。
 	 *
-	 * @author Turenar <snswinhaiku dot lo at gmail dot com>
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public enum OSType {
 		/** Windows環境 */

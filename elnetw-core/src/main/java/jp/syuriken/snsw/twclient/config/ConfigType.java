@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 /**
  * コンポーネントとかを生成するクラスインターフェース。設定用。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface ConfigType {
 

@@ -10,7 +10,7 @@ import twitter4j.User;
 /**
  * 空のUser実装
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  * @see NullStatus
  */
 public class NullUser implements User {

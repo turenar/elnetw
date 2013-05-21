@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public enum FilterOperator {
 	/** 比較演算子 == */

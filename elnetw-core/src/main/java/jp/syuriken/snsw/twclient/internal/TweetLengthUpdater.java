@@ -7,7 +7,7 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 /**
  * ツイートの長さを更新するAPI
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface TweetLengthUpdater {
 

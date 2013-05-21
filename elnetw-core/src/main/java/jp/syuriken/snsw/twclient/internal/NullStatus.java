@@ -15,7 +15,7 @@ import twitter4j.UserMentionEntity;
 /**
  * 空のStatus実装
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
 public class NullStatus implements Status {

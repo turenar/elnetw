@@ -9,7 +9,7 @@ import jp.syuriken.snsw.twclient.StatusData;
 /**
  * ハッシュタグを処理するアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class HashtagActionHandler implements ActionHandler {
 

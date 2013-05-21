@@ -15,7 +15,7 @@ import twitter4j.Status;
 /**
  * UserFilterのためのTest
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserFilterTest {
 

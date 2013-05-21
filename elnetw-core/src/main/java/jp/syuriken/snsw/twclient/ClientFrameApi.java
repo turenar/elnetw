@@ -17,7 +17,7 @@ import twitter4j.User;
 /**
  * メインフレームを操作するためのAPI
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface ClientFrameApi extends TweetLengthUpdater {
 
