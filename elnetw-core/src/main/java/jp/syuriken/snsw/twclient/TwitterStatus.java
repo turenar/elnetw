@@ -65,7 +65,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		}
 	}
 
-	private static JSONObject getJsonObject(ClientConfiguration configuration, Status originalStatus)
+	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
 		String json = DataObjectFactory.getRawJSON(originalStatus);
 		JSONObject jsonObject = null;
@@ -85,13 +85,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private final Date createdAt;
 
-	private final GeoLocation geoLocation;
+	private/*final*/GeoLocation geoLocation;
 
 	private/*final*/HashtagEntity[] hashtagEntities;
 
 	private final long id;
 
-	private final String inReplyToScreenName;
+	private/*final*/String inReplyToScreenName;
 
 	private final long inReplyToStatusId;
 
@@ -103,11 +103,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private/*final*/MediaEntity[] mediaEntities;
 
-	private final Place place;
+	private/*final*/Place place;
 
 	private final TwitterStatus retweetedStatus;
 
-	private final String source;
+	private/*final*/String source;
 
 	private/*final*/String text;
 
@@ -132,20 +132,18 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param configuration 設定
 	 * @param originalStatus オリジナルステータス
 	 */
-	public TwitterStatus(ClientConfiguration configuration, Status originalStatus) {
-		this(configuration, originalStatus, getJsonObject(configuration, originalStatus));
+	public TwitterStatus(Status originalStatus) {
+		this(originalStatus, getJsonObject(originalStatus));
 	}
 
 	/**
 	 * インスタンスを生成する。
-	 * @param configuration 設定
 	 * @param originalStatus オリジナルステータス
 	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
 	 */
-	public TwitterStatus(ClientConfiguration configuration, Status originalStatus, JSONObject jsonObject) {
+	public TwitterStatus(Status originalStatus, JSONObject jsonObject) {
 		json = jsonObject == null ? null : jsonObject.toString();
 
 		favorited = originalStatus.isFavorited();
@@ -168,7 +166,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		retweetCount = originalStatus.getRetweetCount();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		contributors = originalStatus.getContributors();
-		user = getCachedUser(configuration, originalStatus.getUser());
+		user = getCachedUser(originalStatus.getUser());
 		possiblySensitive = originalStatus.isPossiblySensitive();
 		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
 
@@ -176,15 +174,15 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		if (originalStatus instanceof TwitterStatus) {
 			// do nothing
 		} else if (jsonObject == null) {
-			retweetedStatus = new TwitterStatus(configuration, retweetedStatus);
+			retweetedStatus = new TwitterStatus(retweetedStatus);
 		} else {
 			try {
 				if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
-					CacheManager cacheManager = configuration.getCacheManager();
+					CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
 					Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
 					if (cachedStatus == null || cachedStatus instanceof TwitterStatus == false) {
 						Status status =
-								new TwitterStatus(configuration, retweetedStatus, jsonObject.isNull("retweeted_status")
+								new TwitterStatus(retweetedStatus, jsonObject.isNull("retweeted_status")
 										? null : jsonObject.getJSONObject("retweeted_status"));
 						cachedStatus = cacheManager.cacheStatusIfAbsent(status);
 						if (cachedStatus == null) {
@@ -234,15 +232,15 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return -1;
 	}
 
-	private User getCachedUser(ClientConfiguration configuration, User user) {
+	private User getCachedUser(User user) {
 		if (user instanceof TwitterUser) {
 			return user;
 		}
 
-		CacheManager cacheManager = configuration.getCacheManager();
+		CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
 		User cachedUser = cacheManager.getCachedUser(user.getId());
 		if (cachedUser == null) {
-			TwitterUser twitterUser = new TwitterUser(configuration, user);
+			TwitterUser twitterUser = new TwitterUser(user);
 			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
 			if (cachedUser == null) {
 				cachedUser = twitterUser;
@@ -422,5 +420,30 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 */
 	public void setRetweetedByMe(boolean retweetedByMe) {
 		this.retweetedByMe = retweetedByMe;
+	}
+	public void update(Status status){
+		favorited = status.isFavorited();
+		retweetedByMe = status.isRetweetedByMe();
+		urlEntities = status.getURLEntities();
+		hashtagEntities = status.getHashtagEntities();
+		mediaEntities = status.getMediaEntities();
+		userMentionEntities = status.getUserMentionEntities();
+		text = status.getText();
+		//createdAt = status.getCreatedAt();
+		//id = status.getId();
+		source = status.getSource();
+		//isTruncated = status.isTruncated();
+		//inReplyToStatusId = status.getInReplyToStatusId();
+		//inReplyToUserId = status.getInReplyToUserId();
+		favorited = status.isFavorited();
+		inReplyToScreenName = status.getInReplyToScreenName();
+		geoLocation = status.getGeoLocation();
+		place = status.getPlace();
+		retweetCount = status.getRetweetCount();
+		retweetedByMe = status.isRetweetedByMe();
+		//contributors = status.getContributors();
+		//user = getCachedUser(status.getUser());
+		possiblySensitive = status.isPossiblySensitive();
+		currentUserRetweetId = status.getCurrentUserRetweetId();
 	}
 }

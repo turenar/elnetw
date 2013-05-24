@@ -55,7 +55,7 @@ public class RootFilter implements MessageFilter {
 
 		User cachedUser = cacheManager.getCachedUser(originalUser.getId());
 		if (cachedUser == null) {
-			User user = new TwitterUser(configuration, originalUser);
+			User user = new TwitterUser(originalUser);
 			cachedUser = cacheManager.cacheUserIfAbsent(user);
 			if (cachedUser == null) {
 				cachedUser = user;

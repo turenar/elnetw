@@ -107,7 +107,7 @@ public class TwitterStatusTest {
 	}
 
 	/**
-	 * {@link TwitterStatus#TwitterStatus(ClientConfiguration, Status)} のためのテスト・メソッド。
+	 * {@link TwitterStatus#TwitterStatus(Status)} のためのテスト・メソッド。
 	 *
 	 * @throws TwitterException             json例外
 	 * @throws IOException                  IO例外
@@ -123,7 +123,7 @@ public class TwitterStatusTest {
 		for (TestObj test : tests) {
 			Status status = DataObjectFactory.createStatus(test.json);
 			DataObjectFactoryUtil.registerJSONObject(status, test.json);
-			status = new TwitterStatus(configuration, status);
+			status = new TwitterStatus(status);
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}

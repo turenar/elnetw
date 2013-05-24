@@ -25,7 +25,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
 
 
-	private static JSONObject getJsonObject(ClientConfiguration configuration, User originalUser) throws AssertionError {
+	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
 		String json = DataObjectFactory.getRawJSON(originalUser);
 		JSONObject jsonObject = null;
 		if (json != null) {
@@ -115,20 +115,18 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param configuration 設定
 	 * @param originalUser オリジナルユーザー
 	 */
-	public TwitterUser(ClientConfiguration configuration, User originalUser) {
-		this(configuration, originalUser, getJsonObject(configuration, originalUser));
+	public TwitterUser(User originalUser) {
+		this(originalUser, getJsonObject(originalUser));
 	}
 
 	/**
 	 * インスタンスを生成する。
-	 * @param configuration 設定
 	 * @param originalUser オリジナルユーザー
 	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
 	 */
-	public TwitterUser(ClientConfiguration configuration, User originalUser, JSONObject jsonObject) {
+	public TwitterUser(User originalUser, JSONObject jsonObject) {
 		createdAt = originalUser.getCreatedAt();
 		id = originalUser.getId();
 		isContributorsEnabled = originalUser.isContributorsEnabled();
@@ -177,10 +175,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 			throw new RuntimeException(e);
 		}
 		if (status != null && status instanceof TwitterStatus == false) {
+			ClientConfiguration configuration = ClientConfiguration.getInstance();
 			CacheManager cacheManager = configuration.getCacheManager();
 			Status cachedStatus = cacheManager.getCachedStatus(status.getId());
 			if (cachedStatus == null) {
-				status = new TwitterStatus(configuration, status, statusJsonObject);
+				status = new TwitterStatus(status, statusJsonObject);
 				cachedStatus = cacheManager.cacheStatusIfAbsent(status);
 				if (cachedStatus != null) {
 					status = cachedStatus;

@@ -33,11 +33,6 @@ public class TwitterDataFetchScheduler {
 				rootFilterService.onDirectMessage(new InitialMessage(directMessage));
 			}
 		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
-		}
 	}
 
 	private final class FirstMentionFetcher extends TwitterRunnable implements ParallelRunnable {
@@ -49,15 +44,10 @@ public class TwitterDataFetchScheduler {
 						.count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_MENTION));
 			ResponseList<Status> mentions = twitterForRead.getMentionsTimeline(paging);
 			for (Status status : mentions) {
-				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
+				TwitterStatus twitterStatus = new TwitterStatus( status);
 				twitterStatus.setLoadedInitialization(true);
 				rootFilterService.onStatus(twitterStatus);
 			}
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
 		}
 	}
 
@@ -71,15 +61,10 @@ public class TwitterDataFetchScheduler {
 						.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_TIMELINE));
 			homeTimeline = twitterForRead.getHomeTimeline(paging);
 			for (Status status : homeTimeline) {
-				TwitterStatus twitterStatus = new TwitterStatus(configuration, status);
+				TwitterStatus twitterStatus = new TwitterStatus(status);
 				twitterStatus.setLoadedInitialization(true);
 				rootFilterService.onStatus(twitterStatus);
 			}
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
 		}
 	}
 
@@ -94,11 +79,6 @@ public class TwitterDataFetchScheduler {
 			for (Status status : timeline) {
 				rootFilterService.onStatus(status);
 			}
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
 		}
 	}
 

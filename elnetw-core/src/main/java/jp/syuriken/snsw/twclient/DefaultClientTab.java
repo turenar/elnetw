@@ -811,9 +811,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param originalStatus 元となるStatus
 	 */
 	public void addStatus(Status originalStatus) {
-		Status twitterStatus =
-				originalStatus instanceof TwitterStatus ? originalStatus : new TwitterStatus(configuration,
-						originalStatus);
+		Status twitterStatus = originalStatus instanceof TwitterStatus ? originalStatus
+				: new TwitterStatus(originalStatus);
 		StatusData statusData = new StatusData(twitterStatus, twitterStatus.getCreatedAt(), twitterStatus.getId());
 
 		Status status;

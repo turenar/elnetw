@@ -376,7 +376,7 @@ public class ConfigFrameBuilder {
 		return new ConfigGroup(group);
 	}
 
-	/*package*/void show() {
+	public void show() {
 		Config[] configs;
 		synchronized (configsList) {
 			configs = configsList.toArray(new Config[configsList.size()]);

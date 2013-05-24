@@ -18,6 +18,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -70,19 +72,17 @@ public class ClientConfiguration {
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 
-	public static final Charset UTF8_CHARSET;
-
-	static {
-		UTF8_CHARSET = Charset.forName("UTF-8");
-	}
+	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
 
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
 
+	private static ClientConfiguration INSTANCE;
+
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
-			new HashMap<String, Constructor<? extends ClientTab>>();
+			new HashMap<>();
 
 	/**
 	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
@@ -92,6 +92,13 @@ public class ClientConfiguration {
 	 */
 	public static Constructor<? extends ClientTab> getClientTabConstructor(String id) {
 		return clientTabConstructorsMap.get(id);
+	}
+
+	public static ClientConfiguration getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new ClientConfiguration();
+		}
+		return INSTANCE;
 	}
 
 	/**
@@ -140,6 +147,8 @@ public class ClientConfiguration {
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 
 	private final transient JobQueue jobQueue = new JobQueue();
+
+	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
 
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
 

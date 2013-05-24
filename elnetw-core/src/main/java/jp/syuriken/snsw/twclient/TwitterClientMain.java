@@ -142,7 +142,7 @@ public class TwitterClientMain {
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
 		MAIN_THREAD = Thread.currentThread();
-		configuration = new ClientConfiguration();
+		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
 		LongOpt[] longOpts = new LongOpt[]{

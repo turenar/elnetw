@@ -19,7 +19,6 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -54,7 +53,6 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import org.slf4j.Logger;
@@ -387,20 +385,6 @@ import static java.lang.Math.max;
 	 */
 	private class MenuConfiguratorActionHandler implements ActionHandler {
 
-		private Method showMethod;
-
-		private MenuConfiguratorActionHandler() {
-			try {
-				showMethod = ConfigFrameBuilder.class.getDeclaredMethod("show");
-				showMethod.setAccessible(true);
-			} catch (SecurityException e) {
-				logger.error("blocked reflection of ConfigFrameBuilder#show()", e);
-			} catch (NoSuchMethodException e) {
-				logger.error("failed reflection of ConfigFrameBuilder#show()", e);
-				e.printStackTrace();
-			}
-		}
-
 		@Override
 		public JMenuItem createJMenuItem(String commandName) {
 			return null;
@@ -408,15 +392,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			try {
-				showMethod.invoke(configuration.getConfigBuilder());
-			} catch (IllegalArgumentException e) {
-				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
-			} catch (IllegalAccessException e) {
-				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
-			} catch (InvocationTargetException e) {
-				logger.warn("failed invocation of ConfigFrameBuilder#show()", e);
-			}
+			configuration.getConfigBuilder().show();
 		}
 
 		@Override
@@ -439,7 +415,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame(configuration);
+			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame();
 			propertyEditorFrame.setVisible(true);
 		}
 

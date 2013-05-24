@@ -147,7 +147,7 @@ public class FilterService implements ClientMessageListener {
 
 		Status cachedStatus = cacheManager.getCachedStatus(originalStatus.getId());
 		if (cachedStatus == null) {
-			Status status = new TwitterStatus(configuration, originalStatus);
+			Status status = new TwitterStatus(originalStatus);
 			cachedStatus = cacheManager.cacheStatusIfAbsent(status);
 			if (cachedStatus == null) {
 				cachedStatus = status;

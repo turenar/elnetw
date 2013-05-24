@@ -52,11 +52,6 @@ public class CacheManager {
 		}
 
 		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
-		}
-
-		@Override
 		protected void handleException(TwitterException ex) {
 			if (ex.getStatusCode() == TwitterException.NOT_FOUND) {
 				logger.info("not found: statusId={}", statusId);
@@ -100,11 +95,6 @@ public class CacheManager {
 					userCacheMap.put(userId, ERROR_USER);
 				}
 			}
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
 		}
 	}
 

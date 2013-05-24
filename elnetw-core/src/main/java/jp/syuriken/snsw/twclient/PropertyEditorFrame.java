@@ -136,8 +136,8 @@ public class PropertyEditorFrame extends JFrame {
 	 *
 	 * @param configuration プロパティー
 	 */
-	public PropertyEditorFrame(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	public PropertyEditorFrame() {
+		this.configuration = ClientConfiguration.getInstance();
 		initComponents();
 	}
 
