@@ -111,10 +111,9 @@ public class TwitterStatusTest {
 	 *
 	 * @throws TwitterException             json例外
 	 * @throws IOException                  IO例外
-	 * @throws UnsupportedEncodingException UTF-8がサポートされていない
 	 */
 	@Test
-	public void testTwitterStatus() throws TwitterException, UnsupportedEncodingException, IOException {
+	public void testTwitterStatus() throws TwitterException, IOException {
 		ClientConfiguration configuration = new ClientConfigurationExtension();
 		ClientProperties clientProperties = new ClientProperties();
 		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),

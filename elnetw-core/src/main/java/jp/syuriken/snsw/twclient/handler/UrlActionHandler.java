@@ -5,9 +5,9 @@ import java.awt.event.ActionListener;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
@@ -16,32 +16,44 @@ import twitter4j.URLEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UrlActionHandler implements ActionHandler {
+public class UrlActionHandler extends StatusActionHandlerBase {
+
+	private static final Logger logger = LoggerFactory.getLogger(UrlActionHandler.class);
+
+	private final ClientConfiguration configuration;
+
+	public UrlActionHandler() {
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		JMenu openUrlMenu = new JMenu("ツイートのURLをブラウザで開く");
 		return openUrlMenu;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-		String url = actionName.substring(actionName.indexOf('!') + 1);
+	public void handleAction(IntentArguments arguments) {
+		String url = arguments.getExtraObj("url", String.class);
+		if (url == null) {
+			throw new IllegalArgumentException("arg `url' is not found");
+		}
 		try {
-			api.getUtility().openBrowser(url);
+			configuration.getUtility().openBrowser(url);
 		} catch (Exception e) {
-			e.printStackTrace(); //TODO
+			logger.warn("Failed open browser", e);
 		}
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 		if (menuItem instanceof JMenu == false) {
 			throw new AssertionError("UrlActionHandler#pMWBV transfered menuItem which is not instanceof JMenu");
 		}
 		JMenu menu = (JMenu) menuItem;
-		if (statusData.isSystemNotify() == false && statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
+
+		Status status = getStatus(arguments);
+		if (status != null) {
 			menu.removeAll();
 
 			URLEntity[] urlEntities = status.getURLEntities();

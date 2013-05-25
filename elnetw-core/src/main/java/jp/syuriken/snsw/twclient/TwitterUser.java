@@ -20,10 +20,9 @@ import twitter4j.json.DataObjectFactory;
  */
 public class TwitterUser implements User, TwitterExtendedObject {
 
-	private static final long serialVersionUID = -345155522353480502L;
+	private static final long serialVersionUID = 1893110786616307437L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
-
 
 	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
 		String json = DataObjectFactory.getRawJSON(originalUser);
@@ -38,7 +37,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		}
 		return jsonObject;
 	}
-
 
 	private final Date createdAt;
 
@@ -66,8 +64,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	private final String profileTextColor;
 
-	private boolean profileUseBackgroundImage;
-
 	private final boolean showAllInlineMedia;
 
 	private final String timeZone;
@@ -75,6 +71,10 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private final boolean translator;
 
 	private final int utcOffset;
+
+	private final String json;
+
+	private boolean profileUseBackgroundImage;
 
 	private String description;
 
@@ -107,8 +107,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private String profileImageUrl;
 
 	private String profileImageUrlHttps;
-
-	private final String json;
 
 	private String profileBannerImageUrl;
 
@@ -313,16 +311,16 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
-	@SuppressWarnings("deprecation")
-	@Deprecated
 	@Override
-	public String getProfileBackgroundImageUrl() {
+	public String getProfileBackgroundImageURL() {
 		return profileBackgroundImageUrl;
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
+	@SuppressWarnings("deprecation")
+	@Deprecated
 	@Override
-	public String getProfileBackgroundImageURL() {
+	public String getProfileBackgroundImageUrl() {
 		return profileBackgroundImageUrl;
 	}
 
@@ -366,6 +364,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileImageUrl;
 	}
 
+	@Override
+	public String getProfileImageURLHttps() {
+		return profileImageUrlHttps;
+	}
+
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
@@ -375,11 +378,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		} catch (MalformedURLException e) {
 			return null;
 		}
-	}
-
-	@Override
-	public String getProfileImageURLHttps() {
-		return profileImageUrlHttps;
 	}
 
 	@Override

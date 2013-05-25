@@ -3,8 +3,7 @@ package jp.syuriken.snsw.twclient.handler;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 
 /**
  * ハッシュタグを処理するアクションハンドラ
@@ -13,22 +12,30 @@ import jp.syuriken.snsw.twclient.StatusData;
  */
 public class HashtagActionHandler implements ActionHandler {
 
+	private final ClientConfiguration configuration;
+
+	public HashtagActionHandler() {
+		configuration = ClientConfiguration.getInstance();
+	}
+
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		return null;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-		if (actionName.contains("!") == false) {
+	public void handleAction(IntentArguments arguments) {
+		String name = arguments.getExtraObj("name", String.class);
+		if (name == null) {
 			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!<hashtag>");
 		}
-		String hashtag = actionName.substring(actionName.indexOf('!') + 1);
-		api.handleAction("search!%23" + hashtag, statusData); //TODO
+
+		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
+		configuration.handleAction(query); //TODO
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
 
 }

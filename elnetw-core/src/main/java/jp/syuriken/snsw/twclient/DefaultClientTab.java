@@ -55,6 +55,7 @@ import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import org.slf4j.Logger;
@@ -532,13 +533,9 @@ public abstract class DefaultClientTab implements ClientTab {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			StatusData statusData;
-			if (selectingPost == null) {
-				statusData = null;
-			} else {
-				statusData = selectingPost.getStatusData();
-			}
-			frameApi.handleAction(e.getActionCommand(), statusData);
+			String actionName = e.getActionCommand();
+			IntentArguments intentArguments = getIntentArguments(actionName);
+			configuration.handleAction(intentArguments);
 		}
 
 		@Override
@@ -562,9 +559,10 @@ public abstract class DefaultClientTab implements ClientTab {
 				if (statusData == null) {
 					menuItem.setEnabled(false);
 				} else {
-					ActionHandler actionHandler = configuration.getActionHandler(menuItem.getActionCommand());
+					IntentArguments intentArguments = getIntentArguments(menuItem.getActionCommand());
+					ActionHandler actionHandler = configuration.getActionHandler(intentArguments);
 					if (actionHandler != null) {
-						actionHandler.popupMenuWillBecomeVisible(menuItem, statusData, frameApi);
+						actionHandler.popupMenuWillBecomeVisible(menuItem, intentArguments);
 					} else {
 						logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
 						menuItem.setEnabled(false);
@@ -609,7 +607,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		try {
 			IMG_TWITTER_LOGO =
 					new ImageIcon(ImageIO.read(DefaultClientTab.class
-						.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
+							.getResource("/com/twitter/twitter-bird-white-on-blue.png")));
 		} catch (IOException e) {
 			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
@@ -759,7 +757,6 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected TabRenderer teeFilter;
 
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -775,6 +772,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
 		init(configuration);
 	}
+
 
 	/**
 	 * インスタンスを生成する。
@@ -1030,8 +1028,8 @@ public abstract class DefaultClientTab implements ClientTab {
 
 				String insertText =
 						new StringBuilder().append("<a href=\"").append(url).append("\">")
-							.append(escapeHTML(replaceText == null ? text.substring(start, end) : replaceText))
-							.append("</a>").toString();
+								.append(escapeHTML(replaceText == null ? text.substring(start, end) : replaceText))
+								.append("</a>").toString();
 				stringBuilder.append(escapeHTML(text.substring(offset, start)));
 				stringBuilder.append(insertText);
 				offset = end;
@@ -1113,6 +1111,30 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected JComponent getChildComponent() {
 		return getSortedPostListPanel();
+	}
+
+	/**
+	 * Create IntentArguments
+	 * @param actionCommand (name)[!(key)[=(value)][, ...]]
+	 * @return IntentArguments
+	 */
+	protected IntentArguments getIntentArguments(String actionCommand) {
+		int argSeparatorIndex = actionCommand.indexOf('!');
+		IntentArguments intentArguments = new IntentArguments(
+				argSeparatorIndex < 0 ? actionCommand : actionCommand.substring(0, argSeparatorIndex));
+
+		if (selectingPost != null) {
+			intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, selectingPost.getStatusData());
+		}
+
+		String[] args = (argSeparatorIndex < 0 ? "" : actionCommand.substring(argSeparatorIndex + 1)).split(",");
+		for (String arg : args) {
+			int kvSeparatorIndex = arg.indexOf('=');
+			String name = kvSeparatorIndex < 0 ? "action" : arg.substring(0, kvSeparatorIndex);
+			String value = kvSeparatorIndex < 0 ? arg : arg.substring(kvSeparatorIndex + 1);
+			intentArguments.putExtra(name, value);
+		}
+		return intentArguments;
 	}
 
 	/**
@@ -1400,9 +1422,17 @@ public abstract class DefaultClientTab implements ClientTab {
 		return uniqId;
 	}
 
+	@Deprecated
 	@Override
 	public void handleAction(String command) {
-		frameApi.handleAction(command, selectingPost == null ? null : selectingPost.getStatusData());
+		handleAction(getIntentArguments(command));
+	}
+
+	@Override
+	public void handleAction(IntentArguments args) {
+		args.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA,
+				selectingPost == null ? null : selectingPost.getStatusData());
+		configuration.handleAction(args);
 	}
 
 	private void init(ClientConfiguration configuration) {

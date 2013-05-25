@@ -36,7 +36,6 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
@@ -53,8 +52,14 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.handler.MenuPropertyEditorActionHandler;
+import jp.syuriken.snsw.twclient.handler.MenuQuitActionHandler;
+import jp.syuriken.snsw.twclient.handler.ReloginActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -85,40 +90,6 @@ import static java.lang.Math.max;
 	}
 
 	/**
-	 * アカウント認証するアクションハンドラ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public class AccountVerifierActionHandler implements ActionHandler {
-
-		@Override
-		public JMenuItem createJMenuItem(String commandName) {
-			return null;
-		}
-
-		@Override
-		public void handleAction(String actionName, StatusData statusData, final ClientFrameApi frameInstance) {
-			final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-			Thread thread = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					Exception exception = this$tcf.configuration.tryGetOAuthToken();
-					if (exception != null) {
-						JOptionPane.showMessageDialog(this$tcf, "認証に失敗しました: " + exception.getMessage(), "エラー",
-								JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			}, "oauth-thread");
-			thread.start();
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		}
-	}
-
-	/**
 	 * MenuItemのActionListenerの実装。
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
@@ -133,7 +104,7 @@ import static java.lang.Math.max;
 			} else {
 			statusData = statusMap.get(selectingPost.getStatusData().id);
 			} */
-			handleAction(e.getActionCommand(), null);
+			configuration.handleAction(new IntentArguments(e.getActionCommand()));
 		}
 	}
 
@@ -145,32 +116,36 @@ import static java.lang.Math.max;
 	public class CoreFrameActionHandler implements ActionHandler {
 
 		@Override
-		public JMenuItem createJMenuItem(String commandName) {
+		public JMenuItem createJMenuItem(IntentArguments args) {
 			return null;
 		}
 
 		@Override
-		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			if (actionName.equals("core!move_between_list_and_postbox")) {
+		public void handleAction(IntentArguments args) {
+			String actionName = args.getExtraObj("action", String.class);
+			if (actionName == null) {
+				throw new IllegalArgumentException("`action` is not found");
+			}
+			if (actionName.equals("move_between_list_and_postbox")) {
 				if (getPostBox().isFocusOwner()) {
-					actionName = "core!focuslist";
+					actionName = "focuslist";
 				} else {
-					actionName = "core!focusinput";
+					actionName = "focusinput";
 				}
 			}
 
 			switch (actionName) {
-				case "core!submenu":
+				case "submenu":
 					return;
-				case "core!version": {
+				case "version": {
 					VersionInfoFrame frame = new VersionInfoFrame(configuration);
 					frame.setVisible(true);
 					break;
 				}
-				case "core!focusinput":
+				case "focusinput":
 					getPostBox().requestFocusInWindow();
 					break;
-				case "core!tabswitch_prev": {
+				case "tabswitch_prev": {
 					JTabbedPane tab = getViewTab();
 					int selectedIndex = tab.getSelectedIndex();
 					if (selectedIndex > 0) {
@@ -178,7 +153,7 @@ import static java.lang.Math.max;
 					}
 					break;
 				}
-				case "core!tabswitch_next": {
+				case "tabswitch_next": {
 					JTabbedPane tab = getViewTab();
 					int selectedIndex = tab.getSelectedIndex();
 					if (selectedIndex < tab.getTabCount() - 1) {
@@ -189,40 +164,40 @@ import static java.lang.Math.max;
 				default:
 					String messageName;
 					switch (actionName) {
-						case "core!focuslist":
+						case "focuslist":
 							messageName = ClientMessageListener.REQUEST_FOCUS_TAB_COMPONENT;
 							break;
-						case "core!postnext":
+						case "postnext":
 							messageName = ClientMessageListener.REQUEST_FOCUS_NEXT_COMPONENT;
 							break;
-						case "core!postprev":
+						case "postprev":
 							messageName = ClientMessageListener.REQUEST_FOCUS_PREV_COMPONENT;
 							break;
-						case "core!postuserprev":
+						case "postuserprev":
 							messageName = ClientMessageListener.REQUEST_FOCUS_USER_PREV_COMPONENT;
 							break;
-						case "core!postusernext":
+						case "postusernext":
 							messageName = ClientMessageListener.REQUEST_FOCUS_USER_NEXT_COMPONENT;
 							break;
-						case "core!postfirst":
+						case "postfirst":
 							messageName = ClientMessageListener.REQUEST_FOCUS_FIRST_COMPONENT;
 							break;
-						case "core!postlast":
+						case "postlast":
 							messageName = ClientMessageListener.REQUEST_FOCUS_LAST_COMPONENT;
 							break;
-						case "core!postwindowfirst":
+						case "postwindowfirst":
 							messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_FIRST_COMPONENT;
 							break;
-						case "core!postwindowlast":
+						case "postwindowlast":
 							messageName = ClientMessageListener.REQUEST_FOCUS_WINDOW_LAST_COMPONENT;
 							break;
-						case "core!scroll_as_windowlast":
+						case "scroll_as_windowlast":
 							messageName = ClientMessageListener.REQUEST_SCROLL_AS_WINDOW_LAST;
 							break;
-						case "core!jump_inReplyTo":
+						case "jump_inReplyTo":
 							messageName = ClientMessageListener.REQUEST_FOCUS_IN_REPLY_TO;
 							break;
-						case "core!jump_inReplyToBack":
+						case "jump_inReplyToBack":
 							messageName = ClientMessageListener.REQUEST_FOCUS_BACK_REPLIED_BY;
 							break;
 						default:
@@ -234,7 +209,7 @@ import static java.lang.Math.max;
 		}
 
 		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+		public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 			if ("core!submenu".equals(menuItem.getActionCommand())) {
 				if (menuItem instanceof JMenu == false) {
 					logger.error("\"core!submenu\" argued menuItem not as JMenu");
@@ -245,8 +220,9 @@ import static java.lang.Math.max;
 					if (subItem instanceof JMenuItem) {
 						JMenuItem subMenuItem = (JMenuItem) subItem;
 						String actionCommand = subMenuItem.getActionCommand();
-						configuration.getActionHandler(actionCommand).popupMenuWillBecomeVisible(subMenuItem,
-								statusData, api);
+						IntentArguments intentArguments = new IntentArguments(actionCommand);
+						configuration.getActionHandler(intentArguments).popupMenuWillBecomeVisible(subMenuItem,
+								intentArguments);
 					}
 				}
 			}
@@ -375,118 +351,6 @@ import static java.lang.Math.max;
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-		}
-	}
-
-	/**
-	 * 設定フレームを表示するアクションハンドラ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	private class MenuConfiguratorActionHandler implements ActionHandler {
-
-		@Override
-		public JMenuItem createJMenuItem(String commandName) {
-			return null;
-		}
-
-		@Override
-		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			configuration.getConfigBuilder().show();
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			// This is always enabled.
-		}
-	}
-
-	/**
-	 * メニューのプロパティエディタを開くためのアクションハンドラ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public class MenuPropertyEditorActionHandler implements ActionHandler {
-
-		@Override
-		public JMenuItem createJMenuItem(String commandName) {
-			return null;
-		}
-
-		@Override
-		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame();
-			propertyEditorFrame.setVisible(true);
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			// This is always enabled.
-		}
-
-	}
-
-	/**
-	 * 終了するためのアクションハンドラ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public class MenuQuitActionHandler implements ActionHandler {
-
-		@Override
-		public JMenuItem createJMenuItem(String commandName) {
-			return null;
-		}
-
-		@Override
-		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			TwitterClientMain.quit();
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			// This is always enabled
-		}
-
-	}
-
-	/**
-	 * リログインするためのアクションハンドラ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public class ReloginActionHandler implements ActionHandler {
-
-		private final boolean forWrite;
-
-		/**
-		 * インスタンスを生成する。
-		 *
-		 * @param forWrite 書き込み用
-		 */
-		public ReloginActionHandler(boolean forWrite) {
-			this.forWrite = forWrite;
-		}
-
-		@Override
-		public JMenuItem createJMenuItem(String commandName) {
-			return null;
-		}
-
-		@Override
-		public void handleAction(String actionName, StatusData ignore, ClientFrameApi frameInstance) {
-			String accountId = actionName.substring(actionName.indexOf('!') + 1);
-			if (forWrite) {
-				configuration.setAccountIdForWrite(accountId);
-			} else {
-				configuration.setAccountIdForRead(accountId);
-			}
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-			// TODO Auto-generated method stub
-
 		}
 	}
 
@@ -817,11 +681,11 @@ import static java.lang.Math.max;
 				popupMenu.add(nowProcessingMenu);
 				continue;
 			}
-			ActionHandler handler = getActionHandler(actionCommand);
+			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
 			if (handler == null) {
 				logger.warn("handler {} is not found.", actionCommand); //TODO
 			} else {
-				JMenuItem menuItem = handler.createJMenuItem(actionCommand);
+				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
 				menuItem.setActionCommand(actionCommand);
 				menuItem.addActionListener(actionListener);
 				if (nowProcessingMenu instanceof JPopupMenu) {
@@ -859,12 +723,6 @@ import static java.lang.Math.max;
 			}
 			return actionCommand;
 		}
-	}
-
-	@Deprecated
-	@Override
-	public ActionHandler getActionHandler(String name) {
-		return configuration.getActionHandler(name);
 	}
 
 	@Override
@@ -934,6 +792,11 @@ import static java.lang.Math.max;
 
 		}
 		return editPanel;
+	}
+
+	@Override
+	public Component getFrame() {
+		return this;
 	}
 
 	@Override
@@ -1446,20 +1309,16 @@ import static java.lang.Math.max;
 		return viewTab;
 	}
 
-	/**
-	* Actionをhandleする。
-	*
-	* @param name Action名
-	* @param statusData ステータス情報
-	*/
+	@Deprecated
 	@Override
 	public void handleAction(String name, StatusData statusData) {
-		ActionHandler actionHandler = getActionHandler(name);
+		IntentArguments intentArguments = new IntentArguments(name);
+		ActionHandler actionHandler = configuration.getActionHandler(intentArguments);
 		if (actionHandler == null) {
 			logger.warn("ActionHandler {} is not found.", name);
 		} else {
 			logger.trace("ActionHandler {} called.", name);
-			actionHandler.handleAction(name, statusData, this);
+			actionHandler.handleAction(intentArguments);
 		}
 	}
 

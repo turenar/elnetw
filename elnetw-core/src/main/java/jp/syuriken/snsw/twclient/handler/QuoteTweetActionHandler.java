@@ -8,9 +8,7 @@ import java.util.regex.Pattern;
 import javax.swing.JMenuItem;
 
 import com.twitter.Regex;
-import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
@@ -21,7 +19,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QuoteTweetActionHandler implements ActionHandler {
+public class QuoteTweetActionHandler extends StatusActionHandlerBase {
 
 	/**
 	 * QTされた時用のツイートの長さを計算するクラス
@@ -29,8 +27,6 @@ public class QuoteTweetActionHandler implements ActionHandler {
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static class QuoteTweetLengthCalculator implements TweetLengthCalculator {
-
-		private final TweetLengthUpdater updater;
 
 		private static Pattern qtPattern = Pattern.compile("[QR]T\\s?\\@[a-zA-Z01-9_]{1,20}\\:?+");
 
@@ -40,6 +36,8 @@ public class QuoteTweetActionHandler implements ActionHandler {
 						+ Regex.AUTO_LINK_USERNAMES_OR_LISTS + ")", Pattern.CASE_INSENSITIVE);
 
 		private static Pattern urlPattern = Regex.VALID_URL;
+
+		private final TweetLengthUpdater updater;
 
 
 		/**
@@ -139,27 +137,29 @@ public class QuoteTweetActionHandler implements ActionHandler {
 
 	}
 
-
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
 		return quoteMenuItem;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
-			api.setInReplyToStatus(status);
-			api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-			api.focusPostBox();
-			api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
+	public void handleAction(IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		if (status == null) {
+			throwIllegalArgument();
 		}
+
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setInReplyToStatus(status);
+		api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+		api.focusPostBox();
+		api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+		if (getStatus(arguments) != null) {
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

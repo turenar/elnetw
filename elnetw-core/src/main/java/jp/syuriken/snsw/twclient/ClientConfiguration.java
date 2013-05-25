@@ -18,6 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -189,7 +190,7 @@ public class ClientConfiguration {
 	private ClassLoader extraClassLoader;
 
 	/**
-	 * インスタンスを生成する。
+	 * インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()}
 	 *
 	 */
 	protected ClientConfiguration() {
@@ -326,13 +327,11 @@ public class ClientConfiguration {
 	/**
 	 * アクションハンドラを取得する
 	 *
-	 * @param name アクション名。!を含んでいても可
+	 * @param intent IntentArguments
 	 * @return アクションハンドラ
 	 */
-	public ActionHandler getActionHandler(String name) {
-		int indexOf = name.indexOf('!');
-		String commandName = indexOf < 0 ? name : name.substring(0, indexOf);
-		ActionHandler actionHandler = actionHandlerTable.get(commandName);
+	public ActionHandler getActionHandler(IntentArguments intent) {
+		ActionHandler actionHandler = actionHandlerTable.get(intent.getIntentName());
 		return actionHandler;
 	}
 
@@ -620,6 +619,19 @@ public class ClientConfiguration {
 	 */
 	public Utility getUtility() {
 		return utility;
+	}
+
+	public void handleAction(IntentArguments intentArguments) {
+		ActionHandler actionHandler = getActionHandler(intentArguments);
+		if (actionHandler != null) {
+			try {
+				actionHandler.handleAction(intentArguments);
+			} catch (RuntimeException e) {
+				logger.error("Uncaught exception", e);
+			}
+		} else {
+			logger.warn("ActionHandler {} is not found", intentArguments.getIntentName());
+		}
 	}
 
 	/**

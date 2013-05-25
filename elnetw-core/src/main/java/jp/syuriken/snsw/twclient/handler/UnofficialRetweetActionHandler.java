@@ -2,39 +2,36 @@ package jp.syuriken.snsw.twclient.handler;
 
 import javax.swing.JMenuItem;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.StatusData;
 import twitter4j.Status;
 
 /**
- * TODO snsoftware
+ * Unofficial RT (like QT:) Action Handler
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UnofficialRetweetActionHandler implements ActionHandler {
+public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments args) {
 		return new JMenuItem("非公式RT");
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
-			api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-			api.focusPostBox();
+	public void handleAction(IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
 		}
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+		api.focusPostBox();
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		Status status = getStatus(args);
+		menuItem.setEnabled(status!=null);
 	}
 
 }

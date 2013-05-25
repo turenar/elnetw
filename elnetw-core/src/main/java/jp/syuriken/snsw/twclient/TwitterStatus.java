@@ -24,10 +24,9 @@ import twitter4j.json.DataObjectFactory;
  */
 public class TwitterStatus implements Status, TwitterExtendedObject {
 
-	private static final long serialVersionUID = 1311261989083804388L;
+	private static final long serialVersionUID = -1594365283342840124L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
-
 
 	/**
 	 * Entityのindice startを取得する
@@ -80,18 +79,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return jsonObject;
 	}
 
-
 	private final long[] contributors;
 
 	private final Date createdAt;
 
-	private/*final*/GeoLocation geoLocation;
-
-	private/*final*/HashtagEntity[] hashtagEntities;
-
 	private final long id;
-
-	private/*final*/String inReplyToScreenName;
 
 	private final long inReplyToStatusId;
 
@@ -99,31 +91,37 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private final boolean isTruncated;
 
-	private boolean loadedInitialization;
-
-	private/*final*/MediaEntity[] mediaEntities;
-
-	private/*final*/Place place;
-
 	private final TwitterStatus retweetedStatus;
-
-	private/*final*/String source;
-
-	private/*final*/String text;
-
-	private/*final*/URLEntity[] urlEntities;
 
 	private final User user;
 
-	private/*final*/UserMentionEntity[] userMentionEntities;
+	private final String json;
+
+	private/*final*/ GeoLocation geoLocation;
+
+	private/*final*/ HashtagEntity[] hashtagEntities;
+
+	private/*final*/ String inReplyToScreenName;
+
+	private boolean loadedInitialization;
+
+	private/*final*/ MediaEntity[] mediaEntities;
+
+	private/*final*/ Place place;
+
+	private/*final*/ String source;
+
+	private/*final*/ String text;
+
+	private/*final*/ URLEntity[] urlEntities;
+
+	private/*final*/ UserMentionEntity[] userMentionEntities;
 
 	private volatile boolean favorited;
 
 	private volatile long retweetCount;
 
 	private volatile boolean retweetedByMe;
-
-	private final String json;
 
 	private boolean possiblySensitive;
 
@@ -421,6 +419,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	public void setRetweetedByMe(boolean retweetedByMe) {
 		this.retweetedByMe = retweetedByMe;
 	}
+
 	public void update(Status status){
 		favorited = status.isFavorited();
 		retweetedByMe = status.isRetweetedByMe();

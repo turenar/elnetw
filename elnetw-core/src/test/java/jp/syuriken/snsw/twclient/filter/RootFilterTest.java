@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -139,12 +140,6 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
-	@Deprecated
-	@Override
-	public ActionHandler getActionHandler(String actionCommand) {
-		return null;
-	}
-
 	@Override
 	public ClientConfiguration getClientConfiguration() {
 		return null;
@@ -152,6 +147,11 @@ class TestFrameApi implements ClientFrameApi {
 
 	@Override
 	public Font getDefaultFont() {
+		return null;
+	}
+
+	@Override
+	public Component getFrame() {
 		return null;
 	}
 

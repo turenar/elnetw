@@ -36,9 +36,7 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import com.twitter.Regex;
-import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.DefaultClientTab;
 import jp.syuriken.snsw.twclient.StatusData;
@@ -61,7 +59,7 @@ import twitter4j.internal.org.json.JSONObject;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UserInfoViewActionHandler implements ActionHandler {
+public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 
 	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
 
@@ -77,27 +75,19 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 	/*package*/static final class UserFetcher extends TwitterRunnable {
 
-		private final ClientConfiguration configuration;
-
 		private final String userScreenName;
 
 		private User user = null;
 
 
-		protected UserFetcher(ClientFrameApi api, String actionName) {
+		protected UserFetcher(String userScreenName) {
 			super(false);
-			configuration = api.getClientConfiguration();
-			userScreenName = actionName.substring(actionName.indexOf('!') + 1);
+			this.userScreenName = userScreenName;
 		}
 
 		@Override
 		protected void access() throws TwitterException {
 			user = configuration.getTwitterForRead().showUser(userScreenName);
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return configuration;
 		}
 
 		protected User getUser() {
@@ -192,11 +182,6 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				protected void access() {
 					user = getClientConfiguration().getCacheManager().getUser(userId);
 				}
-
-				@Override
-				protected ClientConfiguration getConfiguration() {
-					return getClientConfiguration();
-				}
 			}.run();
 			configuration.addJob(new TwitterRunnable() {
 
@@ -211,13 +196,8 @@ public class UserInfoViewActionHandler implements ActionHandler {
 				}
 
 				@Override
-				protected ClientConfiguration getConfiguration() {
-					return getClientConfiguration();
-				}
-
-				@Override
 				protected void handleException(TwitterException ex) {
-					getConfiguration().getRootFilterService().onException(ex);
+					configuration.getRootFilterService().onException(ex);
 				}
 			});
 		}
@@ -626,31 +606,23 @@ public class UserInfoViewActionHandler implements ActionHandler {
 
 		private final long userId;
 
-		private final ClientFrameApi api;
 
-
-		private UserTimelineFetcher(UserInfoFrameTab tab, long userId, ClientFrameApi api) {
+		private UserTimelineFetcher(UserInfoFrameTab tab, long userId) {
 			this.tab = tab;
 			this.userId = userId;
-			this.api = api;
 		}
 
 		@Override
 		protected void access() throws TwitterException {
-			ResponseList<Status> timeline = api.getTwitterForRead().getUserTimeline(userId);
+			ResponseList<Status> timeline = configuration.getTwitterForRead().getUserTimeline(userId);
 			for (Status status : timeline) {
 				tab.getRenderer().onStatus(status);
 			}
-			for (Status status : getConfiguration().getCacheManager().getStatusSet()) {
+			for (Status status : configuration.getCacheManager().getStatusSet()) {
 				if (status.getUser().getId() == userId) {
 					tab.getRenderer().onStatus(status);
 				}
 			}
-		}
-
-		@Override
-		protected ClientConfiguration getConfiguration() {
-			return api.getClientConfiguration();
 		}
 
 		@Override
@@ -662,39 +634,45 @@ public class UserInfoViewActionHandler implements ActionHandler {
 	private static Logger logger = LoggerFactory.getLogger(UserInfoViewActionHandler.class);
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		JMenuItem aboutMenuItem = new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
 		return aboutMenuItem;
 	}
 
 	@Override
-	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
-		User user = null;
-		if (actionName.contains("!")) {
-			user = new UserFetcher(api, actionName).getUser();
-		} else if (statusData != null && statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
-			if (status.isRetweet()) {
-				status = status.getRetweetedStatus();
+	public void handleAction(IntentArguments arguments) {
+		User user = arguments.getExtraObj("user", User.class);
+		if (user == null) {
+			String screenName = arguments.getExtraObj("screenName", String.class);
+			if (screenName == null) {
+				StatusData statusData = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA, StatusData.class);
+				if (statusData.tag instanceof Status) {
+					Status status = (Status) statusData.tag;
+					if (status.isRetweet()) {
+						status = status.getRetweetedStatus();
+					}
+					user = status.getUser();
+				} else {
+					throw new IllegalArgumentException(
+							"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
+				}
+			} else {
+				user = new UserFetcher(screenName).getUser();
 			}
-			user = status.getUser();
-		} else {
-			throw new IllegalArgumentException(
-					"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
 		}
 
-		ClientConfiguration configuration = api.getClientConfiguration();
+		ClientConfiguration configuration = ClientConfiguration.getInstance();
 		final UserInfoFrameTab tab = new UserInfoFrameTab(configuration, user);
 		final long userId = user.getId();
-		configuration.addJob(new UserTimelineFetcher(tab, userId, api));
+		configuration.addJob(new UserTimelineFetcher(tab, userId));
 		configuration.addFrameTab(tab);
 		configuration.focusFrameTab(tab);
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
-			Status status = (Status) statusData.tag;
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		if (status != null) {
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}

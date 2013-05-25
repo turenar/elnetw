@@ -4,11 +4,9 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
-import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -17,56 +15,66 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FavoriteActionHandler implements ActionHandler {
+public class FavoriteActionHandler extends StatusActionHandlerBase {
+
+	private static class FavTask extends TwitterRunnable {
+
+		private final boolean favFlag;
+
+		private final long statusId;
+
+		private final Status status;
+
+		public FavTask(boolean favFlag, Status status) {
+			this.favFlag = favFlag;
+			this.statusId = status.getId();
+			this.status = status;
+		}
+
+		@Override
+		public void access() throws TwitterException {
+			Status newStatus;
+			if (favFlag) {
+				newStatus = configuration.getTwitterForWrite().createFavorite(statusId);
+			} else {
+				newStatus = configuration.getTwitterForWrite().destroyFavorite(statusId);
+			}
+			if (status instanceof TwitterStatus) {
+				((TwitterStatus) status).update(newStatus);
+			}
+		}
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		JMenuItem favMenuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
 		return favMenuItem;
 	}
 
 	@Override
-	public void handleAction(final String actionName, final StatusData statusData, final ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
-			api.getClientConfiguration().addJob(new ParallelRunnable() {
-
-				@Override
-				public void run() {
-					Status status = (Status) statusData.tag;
-					boolean unfavorite;
-					if (actionName.equals("fav!force=f")) {
-						unfavorite = false;
-					} else if (actionName.equals("fav!force=u")) {
-						unfavorite = true;
-					} else {
-						if (status instanceof TwitterStatus && ((TwitterStatus) status).isFavorited()) {
-							unfavorite = true;
-						} else {
-							unfavorite = false;
-						}
-					}
-					try {
-						if (unfavorite) {
-							api.getTwitterForWrite().destroyFavorite(status.getId());
-						} else {
-							api.getTwitterForWrite().createFavorite(status.getId());
-						}
-						if (status instanceof TwitterStatus) {
-							((TwitterStatus) status).setFavorited(unfavorite == false);
-						}
-					} catch (TwitterException e) {
-						api.handleException(e);
-					}
-				}
-			});
+	public void handleAction(IntentArguments arguments) throws IllegalArgumentException {
+		Status status = getStatus(arguments);
+		if (status == null) {
+			throwIllegalArgument();
 		}
+		boolean favFlag = !status.isFavorited();
+
+		String forceFlag = arguments.getExtraObj("force", String.class);
+		if (forceFlag.equals("f") || forceFlag.equals("fav")) {
+			favFlag = true;
+		} else if (forceFlag.equals("u") || forceFlag.equals("unfav")) {
+			favFlag = false;
+		}
+
+		ClientConfiguration.getInstance().addJob(new FavTask(favFlag, status));
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
-			if (statusData.tag instanceof TwitterStatus) {
-				TwitterStatus tag = (TwitterStatus) statusData.tag;
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		if (status != null) {
+			if (status instanceof TwitterStatus) {
+				TwitterStatus tag = (TwitterStatus) status;
 				menuItem.setText(tag.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
 			} else {
 				menuItem.setText("ふぁぼる(F)");

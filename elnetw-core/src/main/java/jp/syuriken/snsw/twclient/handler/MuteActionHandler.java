@@ -12,10 +12,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.StatusData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
@@ -26,26 +23,27 @@ import twitter4j.User;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MuteActionHandler implements ActionHandler {
+public class MuteActionHandler extends StatusActionHandlerBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(MuteActionHandler.class);
 
-
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		return new JMenuItem("ミュートに追加する");
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
-			if (status.isRetweet()) {
+	public void handleAction(IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		if (status == null) {
+			throwIllegalArgument();
+		}
+		if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}
 			final User user = status.getUser();
-			boolean isTweetedByMe = user.getId() == api.getLoginUser().getId();
-			if (isTweetedByMe == false) {
+		boolean isTweetedByMe = user.getId() == getLoginUserId();
+		if (isTweetedByMe == false) {
 				JPanel panel = new JPanel();
 				BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 				panel.setLayout(layout);
@@ -62,7 +60,7 @@ public class MuteActionHandler implements ActionHandler {
 					public void propertyChange(PropertyChangeEvent evt) {
 						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 							if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-								ClientProperties configProperties = api.getClientConfiguration().getConfigProperties();
+								ClientProperties configProperties = configuration.getConfigProperties();
 								String idsString = configProperties.getProperty("core.filter.user.ids");
 								idsString =
 										idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
@@ -76,20 +74,19 @@ public class MuteActionHandler implements ActionHandler {
 				dialog.setVisible(true);
 			}
 		}
-	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if ((statusData.isSystemNotify() == false) && (statusData.tag instanceof Status)) {
-			Status status = (Status) statusData.tag;
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		if (status != null) {
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}
 			User user = status.getUser();
 
-			boolean isTweetedByMe = user.getId() == api.getLoginUser().getId();
+			boolean isTweetedByMe = user.getId() == getLoginUserId();
 
-			String idsString = api.getClientConfiguration().getConfigProperties().getProperty("core.filter.user.ids");
+			String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
 			String[] ids = idsString.split(" ");
 			String userIdString = String.valueOf(user.getId());
 			boolean filtered = false;

@@ -4,6 +4,8 @@ import java.awt.Component;
 
 import javax.swing.Icon;
 
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
+
 /**
  * タブのデータを管理するクラス
  *
@@ -85,8 +87,21 @@ public interface ClientTab {
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
 	 * @param command コマンド名
+	 * @deprecated use {@link #handleAction(jp.syuriken.snsw.twclient.handler.IntentArguments)}
 	 */
+	@Deprecated
 	void handleAction(String command);
+
+	/**
+	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
+	 * <p>
+	 * {@link TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * ハイパーリンクのクリック時などに使用される。
+	 * </p>
+	 * @param args IntentArgumentsインスタンス
+	 */
+	void handleAction(IntentArguments args);
+
 	/**
 	 * タブとして表示できる状態となったことを通知するメソッド
 	 */

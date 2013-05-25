@@ -4,10 +4,8 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
-import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -16,42 +14,53 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RetweetActionHandler implements ActionHandler {
+public class RetweetActionHandler extends StatusActionHandlerBase {
+
+	private class RetweetTask extends TwitterRunnable {
+
+		private final Status status;
+
+		public RetweetTask(Status status) {
+			this.status = status;
+		}
+
+		@Override
+		public void access() throws TwitterException {
+			configuration.getTwitterForWrite().retweetStatus(status.getId());
+		}
+	}
+
+	private final ClientConfiguration configuration;
+
+	public RetweetActionHandler() {
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments args) {
 		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
 		return retweetMenuItem;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, final ClientFrameApi api) {
-		if (statusData.tag instanceof Status) {
-			final Status retweetStatus = (Status) statusData.tag;
-			api.getClientConfiguration().addJob(new ParallelRunnable() {
-
-				@Override
-				public void run() {
-					try {
-						api.getTwitterForWrite().retweetStatus(retweetStatus.getId());
-					} catch (TwitterException e) {
-						api.handleException(e);
-					}
-				}
-			});
+	public void handleAction(IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
 		}
+
+		configuration.addJob(new RetweetTask(status));
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
-		if (statusData.isSystemNotify() || (statusData.tag instanceof Status) == false) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
 			menuItem.setVisible(false);
 			menuItem.setEnabled(false);
-		}
-		if (statusData.tag instanceof Status) {
-			Status status = (Status) statusData.tag;
+		} else {
 			menuItem.setEnabled(status.getUser().isProtected() == false);
-			menuItem.setVisible(status.getUser().getId() != api.getLoginUser().getId());
+			menuItem.setVisible(status.getUser().getId() != getLoginUserId());
 		}
 	}
 }

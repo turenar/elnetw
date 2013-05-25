@@ -2,10 +2,7 @@ package jp.syuriken.snsw.twclient.handler;
 
 import javax.swing.JMenuItem;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
-import jp.syuriken.snsw.twclient.StatusData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,49 +11,50 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TweetActionHandler implements ActionHandler {
+public class TweetActionHandler extends StatusActionHandlerBase {
 
 	private static Logger logger = LoggerFactory.getLogger(TweetActionHandler.class);
 
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		return null;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
+	public void handleAction(IntentArguments arguments) {
+		String actionName = arguments.getExtraObj("action", String.class);
 		String messageName;
 		switch (actionName) {
-			case "tweet!copy":
+			case "copy":
 				messageName = ClientMessageListener.REQUEST_COPY;
 				break;
-			case "tweet!copyurl":
+			case "copyurl":
 				messageName = ClientMessageListener.REQUEST_COPY_URL;
 				break;
-			case "tweet!copyuserid":
+			case "copyuserid":
 				messageName = ClientMessageListener.REQUEST_COPY_USERID;
 				break;
-			case "tweet!browser_user":
+			case "browser_user":
 				messageName = ClientMessageListener.REQUEST_BROWSER_USER_HOME;
 				break;
-			case "tweet!browser_status":
+			case "browser_status":
 				messageName = ClientMessageListener.REQUEST_BROWSER_STATUS;
 				break;
-			case "tweet!browser_replyTo":
+			case "browser_replyTo":
 				messageName = ClientMessageListener.REQUEST_BROWSER_IN_REPLY_TO;
 				break;
-			case "tweet!openurls":
+			case "openurls":
 				messageName = ClientMessageListener.REQUEST_BROWSER_OPENURLS;
 				break;
 			default:
 				logger.warn("{} is not action", actionName);
 				return;
 		}
-		api.getSelectingTab().getRenderer().onClientMessage(messageName, null);
+		configuration.getFrameApi().getSelectingTab().getRenderer().onClientMessage(messageName, null);
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 		// do nothing
 	}
 

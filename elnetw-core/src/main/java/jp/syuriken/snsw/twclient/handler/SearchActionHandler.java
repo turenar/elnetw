@@ -6,8 +6,7 @@ import java.net.URISyntaxException;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.ClientFrameApi;
-import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 
 /**
  * 検索するアクションハンドラ
@@ -16,26 +15,33 @@ import jp.syuriken.snsw.twclient.StatusData;
  */
 public class SearchActionHandler implements ActionHandler {
 
+	private final ClientConfiguration configuration;
+
+	public SearchActionHandler() {
+		configuration = ClientConfiguration.getInstance();
+	}
+
 	@Override
-	public JMenuItem createJMenuItem(String commandName) {
+	public JMenuItem createJMenuItem(IntentArguments args) {
 		return null;
 	}
 
 	@Override
-	public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-		if (actionName.contains("!") == false) {
-			throw new IllegalArgumentException("actionName must be include search query: search!<query>");
+	public void handleAction(IntentArguments args) {
+		String queryStr = args.getExtraObj("query", String.class);
+		if (queryStr == null) {
+			throw new IllegalArgumentException("arg `query' is required.");
 		}
-		String query = actionName.substring(actionName.indexOf('!') + 1);
 		try {
-			api.getUtility().openBrowser(new URI("http://twitter.com/search/" + query).toASCIIString()); // TODO
+			configuration.getUtility().openBrowser(
+					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
 		} catch (URISyntaxException e) {
 			throw new AssertionError(e);
 		}
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, StatusData statusData, ClientFrameApi api) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 
 }

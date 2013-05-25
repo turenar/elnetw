@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.util.Timer;
@@ -97,16 +98,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	String getActionCommandByShortcutKey(String component, String keyString);
 
 	/**
-	 * 指定されたアクションコマンド名で呼び出されるアクションハンドラを取得する。
-	 *
-	 * @param actionCommand アクションコマンド名
-	 * @return アクションハンドラ
-	 * @deprecated use {@link ClientConfiguration#getActionHandler(String)}
-	 */
-	@Deprecated
-	ActionHandler getActionHandler(String actionCommand);
-
-	/**
 	 * ClientConfigurationインスタンスを取得する。
 	 *
 	 * @return インスタンス
@@ -119,6 +110,12 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return フォント
 	 */
 	Font getDefaultFont();
+
+	/**
+	 * 新規フレームを作成するときの親フレームにどうぞ。
+	 * @return 親フレームになることができるコンポーネント
+	 */
+	Component getFrame();
 
 	/**
 	 * 画像をキャッシュするオブジェクトを取得する。
@@ -209,7 +206,9 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *
 	 * @param name アクションコマンド名
 	 * @param statusData データ
+	 * @deprecated use {@link ClientConfiguration#handleAction(IntentArguments)}
 	 */
+	@Deprecated
 	void handleAction(String name, StatusData statusData);
 
 	/**
