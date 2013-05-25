@@ -31,7 +31,7 @@ public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 		Status status = getStatus(args);
-		menuItem.setEnabled(status!=null);
+		menuItem.setEnabled(status != null);
 	}
 
 }

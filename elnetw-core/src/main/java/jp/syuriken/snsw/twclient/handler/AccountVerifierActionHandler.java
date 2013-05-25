@@ -20,7 +20,7 @@ public class AccountVerifierActionHandler implements ActionHandler {
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		final ClientConfiguration configuration= ClientConfiguration.getInstance();
+		final ClientConfiguration configuration = ClientConfiguration.getInstance();
 		Thread thread = new Thread(new Runnable() {
 
 			@Override
@@ -37,6 +37,6 @@ public class AccountVerifierActionHandler implements ActionHandler {
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem,IntentArguments args) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 }

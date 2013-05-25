@@ -130,6 +130,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param originalStatus オリジナルステータス
 	 */
 	public TwitterStatus(Status originalStatus) {
@@ -138,8 +139,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param originalStatus オリジナルステータス
-	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
+	 * @param jsonObject     生JSON。取得できなかった場合にはnull。
 	 */
 	public TwitterStatus(Status originalStatus, JSONObject jsonObject) {
 		json = jsonObject == null ? null : jsonObject.toString();
@@ -222,9 +224,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return ((Status) obj).getId() == id;
 	}
 
-	/**
-	 * -1を返します ((このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない))
-	 */
+	/** -1を返します ((このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)) */
 	@Override
 	public int getAccessLevel() {
 		return -1;
@@ -310,9 +310,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return place;
 	}
 
-	/**
-	 * nullを返します。(このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
-	 */
+	/** nullを返します。(このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない) */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
 		return null;
@@ -405,6 +403,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	/**
 	 * このステータスは起動時に読み込まれたものです
+	 *
 	 * @param loadedInitialization 起動時に読み込まれたならtrue
 	 */
 	public void setLoadedInitialization(boolean loadedInitialization) {
@@ -420,7 +419,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		this.retweetedByMe = retweetedByMe;
 	}
 
-	public void update(Status status){
+	public void update(Status status) {
 		favorited = status.isFavorited();
 		retweetedByMe = status.isRetweetedByMe();
 		urlEntities = status.getURLEntities();

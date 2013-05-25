@@ -115,6 +115,7 @@ public class TwitterStatusTest {
 	@Test
 	public void testTwitterStatus() throws TwitterException, IOException {
 		ClientConfiguration configuration = new ClientConfigurationExtension();
+		ClientConfiguration.setInstance(configuration);
 		ClientProperties clientProperties = new ClientProperties();
 		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
 				"UTF-8"));

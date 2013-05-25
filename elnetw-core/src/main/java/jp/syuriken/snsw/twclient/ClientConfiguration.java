@@ -95,7 +95,11 @@ public class ClientConfiguration {
 		return clientTabConstructorsMap.get(id);
 	}
 
-	public static ClientConfiguration getInstance() {
+	/**
+	 * インスタンスを取得する。
+	 * @return ClientConfiguration インスタンス
+	 */
+	public static synchronized ClientConfiguration getInstance() {
 		if (INSTANCE == null) {
 			INSTANCE = new ClientConfiguration();
 		}
@@ -139,6 +143,15 @@ public class ClientConfiguration {
 			throw new IllegalArgumentException(
 					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
 		}
+	}
+
+	/**
+	 * テスト以外呼び出し禁止！
+	 * @param conf インスタンス
+	 */
+	/*package*/
+	static void setInstance(ClientConfiguration conf) {
+		INSTANCE = conf;
 	}
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();

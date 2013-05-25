@@ -16,9 +16,10 @@ public class PostActionHandler implements ActionHandler {
 
 	private final ClientConfiguration configuration;
 
-	public PostActionHandler(){
+	public PostActionHandler() {
 		configuration = ClientConfiguration.getInstance();
 	}
+
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		return new JMenuItem("投稿(P)", KeyEvent.VK_P);
@@ -30,7 +31,7 @@ public class PostActionHandler implements ActionHandler {
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem,IntentArguments arguments) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
 
 }

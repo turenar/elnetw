@@ -24,6 +24,6 @@ public class ClearPostBoxActionHandler extends StatusActionHandlerBase {
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem,IntentArguments arguments) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
 }

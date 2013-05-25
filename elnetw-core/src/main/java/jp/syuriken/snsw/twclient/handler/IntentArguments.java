@@ -23,7 +23,13 @@ public class IntentArguments implements Cloneable {
 
 	@Override
 	public IntentArguments clone() {
-		IntentArguments newInstance = new IntentArguments(intentName);
+		IntentArguments newInstance;
+		try {
+			newInstance = (IntentArguments) super.clone();
+		} catch (CloneNotSupportedException e) {
+			// will not occurred
+			throw new AssertionError(e);
+		}
 		newInstance.extraArgs = new HashMap<>(extraArgs);
 		return newInstance;
 	}
