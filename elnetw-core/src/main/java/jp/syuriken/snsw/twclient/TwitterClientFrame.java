@@ -1681,13 +1681,6 @@ import static java.lang.Math.max;
 				setVisible(true);
 			}
 		});
-		if (SystemTray.isSupported()) {
-			try {
-				SystemTray.getSystemTray().add(configuration.getTrayIcon());
-			} catch (AWTException e) {
-				logger.warn("SystemTrayへの追加に失敗", e);
-			}
-		}
 	}
 
 	/*package*/void updatePostLength() {
@@ -1722,12 +1715,7 @@ import static java.lang.Math.max;
 		configProperties.setDimension("gui.main.size", getSize());
 		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
 		configProperties.store();
-		if (SystemTray.isSupported()) {
-			SystemTray.getSystemTray().remove(configuration.getTrayIcon());
-		}
-		synchronized (mainThreadHolder) {
-			mainThreadHolder.notifyAll();
-		}
+		TwitterClientMain.quit();
 	}
 
 	@Override

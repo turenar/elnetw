@@ -1,6 +1,8 @@
 package jp.syuriken.snsw.twclient;
 
+import java.awt.AWTException;
 import java.awt.EventQueue;
+import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.io.File;
 import java.io.FileInputStream;
@@ -437,7 +439,6 @@ public class TwitterClientMain {
 			while (configuration.isShutdownPhase() == false) {
 				try {
 					threadHolder.wait();
-					break;
 				} catch (InterruptedException e) {
 					// interrupted shows TCM#quit() is called.
 					configuration.setShutdownPhase(true);
@@ -575,6 +576,23 @@ public class TwitterClientMain {
 			configuration.setTimer(new Timer("timer"));
 		} else {
 			configuration.getTimer().cancel();
+		}
+	}
+
+	@Initializer(name = "show-trayicon", phase = "start")
+	public void setTrayIcon(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			if (SystemTray.isSupported()) {
+				try {
+					SystemTray.getSystemTray().add(configuration.getTrayIcon());
+				} catch (AWTException e) {
+					logger.warn("SystemTrayへの追加に失敗", e);
+				}
+			}
+		} else {
+			if (SystemTray.isSupported()) {
+				SystemTray.getSystemTray().remove(configuration.getTrayIcon());
+			}
 		}
 	}
 
