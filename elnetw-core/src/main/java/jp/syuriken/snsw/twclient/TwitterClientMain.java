@@ -262,7 +262,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "init-gui", dependencies = {"cacheManager", "twitterAccountId"}, phase = "init")
 	public void initFrame() {
-		frame = new TwitterClientFrame(configuration, threadHolder);
+		frame = new TwitterClientFrame(configuration);
 	}
 
 	@Initializer(name = "imageCacher", dependencies = "config", phase = "init")
