@@ -23,6 +23,13 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
  * 高速なインターネット
  * notify-sendコマンド (Ubuntuではlibnotify-binパッケージ)
 
+## パッケージのダウンロード
+
+[公式版リリース]とか[開発版リリース]をどうぞ。
+
+[公式版リリース]: http://sourceforge.jp/users/turenar/pf/elnetw/files/?id=2305
+[開発版リリース]: http://sourceforge.jp/users/turenar/pf/elnetw/files/?id=2303
+
 ## ソースコードからの使用方法
 
 ### ビルド
@@ -47,7 +54,7 @@ A.Linuxで使いやすいのがP3:PeraPeraPrvとmikutterしかなかった。で
 ### Q.なんで elnetw なの？
 A.おうし座の [エルナト星](http://ja.wikipedia.org/wiki/%E3%82%A8%E3%83%AB%E3%83%8A%E3%83%88) からとったの。え？だったら elnatwじゃないの、って？なななな何を言ってるのかよくわからないな！！！！ (誤字をやっちゃったんです許してください)
 ### Q.この機能はつける気あるの？このバグ直してくれない？
-A.今すぐ [Google Code](http://code.google.com/p/turetwcl/issues/list) に行ってissueを作るんだ！
+A.今すぐissueを作るんだ！バグっぽいときは、そのバグが再現する手順を書いてネ☆バグの確認に時間がかかるとやる気がなくなっちゃうからね
 ### Q.このissueはいつ実装されるの？
 A.気が向いたら。待てなかったらPull Request投げるとか、[@ture7]にパッチ投げてついでに一緒に開発させろむしろ代われ云々言えば泣いて喜ぶよ
 ### Q.コーディング規約とかあるの？

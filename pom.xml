@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 	<name>elnetw, the twitter client</name>
 	<description>Elnetw: Twitter Client for HITOBASHIRA</description>
-	<url>http://code.google.com/p/turetwcl</url>
+	<url>https://github.com/turenar/elnetw</url>
 
 	<licenses>
 		<license>
@@ -21,8 +21,13 @@
 
 	<issueManagement>
 		<system>Google Code</system>
-		<url>http://code.google.com/p/turetwcl/issues/list</url>
+		<url>https://github.com/turenar/elnetw/issues</url>
 	</issueManagement>
+
+	<ciManagement>
+		<system>jenkins</system>
+		<url>http://sugaya.turenar.mydns.jp:30215/</url>
+	</ciManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,6 +48,13 @@
 			<url>http://clojars.org/repo</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<scm>
+		<connection>scm:git:git://github.com/turenar/elnetw.git</connection>
+		<developerConnection>scm:git:https://github.com/turenar/elnetw.git</developerConnection>
+		<tag>scm:git:https://github.com/turenar/elnetw.git</tag>
+		<url>https://github.com/turenar/elnetw</url>
+	</scm>
 
 	<dependencyManagement>
 		<dependencies>
@@ -112,7 +124,6 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<!-- Javaコンパイラの設定 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
