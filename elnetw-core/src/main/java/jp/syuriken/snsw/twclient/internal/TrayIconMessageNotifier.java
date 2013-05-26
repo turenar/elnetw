@@ -6,7 +6,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.TimerTask;
 
-import com.sun.awt.AWTUtilities;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.MessageNotifier;
@@ -18,6 +17,10 @@ import jp.syuriken.snsw.twclient.ParallelRunnable;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnable {
+
+	public static boolean checkUsable(ClientConfiguration configuration) {
+		return GraphicsEnvironment.isHeadless();
+	}
 
 	private final ClientConfiguration configuration;
 
@@ -36,9 +39,7 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 		this.configuration = configuration;
 		trayIcon = configuration.getTrayIcon();
 	}
-public static boolean checkUsable(ClientConfiguration configuration){
-	return GraphicsEnvironment.isHeadless();
-}
+
 	@Override
 	public void run() {
 		synchronized (queue) {
@@ -71,9 +72,9 @@ public static boolean checkUsable(ClientConfiguration configuration){
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) {
 		synchronized (queue) {
-			queue.add(new Object[] {
-				summary,
-				text
+			queue.add(new Object[]{
+					summary,
+					text
 			/*,imageFile*/});
 			if (queue.size() == 1) {
 				configuration.addJob(JobQueue.Priority.LOW, this);

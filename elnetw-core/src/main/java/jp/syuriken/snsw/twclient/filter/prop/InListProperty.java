@@ -139,11 +139,9 @@ public class InListProperty implements FilterProperty {
 		}
 	}
 
-
 	/*package*/static final Logger logger = LoggerFactory.getLogger(InListProperty.class);
 
 	private static final Constructor<? extends FilterProperty> factory;
-
 
 	/**
 	 * コンストラクタを取得
@@ -153,7 +151,6 @@ public class InListProperty implements FilterProperty {
 	public static Constructor<? extends FilterProperty> getFactory() {
 		return factory;
 	}
-
 
 	/** 設定 */
 	protected ClientConfiguration configuration;
@@ -168,6 +165,7 @@ public class InListProperty implements FilterProperty {
 
 	/** リストフェッチャ */
 	protected UserFollewedByListFetcher listFetcher;
+
 	static {
 		try {
 			factory =
@@ -200,7 +198,7 @@ public class InListProperty implements FilterProperty {
 		if (value instanceof String == false) {
 			throw new IllegalSyntaxException("[in_list] valueは文字列であるべきです");
 		}
-		isEqual = (FilterOperator.compileOperatorString(operatorStr) == FilterOperator.EQ);
+		isEqual = FilterOperator.compileOperatorString(operatorStr) == FilterOperator.EQ;
 
 		listIdentifier = (String) value;
 		listFetcher = new UserFollewedByListFetcher(listIdentifier);

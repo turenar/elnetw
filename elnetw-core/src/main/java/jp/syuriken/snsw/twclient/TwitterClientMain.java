@@ -436,14 +436,13 @@ public class TwitterClientMain {
 		}
 
 		synchronized (threadHolder) {
-			while (configuration.isShutdownPhase() == false) {
-				try {
+			try {
+				while (configuration.isShutdownPhase() == false) {
 					threadHolder.wait();
-				} catch (InterruptedException e) {
-					// interrupted shows TCM#quit() is called.
-					configuration.setShutdownPhase(true);
-					break;
 				}
+			} catch (InterruptedException e) {
+				// interrupted shows TCM#quit() is called.
+				configuration.setShutdownPhase(true);
 			}
 		}
 

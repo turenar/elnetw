@@ -35,7 +35,7 @@ public class ListActionHandler implements ActionHandler {
 		String listName;
 		if (listNameObj == null) {
 			throw new IllegalArgumentException("Specify extraArg `listName`");
-		} else if (user instanceof String) {
+		} else if (listNameObj instanceof String) {
 			listName = (String) listNameObj;
 		} else {
 			throw new IllegalArgumentException("extraArg `listName` must be String");

@@ -311,7 +311,7 @@ public abstract class DefaultClientTab implements ClientTab {
 							if (status.isRetweet()) {
 								status = status.getRetweetedStatus();
 							}
-							handleAction("userinfo!" + status.getUser().getScreenName());
+							handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
 						}
 					}
 					break;
@@ -321,10 +321,12 @@ public abstract class DefaultClientTab implements ClientTab {
 						if (statusData.tag instanceof Status) {
 							Status status = (Status) statusData.tag;
 							if (status.isRetweet()) {
-								handleAction("userinfo!" + status.getUser().getScreenName());
+								handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
 							}
 						}
 					}
+				default:
+					// do nothing
 			}
 		}
 
@@ -1326,21 +1328,21 @@ public abstract class DefaultClientTab implements ClientTab {
 			tweetViewOperationPanel.setMinimumSize(new Dimension(76, 76));
 			GroupLayout layout = new GroupLayout(tweetViewOperationPanel);
 			layout.setHorizontalGroup(layout
-				.createParallelGroup()
-				.addGroup(
-						layout.createSequentialGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
-							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
-				.addGroup(
-						layout.createSequentialGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+					.createParallelGroup()
+					.addGroup(
+							layout.createSequentialGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+									.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+					.addGroup(
+							layout.createSequentialGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+									.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
 			layout.setVerticalGroup(layout
-				.createSequentialGroup()
-				.addGroup(
-						layout.createParallelGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
-							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
-				.addGroup(
-						layout.createParallelGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+					.createSequentialGroup()
+					.addGroup(
+							layout.createParallelGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
+									.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+					.addGroup(
+							layout.createParallelGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+									.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
 		}
 		return tweetViewOperationPanel;
 	}

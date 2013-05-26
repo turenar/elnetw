@@ -167,4 +167,7 @@ public class VersionComparator {
 			return VersionComponentType.OP;
 		}
 	}
+
+	private VersionComparator() {
+	}
 }

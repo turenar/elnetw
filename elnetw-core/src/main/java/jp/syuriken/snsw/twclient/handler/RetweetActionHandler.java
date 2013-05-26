@@ -16,7 +16,7 @@ import twitter4j.TwitterException;
  */
 public class RetweetActionHandler extends StatusActionHandlerBase {
 
-	private class RetweetTask extends TwitterRunnable {
+	private static class RetweetTask extends TwitterRunnable {
 
 		private final Status status;
 

@@ -27,7 +27,7 @@ public class TwitterDataFetchScheduler {
 			ResponseList<DirectMessage> directMessages;
 			Paging paging =
 					new Paging().count(configProperties
-						.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
+							.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_DIRECTMESSAGE));
 			directMessages = twitterForRead.getDirectMessages(paging);
 			for (DirectMessage directMessage : directMessages) {
 				rootFilterService.onDirectMessage(new InitialMessage(directMessage));
@@ -41,10 +41,10 @@ public class TwitterDataFetchScheduler {
 		public void access() throws TwitterException {
 			Paging paging =
 					new Paging()
-						.count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_MENTION));
+							.count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_MENTION));
 			ResponseList<Status> mentions = twitterForRead.getMentionsTimeline(paging);
 			for (Status status : mentions) {
-				TwitterStatus twitterStatus = new TwitterStatus( status);
+				TwitterStatus twitterStatus = new TwitterStatus(status);
 				twitterStatus.setLoadedInitialization(true);
 				rootFilterService.onStatus(twitterStatus);
 			}
@@ -58,7 +58,7 @@ public class TwitterDataFetchScheduler {
 			ResponseList<Status> homeTimeline;
 			Paging paging =
 					new Paging().count(configProperties
-						.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_TIMELINE));
+							.getInteger(ClientConfiguration.PROPERTY_PAGING_INITIAL_TIMELINE));
 			homeTimeline = twitterForRead.getHomeTimeline(paging);
 			for (Status status : homeTimeline) {
 				TwitterStatus twitterStatus = new TwitterStatus(status);
@@ -82,16 +82,15 @@ public class TwitterDataFetchScheduler {
 		}
 	}
 
-
-	/*package*/Twitter twitterForRead;
-
 	/*package*/final FilterService rootFilterService;
 
 	/*package*/final ClientConfiguration configuration;
 
-	/*package*/TwitterStream stream;
+	/*package*/ Twitter twitterForRead;
 
-	/*package*/ClientProperties configProperties;
+	/*package*/ TwitterStream stream;
+
+	/*package*/ ClientProperties configProperties;
 
 
 	/**
@@ -113,9 +112,7 @@ public class TwitterDataFetchScheduler {
 		onChangeAccount(false);
 	}
 
-	/**
-	 * お掃除する
-	 */
+	/** お掃除する */
 	public void cleanUp() {
 		stream.shutdown();
 	}

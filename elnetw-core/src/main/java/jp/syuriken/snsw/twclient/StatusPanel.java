@@ -42,7 +42,7 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	public int compareTo(StatusPanel o) {
 		int result = statusData.date.compareTo(o.statusData.date);
 		if (result == 0) {
-			result = (statusData.id < o.statusData.id ? -1 : (statusData.id == o.statusData.id ? 0 : 1));
+			result = statusData.id < o.statusData.id ? -1 : (statusData.id == o.statusData.id ? 0 : 1);
 		}
 		return result;
 	}

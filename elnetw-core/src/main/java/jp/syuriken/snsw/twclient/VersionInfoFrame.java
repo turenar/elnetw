@@ -119,10 +119,7 @@ public class VersionInfoFrame extends JFrame {
 
 	private JList<String> libraryList;
 
-	/**
-	 * インスタンスを生成する
-	 *
-	 */
+	/** インスタンスを生成する */
 	public VersionInfoFrame(ClientConfiguration configuration) {
 		initLibraryInfos(configuration);
 		initComponents();
@@ -245,7 +242,7 @@ public class VersionInfoFrame extends JFrame {
 		JList<String> list = getLibraryList();
 		String selectedValue = list.getSelectedValue();
 		for (LibraryInfo libraryInfo : libraryInfoList) {
-			if (libraryInfo.name.equals(selectedValue) ){
+			if (libraryInfo.name.equals(selectedValue)) {
 				getInfoTextPane().setText(libraryInfo.getInfo());
 				break;
 			}
