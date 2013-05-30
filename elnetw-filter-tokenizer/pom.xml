@@ -145,11 +145,22 @@
 				<version>2.5.2</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
-					<effort>Min</effort>
+					<effort>Max</effort>
 					<sourceEncoding>${file.encoding}</sourceEncoding>
-					<classFilesDirectory>${project.build.testOutputDirectory}</classFilesDirectory>
 					<includeTests>false</includeTests>
+					<skip>true</skip>
 					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<includeTestSourceDirectory>false</includeTestSourceDirectory>
+					<configLocation>.settings/checkstyle.xml</configLocation>
+					<headerLocation>../doc/license/elnetw.txt</headerLocation>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>
