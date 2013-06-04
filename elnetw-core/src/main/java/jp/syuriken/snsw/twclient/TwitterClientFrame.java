@@ -1,6 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -9,7 +8,6 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.LayoutManager2;
-import java.awt.SystemTray;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -466,8 +464,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(String actionName, StatusData statusData, ClientFrameApi api) {
-			setVisible(false);
-			dispose();
+			TwitterClientMain.quit();
 		}
 
 		@Override
@@ -631,8 +628,6 @@ import static java.lang.Math.max;
 
 	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
 
-	/*package*/final Object mainThreadHolder;
-
 	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
 
@@ -709,13 +704,12 @@ import static java.lang.Math.max;
 	 * @param configuration 設定
 	 * @param threadHolder スレッドホルダ
 	 */
-	public TwitterClientFrame(ClientConfiguration configuration, Object threadHolder) {
+	public TwitterClientFrame(ClientConfiguration configuration) {
 		logger.info("initializing frame");
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
 
 		rootFilterService = configuration.getRootFilterService();
-		mainThreadHolder = threadHolder;
 		configProperties = configuration.getConfigProperties();
 		initActionHandlerTable();
 
@@ -1682,13 +1676,6 @@ import static java.lang.Math.max;
 				setVisible(true);
 			}
 		});
-		if (SystemTray.isSupported()) {
-			try {
-				SystemTray.getSystemTray().add(configuration.getTrayIcon());
-			} catch (AWTException e) {
-				logger.warn("SystemTrayへの追加に失敗", e);
-			}
-		}
 	}
 
 	/*package*/void updatePostLength() {
@@ -1723,12 +1710,7 @@ import static java.lang.Math.max;
 		configProperties.setDimension("gui.main.size", getSize());
 		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
 		configProperties.store();
-		if (SystemTray.isSupported()) {
-			SystemTray.getSystemTray().remove(configuration.getTrayIcon());
-		}
-		synchronized (mainThreadHolder) {
-			mainThreadHolder.notifyAll();
-		}
+		TwitterClientMain.quit();
 	}
 
 	@Override
