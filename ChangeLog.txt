@@ -1,3 +1,30 @@
+Version 0.0.2-alpha4 (Sat May 25 19:15:42 2013 +0900)
+
+	! Require jre1.7
+	! Reset and Obfuscated OAuth's consumer key; You must relogin
+	+ New Filter Function: if
+	+ Support simple library versioning system
+	+ Add LibnotifyNotifier (this function requires java-gnome)
+	% fix not handling shortcutkey like '{' (shift+'[')
+	% Support dynamic initializer for future function
+	% Package will be versioned with `git describe`
+
+Version 0.0.2-alpha3 (Sat Jan 12 14:49:19 2013 +0900)
+
+	+ Add filter
+
+Version 0.0.2-alpha2
+
+	+ Support unfav
+
+Version 0.0.2-alpha1
+
+	+ Add tween shortcut
+	+ Cache temporarily for user and status
+	+ Follow Display Requirements
+	% fix error in first launch
+	% fix wrong RT info
+
 Version 0.0.1 (Sun, 17 Jun 2012 16:23:00 +0900)
 
 	* Initial Release
