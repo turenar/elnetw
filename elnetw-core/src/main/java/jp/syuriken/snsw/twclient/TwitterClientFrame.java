@@ -542,7 +542,6 @@ import static java.lang.Math.max;
 	/**
 	 * Creates new form TwitterClientFrame
 	 * @param configuration 設定
-	 * @param threadHolder スレッドホルダ
 	 */
 	public TwitterClientFrame(ClientConfiguration configuration) {
 		logger.info("initializing frame");

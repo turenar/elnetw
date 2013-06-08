@@ -325,6 +325,7 @@ public abstract class DefaultClientTab implements ClientTab {
 							}
 						}
 					}
+					break;
 				default:
 					// do nothing
 			}

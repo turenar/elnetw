@@ -214,12 +214,16 @@ public class VersionInfoFrame extends JFrame {
 				.append(twitter4j.Version.getVersion())
 				.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text\n - java-gnome (optional");
 
-		JavaGnome javaGnome = JavaGnome.getInstance(configuration);
+		JavaGnome javaGnome = JavaGnome.getInstance();
 		if (javaGnome.isFound()) {
 			stringBuilder.append(";api=")
 					.append(javaGnome.getApiVersion())
 					.append(";version=")
 					.append(javaGnome.getVersion());
+		} else if (javaGnome.isDisabled()) {
+			stringBuilder.append(";disabled");
+		} else {
+			stringBuilder.append(";missing");
 		}
 		stringBuilder.append(')');
 

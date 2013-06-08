@@ -20,13 +20,12 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(LibnotifyMessageNotifier.class);
 
 	public static final boolean checkUsable(ClientConfiguration configuration) {
-		boolean disable = Boolean.getBoolean("elnetw.java-gnome.disable");
-		if (disable) {
+		JavaGnome javaGnome = JavaGnome.getInstance();
+		if (javaGnome.isDisabled()) {
 			logger.info("Skip java-gnome notify system");
 			return false;
 		} else if (Utility.getOstype() == Utility.OSType.OTHER) {
 			ClassLoader extraClassLoader = configuration.getExtraClassLoader();
-			JavaGnome javaGnome = JavaGnome.getInstance(configuration);
 			if (!javaGnome.isFound()) {
 				return false;
 			}

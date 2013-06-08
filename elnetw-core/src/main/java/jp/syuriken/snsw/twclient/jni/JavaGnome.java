@@ -14,16 +14,21 @@ import org.slf4j.LoggerFactory;
 public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);
 
-	public static JavaGnome getInstance(ClientConfiguration configuration) {
-		return new JavaGnome(configuration);
+	private static JavaGnome INSTANCE;
+
+	public static synchronized JavaGnome getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new JavaGnome();
+		}
+		return INSTANCE;
 	}
 
 	private final ClassLoader extraClassLoader;
 
 	private final Class<?> versionClass;
 
-	public JavaGnome(ClientConfiguration configuration) {
-		extraClassLoader = configuration.getExtraClassLoader();
+	public JavaGnome() {
+		extraClassLoader = ClientConfiguration.getInstance().getExtraClassLoader();
 
 		Class<?> versionClass1;
 		try {
@@ -69,9 +74,11 @@ public class JavaGnome {
 		}
 	}
 
+	public boolean isDisabled() {
+		return Boolean.getBoolean("elnetw.java-gnome.disable");
+	}
+
 	public boolean isFound() {
 		return versionClass != null;
 	}
-
-
 }
