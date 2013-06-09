@@ -26,7 +26,6 @@ public class DirectMessageViewTab extends DefaultClientTab {
 
 	private static final String TAB_ID = "directmessage";
 
-
 	private static void nl2br(StringBuffer stringBuffer) {
 		int start = stringBuffer.length();
 		int offset = start;
@@ -46,7 +45,6 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			offset = position + 9;
 		}
 	}
-
 
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
@@ -130,13 +128,6 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	}
 
 	@Override
-	public void focusGained() {
-		focusGained = true;
-		isDirty = false;
-		configuration.refreshTab(this);
-	}
-
-	@Override
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
 			selectingPost.setBackground(selectingPost.getStatusData().backgroundColor);
@@ -168,7 +159,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				Matcher hashtagMatcher = Regex.AUTO_LINK_HASHTAGS.matcher(oldBuffer);
 				while (hashtagMatcher.find()) {
 					hashtagMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_BEFORE
-							+ "<a href='http://command/hashtag!$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
+							+ "<a href='http://command/hashtag!name=$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
 							+ Regex.AUTO_LINK_HASHTAGS_GROUP_HASH + "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "</a>");
 				}
 				hashtagMatcher.appendTail(newBuffer);
@@ -183,14 +174,15 @@ public class DirectMessageViewTab extends DefaultClientTab {
 					String list = userMatcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
 					if (list == null) {
 						userMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
-								+ "<a href='http://command/userinfo!$"
+								+ "<a href='http://command/userinfo!screenName=$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");
 					} else {
 						userMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
-								+ "<a href='http://command/list!$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME
-								+ "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "'>$"
+								+ "<a href='http://command/list!user=$"
+								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME
+								+ ";listName=$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "'>$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "</a>");
@@ -215,6 +207,13 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			// for DisplayRequirements...
 			//throw new AssertionError("DirectMessageViewTab must contain only DirectMessage");
 		}
+	}
+
+	@Override
+	public void focusGained() {
+		focusGained = true;
+		isDirty = false;
+		configuration.refreshTab(this);
 	}
 
 	@Override

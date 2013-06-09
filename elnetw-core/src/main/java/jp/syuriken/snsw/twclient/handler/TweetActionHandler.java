@@ -22,7 +22,7 @@ public class TweetActionHandler extends StatusActionHandlerBase {
 
 	@Override
 	public void handleAction(IntentArguments arguments) {
-		String actionName = arguments.getExtraObj("action", String.class);
+		String actionName = arguments.getExtraObj("_arg", String.class);
 		String messageName;
 		switch (actionName) {
 			case "copy":

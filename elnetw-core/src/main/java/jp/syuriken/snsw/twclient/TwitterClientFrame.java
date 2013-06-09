@@ -52,14 +52,9 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
-import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.handler.MenuPropertyEditorActionHandler;
-import jp.syuriken.snsw.twclient.handler.MenuQuitActionHandler;
-import jp.syuriken.snsw.twclient.handler.ReloginActionHandler;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
-import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -104,7 +99,7 @@ import static java.lang.Math.max;
 			} else {
 			statusData = statusMap.get(selectingPost.getStatusData().id);
 			} */
-			configuration.handleAction(new IntentArguments(e.getActionCommand()));
+			configuration.handleAction(Utility.getIntentArguments(e.getActionCommand()));
 		}
 	}
 
@@ -122,7 +117,7 @@ import static java.lang.Math.max;
 
 		@Override
 		public void handleAction(IntentArguments args) {
-			String actionName = args.getExtraObj("action", String.class);
+			String actionName = args.getExtraObj("_arg", String.class);
 			if (actionName == null) {
 				throw new IllegalArgumentException("`action` is not found");
 			}
@@ -775,19 +770,16 @@ import static java.lang.Math.max;
 			editPanel = new JPanel();
 			GroupLayout layout = new GroupLayout(editPanel);
 			editPanel.setLayout(layout);
-			layout.setHorizontalGroup( //
-				layout
-					.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(getPostPanel(), GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
-							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE) //
-					.addComponent(getTweetViewPanel()));
-			layout.setVerticalGroup( //
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
-					.addGroup(
-							layout.createSequentialGroup()
-								.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
+			layout.setHorizontalGroup(
+					layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+							.addComponent(getPostPanel(), GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
+									GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(getTweetViewPanel()));
+			layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup()
+							.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
 
 		}
 		return editPanel;
@@ -885,33 +877,27 @@ import static java.lang.Math.max;
 			postPanel = new JPanel();
 			GroupLayout layout = new GroupLayout(postPanel);
 			postPanel.setLayout(layout);
-			layout.setHorizontalGroup( //
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING) //
-					.addGroup(
-							GroupLayout.Alignment.TRAILING, //
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(getPostBoxScrollPane(), GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
-								.addPreferredGap(ComponentPlacement.RELATED)
-								//
-								.addGroup(
-										layout.createParallelGroup(Alignment.TRAILING)
-											.addComponent(getPostActionButton()).addComponent(getPostLengthLabel()))
-								.addGap(18, 18, 18)));
-			layout.setVerticalGroup( //
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-						layout
-							.createSequentialGroup()
+			layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(getPostBoxScrollPane(), GroupLayout.DEFAULT_SIZE, 475,
+									Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(layout.createParallelGroup(Alignment.TRAILING)
+									.addComponent(getPostActionButton())
+									.addComponent(getPostLengthLabel()))
+							.addGap(18, 18, 18)));
+			layout.setVerticalGroup(
+					layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addGroup(
-									layout
-										.createParallelGroup(GroupLayout.Alignment.TRAILING)
-										.addGroup(
-												layout.createSequentialGroup().addComponent(getPostLengthLabel())
-													.addComponent(getPostActionButton()))
-										.addComponent(getPostBoxScrollPane(), 32, 64, GroupLayout.PREFERRED_SIZE))
-							.addContainerGap(6, Short.MAX_VALUE)));
-
+									layout.createSequentialGroup()
+											.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+													.addGroup(layout.createSequentialGroup()
+															.addComponent(getPostLengthLabel())
+															.addComponent(getPostActionButton()))
+													.addComponent(getPostBoxScrollPane(), 32, 64,
+															GroupLayout.PREFERRED_SIZE))
+											.addContainerGap(6, Short.MAX_VALUE)));
 		}
 		return postPanel;
 	}
@@ -1010,7 +996,7 @@ import static java.lang.Math.max;
 						String url = e.getURL().toString();
 						if (url.startsWith("http://command/")) {
 							String command = url.substring("http://command/".length());
-							selectingTab.handleAction(command);
+							selectingTab.handleAction(Utility.getIntentArguments(command));
 						} else {
 							try {
 								configuration.getUtility().openBrowser(url);
@@ -1037,45 +1023,32 @@ import static java.lang.Math.max;
 			tweetViewPanel = new JPanel();
 			GroupLayout layout = new GroupLayout(tweetViewPanel);
 			tweetViewPanel.setLayout(layout);
-			layout.setVerticalGroup( //
-				layout
-					.createParallelGroup()
-					.addGroup(
-							layout
-								.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(Alignment.LEADING) //
-									.addComponent(getTweetViewCreatedByLabel(), Alignment.LEADING) //
+			layout.setVerticalGroup(layout.createParallelGroup()
+					.addGroup(layout.createSequentialGroup()
+							.addGroup(layout.createParallelGroup(Alignment.LEADING)
+									.addComponent(getTweetViewCreatedByLabel(), Alignment.LEADING)
 									.addComponent(getTweetViewCreatedAtLabel(), Alignment.LEADING))
-								.addContainerGap()
-								.addGroup(
-										layout
-											.createParallelGroup(Alignment.LEADING)
-											.addGroup(
-													layout.createSequentialGroup().addComponent(
-															getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE,
-															48, GroupLayout.PREFERRED_SIZE))
-											.addComponent(getTweetViewTextLayeredPane(), Alignment.LEADING)))
+							.addContainerGap()
+							.addGroup(layout.createParallelGroup(Alignment.LEADING)
+									.addGroup(layout.createSequentialGroup()
+											.addComponent(getTweetViewUserIconLabel(),
+													GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE))
+									.addComponent(getTweetViewTextLayeredPane(), Alignment.LEADING)))
 					.addComponent(getTweetViewOperationPanelContainer(), Alignment.CENTER, 0,
 							GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE));
-			layout.setHorizontalGroup( //
-				layout
-					.createSequentialGroup()
-					.addGroup(
-							layout
-								.createParallelGroup(Alignment.LEADING)
-								.addGroup(layout.createSequentialGroup() //
-									.addComponent(getTweetViewCreatedByLabel()) //
-									.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE) //
+			layout.setHorizontalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+							.addGroup(layout.createSequentialGroup()
+									.addComponent(getTweetViewCreatedByLabel())
+									.addPreferredGap(ComponentPlacement.RELATED).addContainerGap(8, Short.MAX_VALUE)
 									.addComponent(getTweetViewCreatedAtLabel()))
-								.addGroup(
-										layout
-											.createSequentialGroup()
-											.addGap(4, 4, 4)
-											.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
-													GroupLayout.PREFERRED_SIZE)
-											.addGap(4, 4, 4)
-											.addComponent(getTweetViewTextLayeredPane(), GroupLayout.PREFERRED_SIZE,
-													200, Short.MAX_VALUE)))
+							.addGroup(layout.createSequentialGroup()
+									.addGap(4, 4, 4)
+									.addComponent(getTweetViewUserIconLabel(), GroupLayout.PREFERRED_SIZE, 48,
+											GroupLayout.PREFERRED_SIZE)
+									.addGap(4, 4, 4)
+									.addComponent(getTweetViewTextLayeredPane(), GroupLayout.PREFERRED_SIZE, 200,
+											Short.MAX_VALUE)))
 					.addComponent(getTweetViewOperationPanelContainer(), 0, GroupLayout.PREFERRED_SIZE,
 							GroupLayout.PREFERRED_SIZE));
 		}
@@ -1333,6 +1306,7 @@ import static java.lang.Math.max;
 
 	/**
 	 * 例外を処理する。
+	 *
 	 * @param e 例外
 	 */
 	@Override
@@ -1350,7 +1324,7 @@ import static java.lang.Math.max;
 			String keyString = Utility.toKeyString(e);
 			String actionCommandName = getActionCommandByShortcutKey(component, keyString);
 			if (actionCommandName != null) {
-				getSelectingTab().handleAction(actionCommandName);
+				getSelectingTab().handleAction(Utility.getIntentArguments(actionCommandName));
 				e.consume();
 			}
 		}
@@ -1360,13 +1334,7 @@ import static java.lang.Math.max;
 	 * アクションハンドラーテーブルを初期化する。
 	 */
 	private void initActionHandlerTable() {
-		addActionHandler("core", new CoreFrameActionHandler());
-		addActionHandler("menu_quit", new MenuQuitActionHandler());
-		addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
-		addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
-		addActionHandler("menu_login_read", new ReloginActionHandler(false));
-		addActionHandler("menu_login_write", new ReloginActionHandler(true));
-		addActionHandler("menu_config", new MenuConfiguratorActionHandler());
+		configuration.addActionHandler("core", new CoreFrameActionHandler());
 	}
 
 	/**
@@ -1374,7 +1342,7 @@ import static java.lang.Math.max;
 	 * initialize the form.
 	 */
 	private void initComponents() {
-		setTitle(APPLICATION_NAME);
+		setTitle(ClientConfiguration.APPLICATION_NAME);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 

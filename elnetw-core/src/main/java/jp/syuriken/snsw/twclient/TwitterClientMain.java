@@ -49,13 +49,17 @@ import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
 import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
+import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.HashtagActionHandler;
 import jp.syuriken.snsw.twclient.handler.ListActionHandler;
+import jp.syuriken.snsw.twclient.handler.MenuPropertyEditorActionHandler;
+import jp.syuriken.snsw.twclient.handler.MenuQuitActionHandler;
 import jp.syuriken.snsw.twclient.handler.MuteActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
 import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
+import jp.syuriken.snsw.twclient.handler.ReloginActionHandler;
 import jp.syuriken.snsw.twclient.handler.RemoveTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.ReplyActionHandler;
 import jp.syuriken.snsw.twclient.handler.RetweetActionHandler;
@@ -71,6 +75,7 @@ import jp.syuriken.snsw.twclient.init.InitializeException;
 import jp.syuriken.snsw.twclient.init.InitializeService;
 import jp.syuriken.snsw.twclient.init.Initializer;
 import jp.syuriken.snsw.twclient.init.InitializerInstance;
+import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
@@ -188,6 +193,12 @@ public class TwitterClientMain {
 		configuration.addActionHandler("list", new ListActionHandler());
 		configuration.addActionHandler("hashtag", new HashtagActionHandler());
 		configuration.addActionHandler("search", new SearchActionHandler());
+		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
+		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
+		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
+		configuration.addActionHandler("menu_login_read", new ReloginActionHandler(false));
+		configuration.addActionHandler("menu_login_write", new ReloginActionHandler(true));
+		configuration.addActionHandler("menu_config", new MenuConfiguratorActionHandler());
 	}
 
 	@Initializer(name = "cacheManager", dependencies = {"config", "twitterAccountId"}, phase = "init")

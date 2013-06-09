@@ -469,7 +469,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			} */
 			if (e.getClickCount() == 2) {
 				StatusPanel panel = ((StatusPanel) e.getComponent());
-				frameApi.handleAction("reply", panel.getStatusData());
+				handleAction(new IntentArguments("reply"));
 			}
 		}
 
@@ -1012,7 +1012,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					start = TwitterStatus.getEntityStart(hashtagEntity);
 					end = TwitterStatus.getEntityEnd(hashtagEntity);
 					replaceText = null;
-					url = "http://command/hashtag!" + hashtagEntity.getText();
+					url = "http://command/hashtag!name=" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
 					url = urlEntity.getURL();
@@ -1024,7 +1024,7 @@ public abstract class DefaultClientTab implements ClientTab {
 					start = TwitterStatus.getEntityStart(mentionEntity);
 					end = TwitterStatus.getEntityEnd(mentionEntity);
 					replaceText = null;
-					url = "http://command/userinfo!" + mentionEntity.getScreenName();
+					url = "http://command/userinfo!screenName=" + mentionEntity.getScreenName();
 				} else {
 					throw new AssertionError();
 				}
@@ -1122,20 +1122,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @return IntentArguments
 	 */
 	protected IntentArguments getIntentArguments(String actionCommand) {
-		int argSeparatorIndex = actionCommand.indexOf('!');
-		IntentArguments intentArguments = new IntentArguments(
-				argSeparatorIndex < 0 ? actionCommand : actionCommand.substring(0, argSeparatorIndex));
+		IntentArguments intentArguments = Utility.getIntentArguments(actionCommand);
 
 		if (selectingPost != null) {
 			intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, selectingPost.getStatusData());
-		}
-
-		String[] args = (argSeparatorIndex < 0 ? "" : actionCommand.substring(argSeparatorIndex + 1)).split(",");
-		for (String arg : args) {
-			int kvSeparatorIndex = arg.indexOf('=');
-			String name = kvSeparatorIndex < 0 ? "action" : arg.substring(0, kvSeparatorIndex);
-			String value = kvSeparatorIndex < 0 ? arg : arg.substring(kvSeparatorIndex + 1);
-			intentArguments.putExtra(name, value);
 		}
 		return intentArguments;
 	}

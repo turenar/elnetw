@@ -326,7 +326,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 				matcher = Regex.AUTO_LINK_HASHTAGS.matcher(bio);
 				while (matcher.find()) {
 					matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_BEFORE
-							+ "<a href='http://command/hashtag!$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
+							+ "<a href='http://command/hashtag!name=$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
 							+ Regex.AUTO_LINK_HASHTAGS_GROUP_HASH + "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "</a>");
 				}
 				matcher.appendTail(buffer);
@@ -338,7 +338,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 					String list = matcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
 					if (list == null) {
 						matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
-								+ "<a href='http://command/userinfo!$"
+								+ "<a href='http://command/userinfo!screenName=$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
 								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");
@@ -646,7 +646,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 			String screenName = arguments.getExtraObj("screenName", String.class);
 			if (screenName == null) {
 				StatusData statusData = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA, StatusData.class);
-				if (statusData.tag instanceof Status) {
+				if (statusData != null && statusData.tag instanceof Status) {
 					Status status = (Status) statusData.tag;
 					if (status.isRetweet()) {
 						status = status.getRetweetedStatus();
@@ -654,7 +654,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 					user = status.getUser();
 				} else {
 					throw new IllegalArgumentException(
-							"[userinfo AH] must call as userinfo!<screenName> or must statusData.tag is Status");
+							"[userinfo AH] must call as userinfo!screenName=<screenName> or must statusData.tag is Status");
 				}
 			} else {
 				user = new UserFetcher(screenName).getUser();

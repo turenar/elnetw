@@ -639,6 +639,7 @@ public class ClientConfiguration {
 		if (actionHandler != null) {
 			try {
 				actionHandler.handleAction(intentArguments);
+				logger.trace("call {}", intentArguments);
 			} catch (RuntimeException e) {
 				logger.error("Uncaught exception", e);
 			}

@@ -42,6 +42,9 @@ public class ListActionHandler implements ActionHandler {
 		}
 
 		try {
+			if (listName.startsWith("/")) {
+				listName = listName.substring(1);
+			}
 			ClientConfiguration.getInstance().getUtility().openBrowser(
 					new URI("http", "twitter.com", userName + "/" + listName).toASCIIString());
 		} catch (URISyntaxException e) {

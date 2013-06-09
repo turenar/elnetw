@@ -27,7 +27,7 @@ public class HashtagActionHandler implements ActionHandler {
 	public void handleAction(IntentArguments arguments) {
 		String name = arguments.getExtraObj("name", String.class);
 		if (name == null) {
-			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!<hashtag>");
+			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
 		}
 
 		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);

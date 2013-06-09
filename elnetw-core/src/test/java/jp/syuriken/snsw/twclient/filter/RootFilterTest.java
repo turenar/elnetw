@@ -213,6 +213,7 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
+	@Deprecated
 	@Override
 	public void handleAction(String name, StatusData statusData) {
 	}

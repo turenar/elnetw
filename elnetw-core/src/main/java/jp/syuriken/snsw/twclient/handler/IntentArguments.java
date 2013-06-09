@@ -129,4 +129,9 @@ public class IntentArguments implements Cloneable {
 		intentName = name;
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "IntentArguments{name=" + intentName + ",args=" + extraArgs + "}";
+	}
 }

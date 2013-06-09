@@ -16,6 +16,7 @@ import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -280,6 +281,25 @@ public class Utility {
 			stringBuilder.append(" (").append(dateFormatted).append(')');
 			return stringBuilder.toString();
 		}
+	}
+
+	public static IntentArguments getIntentArguments(String actionCommand) {
+		int argSeparatorIndex = actionCommand.indexOf('!');
+		IntentArguments intentArguments = new IntentArguments(
+				argSeparatorIndex < 0 ? actionCommand : actionCommand.substring(0, argSeparatorIndex));
+
+
+		String argsString = actionCommand.substring(argSeparatorIndex + 1);
+		if (!argsString.isEmpty()) {
+			String[] args = (argSeparatorIndex < 0 ? "" : argsString).split(";");
+			for (String arg : args) {
+				int kvSeparatorIndex = arg.indexOf('=');
+				String name = kvSeparatorIndex < 0 ? "_arg" : arg.substring(0, kvSeparatorIndex);
+				String value = kvSeparatorIndex < 0 ? arg : arg.substring(kvSeparatorIndex + 1);
+				intentArguments.putExtra(name, value);
+			}
+		}
+		return intentArguments;
 	}
 
 	/**
