@@ -2,7 +2,11 @@ package jp.syuriken.snsw.twclient.init;
 
 import java.lang.reflect.Method;
 
-/** Utility to initialize */
+/**
+ * Utility to initialize
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 public abstract class InitializeService {
 
 	private static InitializeService service;
@@ -67,6 +71,17 @@ public abstract class InitializeService {
 	 * @throws IllegalArgumentException name is already registered
 	 */
 	public abstract InitializeService provideInitializer(String name) throws IllegalArgumentException;
+
+	/**
+	 * provide null-initializer as name
+	 *
+	 * @param name  initializer's name
+	 * @param force if true, do not check whether 'name' is already registered.
+	 *              otherwise, check and throw IllegalArgumentException when 'name' is already registered.
+	 * @return this object
+	 * @throws IllegalArgumentException name is already registered
+	 */
+	public abstract InitializeService provideInitializer(String name, boolean force);
 
 	/**
 	 * register initializer

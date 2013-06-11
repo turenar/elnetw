@@ -479,6 +479,9 @@ public class TwitterClientMain {
 			}
 		}
 		configuration.setConfigProperties(configProperties);
+
+		String configVersion = configProperties.getProperty("cfg.version", "0");
+		InitializeService.getService().provideInitializer("config-v" + configVersion, true);
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
@@ -696,5 +699,11 @@ public class TwitterClientMain {
 		configuration.storeAccessToken(accessToken);
 		configProperties.store();
 		return;
+	}
+
+	@Initializer(name = "config-v1", dependencies = "config-v0", phase = "earlyinit")
+	public void updateConfigToV1() {
+		logger.info("Updating config to v1");
+		configProperties.setProperty("cfg.version", "1");
 	}
 }
