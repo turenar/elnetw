@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Instance field for @{@link Initializer}
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

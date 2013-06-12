@@ -67,8 +67,8 @@ Twitter Client for 'HITOBASHIRA'
 リンク
 
 	配布元 (elnetw)
-		http://code.google.com/p/turetwcl
 		https://github.com/turenar/elnetw
+		http://sourceforge.jp/users/turenar/pf/elnetw/
 	作者のついった
 		http://twitter.com/ture7
 	ライブラリ等

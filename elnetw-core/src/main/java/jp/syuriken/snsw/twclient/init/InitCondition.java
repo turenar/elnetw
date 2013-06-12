@@ -2,7 +2,11 @@ package jp.syuriken.snsw.twclient.init;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 
-/** Information for @{@link Initializer} */
+/**
+ * Information for @{@link Initializer}
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 public interface InitCondition {
 
 	/** clear fail status */

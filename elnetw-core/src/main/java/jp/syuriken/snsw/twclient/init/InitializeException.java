@@ -1,6 +1,10 @@
 package jp.syuriken.snsw.twclient.init;
 
-/** exception when initializing */
+/**
+ * exception when initializing
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 public class InitializeException extends Exception {
 	private static final long serialVersionUID = -4813918292243379594L;
 

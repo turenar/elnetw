@@ -3,7 +3,11 @@ package jp.syuriken.snsw.twclient.init;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 
-/** information of @{@link Initializer} */
+/**
+ * information of @{@link Initializer}
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 public interface InitializerInfo {
 	/**
 	 * get Initializer Annotation

@@ -14,7 +14,11 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Dynamic dependencies resolver */
+/**
+ * Dynamic dependencies resolver
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 public class DynamicInitializeService extends InitializeService {
 	protected class InitConditionImpl implements InitCondition {
 
@@ -332,7 +336,12 @@ public class DynamicInitializeService extends InitializeService {
 
 	@Override
 	public InitializeService provideInitializer(String name) throws IllegalArgumentException {
-		if (initializerInfoMap.containsKey(name)) {
+		return provideInitializer(name, false);
+	}
+
+	@Override
+	public InitializeService provideInitializer(String name, boolean force) {
+		if (!force && initializerInfoMap.containsKey(name)) {
 			throw new IllegalArgumentException(name + " is already registered as initializer");
 		}
 

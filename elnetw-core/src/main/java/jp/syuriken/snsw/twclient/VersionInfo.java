@@ -21,7 +21,7 @@ public final class VersionInfo {
 	static {
 		InputStream stream =
 				VersionInfo.class.getClassLoader().getResourceAsStream(
-						"jp/syuriken/snsw/twclient/twclient-core-version.properties");
+						"jp/syuriken/snsw/twclient/elnetw-core-version.properties");
 
 		VERSION_INFO_RESOURCE = new Properties();
 		try {

@@ -5,7 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Initializer Annotation. */
+/**
+ * Initializer Annotation.
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Initializer {

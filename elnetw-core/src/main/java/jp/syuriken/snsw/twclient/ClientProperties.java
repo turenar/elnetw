@@ -382,8 +382,9 @@ public class ClientProperties extends Properties {
 	 *
 	 * @param key キー
 	 * @return keyに関連付けられたint
+	 * @throws NumberFormatException 数値として認識できない値
 	 */
-	public synchronized int getInteger(String key) {
+	public synchronized int getInteger(String key) throws NumberFormatException {
 		Integer integer = getCachedValue(key, Integer.class);
 		if (integer != null) {
 			return integer;
@@ -396,14 +397,33 @@ public class ClientProperties extends Properties {
 	}
 
 	/**
+	 * keyに関連付けられた値を利用して、intを取得する。
+	 *
+	 * 書式：int
+	 *
+	 * @param key キー
+	 * @param defaultValue デフォルト値
+	 * @return keyに関連付けられたint
+	 */
+	public synchronized int getInteger(String key, int defaultValue) {
+		try {
+			return getInteger(key);
+		} catch (NumberFormatException e) {
+			logger.warn("#getInteger() failed with key `" + key + "'", e);
+			return defaultValue;
+		}
+	}
+
+	/**
 	 * keyに関連付けられた値を利用して、longを取得する。
 	 *
 	 * 書式：long
 	 *
 	 * @param key キー
 	 * @return keyに関連付けられたlong
+	 * @throws NumberFormatException 数値として認識できない値
 	 */
-	public synchronized long getLong(String key) {
+	public synchronized long getLong(String key) throws NumberFormatException {
 		Long long1 = getCachedValue(key, Long.class);
 		if (long1 != null) {
 			return long1;
@@ -413,6 +433,23 @@ public class ClientProperties extends Properties {
 		long1 = Long.valueOf(value);
 		cacheValue(key, long1);
 		return long1;
+	}
+
+	/**
+	 * keyに関連付けられた値を利用して、longを取得する。
+	 *
+	 * 書式：long
+	 *
+	 * @param key キー
+	 * @return keyに関連付けられたlong
+	 */
+	public synchronized long getLong(String key, long defaultValue) {
+		try {
+			return getLong(key);
+		} catch (NumberFormatException e) {
+			logger.warn("#getLong() failed with key `" + key + "'", e);
+			return defaultValue;
+		}
 	}
 
 	/**

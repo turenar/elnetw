@@ -4,10 +4,9 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- ここをカスタマイズ -->
 	<name>elnetw core package</name>
 	<artifactId>elnetw-core</artifactId>
-	<url>http://code.google.com/p/turetwcl</url>
+	<url>http://github.com/turenar/elnetw</url>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>jp.syuriken.snsw</groupId>
@@ -25,13 +24,12 @@
 
 	<issueManagement>
 		<system>Google Code</system>
-		<url>http://code.google.com/p/turetwcl/issues/list</url>
+		<url>https://github.com/turenar/elnetw/issues</url>
 	</issueManagement>
 
 	<description>elnetw core module</description>
 
 
-	<!-- Mavenのリポジトリの設定 -->
 	<repositories>
 		<repository>
 			<id>central</id>
@@ -66,7 +64,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<!-- SVNの設定 -->
 	<scm>
 		<connection>scm:git:git://github.com/turenar/elnetw.git</connection>
 		<developerConnection>scm:git:https://github.com/turenar/elnetw.git</developerConnection>
@@ -74,7 +71,6 @@
 		<url>https://github.com/turenar/elnetw</url>
 	</scm>
 
-	<!-- 開発者のリストを記述(省略可能) -->
 	<developers>
 		<developer>
 			<name>Turenai Project</name>

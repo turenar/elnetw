@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
  * Optional: Field with @{@link InitializerInstance}. If one field with @{@link InitializerInstance},
  * methods with @{@link Initializer} will be invoked with the field. If the field was omitted, methods must be static.
  * </p>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
