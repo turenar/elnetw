@@ -682,7 +682,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** ポストリストリスナのシングルインスタンス */
 	protected final PostListListener postListListenerSingleton = new PostListListener();
 
-	/*package*/final Logger logger = LoggerFactory.getLogger(getClass());
+	/*package*/final Logger logger = LoggerFactory.getLogger(DefaultClientTab.class);
 
 	/** {@link ClientProperties} */
 	protected final ClientProperties configProperties;

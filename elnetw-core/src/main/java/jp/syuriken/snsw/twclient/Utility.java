@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -83,48 +82,7 @@ public class Utility {
 
 	private static volatile OSType ostype;
 
-	private static HashMap<Integer, String> keyMap = new HashMap<Integer, String>();
-
 	private static KVEntry[] privacyEntries;
-
-	static {
-		keyMap.put(KeyEvent.VK_ENTER, "%return");
-		keyMap.put(KeyEvent.VK_UP, "%up");
-		keyMap.put(KeyEvent.VK_DOWN, "%down");
-		keyMap.put(KeyEvent.VK_RIGHT, "%right");
-		keyMap.put(KeyEvent.VK_LEFT, "%left");
-		keyMap.put(KeyEvent.VK_CIRCUMFLEX, "%caret");
-		keyMap.put(KeyEvent.VK_PLUS, "%plus");
-		keyMap.put(KeyEvent.VK_AT, "%at");
-		keyMap.put(KeyEvent.VK_TAB, "%tab");
-		keyMap.put(KeyEvent.VK_EQUALS, "%equal");
-		keyMap.put(KeyEvent.VK_COLON, "%colon");
-		keyMap.put(KeyEvent.VK_SPACE, "%space");
-		keyMap.put(KeyEvent.VK_PAGE_DOWN, "%pagedown");
-		keyMap.put(KeyEvent.VK_PAGE_UP, "%pageup");
-		keyMap.put(KeyEvent.VK_OPEN_BRACKET, "%bracketstart");
-		keyMap.put(KeyEvent.VK_CLOSE_BRACKET, "%bracketend");
-		keyMap.put(KeyEvent.VK_HOME, "%home");
-		keyMap.put(KeyEvent.VK_END, "%end");
-		keyMap.put(KeyEvent.VK_F1, "%F1");
-		keyMap.put(KeyEvent.VK_F2, "%F2");
-		keyMap.put(KeyEvent.VK_F3, "%F3");
-		keyMap.put(KeyEvent.VK_F4, "%F4");
-		keyMap.put(KeyEvent.VK_F5, "%F5");
-		keyMap.put(KeyEvent.VK_F6, "%F6");
-		keyMap.put(KeyEvent.VK_F7, "%F7");
-		keyMap.put(KeyEvent.VK_F8, "%F8");
-		keyMap.put(KeyEvent.VK_F9, "%F9");
-		keyMap.put(KeyEvent.VK_F10, "%F10");
-		keyMap.put(KeyEvent.VK_F11, "%F11");
-		keyMap.put(KeyEvent.VK_F12, "%F12");
-
-		privacyEntries = new KVEntry[]{
-				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
-				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
-				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
-		};
-	}
 
 	/** DateFormatを管理する */
 	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
@@ -302,6 +260,88 @@ public class Utility {
 		return intentArguments;
 	}
 
+	private static String getKeyNameByChar(int character) {
+		switch (character) {
+			case '^':
+				return "%caret";
+			case '+':
+				return "%plus";
+			case '@':
+				return "%at";
+			case '=':
+				return "%equal";
+			case ',':
+				return "%colon";
+			case ' ':
+				return "%space";
+			case '[':
+				return "%bracketstart";
+			case ']':
+				return "%bracketend";
+			default:
+				return null;
+		}
+	}
+
+	private static String getKeyNameByCode(int code) {
+		switch (code) {
+			case KeyEvent.VK_ENTER:
+				return "%return";
+			case KeyEvent.VK_UP:
+				return "%up";
+			case KeyEvent.VK_DOWN:
+				return "%down";
+			case KeyEvent.VK_RIGHT:
+				return "%right";
+			case KeyEvent.VK_LEFT:
+				return "%left";
+			case KeyEvent.VK_TAB:
+				return "%tab";
+			case KeyEvent.VK_PAGE_DOWN:
+				return "%pagedown";
+			case KeyEvent.VK_PAGE_UP:
+				return "%pageup";
+			case KeyEvent.VK_HOME:
+				return "%home";
+			case KeyEvent.VK_END:
+				return "%end";
+			case KeyEvent.VK_F1:
+				return "%F1";
+			case KeyEvent.VK_F2:
+				return "%F2";
+			case KeyEvent.VK_F3:
+				return "%F3";
+			case KeyEvent.VK_F4:
+				return "%F4";
+			case KeyEvent.VK_F5:
+				return "%F5";
+			case KeyEvent.VK_F6:
+				return "%F6";
+			case KeyEvent.VK_F7:
+				return "%F7";
+			case KeyEvent.VK_F8:
+				return "%F8";
+			case KeyEvent.VK_F9:
+				return "%F9";
+			case KeyEvent.VK_F10:
+				return "%F10";
+			case KeyEvent.VK_F11:
+				return "%F11";
+			case KeyEvent.VK_F12:
+				return "%F12";
+			default:
+				return null;
+		}
+	}
+
+	static {
+		privacyEntries = new KVEntry[]{
+				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
+				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
+				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
+		};
+	}
+
 	/**
 	 * OS種別を取得する
 	 *
@@ -349,17 +389,6 @@ public class Utility {
 	}
 
 	/**
-	 * Register keyMap
-	 *
-	 * @param keyCode   KeyEvent.*
-	 * @param keyString "%"+name
-	 * @return old keyString
-	 */
-	public static String registerKeyMap(int keyCode, String keyString) {
-		return keyMap.put(keyCode, keyString);
-	}
-
-	/**
 	 * 単にobjを配列として返すだけの
 	 *
 	 * @param obj オブジェクト
@@ -372,32 +401,6 @@ public class Utility {
 	/**
 	 * キーをキー文字列に変換する
 	 *
-	 * @param code       キー
-	 * @param modifiers  キー修飾。 {@link InputEvent#CTRL_DOWN_MASK}等
-	 * @param isReleased keyReleased等のイベントでコールされたかどうか
-	 * @return キー文字列
-	 */
-	public static String toKeyString(int code, int modifiers, boolean isReleased) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(isReleased ? "release(" : "press(");
-		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
-			stringBuilder.append('^');
-		}
-		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
-			stringBuilder.append('@');
-		}
-		if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
-			stringBuilder.append('+');
-		}
-		String key = keyMap.get(code);
-		stringBuilder.append(key != null ? key : (char) code);
-		stringBuilder.append(')');
-		return stringBuilder.toString();
-	}
-
-	/**
-	 * キーをキー文字列に変換する
-	 *
 	 * @param e キーイベント
 	 * @return キー文字列
 	 */
@@ -405,7 +408,30 @@ public class Utility {
 		if (e.getID() == KeyEvent.KEY_TYPED) {
 			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
 		}
-		return toKeyString(e.getKeyCode(), e.getModifiersEx(), e.getID() == KeyEvent.KEY_RELEASED);
+
+		int modifiers = e.getModifiersEx();
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append((e.getID() == KeyEvent.KEY_RELEASED) ? "release(" : "press(");
+		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
+			stringBuilder.append('^');
+		}
+		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
+			stringBuilder.append('@');
+		}
+		int keyCode = e.getKeyChar();
+		String key;
+		if (keyCode != KeyEvent.CHAR_UNDEFINED && keyCode >= 0x20 && keyCode <= 0x7e) {
+			key = getKeyNameByChar(keyCode);
+		} else {
+			keyCode = e.getKeyCode();
+			if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
+				stringBuilder.append('+');
+			}
+			key = getKeyNameByCode(keyCode);
+		}
+		stringBuilder.append(key != null ? key : (char) keyCode);
+		stringBuilder.append(')');
+		return stringBuilder.toString();
 	}
 
 	private final ClientConfiguration configuration;
