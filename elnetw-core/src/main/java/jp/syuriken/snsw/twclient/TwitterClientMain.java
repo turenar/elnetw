@@ -475,23 +475,27 @@ public class TwitterClientMain {
 	}
 
 	@Initializer(name = "config", dependencies = "default-config", phase = "earlyinit")
-	public void setConfigProperties() {
-		configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
-		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-		configProperties.setStoreFile(configFile);
-		if (configFile.exists()) {
-			logger.debug(CONFIG_FILE_NAME + " is found.");
-			try {
-				InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
-				configProperties.load(reader);
-			} catch (IOException e) {
-				logger.warn("設定ファイルの読み込み中にエラー", e);
+	public void setConfigProperties(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
+			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+			configProperties.setStoreFile(configFile);
+			if (configFile.exists()) {
+				logger.debug(CONFIG_FILE_NAME + " is found.");
+				try {
+					InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+					configProperties.load(reader);
+				} catch (IOException e) {
+					logger.warn("設定ファイルの読み込み中にエラー", e);
+				}
 			}
-		}
-		configuration.setConfigProperties(configProperties);
+			configuration.setConfigProperties(configProperties);
 
-		String configVersion = configProperties.getProperty("cfg.version", "0");
-		InitializeService.getService().provideInitializer("config-v" + configVersion, true);
+			String configVersion = configProperties.getProperty("cfg.version", "0");
+			InitializeService.getService().provideInitializer("config-v" + configVersion, true);
+		} else {
+			configProperties.store();
+		}
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
@@ -651,7 +655,7 @@ public class TwitterClientMain {
 	@Initializer(name = "jobqueue", dependencies = "config", phase = "preinit")
 	public void startJobWorkerThread(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
+			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue());
 			jobWorkerThread.start();
 		} else {
 			jobWorkerThread.cleanUp();

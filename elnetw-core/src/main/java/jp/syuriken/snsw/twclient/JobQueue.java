@@ -44,10 +44,7 @@ public class JobQueue {
 	private Object jobWorkerThreadHolder = null;
 
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 */
+	/** インスタンスを生成する。 */
 	public JobQueue() {
 		jobList = new LinkedList<Runnable>();
 		random = new Random();
@@ -57,7 +54,7 @@ public class JobQueue {
 	 * ジョブを追加する
 	 *
 	 * @param priority 優先度
-	 * @param job 追加するジョブ
+	 * @param job      追加するジョブ
 	 */
 	public void addJob(Priority priority, Runnable job) {
 		if (job != null) {
@@ -84,7 +81,7 @@ public class JobQueue {
 			}
 			if (jobWorkerThreadHolder != null) {
 				synchronized (jobWorkerThreadHolder) {
-					jobWorkerThreadHolder.notifyAll();
+					jobWorkerThreadHolder.notify();
 				}
 			}
 		}
@@ -102,9 +99,8 @@ public class JobQueue {
 	/**
 	 * ジョブを取得する。
 	 *
-	 * @return
-	 * 	ジョブ。必ずしも優先度が一番高いものというわけではなく、
-	 * 	たまに優先度が低いものが返って来る時があります。
+	 * @return ジョブ。必ずしも優先度が一番高いものというわけではなく、
+	 *         たまに優先度が低いものが返って来る時があります。
 	 */
 	public Runnable getJob() {
 		if (jobList.isEmpty()) {
@@ -152,16 +148,15 @@ public class JobQueue {
 
 	/**
 	 * ジョブワーカースレッドを設定する。
-	 *
 	 * <p>
 	 * ジョブワーカースレッドは、ジョブキューにジョブが追加されたときに {@link Thread#notifyAll()}される
 	 * スレッドです。このスレッドでは、ジョブキューの消費が仕事となります。
 	 * </p>
-	 *
 	 * <p>
 	 * <strong>パラメータにnullを指定して呼び出す</strong>と、ジョブワーカースレッドの仕事が解除され、
 	 * ジョブが追加されると同時にJobQueue内部で {@link Runnable#run()}が呼び出されるようになります。
 	 * </p>
+	 *
 	 * @param threadHolder スレッドホルダ
 	 */
 	public void setJobWorkerThread(Object threadHolder) {
