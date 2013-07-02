@@ -140,9 +140,13 @@ public class TimelineViewTab extends DefaultClientTab {
 				String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
-				configuration.getUtility().sendNotify(
-						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-						imageCacher.getImageFile(source));
+				try {
+					configuration.getUtility().sendNotify(
+							MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+							imageCacher.getImageFile(source));
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
 			if (source.getId() == frameApi.getLoginUser().getId()) {
 				StatusData statusData = getStatus(favoritedStatus.getId());
@@ -165,9 +169,13 @@ public class TimelineViewTab extends DefaultClientTab {
 				String message = "@" + followedUser.getScreenName() + " をフォローしました";
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
-				configuration.getUtility().sendNotify(
-						MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-						imageCacher.getImageFile(source));
+				try {
+					configuration.getUtility().sendNotify(
+							MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+							imageCacher.getImageFile(source));
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
 		}
 
@@ -201,11 +209,13 @@ public class TimelineViewTab extends DefaultClientTab {
 				String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
 				statusData.data = new JLabel(message);
 				addStatus(statusData);
-				configuration
-					.getFrameApi()
-					.getUtility()
-					.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-							imageCacher.getImageFile(source));
+				try {
+					configuration.getUtility()
+							.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+									imageCacher.getImageFile(source));
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
 			if (source.getId() == frameApi.getLoginUser().getId()) {
 				StatusData statusData = getStatus(unfavoritedStatus.getId());
@@ -282,7 +292,7 @@ public class TimelineViewTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param data 保存されたデータ
+	 * @param data          保存されたデータ
 	 * @throws JSONException JSON例外
 	 */
 	public TimelineViewTab(ClientConfiguration configuration, String data) throws JSONException {

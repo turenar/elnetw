@@ -95,6 +95,8 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
 
+	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
+
 	@InitializerInstance
 	private static volatile TwitterClientMain SINGLETON;
 
@@ -659,6 +661,20 @@ public class TwitterClientMain {
 			jobWorkerThread.start();
 		} else {
 			jobWorkerThread.cleanUp();
+			while (true) {
+				try {
+					jobWorkerThread.join(JOBWORKER_JOIN_TIMEOUT);
+					if (jobWorkerThread.isAlive()) {
+						// ImageIO caught interrupt but not set INTERRUPTED-STATUS
+						// If it seemed to be occurred, retry to shutdown jobWorker
+						jobWorkerThread.cleanUp();
+					} else {
+						break;
+					}
+				} catch (InterruptedException e) {
+					continue;
+				}
+			}
 		}
 	}
 

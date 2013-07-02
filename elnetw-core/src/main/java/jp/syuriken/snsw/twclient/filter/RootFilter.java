@@ -38,8 +38,8 @@ public class RootFilter implements MessageFilter {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param configuration 設定
 	 *
+	 * @param configuration 設定
 	 */
 	public RootFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
@@ -90,11 +90,13 @@ public class RootFilter implements MessageFilter {
 	public DirectMessage onDirectMessage(DirectMessage message) {
 		if (message instanceof InitialMessage == false) {
 			User sender = message.getSender();
-			configuration
-				.getFrameApi()
-				.getUtility()
-				.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()),
-						"DMを受信しました：" + message.getText(), imageCacher.getImageFile(sender));
+			try {
+				configuration.getUtility()
+						.sendNotify(MessageFormat.format("{0} ({1})", sender.getScreenName(), sender.getName()),
+								"DMを受信しました：" + message.getText(), imageCacher.getImageFile(sender));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 		return message;
 	}
@@ -152,8 +154,12 @@ public class RootFilter implements MessageFilter {
 
 		if ((status instanceof TwitterStatus ? ((TwitterStatus) status).isLoadedInitialization() == false
 				: true) && configuration.isMentioned(status.getUserMentionEntities())) {
-			configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
-					imageCacher.getImageFile(originalStatus.getUser()));
+			try {
+				configuration.getUtility().sendNotify(originalStatus.getUser().getName(), originalStatus.getText(),
+						imageCacher.getImageFile(originalStatus.getUser()));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 		return originalStatus;
 	}

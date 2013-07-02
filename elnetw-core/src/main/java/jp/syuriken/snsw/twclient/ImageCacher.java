@@ -71,7 +71,7 @@ public class ImageCacher {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param url URL
+		 * @param url      URL
 		 * @param imageKey 画像キー
 		 */
 		public ImageEntry(URL url, String imageKey) {
@@ -83,9 +83,9 @@ public class ImageCacher {
 		public String toString() {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
-				.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
-				.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append("],isWritten=")
-				.append(isWritten).append(",appearCount=").append(appearCount).append("}");
+					.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
+					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append("],isWritten=")
+					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
 			return stringBuilder.toString();
 		}
 	}
@@ -125,7 +125,12 @@ public class ImageCacher {
 				return;
 			}
 
-			fetchImage(entry);
+			try {
+				fetchImage(entry);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
 			if (label != null) {
 				label.setIcon(getImageIcon(entry.image));
 				incrementAppearCount(entry);
@@ -144,6 +149,7 @@ public class ImageCacher {
 
 		/**
 		 * インスタンスを生成する。
+		 *
 		 * @param entry イメージエントリ
 		 */
 		public ImageFlusher(ImageEntry entry) {
@@ -180,6 +186,7 @@ public class ImageCacher {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param configuration ClientConfigurationインスタンス。
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
@@ -203,9 +210,10 @@ public class ImageCacher {
 
 	/**
 	 * 画像を取得する。
+	 *
 	 * @param entry イメージエントリ
 	 */
-	protected void fetchImage(ImageEntry entry) {
+	protected void fetchImage(ImageEntry entry) throws InterruptedException {
 		URL url = entry.url;
 		if (cacheManager.containsKey(entry.imageKey)) {
 			return;
@@ -220,11 +228,19 @@ public class ImageCacher {
 				int imagelen = 0;
 				int loadlen;
 				while ((loadlen = stream.read(buf)) != -1) {
+					logger.trace("Image: Loaded {} bytes", loadlen);
 					byte[] oldimage = imagedata;
 					imagedata = new byte[imagelen + loadlen];
 					System.arraycopy(oldimage, 0, imagedata, 0, imagelen);
 					System.arraycopy(buf, 0, imagedata, imagelen, loadlen);
 					imagelen += loadlen;
+					synchronized (this) {
+						try {
+							wait(1);
+						} catch (InterruptedException e) {
+							throw e;
+						}
+					}
 				}
 				entry.rawimage = imagedata;
 				Image image = Toolkit.getDefaultToolkit().createImage(imagedata);
@@ -302,7 +318,7 @@ public class ImageCacher {
 	 * @param user Twitterユーザー
 	 * @return ストレージ上の画像ファイル。存在しない場合はnull。
 	 */
-	public File getImageFile(User user) {
+	public File getImageFile(User user) throws InterruptedException {
 		String imageKey = getImageKey(user);
 		ImageEntry entry = cacheManager.get(imageKey);
 		if (entry == null) {
@@ -348,7 +364,7 @@ public class ImageCacher {
 	/**
 	 * 画像キーを取得する
 	 *
-	 * @param userId ユーザーID
+	 * @param userId           ユーザーID
 	 * @param profileImageName ファイル名
 	 * @return 画像キー
 	 */
@@ -394,6 +410,7 @@ public class ImageCacher {
 
 	/**
 	 * ディスクキャッシュからユーザーアイコンを読み込む。
+	 *
 	 * @param directory 再起対象ディレクトリ
 	 */
 	private void loadUserIconFromCaches(File directory) {
@@ -443,7 +460,7 @@ public class ImageCacher {
 	 * おそらくlabel.setHorizontalAlignment(JLabel.CENTER)を呼び出す必要があるでしょう。
 	 *
 	 * @param label JLabelインスタンス
-	 * @param url 画像URL
+	 * @param url   画像URL
 	 * @return キャッシュヒットしたかどうか
 	 */
 	public boolean setImageIcon(JLabel label, URL url) {
@@ -464,7 +481,7 @@ public class ImageCacher {
 	 * おそらくlabel.setHorizontalAlignment(JLabel.CENTER)を呼び出す必要があるでしょう。
 	 *
 	 * @param label JLabelインスタンス
-	 * @param user Twitterユーザー
+	 * @param user  Twitterユーザー
 	 * @return キャッシュヒットしたかどうか
 	 */
 	public boolean setImageIcon(JLabel label, User user) {
