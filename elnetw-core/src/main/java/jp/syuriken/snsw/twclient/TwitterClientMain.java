@@ -702,7 +702,7 @@ public class TwitterClientMain {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
-						cond.setFailStatus("canceled", -1);
+						cond.setFailStatus("OAuth failed: canceled", -1);
 						return;
 					}
 				} else {
