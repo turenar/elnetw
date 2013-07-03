@@ -5,7 +5,7 @@ import java.util.HashMap;
 /**
  * ActionHandler用の引数管理
  *
- * @Author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class IntentArguments implements Cloneable {
 	private String intentName;

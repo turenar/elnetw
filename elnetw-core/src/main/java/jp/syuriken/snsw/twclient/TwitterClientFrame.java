@@ -446,7 +446,7 @@ import static java.lang.Math.max;
 
 	/**
 	 * アプリケーション名
-	 * @Deprecated use {@link ClientConfiguration#APPLICATION_NAME}
+	 * @deprecated use {@link ClientConfiguration#APPLICATION_NAME}
 	 */
 	@Deprecated
 	public static final String APPLICATION_NAME = "elnetw";

@@ -678,11 +678,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	/**
-	 * OAuthアクセストークンの取得を試す
-	 *
-	 * @return アクセストークン
-	 */
+	/** OAuthアクセストークンの取得を試す */
 	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
 	public void tryGetOAuthAccessToken(InitCondition cond) {
 		if (cond.isInitializingPhase() == false) {
