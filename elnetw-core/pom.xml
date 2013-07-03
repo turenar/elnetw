@@ -47,22 +47,11 @@
 			</snapshots>
 		</repository>
 		<repository>
-			<id>gcode</id>
+			<id>turenar-mvnrepo</id>
 			<name>Elnetw's Maven Repository</name>
-			<url>http://maven.turetwcl.googlecode.com/git/</url>
+			<url>https://raw.github.com/turenar/maven-repo/master</url>
 		</repository>
 	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>sonatype-releases</id>
-			<url>http://oss.sonatype.org/content/repositories/releases</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>clojars.org</id>
-			<url>http://clojars.org/repo</url>
-		</pluginRepository>
-	</pluginRepositories>
 
 	<scm>
 		<connection>scm:git:git://github.com/turenar/elnetw.git</connection>
@@ -162,7 +151,7 @@
 					<includes>
 						<include>**/*Test.java</include>
 					</includes>
-					<argLine>-Xmx512M -XX:-UseSplitVerifier</argLine>
+					<argLine>-Xmx512M</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
