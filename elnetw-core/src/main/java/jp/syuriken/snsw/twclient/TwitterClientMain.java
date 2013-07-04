@@ -556,7 +556,7 @@ public class TwitterClientMain {
 	@Initializer(name = "fetch-sched", dependencies = "recover-clientTabs", phase = "prestart")
 	public void setFetchScheduler(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			fetchScheduler = new TwitterDataFetchScheduler(configuration);
+			fetchScheduler = new TwitterDataFetchScheduler();
 			configuration.setFetchScheduler(fetchScheduler);
 		} else {
 			fetchScheduler.cleanUp();
