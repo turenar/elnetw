@@ -1,5 +1,9 @@
 package jp.syuriken.snsw.twclient;
 
+import java.util.concurrent.locks.ReentrantLock;
+
+import twitter4j.Twitter;
+
 /**
  * テスト用の{@link ClientConfiguration}。継承するなりそのまま使うなり何なりと
  *
@@ -12,11 +16,20 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 		super.setFetchScheduler(fetchScheduler);
 	}
 
-	public void setInstance() {
+	@Override
+	public Twitter getTwitterForRead() {
+		return null;
+	}
+
+	private static final ReentrantLock reentrantLock = new ReentrantLock();
+
+	public void setGlobalInstance() {
+		reentrantLock.lock();
 		ClientConfiguration.setInstance(this);
 	}
 
-	public void clearInstance(){
+	public void clearGlobalInstance() {
 		ClientConfiguration.setInstance(null);
+		reentrantLock.unlock();
 	}
 }

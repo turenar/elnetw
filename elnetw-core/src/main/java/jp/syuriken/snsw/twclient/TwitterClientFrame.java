@@ -55,6 +55,7 @@ import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -69,6 +70,7 @@ import static java.lang.Math.max;
 
 /**
  * elnetwのメインウィンドウ
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
@@ -368,10 +370,7 @@ import static java.lang.Math.max;
 
 		public JMenuItem[] postToMenuItems;
 
-		/**
-		 * インスタンスを生成する。
-		 *
-		 */
+		/** インスタンスを生成する。 */
 		public UserInfoFetcher() {
 			readTimelineMenuItems = new JMenuItem[accountList.length];
 			postToMenuItems = new JMenuItem[accountList.length];
@@ -444,8 +443,64 @@ import static java.lang.Math.max;
 		}
 	}
 
+	private class PostTask extends TwitterRunnable implements ParallelRunnable {
+
+		private final String text;
+		private ClientTab tab;
+
+		public PostTask(String text, ClientTab selectingTab) {
+			this.text = text;
+			tab = selectingTab;
+		}
+
+		@Override
+		protected void access() throws TwitterException {
+			try {
+				// String escapedText = HTMLEntity.escape(text);
+				String escapedText = text;
+				StatusUpdate statusUpdate = new StatusUpdate(escapedText);
+
+				if (inReplyToStatus != null) {
+					statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
+				}
+				configuration.getTwitterForWrite().updateStatus(statusUpdate);
+				postBox.setText("");
+				updatePostLength();
+				inReplyToStatus = null;
+				tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
+			} finally {
+				try {
+					final TwitterClientFrame this$tcf = TwitterClientFrame.this;
+					Runnable enabler = new Runnable() {
+
+						@Override
+						public void run() {
+							this$tcf.postActionButton.setEnabled(true);
+							this$tcf.postBox.setEnabled(true);
+						}
+					};
+					if (EventQueue.isDispatchThread()) {
+						enabler.run();
+					} else {
+						EventQueue.invokeAndWait(enabler);
+					}
+				} catch (InterruptedException e) {
+					// do nothing
+				} catch (InvocationTargetException e) {
+					logger.warn("doPost", e);
+				}
+			}
+		}
+
+		@Override
+		protected void handleException(TwitterException ex) {
+			tab.getRenderer().onException(ex);
+		}
+	}
+
 	/**
 	 * アプリケーション名
+	 *
 	 * @deprecated use {@link ClientConfiguration#APPLICATION_NAME}
 	 */
 	@Deprecated
@@ -481,8 +536,6 @@ import static java.lang.Math.max;
 	/*package*/JTextArea postBox;
 
 	/*package*/JTabbedPane viewTab;
-
-	/*package*/User loginUser;
 
 	/*package*/ClientProperties configProperties;
 
@@ -536,6 +589,7 @@ import static java.lang.Math.max;
 
 	/**
 	 * Creates new form TwitterClientFrame
+	 *
 	 * @param configuration 設定
 	 */
 	public TwitterClientFrame(ClientConfiguration configuration) {
@@ -583,9 +637,7 @@ import static java.lang.Math.max;
 		tab.initTimeline();
 	}
 
-	/**
-	 * 終了できるようにお掃除する
-	 */
+	/** 終了できるようにお掃除する */
 	public void cleanUp() {
 		configuration.setShutdownPhase(true);
 	}
@@ -605,49 +657,7 @@ import static java.lang.Math.max;
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
 
-			addJob(Priority.HIGH, new ParallelRunnable() {
-
-				@Override
-				public void run() {
-					try {
-						// String escapedText = HTMLEntity.escape(text);
-						String escapedText = text;
-						StatusUpdate statusUpdate = new StatusUpdate(escapedText);
-
-						if (inReplyToStatus != null) {
-							statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
-						}
-						configuration.getTwitterForWrite().updateStatus(statusUpdate);
-						postBox.setText("");
-						updatePostLength();
-						inReplyToStatus = null;
-					} catch (TwitterException e) {
-						rootFilterService.onException(e);
-					} finally {
-						try {
-							final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-							Runnable enabler = new Runnable() {
-
-								@Override
-								public void run() {
-									this$tcf.postActionButton.setEnabled(true);
-									this$tcf.postBox.setEnabled(true);
-									this$tcf.tweetLengthCalculator = this$tcf.DEFAULT_TWEET_LENGTH_CALCULATOR;
-								}
-							};
-							if (EventQueue.isDispatchThread()) {
-								enabler.run();
-							} else {
-								EventQueue.invokeAndWait(enabler);
-							}
-						} catch (InterruptedException e) {
-							// do nothing
-						} catch (InvocationTargetException e) {
-							logger.warn("doPost", e);
-						}
-					}
-				}
-			});
+			addJob(Priority.HIGH, new PostTask(text, getSelectingTab()));
 		}
 	}
 
@@ -1330,9 +1340,7 @@ import static java.lang.Math.max;
 		}
 	}
 
-	/**
-	 * アクションハンドラーテーブルを初期化する。
-	 */
+	/** アクションハンドラーテーブルを初期化する。 */
 	private void initActionHandlerTable() {
 		configuration.addActionHandler("core", new CoreFrameActionHandler());
 	}
@@ -1381,8 +1389,9 @@ import static java.lang.Math.max;
 
 	/**
 	 * フレームタブを削除するよ♪
+	 *
 	 * @param indexOf インデックス
-	 * @param tab タブ
+	 * @param tab     タブ
 	 */
 	/*package*/void removeFrameTab(int indexOf, ClientTab tab) {
 		JTabbedPane viewTab = getViewTab();
@@ -1467,9 +1476,7 @@ import static java.lang.Math.max;
 		setTweetViewOperationPanel(operationPanel);
 	}
 
-	/**
-	 * 開始する
-	 */
+	/** 開始する */
 	public void start() {
 		EventQueue.invokeLater(new Runnable() {
 

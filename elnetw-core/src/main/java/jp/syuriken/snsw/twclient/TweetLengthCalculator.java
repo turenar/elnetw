@@ -7,6 +7,12 @@ package jp.syuriken.snsw.twclient;
  */
 public interface TweetLengthCalculator {
 
+	/** http://t.co の長さ */
+	/*public static final*/ int DEFAULT_SHORT_URL_LENGTH = 22;
+
+	/** https://t.co の長さ */
+	/*public static final*/ int DEFAULT_SHORT_URL_LENGTH_HTTPS = 23;
+
 	/** ツイートの最大長 */
 	/*public static final*/ int MAX_TWEET_LENGTH = 140;
 

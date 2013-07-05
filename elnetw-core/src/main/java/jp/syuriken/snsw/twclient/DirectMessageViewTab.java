@@ -156,11 +156,11 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				oldBuffer = newBuffer;
 				newBuffer = tempBuffer;
 				newBuffer.setLength(0);
-				Matcher hashtagMatcher = Regex.AUTO_LINK_HASHTAGS.matcher(oldBuffer);
+				Matcher hashtagMatcher = Regex.VALID_HASHTAG.matcher(oldBuffer);
 				while (hashtagMatcher.find()) {
-					hashtagMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_BEFORE
-							+ "<a href='http://command/hashtag!name=$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
-							+ Regex.AUTO_LINK_HASHTAGS_GROUP_HASH + "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "</a>");
+					hashtagMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_HASHTAG_GROUP_BEFORE
+							+ "<a href='http://command/hashtag!name=$" + Regex.VALID_HASHTAG_GROUP_TAG + "'>$"
+							+ Regex.VALID_HASHTAG_GROUP_HASH + "$" + Regex.VALID_HASHTAG_GROUP_TAG + "</a>");
 				}
 				hashtagMatcher.appendTail(newBuffer);
 			}
@@ -169,23 +169,23 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				oldBuffer = newBuffer;
 				newBuffer = tempBuffer;
 				newBuffer.setLength(0);
-				Matcher userMatcher = Regex.AUTO_LINK_USERNAMES_OR_LISTS.matcher(oldBuffer);
+				Matcher userMatcher = Regex.VALID_MENTION_OR_LIST.matcher(oldBuffer);
 				while (userMatcher.find()) {
-					String list = userMatcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
+					String list = userMatcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST);
 					if (list == null) {
-						userMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
+						userMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
 								+ "<a href='http://command/userinfo!screenName=$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "'>$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "</a>");
 					} else {
-						userMatcher.appendReplacement(newBuffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
+						userMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
 								+ "<a href='http://command/list!user=$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME
-								+ ";listName=$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "'>$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "</a>");
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME
+								+ ";listName=$" + Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "'>$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "</a>");
 					}
 				}
 				userMatcher.appendTail(newBuffer);

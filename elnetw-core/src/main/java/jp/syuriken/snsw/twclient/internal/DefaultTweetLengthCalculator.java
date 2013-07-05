@@ -16,12 +16,6 @@ import twitter4j.TwitterAPIConfiguration;
  */
 public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 
-	/** http://t.co の長さ */
-	public static final int DEFAULT_SHORT_URL_LENGTH = 22;
-
-	/** https://t.co の長さ */
-	public static final int DEFAULT_SHORT_URL_LENGTH_HTTPS = 23;
-
 	private final TweetLengthUpdater updater;
 
 	/** URLパターン */

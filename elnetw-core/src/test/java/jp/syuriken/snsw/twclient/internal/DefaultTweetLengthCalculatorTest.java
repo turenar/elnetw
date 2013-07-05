@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient.internal;
 
-import java.lang.reflect.InvocationTargetException;
-
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.TwitterDataFetchScheduler;
 import org.junit.Test;
@@ -19,13 +17,18 @@ public class DefaultTweetLengthCalculatorTest {
 
 	private final ClientConfigurationTestImpl configuration;
 
-	public DefaultTweetLengthCalculatorTest() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+	public DefaultTweetLengthCalculatorTest() {
 		configuration = new ClientConfigurationTestImpl();
-		configuration.setFetchScheduler(new TwitterDataFetchScheduler() {
-			@Override
-			public void init() {
-			}
-		});
+		configuration.setGlobalInstance();
+		try {
+			configuration.setFetchScheduler(new TwitterDataFetchScheduler() {
+				@Override
+				public void init() {
+				}
+			});
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	private static final String TEXT6 = "http: https: t.co";
@@ -53,26 +56,34 @@ public class DefaultTweetLengthCalculatorTest {
 	/** {@link DefaultTweetLengthCalculator#getShortenedText(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetShortenedText() {
-		DefaultTweetLengthCalculator lengthCalculator = new DefaultTweetLengthCalculator(new TweetLengthUpdaterImpl());
-		assertEquals(TEXT1, lengthCalculator.getShortenedText(TEXT1));
-		assertEquals(TEXT2, lengthCalculator.getShortenedText(TEXT2));
-		assertEquals(TEXT3, lengthCalculator.getShortenedText(TEXT3));
-		assertEquals(TEXT4, lengthCalculator.getShortenedText(TEXT4));
-		assertEquals(TEXT5, lengthCalculator.getShortenedText(TEXT5));
-		assertEquals(TEXT6, lengthCalculator.getShortenedText(TEXT6));
+		configuration.setGlobalInstance();
+		try {
+			DefaultTweetLengthCalculator lengthCalculator = new DefaultTweetLengthCalculator(new TweetLengthUpdaterImpl());
+			assertEquals(TEXT1, lengthCalculator.getShortenedText(TEXT1));
+			assertEquals(TEXT2, lengthCalculator.getShortenedText(TEXT2));
+			assertEquals(TEXT3, lengthCalculator.getShortenedText(TEXT3));
+			assertEquals(TEXT4, lengthCalculator.getShortenedText(TEXT4));
+			assertEquals(TEXT5, lengthCalculator.getShortenedText(TEXT5));
+			assertEquals(TEXT6, lengthCalculator.getShortenedText(TEXT6));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/** {@link DefaultTweetLengthCalculator#calcTweetLength(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetTweetLength() {
-		configuration.setInstance();
-		assertEquals(120 + DEFAULT_SHORT_URL_LENGTH, DefaultTweetLengthCalculator.getTweetLength(TEXT1));
-		assertEquals(120 + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT2));
-		assertEquals(1 + (DEFAULT_SHORT_URL_LENGTH * 2), DefaultTweetLengthCalculator.getTweetLength(TEXT3));
-		assertEquals(1 + DEFAULT_SHORT_URL_LENGTH + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT4));
-		assertEquals(140, DefaultTweetLengthCalculator.getTweetLength(TEXT5));
-		assertEquals(17, DefaultTweetLengthCalculator.getTweetLength(TEXT6));
-		configuration.clearInstance();
+		configuration.setGlobalInstance();
+		try {
+			assertEquals(120 + DEFAULT_SHORT_URL_LENGTH, DefaultTweetLengthCalculator.getTweetLength(TEXT1));
+			assertEquals(120 + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT2));
+			assertEquals(1 + (DEFAULT_SHORT_URL_LENGTH * 2), DefaultTweetLengthCalculator.getTweetLength(TEXT3));
+			assertEquals(1 + DEFAULT_SHORT_URL_LENGTH + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT4));
+			assertEquals(140, DefaultTweetLengthCalculator.getTweetLength(TEXT5));
+			assertEquals(17, DefaultTweetLengthCalculator.getTweetLength(TEXT6));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 }

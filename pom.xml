@@ -65,7 +65,7 @@
 				<updatePolicy>always</updatePolicy>
 			</snapshots>
 			<releases>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
