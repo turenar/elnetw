@@ -16,12 +16,18 @@ import twitter4j.TwitterAPIConfiguration;
  */
 public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 
-	private final TweetLengthUpdater updater;
-
 	/** URLパターン */
 	public static final Pattern urlPattern = Regex.VALID_URL;
-
 	private static TwitterAPIConfiguration apiConfiguration;
+
+	/**
+	 * テスト以外に使用してはならない。
+	 * APIConfigurationの内部キャッシュを削除する。
+	 */
+	/*package*/
+	static void clearApiConfiguration() {
+		apiConfiguration = null;
+	}
 
 	/**
 	 * ツイートの長さを取得する。URL変換を行う。
@@ -50,6 +56,8 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 		}
 		return length;
 	}
+
+	private final TweetLengthUpdater updater;
 
 	/**
 	 * インスタンスを生成する。

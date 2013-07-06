@@ -17,20 +17,14 @@ import twitter4j.TwitterAPIConfiguration;
 public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 
 	private static final Pattern qtPattern = Pattern.compile("[QR]T\\s?@[a-zA-Z0-9_]{1,20}:?+");
-
 	private static final Pattern tokenPattern = Pattern.compile( //
 			"(?:" + Regex.VALID_URL + "|" //
 					+ Regex.VALID_HASHTAG + "|" //
 					+ Regex.VALID_MENTION_OR_LIST + ")", Pattern.CASE_INSENSITIVE);
-
 	private static final Pattern urlPattern = Regex.VALID_URL;
-
 	private final TweetLengthUpdater updater;
-
 	private TwitterAPIConfiguration apiConfiguration;
-
 	private int shortURLLength = DEFAULT_SHORT_URL_LENGTH;
-
 	private int shortURLLengthHttps = DEFAULT_SHORT_URL_LENGTH_HTTPS;
 
 
@@ -41,16 +35,6 @@ public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 	 */
 	public QuoteTweetLengthCalculator(TweetLengthUpdater api) {
 		updater = api;
-	}
-
-	private void initUrlLength() {
-		if (apiConfiguration == null) {
-			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
-			if (apiConfiguration != null) {
-				shortURLLength = apiConfiguration.getShortURLLength();
-				shortURLLengthHttps = apiConfiguration.getShortURLLengthHttps();
-			}
-		}
 	}
 
 	@Override
@@ -147,12 +131,22 @@ public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 			}
 
 			if (start - oldFat > remainLength) { // 前回の切断できないトークンと今回のトークンの間に制限文字数がある
-				return original.substring(0, MAX_TWEET_LENGTH + oldFat); // そこで切断
+				return original.substring(0, qtTokenEnd + remainLength + oldFat); // そこで切断
 			} else if (end - fat > remainLength) { // 今回のトークンの途中に制限文字数がある
 				return original.substring(0, qtTokenEnd + start); // start includes fat
 			}
 		}
-		return original.substring(0, MAX_TWEET_LENGTH + fat); // 前回のトークン(または0)から最後の間に制限文字数がある
+		return original.substring(0, qtTokenEnd + remainLength + fat); // 前回のトークン(または0)から最後の間に制限文字数がある
+	}
+
+	private void initUrlLength() {
+		if (apiConfiguration == null) {
+			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
+			if (apiConfiguration != null) {
+				shortURLLength = apiConfiguration.getShortURLLength();
+				shortURLLengthHttps = apiConfiguration.getShortURLLengthHttps();
+			}
+		}
 	}
 
 }

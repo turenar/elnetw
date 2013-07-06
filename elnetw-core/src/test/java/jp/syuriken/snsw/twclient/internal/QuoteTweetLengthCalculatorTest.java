@@ -20,20 +20,41 @@ import static junit.framework.Assert.assertEquals;
  */
 public class QuoteTweetLengthCalculatorTest {
 
-	private static class TestTweetLengthUpdater extends TweetLengthUpdaterImpl {
-		public String lastLengthString;
+	private static class MyTwitterAPIConfiguration implements TwitterAPIConfiguration {
 
 		@Override
-		public void updatePostLength(String length, Color color, String tooltip) {
-			lastLengthString = length;
+		public int getAccessLevel() {
+			return 0;
 		}
-	}
 
-	private static class MyTwitterAPIConfiguration implements TwitterAPIConfiguration {
+		@Override
+		public int getCharactersReservedPerMedia() {
+			return 0;
+		}
+
+		@Override
+		public int getMaxMediaPerUpload() {
+			return 0;
+		}
+
+		@Override
+		public String[] getNonUsernamePaths() {
+			return new String[0];
+		}
 
 		@Override
 		public int getPhotoSizeLimit() {
 			return 0;
+		}
+
+		@Override
+		public Map<Integer, MediaEntity.Size> getPhotoSizes() {
+			return null;
+		}
+
+		@Override
+		public RateLimitStatus getRateLimitStatus() {
+			return null;
 		}
 
 		@Override
@@ -45,48 +66,22 @@ public class QuoteTweetLengthCalculatorTest {
 		public int getShortURLLengthHttps() {
 			return 20;
 		}
+	}
+
+	private static class TestTweetLengthUpdater extends TweetLengthUpdaterImpl {
+		public String lastLengthString;
 
 		@Override
-		public int getCharactersReservedPerMedia() {
-			return 0;
-		}
-
-		@Override
-		public Map<Integer, MediaEntity.Size> getPhotoSizes() {
-			return null;
-		}
-
-		@Override
-		public String[] getNonUsernamePaths() {
-			return new String[0];
-		}
-
-		@Override
-		public int getMaxMediaPerUpload() {
-			return 0;
-		}
-
-		@Override
-		public RateLimitStatus getRateLimitStatus() {
-			return null;
-		}
-
-		@Override
-		public int getAccessLevel() {
-			return 0;
+		public void updatePostLength(String length, Color color, String tooltip) {
+			lastLengthString = length;
 		}
 	}
 
 	private static final String URL1 = "http://example.com/?test="; // 20char
-
 	private static final String HASHTAG1 = "#aaaaaaaaa"; // 10char
-
 	private static final String HASHTAG2 = "＃aaaaaaaaa"; // 10char
-
 	private static final String MENTION1 = "@aaaaaaaaa"; // 10char
-
 	private static final String MENTION2 = "＠aaaaaaaaa"; // 10char
-
 	/** 長さ10のQTヘッダ */
 	private static final String QT_10LEN = " QT @aaaa:"; // 10char
 
@@ -119,6 +114,11 @@ public class QuoteTweetLengthCalculatorTest {
 		}
 	}
 
+	private void assertText(String expected, String text) {
+		TweetLengthCalculator calculator = new QuoteTweetLengthCalculator(new TestTweetLengthUpdater());
+		assertEquals(expected, calculator.getShortenedText(text));
+	}
+
 	private String calcTweetLength(String str) {
 		TestTweetLengthUpdater tweetLengthUpdater = new TestTweetLengthUpdater();
 		TweetLengthCalculator calculator = new QuoteTweetLengthCalculator(tweetLengthUpdater);
@@ -126,16 +126,12 @@ public class QuoteTweetLengthCalculatorTest {
 		return tweetLengthUpdater.lastLengthString;
 	}
 
-	private void assertText(String expected, String text) {
-		TweetLengthCalculator calculator = new QuoteTweetLengthCalculator(new TestTweetLengthUpdater());
-		assertEquals(expected, calculator.getShortenedText(text));
-	}
-
 	/** {@link QuoteTweetLengthCalculator#calcTweetLength(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testCalcTweetLength() {
 		configuration.setGlobalInstance();
 		try {
+			DefaultTweetLengthCalculator.clearApiConfiguration();
 			assertEquals("140", calcTweetLength(getString(120) + QT_10LEN + getString(10)));
 			assertEquals("140", calcTweetLength(getString(110) + QT_10LEN + URL1));
 			assertEquals("120+", calcTweetLength(getString(110) + QT_10LEN + " " + URL1));
@@ -166,6 +162,7 @@ public class QuoteTweetLengthCalculatorTest {
 	public void testGetShortenedText() {
 		configuration.setGlobalInstance();
 		try {
+			DefaultTweetLengthCalculator.clearApiConfiguration();
 			assertText(
 					getString(110) + QT_10LEN + getString(20),
 					getString(110) + QT_10LEN + getString(20));
