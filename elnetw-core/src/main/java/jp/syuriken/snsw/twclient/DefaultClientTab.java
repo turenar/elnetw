@@ -31,6 +31,7 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
@@ -711,17 +712,17 @@ public abstract class DefaultClientTab implements ClientTab {
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
 
-	/** <K=ユーザーID, V=ユーザーのツイートなど> */
-	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<String, ArrayList<StatusPanel>>();
+	/** [K=ユーザーID, V=ユーザーのツイートなど] */
+	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<>();
 
-	/** <K=ステータスID, V=ツイートなど> */
-	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<Long, StatusPanel>();
+	/** [K=ステータスID, V=ツイートなど] */
+	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<>();
 
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
 
 	/** UI更新キュー */
-	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
+	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<>();
 
 	/** ポップアップメニュー */
 	protected JPopupMenu tweetPopupMenu;
@@ -1435,9 +1436,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);
-		configuration.getTimer().schedule(new PostListUpdater(),
+		configuration.getTimer().scheduleWithFixedDelay(new PostListUpdater(),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
-				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
+				TimeUnit.MILLISECONDS);
 		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
 		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
 		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
@@ -1502,13 +1504,13 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @param delay 遅延ミリ秒
 	 */
 	public void removeStatus(final StatusData statusData, int delay) {
-		configuration.getTimer().schedule(new TimerTask() {
+		configuration.getTimer().schedule(new Runnable() {
 
 			@Override
 			public void run() {
 				removeStatus(statusData);
 			}
-		}, delay);
+		}, delay, TimeUnit.MILLISECONDS);
 	}
 
 }

@@ -3,7 +3,6 @@ package jp.syuriken.snsw.twclient;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
-import java.util.Timer;
 
 import javax.swing.Icon;
 import javax.swing.JPanel;
@@ -35,7 +34,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * アクションハンドラを追加する
 	 *
-	 * @param name ハンドラ名
+	 * @param name    ハンドラ名
 	 * @param handler ハンドラ
 	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
 	 * @deprecated use {@link ClientConfiguration#addActionHandler(String, ActionHandler)}
@@ -65,25 +64,19 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * ショートカットキーとアクションコマンドを関連付ける
 	 *
-	 * @param keyCode キー文字列。
+	 * @param keyCode    キー文字列。
 	 * @param actionName アクションコマンド名
 	 * @see Utility#toKeyString(KeyEvent) for keyCode
 	 */
 	void addShortcutKey(String keyCode, String actionName);
 
-	/**
-	 * ツイートビューをクリアする。
-	 */
+	/** ツイートビューをクリアする。 */
 	void clearTweetView();
 
-	/**
-	 * すでに入力されている内容を用いて投稿を行う。
-	 */
+	/** すでに入力されている内容を用いて投稿を行う。 */
 	void doPost();
 
-	/**
-	 * ポストボックスをフォーカスさせる
-	 */
+	/** ポストボックスをフォーカスさせる */
 	void focusPostBox();
 
 	/**
@@ -114,6 +107,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 
 	/**
 	 * 新規フレームを作成するときの親フレームにどうぞ。
+	 *
 	 * @return 親フレームになることができるコンポーネント
 	 */
 	Component getFrame();
@@ -153,15 +147,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return 選択しているタブ
 	 */
 	ClientTab getSelectingTab();
-
-	/**
-	 * タイマーを取得する。
-	 *
-	 * @return タイマー
-	 * @deprecated {@link ClientConfiguration#getTimer()}
-	 */
-	@Deprecated
-	Timer getTimer();
 
 	/**
 	 * Twitterインスタンスを取得する
@@ -205,7 +190,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * アクションコマンド名を使用してアクションハンドラを呼び出す。
 	 *
-	 * @param name アクションコマンド名
+	 * @param name       アクションコマンド名
 	 * @param statusData データ
 	 * @deprecated use {@link ClientConfiguration#handleAction(IntentArguments)}
 	 */
@@ -221,6 +206,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 
 	/**
 	 * 例外を処理する。
+	 *
 	 * @param ex 例外
 	 */
 	void handleException(TwitterException ex);
@@ -231,7 +217,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * これは {@link #getActionCommandByShortcutKey(String, String)}のラッパです。
 	 *
 	 * @param component コンポーネント
-	 * @param e イベント
+	 * @param e         イベント
 	 */
 	void handleShortcutKey(String component, KeyEvent e);
 
@@ -244,18 +230,19 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	Status setInReplyToStatus(Status status);
 
 	/**
-	* ポストボックスの内容を変更する。
-	*
-	* @param text 新しい内容
-	* @return 変更する前の内容
-	*/
+	 * ポストボックスの内容を変更する。
+	 *
+	 * @param text 新しい内容
+	 * @return 変更する前の内容
+	 */
 	String setPostText(String text);
 
 	/**
 	 * ポストボックスの内容を変更し、指定の場所を選択する
-	 * @param text 新しい内容
+	 *
+	 * @param text           新しい内容
 	 * @param selectingStart 選択範囲の開始
-	 * @param selectingEnd 選択範囲の終了
+	 * @param selectingEnd   選択範囲の終了
 	 * @return 変更する前の内容
 	 */
 	String setPostText(String text, int selectingStart, int selectingEnd);
@@ -263,23 +250,23 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * ツイートビューの右上のJLabelに表示する
 	 *
-	 * @param createdAt 作成日時等
-	 * @param toolTip 作成日時のLabelのTooltip
+	 * @param createdAt     作成日時等
+	 * @param toolTip       作成日時のLabelのTooltip
 	 * @param pointedAction ポインタ時の動作。
-	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
-	 *   ないしこれらのビット和で表してください。
+	 *                      {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *                      ないしこれらのビット和で表してください。
 	 */
 	void setTweetViewCreatedAt(String createdAt, String toolTip, int pointedAction);
 
 	/**
 	 * ツイートビューの左上のJLabelに表示する
 	 *
-	 * @param createdBy 作成者
-	 * @param toolTip 作成者のLabelのTooltip
-	 * @param icon アイコン
+	 * @param createdBy     作成者
+	 * @param toolTip       作成者のLabelのTooltip
+	 * @param icon          アイコン
 	 * @param pointedAction ポインタ時の動作。
-	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
-	 *   ないしこれらのビット和で表してください。
+	 *                      {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *                      ないしこれらのビット和で表してください。
 	 */
 	void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int pointedAction);
 
@@ -293,30 +280,30 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/**
 	 * ツイートビューに文字列を表示する
 	 *
-	 * @param tweetData ツイートビューのテキスト
+	 * @param tweetData     ツイートビューのテキスト
 	 * @param overlayString 右下右揃えで表示するオーバーレイ文字列
 	 * @param pointedAction ポインタ時の動作。
-	 *   {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
-	 *   ないしこれらのビット和で表してください。
+	 *                      {@link #SET_FOREGROUND_COLOR_BLUE}あるいは {@link #UNDERLINE}
+	 *                      ないしこれらのビット和で表してください。
 	 */
 	void setTweetViewText(String tweetData, String overlayString, int pointedAction);
 
 	/**
 	 * ツイートビューに文字列を表示する
 	 *
-	 * @param tweetData ツイートビューのテキスト
-	 * @param createdBy 作成者
+	 * @param tweetData        ツイートビューのテキスト
+	 * @param createdBy        作成者
 	 * @param createdByToolTip 作成者のLabelのTooltip
-	 * @param createdAt 作成日時等
+	 * @param createdAt        作成日時等
 	 * @param createdAtToolTip 作成日時のLabelのTooltip
-	 * @param icon アイコン
-	 * @param operationPanel 操作用パネル
+	 * @param icon             アイコン
+	 * @param operationPanel   操作用パネル
 	 * @deprecated use
-	 *   {@link #clearTweetView()}
-	 *   {@link #setTweetViewCreatedAt(String, String, int)}
-	 *   {@link #setTweetViewCreatedBy(Icon, String, String, int)}
-	 *   {@link #setTweetViewOperationPanel(JPanel)}
-	 *   {@link #setTweetViewText(String, String, int)}
+	 *             {@link #clearTweetView()}
+	 *             {@link #setTweetViewCreatedAt(String, String, int)}
+	 *             {@link #setTweetViewCreatedBy(Icon, String, String, int)}
+	 *             {@link #setTweetViewOperationPanel(JPanel)}
+	 *             {@link #setTweetViewText(String, String, int)}
 	 */
 	@Deprecated
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,

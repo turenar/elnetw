@@ -12,8 +12,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
@@ -198,7 +198,7 @@ public class ClientConfiguration {
 
 	private List<String> args;
 
-	private transient Timer timer;
+	private transient ScheduledExecutorService timer;
 
 	private ClassLoader extraClassLoader;
 
@@ -526,7 +526,7 @@ public class ClientConfiguration {
 	 *
 	 * @return タイマー
 	 */
-	public Timer getTimer() {
+	public ScheduledExecutorService getTimer() {
 		return timer;
 	}
 
@@ -899,7 +899,7 @@ public class ClientConfiguration {
 		this.isShutdownPhase = isShutdownPhase;
 	}
 
-	/*package*/ void setTimer(Timer timer) {
+	/*package*/ void setTimer(ScheduledExecutorService timer) {
 		this.timer = timer;
 	}
 

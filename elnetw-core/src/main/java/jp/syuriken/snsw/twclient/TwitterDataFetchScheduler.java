@@ -1,6 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.internal.InitialMessage;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
@@ -180,14 +180,14 @@ public class TwitterDataFetchScheduler {
 	}
 
 	private void scheduleGettingTimeline() {
-		configuration.getTimer().schedule(new TimerTask() {
+		configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
 				configuration.addJob(new HomeTimelineFetcher());
 			}
 		}, configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE),
-				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE));
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE), TimeUnit.SECONDS);
 	}
 
 	private void scheduleGettingTwitterApiConfiguration() {

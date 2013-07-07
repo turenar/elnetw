@@ -13,11 +13,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Properties;
-import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -217,7 +217,7 @@ public class TwitterClientMain {
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
 		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
-				.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
+				.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600))
 				.getParentGroup().getSubgroup("取得数 (ツイート数)")
 				.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
 				.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
@@ -227,7 +227,7 @@ public class TwitterClientMain {
 		configBuilder
 				.getGroup("core")
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
-						new IntegerConfigType(1, 5, 1000))
+						new IntegerConfigType(1, 60, 1000))
 				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
 						new BooleanConfigType());
 		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
@@ -407,15 +407,6 @@ public class TwitterClientMain {
 
 		setDebugLogger();
 
-		ArrayList<String> requirement = new ArrayList<String>();
-		Method[] methods = TwitterClientMain.class.getMethods();
-		for (Method method : methods) {
-			Initializer annotation = method.getAnnotation(Initializer.class);
-			if (annotation != null) {
-				requirement.add(annotation.name());
-			}
-		}
-
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
 		initializeService
 				.registerPhase("earlyinit") //
@@ -439,14 +430,6 @@ public class TwitterClientMain {
 			return e.getExitCode();
 		}
 		logger.info("Initialized");
-
-		for (String name : requirement) {
-			if (!initializeService.isInitialized(name)) {
-				logger.error("{} is not initialized!!! not resolved dependencies:{}", name,
-						initializeService.getInfo(name).getRemainDependencies());
-				return 1;
-			}
-		}
 
 		synchronized (threadHolder) {
 			try {
@@ -592,9 +575,18 @@ public class TwitterClientMain {
 	@Initializer(name = "timer", phase = "earlyinit")
 	public void setTimer(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			configuration.setTimer(new Timer("timer"));
+			configuration.setTimer(Executors.newSingleThreadScheduledExecutor());
 		} else {
-			configuration.getTimer().cancel();
+			ScheduledExecutorService timer = configuration.getTimer();
+			timer.shutdown();
+			try {
+				if (!timer.awaitTermination(5, TimeUnit.SECONDS)) {
+					logger.error("Failed shutdown timer: timeout");
+					timer.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				timer.shutdownNow();
+			}
 		}
 	}
 
@@ -731,5 +723,15 @@ public class TwitterClientMain {
 	public void updateConfigToV1() {
 		logger.info("Updating config to v1");
 		configProperties.setProperty("cfg.version", "1");
+	}
+
+	@Initializer(name = "config-v2", dependencies = "config-v1", phase = "earlyinit")
+	public void updateConfigToV2() {
+		logger.info("Updating config to v2");
+		if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
+			configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
+					configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+		}
+		configProperties.setProperty("cfg.version", "2");
 	}
 }

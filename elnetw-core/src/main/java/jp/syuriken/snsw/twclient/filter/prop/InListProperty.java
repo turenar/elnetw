@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
@@ -35,7 +36,6 @@ public class InListProperty implements FilterProperty {
 		public void run() {
 			configuration.addJob(listFetcher);
 		}
-
 	}
 
 	/**
@@ -203,7 +203,8 @@ public class InListProperty implements FilterProperty {
 		listIdentifier = (String) value;
 		listFetcher = new UserFollewedByListFetcher(listIdentifier);
 		listFetcher.run();
-		configuration.getTimer().schedule(new ListFetcherScheduler(), 60 * 60 * 1000);
+		configuration.getTimer().scheduleWithFixedDelay(new ListFetcherScheduler(), 60, 60,
+				TimeUnit.MINUTES); // TODO from config
 	}
 
 	@Override

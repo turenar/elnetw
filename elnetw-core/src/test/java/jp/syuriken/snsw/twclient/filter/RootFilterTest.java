@@ -180,12 +180,6 @@ class TestFrameApi implements ClientFrameApi {
 		return null;
 	}
 
-	@Deprecated
-	@Override
-	public Timer getTimer() {
-		return null;
-	}
-
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override

@@ -21,8 +21,7 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -432,13 +431,13 @@ import static java.lang.Math.max;
 					e.printStackTrace(); //TODO
 				}
 
-				getTimer().schedule(new TimerTask() {
+				configuration.getTimer().schedule(new Runnable() {
 
 					@Override
 					public void run() {
 						this$tcf.addJob(Priority.LOW, this$uif);
 					}
-				}, 10000);
+				}, 10, TimeUnit.SECONDS); // TODO: why 10?
 			}
 		}
 	}
@@ -955,17 +954,6 @@ import static java.lang.Math.max;
 			}
 		}
 		return jSplitPane1;
-	}
-
-	/**
-	 * タイマーを取得する。
-	 *
-	 * @return タイマー
-	 */
-	@Deprecated
-	@Override
-	public Timer getTimer() {
-		return configuration.getTimer();
 	}
 
 	/*package*/JLabel getTweetViewCreatedAtLabel() {
