@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -220,9 +221,10 @@ public class ImageCacher {
 		}
 
 		synchronized (entry) {
-			InputStream stream;
+			URLConnection connection;
 			try {
-				stream = url.openStream();
+				connection = url.openConnection();
+				InputStream stream = connection.getInputStream();
 				byte[] buf = new byte[BUFSIZE];
 				byte[] imagedata = new byte[0];
 				int imagelen = 0;
@@ -242,6 +244,8 @@ public class ImageCacher {
 						}
 					}
 				}
+				stream.close(); // help keep-alive
+
 				entry.rawimage = imagedata;
 				Image image = Toolkit.getDefaultToolkit().createImage(imagedata);
 				entry.image = image;
