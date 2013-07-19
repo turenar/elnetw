@@ -9,6 +9,7 @@ import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
@@ -82,6 +83,14 @@ public class TwitterDataFetchScheduler {
 		}
 	}
 
+	private final class ApiConfigurationFetcher extends TwitterRunnable implements ParallelRunnable {
+
+		@Override
+		protected void access() throws TwitterException {
+			apiConfiguration = twitterForRead.getAPIConfiguration();
+		}
+	}
+
 	/*package*/final FilterService rootFilterService;
 
 	/*package*/final ClientConfiguration configuration;
@@ -92,21 +101,23 @@ public class TwitterDataFetchScheduler {
 
 	/*package*/ ClientProperties configProperties;
 
+	/*package*/ TwitterAPIConfiguration apiConfiguration;
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
-	 */
-	/*package*/TwitterDataFetchScheduler(final ClientConfiguration configuration) {
-		this.configuration = configuration;
+
+	/** インスタンスを生成する。 */
+	public TwitterDataFetchScheduler() {
+		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		twitterForRead = configuration.getTwitterForRead();
 		rootFilterService = configuration.getRootFilterService();
+		init(); // for tests
+	}
 
+	protected void init() {
 		scheduleFirstTimeline();
 		scheduleFirstMentions();
 		scheduleFirstDirectMessage();
+		scheduleGettingTwitterApiConfiguration();
 		scheduleGettingTimeline();
 		onChangeAccount(true);
 		onChangeAccount(false);
@@ -115,6 +126,10 @@ public class TwitterDataFetchScheduler {
 	/** お掃除する */
 	public void cleanUp() {
 		stream.shutdown();
+	}
+
+	public TwitterAPIConfiguration getApiConfiguration() {
+		return apiConfiguration;
 	}
 
 	/**
@@ -173,5 +188,9 @@ public class TwitterDataFetchScheduler {
 			}
 		}, configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE));
+	}
+
+	private void scheduleGettingTwitterApiConfiguration() {
+		configuration.addJob(new ApiConfigurationFetcher());
 	}
 }

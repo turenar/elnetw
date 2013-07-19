@@ -9,6 +9,7 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -47,7 +48,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *
 	 * @param priority 優先度
 	 * @param job ジョブ
-	 * @Deprecated use {@link ClientConfiguration#addJob(Priority, Runnable)}
+	 * @deprecated use {@link ClientConfiguration#addJob(Priority, Runnable)}
 	 */
 	@Deprecated
 	void addJob(Priority priority, Runnable job);
@@ -56,7 +57,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * ジョブを追加する
 	 *
 	 * @param job ジョブ
-	 * @Deprecated use {@link ClientConfiguration#addJob(Runnable)}
+	 * @deprecated use {@link ClientConfiguration#addJob(Runnable)}
 	 */
 	@Deprecated
 	void addJob(Runnable job);
@@ -66,7 +67,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *
 	 * @param keyCode キー文字列。
 	 * @param actionName アクションコマンド名
-	 * @see Utility#toKeyString(int, int, boolean)
+	 * @see Utility#toKeyString(KeyEvent) for keyCode
 	 */
 	void addShortcutKey(String keyCode, String actionName);
 
@@ -157,7 +158,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * タイマーを取得する。
 	 *
 	 * @return タイマー
-	 * @Deprecated {@link ClientConfiguration#getTimer()}
+	 * @deprecated {@link ClientConfiguration#getTimer()}
 	 */
 	@Deprecated
 	Timer getTimer();

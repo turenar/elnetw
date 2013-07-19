@@ -131,11 +131,7 @@ public class PropertyEditorFrame extends JFrame {
 	/** テーブルモデル */
 	protected DefaultTableModelExtension tableModel;
 
-	/**
-	 * インスタンスを生成する
-	 *
-	 * @param configuration プロパティー
-	 */
+	/** インスタンスを生成する */
 	public PropertyEditorFrame() {
 		this.configuration = ClientConfiguration.getInstance();
 		initComponents();
@@ -246,22 +242,17 @@ public class PropertyEditorFrame extends JFrame {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		GroupLayout layout = new GroupLayout(getContentPane());
 		setLayout(layout);
-		layout.setVerticalGroup( //
-			layout.createSequentialGroup() //
-				.addComponent(getPaneListProperties()).addContainerGap().addGap(4, 4, 4) //
-				.addGroup(layout.createParallelGroup(Alignment.LEADING).addGap(4, 4, 4) //
-					.addComponent(getBtnDefault(), Alignment.LEADING).addGap(4) //
-					.addComponent(getBtnExit(), Alignment.TRAILING).addGap(4, 4, 4)) //
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(getPaneListProperties()).addContainerGap().addGap(4, 4, 4)
+				.addGroup(layout.createParallelGroup(Alignment.LEADING).addGap(4, 4, 4)
+						.addComponent(getBtnDefault(), Alignment.LEADING).addGap(4)
+						.addComponent(getBtnExit(), Alignment.TRAILING).addGap(4, 4, 4))
 				.addGap(4, 4, 4));
-		layout.setHorizontalGroup(layout //
-			.createParallelGroup(Alignment.LEADING) //
-			.addComponent(getPaneListProperties()) //
-			.addGroup(
-					Alignment.LEADING, //
-					layout.createSequentialGroup().addGap(18)
-						//
+		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
+				.addComponent(getPaneListProperties())
+				.addGroup(Alignment.LEADING, layout.createSequentialGroup().addGap(18)
 						.addComponent(getBtnDefault()).addGap(18).addContainerGap(8, Short.MAX_VALUE)
-						.addPreferredGap(ComponentPlacement.RELATED) //
+						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(getBtnExit()).addGap(18)));
 		/*		jPanel2Layout.setHorizontalGroup(jPanel2Layout.createParallelGroup(
 		 * 			GroupLayout.Alignment.LEADING).addGroup(
@@ -290,11 +281,11 @@ public class PropertyEditorFrame extends JFrame {
 		tableModel.setRowCount(0);
 
 		ClientProperties configProperties = configuration.getConfigProperties();
-		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements();) {
+		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements(); ) {
 			String key = (String) enumeration.nextElement();
-			tableModel.addRow(new Object[] {
-				key,
-				configProperties.getProperty(key)
+			tableModel.addRow(new Object[]{
+					key,
+					configProperties.getProperty(key)
 			});
 		}
 	}

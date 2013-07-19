@@ -24,6 +24,7 @@ public class OAuthFrame {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param configuration 設定
 	 */
 	public OAuthFrame(ClientConfiguration configuration) {
@@ -37,21 +38,21 @@ public class OAuthFrame {
 	 * @throws TwitterException リクエストトークンが取得できない。メッセージダイアログは表示される。
 	 */
 	public Twitter show() throws CancellationException, TwitterException {
-		RequestToken requestToken = null;
-		Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
-
-		try {
-			requestToken = twitter.getOAuthRequestToken();
-		} catch (TwitterException e) {
-			logger.warn("Could not retrieve requestToken", e);
-			JOptionPane.showMessageDialog(null, "リクエストトークンが取得できませんでした。しばらく経ってからお試しください。\n\n" + e.getLocalizedMessage(),
-					ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
-			throw e;
-		}
-
 		String message = null;
 
 		while (true) {
+			Twitter twitter = new TwitterFactory(configuration.getTwitterConfigurationBuilder().build()).getInstance();
+			RequestToken requestToken = null;
+
+			try {
+				requestToken = twitter.getOAuthRequestToken();
+			} catch (TwitterException e) {
+				logger.warn("Could not retrieve requestToken", e);
+				JOptionPane.showMessageDialog(null, "リクエストトークンが取得できませんでした。しばらく経ってからお試しください。\n\n" + e.getLocalizedMessage(),
+						ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+				throw e;
+			}
+
 			String strURL = requestToken.getAuthorizationURL();
 
 			try {

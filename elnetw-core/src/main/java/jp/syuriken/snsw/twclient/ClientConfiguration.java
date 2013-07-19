@@ -525,7 +525,6 @@ public class ClientConfiguration {
 	 * タイマーを取得する。
 	 *
 	 * @return タイマー
-	 * @Deprecated {@link ClientConfiguration#getTimer()}
 	 */
 	public Timer getTimer() {
 		return timer;

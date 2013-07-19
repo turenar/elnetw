@@ -14,79 +14,78 @@ import org.slf4j.LoggerFactory;
  */
 /*package*/class JobWorkerThread extends Thread {
 
-	protected volatile boolean isCanceled = false;
+	private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
+
+	private static final AtomicInteger threadNumber = new AtomicInteger();
 
 	private final Object threadHolder;
 
 	private final JobQueue jobQueue;
 
-	private ArrayList<JobWorkerThread> childThreads;
-
 	private final ConcurrentLinkedQueue<Runnable> serializeQueue;
 
-	private static final AtomicInteger threadNumber = new AtomicInteger();
-
-	private final int threadsCount;
+	private final AtomicInteger runningChildThreadCount;
 
 	private final boolean isParent;
 
 	private final JobWorkerThread parent;
 
-	private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
+	private ArrayList<JobWorkerThread> childThreads;
 
-
-	public JobWorkerThread(JobQueue jobQueue, ClientConfiguration configuration) {
-		this(jobQueue, null, new Object(), configuration);
+	public JobWorkerThread(JobQueue jobQueue) {
+		this(jobQueue, null, new Object());
 	}
 
-	private JobWorkerThread(JobQueue jobQueue, JobWorkerThread parent, Object threadHolder,
-			ClientConfiguration configuration) {
+	private JobWorkerThread(JobQueue jobQueue, JobWorkerThread parent, Object threadHolder) {
 		super("jobworker-" + threadNumber.getAndIncrement());
-		setDaemon(true);
+		setDaemon(false);
 		this.parent = parent;
 		this.threadHolder = threadHolder;
 		this.jobQueue = jobQueue;
 		isParent = parent == null;
 
 		if (isParent) {
-			ClientProperties properties = configuration.getConfigProperties();
-			threadsCount = properties.getInteger("core.jobqueue.threads");
-			childThreads = new ArrayList<JobWorkerThread>();
-			serializeQueue = new ConcurrentLinkedQueue<Runnable>();
+			ClientProperties properties = ClientConfiguration.getInstance().getConfigProperties();
+			int threadsCount = properties.getInteger("core.jobqueue.threads");
+			childThreads = new ArrayList<>();
+			serializeQueue = new ConcurrentLinkedQueue<>();
+			runningChildThreadCount = new AtomicInteger();
+			for (int i = 1; i < threadsCount; i++) {
+				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder);
+				childThreads.add(workerThread);
+			}
 		} else {
-			threadsCount = parent.threadsCount;
 			serializeQueue = parent.serializeQueue;
+			runningChildThreadCount = parent.runningChildThreadCount;
 		}
 
 	}
 
 	public void cleanUp() {
 		jobQueue.setJobWorkerThread(null);
-		isCanceled = true;
-	}
-
-	private void onExitChildThread(JobWorkerThread jobWorkerThread) {
-		synchronized (childThreads) {
-			childThreads.remove(jobWorkerThread);
+		interrupt();
+		for (JobWorkerThread workerThread : childThreads) {
+			workerThread.interrupt();
 		}
 	}
 
 	@Override
 	public void run() {
+		// avoid getfield mnemonic
+		JobQueue jobQueue = this.jobQueue;
+		ConcurrentLinkedQueue<Runnable> serializeQueue = this.serializeQueue;
+
 		if (isParent) {
 			jobQueue.setJobWorkerThread(threadHolder);
-
-			// 設定された数だけワーカーを追加
-			for (int i = 1; i < threadsCount; i++) {
-				JobWorkerThread workerThread = new JobWorkerThread(jobQueue, this, threadHolder, null);
-				synchronized (childThreads) {
-					childThreads.add(workerThread);
-				}
+			// 子ワーカーの開始
+			for (JobWorkerThread workerThread : childThreads) {
 				workerThread.start();
 			}
+		} else {
+			runningChildThreadCount.incrementAndGet();
 		}
 
-		while (isCanceled == false) {
+		while (true) { // main loop
 			Runnable job = null;
 			if (isParent) { // check serializeQueue
 				job = serializeQueue.poll();
@@ -97,11 +96,12 @@ import org.slf4j.LoggerFactory;
 			if (job == null) { // no job: wait
 				synchronized (threadHolder) {
 					try {
-						if (isCanceled == false) {
-							threadHolder.wait();
-						}
+						logger.trace("{}: Try to wait", getName());
+						threadHolder.wait();
+						logger.trace("{}: Wake up", getName());
 					} catch (InterruptedException e) {
-						// do nothing
+						logger.trace("{}: Interrupted", getName());
+						break;
 					}
 				}
 			} else {
@@ -113,22 +113,33 @@ import org.slf4j.LoggerFactory;
 						logger.warn("uncaught runtime-exception", e);
 					}
 				} else { // ただのRunnableは親で動かす
+					logger.trace("{}: Add to SerializeQueue", getName(), job);
 					serializeQueue.add(job);
 				}
 			}
-		}
-		Runnable job;
-		if (isParent) { // 親の場合は終了時にできるだけジョブを消費する。
-			while ((job = jobQueue.getJob()) != null) {
-				try {
-					job.run();
-				} catch (RuntimeException e) {
-					e.printStackTrace();
+		} // end main loop
+
+		if (isParent) {
+			// 子ワーカーの終了確認
+			while (runningChildThreadCount.get() != 0) {
+				synchronized (threadHolder) {
+					try {
+						logger.trace("{}: Wait for child destroyed", getName());
+						threadHolder.wait();
+					} catch (InterruptedException e) {
+						// do nothing
+					}
 				}
 			}
+			// serializeQueueの消費
+			while (!serializeQueue.isEmpty()) {
+				Runnable job = serializeQueue.poll();
+				job.run();
+			}
 		} else {
-			parent.onExitChildThread(this);
+			runningChildThreadCount.decrementAndGet();
+			parent.interrupt();
 		}
-		logger.debug(getName() + " exiting");
+		logger.debug("{}: Exiting", getName());
 	}
 }

@@ -5,7 +5,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.twitter.Regex;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
+import twitter4j.TwitterAPIConfiguration;
 
 /**
  * デフォルトのツイートの長さを計算するクラス。URL変換を行った上での長さを計算する。
@@ -14,11 +16,18 @@ import jp.syuriken.snsw.twclient.TweetLengthCalculator;
  */
 public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 
-	private final TweetLengthUpdater updater;
-
 	/** URLパターン */
 	public static final Pattern urlPattern = Regex.VALID_URL;
+	private static TwitterAPIConfiguration apiConfiguration;
 
+	/**
+	 * テスト以外に使用してはならない。
+	 * APIConfigurationの内部キャッシュを削除する。
+	 */
+	/*package*/
+	static void clearApiConfiguration() {
+		apiConfiguration = null;
+	}
 
 	/**
 	 * ツイートの長さを取得する。URL変換を行う。
@@ -27,16 +36,28 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	 * @return これぐらいの長さになりそうという長さ
 	 */
 	public static int getTweetLength(String original) {
+		if (apiConfiguration == null) {
+			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
+		}
+
+		final int shortURLLength = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH : apiConfiguration.getShortURLLength();
+		final int shortURLLengthHttps = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH_HTTPS : apiConfiguration.getShortURLLengthHttps();
+
 		int length = original.length();
 		Matcher matcher = urlPattern.matcher(original);
 		while (matcher.find()) {
 			int start = matcher.start(Regex.VALID_URL_GROUP_URL);
 			int end = matcher.end(Regex.VALID_URL_GROUP_URL);
-			int fat = end - start - 20;
+			String protocol = matcher.group(Regex.VALID_URL_GROUP_PROTOCOL);
+			// protocol can be null if not specified, and case insensitive
+			int newUrlLength = "https://".equalsIgnoreCase(protocol) ? shortURLLengthHttps : shortURLLength;
+			int fat = (end - start) - newUrlLength;
 			length -= fat;
 		}
 		return length;
 	}
+
+	private final TweetLengthUpdater updater;
 
 	/**
 	 * インスタンスを生成する。

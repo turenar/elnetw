@@ -323,32 +323,32 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 				bio = buffer.toString();
 
 				buffer.setLength(0);
-				matcher = Regex.AUTO_LINK_HASHTAGS.matcher(bio);
+				matcher = Regex.VALID_HASHTAG.matcher(bio);
 				while (matcher.find()) {
-					matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_BEFORE
-							+ "<a href='http://command/hashtag!name=$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "'>$"
-							+ Regex.AUTO_LINK_HASHTAGS_GROUP_HASH + "$" + Regex.AUTO_LINK_HASHTAGS_GROUP_TAG + "</a>");
+					matcher.appendReplacement(buffer, "$" + Regex.VALID_HASHTAG_GROUP_BEFORE
+							+ "<a href='http://command/hashtag!name=$" + Regex.VALID_HASHTAG_GROUP_TAG + "'>$"
+							+ Regex.VALID_HASHTAG_GROUP_HASH + "$" + Regex.VALID_HASHTAG_GROUP_TAG + "</a>");
 				}
 				matcher.appendTail(buffer);
 				bio = buffer.toString();
 
 				buffer.setLength(0);
-				matcher = Regex.AUTO_LINK_USERNAMES_OR_LISTS.matcher(bio);
+				matcher = Regex.VALID_MENTION_OR_LIST.matcher(bio);
 				while (matcher.find()) {
-					String list = matcher.group(Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST);
+					String list = matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST);
 					if (list == null) {
-						matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
+						matcher.appendReplacement(buffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
 								+ "<a href='http://command/userinfo!screenName=$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "'>$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "</a>");
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "'>$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "</a>");
 					} else {
-						matcher.appendReplacement(buffer, "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_BEFORE
-								+ "<a href='http://command/list!$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME
-								+ "$" + Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "'>$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_AT + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_USERNAME + "$"
-								+ Regex.AUTO_LINK_USERNAME_OR_LISTS_GROUP_LIST + "</a>");
+						matcher.appendReplacement(buffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
+								+ "<a href='http://command/list!$" + Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME
+								+ "$" + Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "'>$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "$"
+								+ Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "</a>");
 					}
 				}
 				matcher.appendTail(buffer);

@@ -95,6 +95,8 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
 
+	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
+
 	@InitializerInstance
 	private static volatile TwitterClientMain SINGLETON;
 
@@ -475,23 +477,27 @@ public class TwitterClientMain {
 	}
 
 	@Initializer(name = "config", dependencies = "default-config", phase = "earlyinit")
-	public void setConfigProperties() {
-		configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
-		File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-		configProperties.setStoreFile(configFile);
-		if (configFile.exists()) {
-			logger.debug(CONFIG_FILE_NAME + " is found.");
-			try {
-				InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
-				configProperties.load(reader);
-			} catch (IOException e) {
-				logger.warn("設定ファイルの読み込み中にエラー", e);
+	public void setConfigProperties(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
+			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+			configProperties.setStoreFile(configFile);
+			if (configFile.exists()) {
+				logger.debug(CONFIG_FILE_NAME + " is found.");
+				try {
+					InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+					configProperties.load(reader);
+				} catch (IOException e) {
+					logger.warn("設定ファイルの読み込み中にエラー", e);
+				}
 			}
-		}
-		configuration.setConfigProperties(configProperties);
+			configuration.setConfigProperties(configProperties);
 
-		String configVersion = configProperties.getProperty("cfg.version", "0");
-		InitializeService.getService().provideInitializer("config-v" + configVersion, true);
+			String configVersion = configProperties.getProperty("cfg.version", "0");
+			InitializeService.getService().provideInitializer("config-v" + configVersion, true);
+		} else {
+			configProperties.store();
+		}
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
@@ -550,7 +556,7 @@ public class TwitterClientMain {
 	@Initializer(name = "fetch-sched", dependencies = "recover-clientTabs", phase = "prestart")
 	public void setFetchScheduler(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			fetchScheduler = new TwitterDataFetchScheduler(configuration);
+			fetchScheduler = new TwitterDataFetchScheduler();
 			configuration.setFetchScheduler(fetchScheduler);
 		} else {
 			fetchScheduler.cleanUp();
@@ -651,18 +657,28 @@ public class TwitterClientMain {
 	@Initializer(name = "jobqueue", dependencies = "config", phase = "preinit")
 	public void startJobWorkerThread(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue(), configuration);
+			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue());
 			jobWorkerThread.start();
 		} else {
 			jobWorkerThread.cleanUp();
+			while (true) {
+				try {
+					jobWorkerThread.join(JOBWORKER_JOIN_TIMEOUT);
+					if (jobWorkerThread.isAlive()) {
+						// ImageIO caught interrupt but not set INTERRUPTED-STATUS
+						// If it seemed to be occurred, retry to shutdown jobWorker
+						jobWorkerThread.cleanUp();
+					} else {
+						break;
+					}
+				} catch (InterruptedException e) {
+					continue;
+				}
+			}
 		}
 	}
 
-	/**
-	 * OAuthアクセストークンの取得を試す
-	 *
-	 * @return アクセストークン
-	 */
+	/** OAuthアクセストークンの取得を試す */
 	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
 	public void tryGetOAuthAccessToken(InitCondition cond) {
 		if (cond.isInitializingPhase() == false) {
@@ -682,7 +698,7 @@ public class TwitterClientMain {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
-						cond.setFailStatus("canceled", -1);
+						cond.setFailStatus("OAuth failed: canceled", -1);
 						return;
 					}
 				} else {
