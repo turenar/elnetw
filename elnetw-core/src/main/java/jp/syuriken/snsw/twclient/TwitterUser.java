@@ -260,7 +260,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return id;
 	}
 
-	@Override
+	//@Override
 	public String getJson() {
 		return json;
 	}

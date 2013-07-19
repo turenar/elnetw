@@ -7,11 +7,11 @@ package jp.syuriken.snsw.twclient;
  */
 interface TwitterExtendedObject {
 
-	/**
-	 * 元のJSONを取得する。
-	 *
-	 * @return JSON
-	 */
-	String getJson();
+//	/**
+//	 * 元のJSONを取得する。
+//	 *
+//	 * @return JSON
+//	 */
+//	String getJson();
 
 }

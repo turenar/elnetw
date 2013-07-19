@@ -167,14 +167,13 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param clientConfiguration 設定
 		 * @param jsonObject 設定が格納されたJSONオブジェクト
 		 * @throws JSONException JSON例外
 		 * @throws IllegalSyntaxException クエリエラー
 		 */
-		public UserInfoFrameTab(ClientConfiguration clientConfiguration, JSONObject jsonObject) throws JSONException,
+		public UserInfoFrameTab(JSONObject jsonObject) throws JSONException,
 				IllegalSyntaxException {
-			super(clientConfiguration, jsonObject);
+			super(jsonObject);
 			final long userId = jsonObject.getJSONObject("extended").getLong("userId");
 			new TwitterRunnable() {
 
@@ -196,8 +195,8 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 				}
 
 				@Override
-				protected void handleException(TwitterException ex) {
-					configuration.getRootFilterService().onException(ex);
+				protected void onException(TwitterException ex) {
+					// TODO configuration.getRootFilterService().onException(ex);
 				}
 			});
 		}
@@ -205,24 +204,22 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param clientConfiguration 設定
 		 * @param jsonString シリアル化されたデータ
 		 * @throws JSONException JSON例外
 		 * @throws IllegalSyntaxException クエリエラー
 		 */
-		public UserInfoFrameTab(ClientConfiguration clientConfiguration, String jsonString) throws JSONException,
+		public UserInfoFrameTab(String jsonString) throws JSONException,
 				IllegalSyntaxException {
-			this(clientConfiguration, new JSONObject(jsonString));
+			this(new JSONObject(jsonString));
 		}
 
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param clientConfiguration 設定
 		 * @param user ユーザー
 		 */
-		public UserInfoFrameTab(ClientConfiguration clientConfiguration, User user) {
-			super(clientConfiguration);
+		public UserInfoFrameTab(User user) {
+			super();
 			this.user = user;
 		}
 
@@ -626,7 +623,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		}
 
 		@Override
-		protected void handleException(TwitterException ex) {
+		protected void onException(TwitterException ex) {
 			tab.getRenderer().onException(ex);
 		}
 	}
@@ -662,7 +659,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		}
 
 		ClientConfiguration configuration = ClientConfiguration.getInstance();
-		final UserInfoFrameTab tab = new UserInfoFrameTab(configuration, user);
+		final UserInfoFrameTab tab = new UserInfoFrameTab(user);
 		final long userId = user.getId();
 		configuration.addJob(new UserTimelineFetcher(tab, userId));
 		configuration.addFrameTab(tab);

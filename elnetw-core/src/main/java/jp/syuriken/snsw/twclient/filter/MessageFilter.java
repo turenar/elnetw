@@ -13,6 +13,14 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MessageFilter {
+	/**
+	 * blocked user
+	 *
+	 * @param source      source user
+	 * @param blockedUser user blocked by source
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onBlock(User source, User blockedUser);
 
 	/**
 	 * アカウントを変更したという情報のフィルタ
@@ -23,6 +31,12 @@ public interface MessageFilter {
 	boolean onChangeAccount(boolean forWrite);
 
 	/**
+	 * (for Stream) called before thread gets cleaned up
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onCleanUp();
+
+	/**
 	 * クライアントメッセージのフィルタ
 	 *
 	 * @param name 名前
@@ -30,6 +44,13 @@ public interface MessageFilter {
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onClientMessage(String name, Object arg);
+
+	/**
+	 * (for Stream) called after connection was established
+	 *
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onConnect();
 
 	/**
 	 * 削除通知のフィルタ
@@ -55,6 +76,12 @@ public interface MessageFilter {
 	 * @return null=フィルタ中止,null以外の場合は次のフィルタは返り値をフィルタしようとします
 	 */
 	DirectMessage onDirectMessage(DirectMessage message);
+
+	/**
+	 * (for Stream) called after connection was disconnected
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onDisconnect();
 
 	/**
 	 * 例外が発生した

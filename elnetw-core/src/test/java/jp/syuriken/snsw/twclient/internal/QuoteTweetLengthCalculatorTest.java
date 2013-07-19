@@ -5,13 +5,13 @@ import java.util.Map;
 
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
-import jp.syuriken.snsw.twclient.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.junit.Test;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.TwitterAPIConfiguration;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.*;
 
 /**
  * {@link QuoteTweetLengthCalculator}のためのテスト

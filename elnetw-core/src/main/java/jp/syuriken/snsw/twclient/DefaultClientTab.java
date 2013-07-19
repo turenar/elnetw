@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Stack;
-import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +53,6 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
@@ -497,7 +495,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public class PostListUpdater extends TimerTask {
+	public class PostListUpdater implements Runnable {
 
 		@Override
 		public void run() {
@@ -694,6 +692,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected final String uniqId;
 
+	protected final String accountId;
+
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
 
@@ -763,16 +763,15 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/**
 	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
 	 */
-	protected DefaultClientTab(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	protected DefaultClientTab() {
+		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
+		accountId = "$reader";
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
 		init(configuration);
 	}
@@ -781,17 +780,17 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの形式が正しくないか必要とするキーが存在しない
 	 */
-	protected DefaultClientTab(ClientConfiguration configuration, JSONObject serializedJson) throws JSONException {
-		this.configuration = configuration;
+	protected DefaultClientTab(JSONObject serializedJson) throws JSONException {
+		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
+		accountId = serializedJson.optString("accountId", "$reader");
 		uniqId = serializedJson.getString("uniqId");
 		init(configuration);
 	}
@@ -799,12 +798,11 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの復号化中に例外
 	 */
-	protected DefaultClientTab(ClientConfiguration configuration, String serializedJson) throws JSONException {
-		this(configuration, new JSONObject(serializedJson));
+	protected DefaultClientTab(String serializedJson) throws JSONException {
+		this(new JSONObject(serializedJson));
 	}
 
 	/**
@@ -1072,7 +1070,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
 			Throwable handlingException = ex;
-			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage()).append("<br><br>");
+			StringBuilder stringBuilder = new StringBuilder().append(ex.getLocalizedMessage()).append("<br><br>");
 			while (null != (handlingException = handlingException.getCause())) {
 				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 			}
@@ -1143,12 +1141,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	@Override
 	public TabRenderer getRenderer() {
 		if (teeFilter == null) {
-			try {
-				teeFilter = new TeeFilter(configuration, uniqId, getActualRenderer());
-			} catch (IllegalSyntaxException e) {
-				logger.error("TeeFilterを初期化できません。filter queryは無視されます", e);
-				teeFilter = getActualRenderer();
-			}
+			teeFilter = new TeeFilter(uniqId, getActualRenderer());
 		}
 		return teeFilter;
 	}
@@ -1194,8 +1187,8 @@ public abstract class DefaultClientTab implements ClientTab {
 	@Override
 	public String getSerializedData() {
 		try {
-			return new JSONObject().put("twitterId", "reader").put("uniqId", getUniqId()).put("tabId", getTabId())
-				.put("extended", getSerializedExtendedData()).toString();
+			return new JSONObject().put("accountId", accountId).put("uniqId", getUniqId()).put("tabId", getTabId())
+					.put("extended", getSerializedExtendedData()).toString();
 		} catch (JSONException e) {
 			throw new RuntimeException(e);
 		}
@@ -1482,7 +1475,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @return 呼ばれたかどうか
 	 */
 	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
-		return configuration.isMentioned(userMentionEntities);
+		return configuration.isMentioned(accountId, userMentionEntities);
 	}
 
 	/**

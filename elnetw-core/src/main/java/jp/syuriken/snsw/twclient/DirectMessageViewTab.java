@@ -98,24 +98,24 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public DirectMessageViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
-		super(configuration);
+	public DirectMessageViewTab() throws IllegalSyntaxException {
+		super();
+		configuration.getFetchScheduler().establish("$reader", "my/timeline", getRenderer());
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param data 保存されたデータ
 	 * @throws JSONException JSON例外
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public DirectMessageViewTab(ClientConfiguration configuration, String data) throws JSONException,
+	public DirectMessageViewTab(String data) throws JSONException,
 			IllegalSyntaxException {
-		super(configuration, data);
+		super(data);
+		configuration.getFetchScheduler().establish("$reader", "my/timeline", getRenderer());
 	}
 
 	@Override

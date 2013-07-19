@@ -52,7 +52,7 @@ public class CacheManager {
 		}
 
 		@Override
-		protected void handleException(TwitterException ex) {
+		protected void onException(TwitterException ex) {
 			if (ex.getStatusCode() == TwitterException.NOT_FOUND) {
 				logger.info("not found: statusId={}", statusId);
 				statusCacheMap.put(statusId, ERROR_STATUS);

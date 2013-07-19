@@ -13,6 +13,10 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class MessageFilterAdapter implements MessageFilter {
+	@Override
+	public boolean onBlock(User source, User blockedUser) {
+		return false;
+	}
 
 	@Override
 	public boolean onChangeAccount(boolean forWrite) {
@@ -20,7 +24,17 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	}
 
 	@Override
+	public boolean onCleanUp() {
+		return false;
+	}
+
+	@Override
 	public boolean onClientMessage(String name, Object arg) {
+		return false;
+	}
+
+	@Override
+	public boolean onConnect() {
 		return false;
 	}
 
@@ -37,6 +51,11 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	@Override
 	public DirectMessage onDirectMessage(DirectMessage message) {
 		return message;
+	}
+
+	@Override
+	public boolean onDisconnect() {
+		return false;
 	}
 
 	@Override

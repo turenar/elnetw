@@ -13,12 +13,14 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -52,23 +54,26 @@ public class ClientConfiguration {
 	/** UI更新間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
 
-	/** ダイレクトメッセージ初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
-
 	/** アカウントリストのプロパティ名 */
 	public static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
 
-	/** メンション初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
+	/** メンション取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_MENTIONS = "twitter.mention.count";
+
+	/** メンション取得のページングのプロパティ名 */
+	public static final String PROPERTY_INTERVAL_MENTIONS = "twitter.mention.interval";
+
+	/** タイムライン取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_TIMELINE = "twitter.timeline.count";
 
 	/** タイムライン取得間隔のプロパティ名 */
-	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
+	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.timeline.interval";
 
-	/** タイムライン取得のページングの更新間隔 */
-	public static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
+	/** ダイレクトメッセージ取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_DIRECT_MESSAGES = "twitter.dm.count";
 
-	/** タイムライン初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
+	/** ダイレクトメッセージ取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_DIRECT_MESSAGES = "twitter.dm.interval";
 
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
@@ -114,20 +119,21 @@ public class ClientConfiguration {
 	 * @param id     タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
 	 * @return 以前 id に関連付けられていたコンストラクタ
+	 * @throws IllegalArgumentException 不正なコンストラクタ
 	 * @see #putClientTabConstructor(String, Constructor)
 	 */
 	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
-			Class<? extends ClientTab> class1) {
+			Class<? extends ClientTab> class1) throws IllegalArgumentException {
 		try {
-			return putClientTabConstructor(id, class1.getConstructor(ClientConfiguration.class, String.class));
-		} catch (Exception e) {
-			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(ClientConfiguration, String)を持ちません", e);
+			return putClientTabConstructor(id, class1.getConstructor(String.class));
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(String)を持ちません", e);
 		}
 	}
 
 	/**
 	 * タブ復元時に使用するコンストラクタを追加する。
-	 * コンストラクタは {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタである必要があります。
+	 * コンストラクタは {@link String} ()の2つの引数を持つコンストラクタである必要があります。
 	 *
 	 * @param id          タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param constructor タブ復元時に呼ばれるコンストラクタ
@@ -136,8 +142,7 @@ public class ClientConfiguration {
 	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
 			Constructor<? extends ClientTab> constructor) {
 		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		if (parameterTypes.length == 2 && parameterTypes[0].isAssignableFrom(ClientConfiguration.class)
-				&& parameterTypes[1].isAssignableFrom(String.class)) {
+		if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(String.class)) {
 			return clientTabConstructorsMap.put(id, constructor);
 		} else {
 			throw new IllegalArgumentException(
@@ -182,8 +187,6 @@ public class ClientConfiguration {
 
 	private ConfigFrameBuilder configBuilder;
 
-	private volatile FilterService rootFilterService;
-
 	private volatile ImageCacher imageCacher;
 
 	private volatile String accountIdForRead;
@@ -201,6 +204,8 @@ public class ClientConfiguration {
 	private transient ScheduledExecutorService timer;
 
 	private ClassLoader extraClassLoader;
+
+	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
 
 	/**
 	 * インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()}
@@ -223,10 +228,10 @@ public class ClientConfiguration {
 	/**
 	 * フィルタを追加する
 	 *
-	 * @param rootFilter フィルター
+	 * @param filter フィルター
 	 */
-	public void addFilter(MessageFilter rootFilter) {
-		getRootFilterService().addFilter(rootFilter);
+	public void addFilter(MessageFilter filter) {
+		messageFilters.add(filter);
 	}
 
 	/**
@@ -435,6 +440,10 @@ public class ClientConfiguration {
 		return fetchScheduler;
 	}
 
+	public MessageFilter[] getFilters() {
+		return messageFilters.toArray(new MessageFilter[0]);
+	}
+
 	/**
 	 * FrameApiを取得する
 	 *
@@ -510,15 +519,6 @@ public class ClientConfiguration {
 	 */
 	public List<String> getOpts() {
 		return Collections.unmodifiableList(args);
-	}
-
-	/**
-	 * すべての入力をフィルターするクラスを取得する。
-	 *
-	 * @return フィルター
-	 */
-	public FilterService getRootFilterService() {
-		return rootFilterService;
 	}
 
 	/**
@@ -682,7 +682,9 @@ public class ClientConfiguration {
 	 *
 	 * @param userMentionEntities エンティティ
 	 * @return 呼ばれたかどうか
+	 * @deprecated use {@link #isMentioned(long, twitter4j.UserMentionEntity[])}
 	 */
+	@Deprecated
 	public boolean isMentioned(UserMentionEntity[] userMentionEntities) {
 		if (userMentionEntities == null) {
 			return false;
@@ -699,6 +701,50 @@ public class ClientConfiguration {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * IDが呼ばれたかどうかを判定する
+	 *
+	 * @param accountId           ユーザーID (long)
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	public boolean isMentioned(long accountId, UserMentionEntity[] userMentionEntities) {
+		if (userMentionEntities == null) {
+			return false;
+		}
+		for (UserMentionEntity userMentionEntity : userMentionEntities) {
+			if (configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH)) {
+				if (userMentionEntity.getId() == accountId) {
+					return true;
+				}
+			} else {
+				if (userMentionEntity.getScreenName().startsWith(cacheManager.getUser(accountId).getScreenName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * IDが呼ばれたかどうかを判定する
+	 *
+	 * @param accountId           アカウントID (long|$reader|$writer)
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
+		String userId;
+		if (accountId.equals("$reader")) {
+			userId = getAccountIdForRead();
+		} else if (accountId.equals("$writer")) {
+			userId = getAccountIdForWrite();
+		} else {
+			userId = accountId;
+		}
+		return isMentioned(Long.parseLong(userId), userMentionEntities);
 	}
 
 	/**
@@ -794,10 +840,7 @@ public class ClientConfiguration {
 		}
 		String old = accountIdForRead;
 		if (old == null || old.equals(accountId) == false) {
-			accountIdForRead = accountId;
-			if (rootFilterService != null) {
-				rootFilterService.onChangeAccount(false);
-			}
+			accountIdForRead = accountId; // TODO notify TwitterDataFetchScheduler
 		}
 		return old;
 	}
@@ -815,9 +858,6 @@ public class ClientConfiguration {
 		String old = accountIdForWrite;
 		if (old == null || old.equals(accountId) == false) {
 			accountIdForWrite = accountId;
-			if (rootFilterService != null) {
-				rootFilterService.onChangeAccount(true);
-			}
 		}
 		return old;
 	}
@@ -884,10 +924,6 @@ public class ClientConfiguration {
 
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;
-	}
-
-	/*package*/ void setRootFilterService(FilterService service) {
-		rootFilterService = service;
 	}
 
 	/**

@@ -55,7 +55,7 @@ public abstract class TwitterRunnable implements Runnable {
 	 *
 	 * @param ex 例外
 	 */
-	protected void handleException(TwitterException ex) {
+	protected void onException(TwitterException ex) {
 		configuration.getFrameApi().handleException(ex);
 	}
 
@@ -74,7 +74,7 @@ public abstract class TwitterRunnable implements Runnable {
 					run();
 				}
 			} else {
-				handleException(ex);
+				onException(ex);
 			}
 		}
 	}

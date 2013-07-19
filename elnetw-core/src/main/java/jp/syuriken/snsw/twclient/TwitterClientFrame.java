@@ -492,7 +492,7 @@ import static java.lang.Math.max;
 		}
 
 		@Override
-		protected void handleException(TwitterException ex) {
+		protected void onException(TwitterException ex) {
 			tab.getRenderer().onException(ex);
 		}
 	}
@@ -562,8 +562,6 @@ import static java.lang.Math.max;
 
 	/*package*/Map<String, String> shortcutKeyMap = new HashMap<String, String>();
 
-	/*package*/transient FilterService rootFilterService;
-
 	/*package*/JLabel postLengthLabel;
 
 	protected transient ClientTab selectingTab;
@@ -596,7 +594,6 @@ import static java.lang.Math.max;
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
 
-		rootFilterService = configuration.getRootFilterService();
 		configProperties = configuration.getConfigProperties();
 		initActionHandlerTable();
 
@@ -1299,7 +1296,7 @@ import static java.lang.Math.max;
 	 */
 	@Override
 	public void handleException(Exception ex) {
-		rootFilterService.onException(ex);
+		// TODO rootFilterService.onException(ex);
 	}
 
 	/**

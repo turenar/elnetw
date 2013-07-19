@@ -36,7 +36,6 @@ import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
@@ -79,6 +78,7 @@ import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -217,10 +217,19 @@ public class TwitterClientMain {
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
 		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
-				.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE, "タイムライン", "秒数",
+						new IntegerConfigType(60, 3600))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_MENTIONS, "メンション(@通知)", "秒数",
+						new IntegerConfigType(60, 3600))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_DIRECT_MESSAGES, "ダイレクトメッセージ", "秒数",
+						new IntegerConfigType(60, 3600))
 				.getParentGroup().getSubgroup("取得数 (ツイート数)")
-				.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
-				.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_TIMELINE, "タイムライン", "ツイート",
+						new IntegerConfigType(1, 200))
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_MENTIONS, "メンション(@通知)", "ツイート",
+						new IntegerConfigType(1, 200))
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES, "ダイレクトメッセージ", "メッセージ",
+						new IntegerConfigType(1, 200));
 		configBuilder.getGroup("UI")
 				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
 				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
@@ -232,11 +241,6 @@ public class TwitterClientMain {
 						new BooleanConfigType());
 		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
 				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
-	}
-
-	@Initializer(name = "rootFilterService", dependencies = "cacheManager", phase = "init")
-	public void initFilterDispatcherService() {
-		configuration.setRootFilterService(new FilterService(configuration));
 	}
 
 	@Initializer(name = "filter-functions", phase = "preinit")
@@ -341,20 +345,28 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "internal-init-fetchSched", dependencies = "recover-clientTabs", phase = "prestart")
+	public void realConnectFetchSched() {
+		fetchScheduler.onInitialized();
+	}
+
 	@Initializer(name = "recover-clientTabs", phase = "prestart")
 	public void recoverClientTabs() {
 		String tabsList = configProperties.getProperty("gui.tabs.list");
 		if (tabsList == null) {
 			try {
-				configuration.addFrameTab(new TimelineViewTab(configuration));
-				configuration.addFrameTab(new MentionViewTab(configuration));
-				configuration.addFrameTab(new DirectMessageViewTab(configuration));
+				configuration.addFrameTab(new TimelineViewTab());
+				configuration.addFrameTab(new MentionViewTab());
+				configuration.addFrameTab(new DirectMessageViewTab());
 			} catch (IllegalSyntaxException e) {
 				throw new AssertionError(e); // This can't happen: because no query
 			}
 		} else {
 			String[] tabs = tabsList.split(" ");
 			for (String tabIndetifier : tabs) {
+				if (tabIndetifier.isEmpty()) {
+					continue;
+				}
 				int separatorPosition = tabIndetifier.indexOf(':');
 				String tabId = tabIndetifier.substring(0, separatorPosition);
 				String uniqId = tabIndetifier.substring(separatorPosition + 1);
@@ -363,9 +375,8 @@ public class TwitterClientMain {
 					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
 				} else {
 					try {
-						ClientTab tab =
-								tabConstructor.newInstance(configuration,
-										configProperties.getProperty("gui.tabs.data." + uniqId));
+						ClientTab tab = tabConstructor.newInstance(
+								configProperties.getProperty("gui.tabs.data." + uniqId));
 						configuration.addFrameTab(tab);
 					} catch (IllegalArgumentException e) {
 						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
@@ -529,14 +540,13 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	@Initializer(name = "set-filter",
-			dependencies = {"config", "rootFilterService", "filter-functions", "filter-properties"}, phase = "init")
+	@Initializer(name = "set-globalfilter",
+			dependencies = {"config", "filter-functions", "filter-properties"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(configuration));
-		configuration.addFilter(new RootFilter(configuration));
 	}
 
-	@Initializer(name = "fetch-sched", dependencies = "recover-clientTabs", phase = "prestart")
+	@Initializer(name = "fetch-sched", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
 	public void setFetchScheduler(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			fetchScheduler = new TwitterDataFetchScheduler();
@@ -549,6 +559,7 @@ public class TwitterClientMain {
 	@Initializer(name = "finish-initPhase", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
+		fetchScheduler.onInitialized();
 	}
 
 	@Initializer(name = "internal-messageNotifiers", phase = "prestart")

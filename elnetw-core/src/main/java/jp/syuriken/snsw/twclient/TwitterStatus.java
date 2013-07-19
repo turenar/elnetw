@@ -95,7 +95,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 
 	private final User user;
 
-	private final String json;
+	//	private final String json;
 
 	private/*final*/ GeoLocation geoLocation;
 
@@ -144,8 +144,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 * @param jsonObject     生JSON。取得できなかった場合にはnull。
 	 */
 	public TwitterStatus(Status originalStatus, JSONObject jsonObject) {
-		json = jsonObject == null ? null : jsonObject.toString();
-
+		//json = jsonObject == null ? null : jsonObject.toString();
 		favorited = originalStatus.isFavorited();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		urlEntities = originalStatus.getURLEntities();
@@ -173,27 +172,20 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (originalStatus instanceof TwitterStatus) {
 			// do nothing
-		} else if (jsonObject == null) {
-			retweetedStatus = new TwitterStatus(retweetedStatus);
+		/*} else if (jsonObject == null) {
+			retweetedStatus = new TwitterStatus(retweetedStatus);*/
 		} else {
-			try {
-				if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
-					CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
-					Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
-					if (cachedStatus == null || cachedStatus instanceof TwitterStatus == false) {
-						Status status =
-								new TwitterStatus(retweetedStatus, jsonObject.isNull("retweeted_status")
-										? null : jsonObject.getJSONObject("retweeted_status"));
-						cachedStatus = cacheManager.cacheStatusIfAbsent(status);
-						if (cachedStatus == null) {
-							cachedStatus = status;
-						}
+			if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
+				CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
+				Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
+				if (cachedStatus == null || cachedStatus instanceof TwitterStatus == false) {
+					Status status = new TwitterStatus(retweetedStatus);
+					cachedStatus = cacheManager.cacheStatusIfAbsent(status);
+					if (cachedStatus == null) {
+						cachedStatus = status;
 					}
-					retweetedStatus = cachedStatus;
 				}
-			} catch (JSONException e) {
-				logger.error("Cannot parse json", e); // already parsed by StatusJSONImpl
-				throw new RuntimeException(e);
+				retweetedStatus = cachedStatus;
 			}
 		}
 		this.retweetedStatus = (TwitterStatus) retweetedStatus;
@@ -294,10 +286,12 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return inReplyToUserId;
 	}
 
+	/*
 	@Override
 	public String getJson() {
 		return json;
 	}
+	*/
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override

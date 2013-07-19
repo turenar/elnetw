@@ -1,7 +1,7 @@
 package jp.syuriken.snsw.twclient.internal;
 
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
-import jp.syuriken.snsw.twclient.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH;

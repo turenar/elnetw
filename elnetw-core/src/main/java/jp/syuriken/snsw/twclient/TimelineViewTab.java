@@ -281,22 +281,21 @@ public class TimelineViewTab extends DefaultClientTab {
 
 	/**
 	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
 	 */
-	public TimelineViewTab(ClientConfiguration configuration) {
-		super(configuration);
+	public TimelineViewTab() {
+		super();
+		configuration.getFetchScheduler().establish(accountId, "my/timeline", getRenderer());
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param data          保存されたデータ
 	 * @throws JSONException JSON例外
 	 */
-	public TimelineViewTab(ClientConfiguration configuration, String data) throws JSONException {
-		super(configuration, data);
+	public TimelineViewTab(String data) throws JSONException {
+		super(data);
+		configuration.getFetchScheduler().establish(accountId, "my/timeline", getRenderer());
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import twitter4j.Twitter;
 
 /**
@@ -10,10 +11,11 @@ import twitter4j.Twitter;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientConfigurationTestImpl extends ClientConfiguration {
-	// proxy
-	@Override
-	public void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
-		super.setFetchScheduler(fetchScheduler);
+	private static final ReentrantLock reentrantLock = new ReentrantLock();
+
+	public void clearGlobalInstance() {
+		ClientConfiguration.setInstance(null);
+		reentrantLock.unlock();
 	}
 
 	@Override
@@ -21,15 +23,14 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 		return null;
 	}
 
-	private static final ReentrantLock reentrantLock = new ReentrantLock();
+	// proxy
+	@Override
+	public void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
+		super.setFetchScheduler(fetchScheduler);
+	}
 
 	public void setGlobalInstance() {
 		reentrantLock.lock();
 		ClientConfiguration.setInstance(this);
-	}
-
-	public void clearGlobalInstance() {
-		ClientConfiguration.setInstance(null);
-		reentrantLock.unlock();
 	}
 }

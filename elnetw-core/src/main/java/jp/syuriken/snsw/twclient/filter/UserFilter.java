@@ -25,11 +25,11 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 
 	private static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 
-	private TreeSet<Long> filterIds;
-
 	private final ClientConfiguration configuration;
 
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
+
+	private TreeSet<Long> filterIds;
 
 	private FilterDispatcherBase query;
 
@@ -93,6 +93,21 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	}
 
 	@Override
+	public boolean onBlock(User source, User blockedUser) {
+		return filterUser(source) || filterUser(blockedUser);
+	}
+
+	@Override
+	public boolean onCleanUp() {
+		return false;
+	}
+
+	@Override
+	public boolean onConnect() {
+		return false;
+	}
+
+	@Override
 	public boolean onDeletionNotice(long directMessageId, long userId) {
 		return filterUser(userId);
 	}
@@ -113,6 +128,11 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 			filtered = query.filter(message);
 		}
 		return filtered ? null : message;
+	}
+
+	@Override
+	public boolean onDisconnect() {
+		return false;
 	}
 
 	@Override
