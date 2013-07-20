@@ -86,6 +86,8 @@ public class DynamicInitializeService extends InitializeService {
 
 		private boolean uninitable;
 
+		private boolean skip;
+
 		/**
 		 * init
 		 *
@@ -180,6 +182,20 @@ public class DynamicInitializeService extends InitializeService {
 			return remainDependencies;
 		}
 
+		/**
+		 * check if this initializer is force resolved
+		 *
+		 * @return whether this initializer is force resolved
+		 */
+		public boolean isSkip() {
+			return skip;
+		}
+
+		/**
+		 * check if this initializer can uninit
+		 *
+		 * @return whether this initializer can uninit
+		 */
 		public boolean isUninitable() {
 			return uninitable;
 		}
@@ -202,6 +218,10 @@ public class DynamicInitializeService extends InitializeService {
 		 * @throws InitializeException exception occurred
 		 */
 		public void run(boolean initializePhase) throws InitializeException {
+			if (skip) { // force resolved
+				return;
+			}
+
 			if (initializePhase && isExecuted) {
 				logger.error("BUG:{} is already initialized", this);
 				return;
@@ -249,6 +269,12 @@ public class DynamicInitializeService extends InitializeService {
 			isExecuted = true;
 		}
 
+		public void setSkip() {
+			if (!isExecuted) {
+				this.skip = true;
+			}
+		}
+
 		public String toString() {
 			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName()
 					+ ")";
@@ -276,7 +302,7 @@ public class DynamicInitializeService extends InitializeService {
 	/** List of called initializer's name */
 	protected final HashSet<String> initializedSet;
 
-	/** Map of initializer's */
+	/** Map of initializer */
 	protected HashMap<String, InitializerInfoImpl> initializerInfoMap;
 
 	/** K=name, V=List of depending on K */
@@ -288,15 +314,16 @@ public class DynamicInitializeService extends InitializeService {
 	/** stack to invoke de-initializer */
 	protected Stack<InitializerInfoImpl> uninitStack;
 
-	private HashSet<String> phaseSet = new HashSet<String>();
+	private HashSet<String> phaseSet;
 
 	private DynamicInitializeService(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		initializerInfoMap = new HashMap<String, InitializerInfoImpl>();
-		initializerDependencyMap = new HashMap<String, ArrayList<InitializerInfoImpl>>();
-		initQueue = new LinkedList<InitializerInfoImpl>();
-		initializedSet = new HashSet<String>();
-		uninitStack = new Stack<InitializerInfoImpl>();
+		initializerInfoMap = new HashMap<>();
+		initializerDependencyMap = new HashMap<>();
+		initQueue = new LinkedList<>();
+		initializedSet = new HashSet<>();
+		uninitStack = new Stack<>();
+		phaseSet = new HashSet<>();
 	}
 
 	private void ensureNotCalledUninit() {
@@ -341,8 +368,13 @@ public class DynamicInitializeService extends InitializeService {
 
 	@Override
 	public InitializeService provideInitializer(String name, boolean force) {
-		if (!force && initializerInfoMap.containsKey(name)) {
-			throw new IllegalArgumentException(name + " is already registered as initializer");
+		if (initializerInfoMap.containsKey(name)) {
+			if (force) {
+				InitializerInfoImpl initializerInfo = initializerInfoMap.get(name);
+				initializerInfo.setSkip();
+			} else {
+				throw new IllegalArgumentException(name + " is already registered as initializer");
+			}
 		}
 
 		resolve(name);
@@ -434,7 +466,9 @@ public class DynamicInitializeService extends InitializeService {
 	private void runResolvedInitializer() throws InitializeException {
 		while (initQueue.isEmpty() == false) {
 			InitializerInfoImpl info = initQueue.poll();
-			logger.trace(" {}:{}", info.getPhase(), info);
+			if (logger.isTraceEnabled()) {
+				logger.trace(" {}{}:{}", (info.isSkip() ? "(skip)" : ""), info.getPhase(), info);
+			}
 			info.run(true);
 			uninitStack.push(info);
 			resolve(info.getName());
@@ -454,5 +488,12 @@ public class DynamicInitializeService extends InitializeService {
 			info.run(false);
 		}
 		uninitStack = null;
+	}
+
+	@Override
+	public InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
+		ensureNotCalledUninit();
+		runResolvedInitializer();
+		return this;
 	}
 }

@@ -37,7 +37,7 @@ public abstract class InitializeService {
 	}
 
 	/**
-	 * enter phase.
+	 * enter phase and run initializers which dependencies is resolved
 	 *
 	 * @param phase phase name
 	 * @return this object
@@ -54,11 +54,22 @@ public abstract class InitializeService {
 	 */
 	public abstract InitializerInfo getInfo(String name);
 
-	/** check initializer which has [name] is initialized */
+	/**
+	 * check initializer which has [name] is initialized
+	 * <p>
+	 * This method checks only <i>name</i> is resolved.
+	 * There is no way to check if THIS-FUNC worked.
+	 * </p>
+	 *
+	 * @param name initializer's name
+	 * @return if initializer which has specified name is initialized, return true.
+	 *         otherwise, return false.
+	 */
 	public abstract boolean isInitialized(String name);
 
 	/**
 	 * check initializer which has specified name is already registered.
+	 *
 	 * @param name initializer name
 	 * @return registered?
 	 */
@@ -66,25 +77,34 @@ public abstract class InitializeService {
 
 	/**
 	 * provide null-initializer as name
+	 *
+	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
+	 *
 	 * @param name initializer's name
 	 * @return this object
 	 * @throws IllegalArgumentException name is already registered
+	 * @see #waitConsumeQueue()
 	 */
 	public abstract InitializeService provideInitializer(String name) throws IllegalArgumentException;
 
 	/**
 	 * provide null-initializer as name
 	 *
+	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
+	 *
 	 * @param name  initializer's name
 	 * @param force if true, do not check whether 'name' is already registered.
 	 *              otherwise, check and throw IllegalArgumentException when 'name' is already registered.
 	 * @return this object
 	 * @throws IllegalArgumentException name is already registered
+	 * @see #waitConsumeQueue()
 	 */
 	public abstract InitializeService provideInitializer(String name, boolean force);
 
 	/**
 	 * register initializer
+	 *
+	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
 	 *
 	 * @param instance instance to invoke instance-method
 	 * @param method   method object
@@ -95,6 +115,8 @@ public abstract class InitializeService {
 	/**
 	 * register initializer
 	 *
+	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
+	 *
 	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
 	 * @return this object
 	 */
@@ -102,6 +124,8 @@ public abstract class InitializeService {
 
 	/**
 	 * register phase.
+	 *
+	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
 	 *
 	 * @param phase the name of phase.
 	 * @return this object
@@ -116,4 +140,12 @@ public abstract class InitializeService {
 	 * @throws InitializeException exception occurred.
 	 */
 	public abstract void uninit() throws InitializeException;
+
+	/**
+	 * wait for init-queue consumed
+	 *
+	 * @return this object
+	 * @throws IllegalStateException {@link #uninit()} is already called
+	 */
+	public abstract InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException;
 }

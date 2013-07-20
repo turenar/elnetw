@@ -39,6 +39,48 @@ public class DynamicInitializeServiceTest {
 		}
 	}
 
+	private static class ForceResolvedInitializer {
+		private static int data;
+
+		@Initializer(name = "rp-1", phase = "rp")
+		public static void a() {
+			data = data | 0x01;
+		}
+
+		protected static void assertCalled() {
+			assertEquals(0b1111, data);
+		}
+
+		@Initializer(name = "rp-2", dependencies = "rp-v2", phase = "rp")
+		public static void b() {
+			assertEquals(0b0001, data);
+			data = data | 0b0010;
+		}
+
+		@Initializer(name = "rp-5", dependencies = {"rp-1", "rp-2", "rp-v3", "rp-v4", "rp-4"}, phase = "rp")
+		public static void c() {
+			assertEquals(0b0111, data);
+			data = data | 0b1000;
+		}
+
+		@Initializer(name = "rp-4", dependencies = "rp-5", phase = "rp")
+		public static void d() { // be never called
+			fail("ForceResolvedInitializer#d must not be called: force resolved");
+		}
+
+		@Initializer(name = "rp-3", dependencies = "rp-2", phase = "rp")
+		public static void e() {
+			assertEquals(0b0011, data);
+			data = data | 0b0100;
+			InitializeService.getService().provideInitializer("rp-v3").provideInitializer("rp-v4", true);
+		}
+
+		@Initializer(name = "rp-v4", dependencies = "rp-5", phase = "rp")
+		public static void f() { // be never called
+			fail("ForceResolvedInitializer#f must not be called: force resolved");
+		}
+	}
+
 	@InitProviderClass
 	protected static class InitConditionInitializer {
 		/*package*/ static boolean isCalled;
@@ -262,5 +304,23 @@ public class DynamicInitializeServiceTest {
 		CrossingPhaseInitializer.assertCalled1();
 		initService.enterPhase("cp2");
 		CrossingPhaseInitializer.assertCalled2();
+	}
+
+	@Test
+	public void test_05_forceResolveInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		initService.registerPhase("rp");
+		initService.register(ForceResolvedInitializer.class);
+		initService.enterPhase("rp");
+		initService.provideInitializer("rp-v2");
+		try {
+			initService.provideInitializer("rp-4");
+			fail(); // rp-4 is already registered.
+		} catch (IllegalArgumentException ignore) {
+			// do nothing
+		}
+		initService.provideInitializer("rp-4", true); // force to provide
+		initService.waitConsumeQueue();
+		ForceResolvedInitializer.assertCalled();
 	}
 }
