@@ -36,7 +36,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -51,6 +50,8 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -234,17 +235,12 @@ import static java.lang.Math.max;
 	private final class DefaultMouseListener implements MouseListener {
 
 		private static final String DEL_FTAG = "<!-- del -->";
-
 		private static final String DEL_ETAG = "<!-- /del -->";
-
 		private static final String DEL_ALL = "<!-- delbefthis -->";
-
 		private static final String UNDERLINE_TAG = DEL_FTAG
 				+ "<span style='text-decoration:underline' class='autoinserted'>" + DEL_ETAG;
-
 		private static final String HTML_UNDERLINE_TAG =
 				"<html><span style='text-decoration:underline' class='autohtmled'>" + DEL_ALL;
-
 		private static final String END_TAG = DEL_FTAG + "</span>" + DEL_ETAG;
 
 		@Override
@@ -350,6 +346,61 @@ import static java.lang.Math.max;
 		}
 	}
 
+	private class PostTask extends TwitterRunnable implements ParallelRunnable {
+
+		private final String text;
+		private ClientTab tab;
+
+		public PostTask(String text, ClientTab selectingTab) {
+			this.text = text;
+			tab = selectingTab;
+		}
+
+		@Override
+		protected void access() throws TwitterException {
+			try {
+				// String escapedText = HTMLEntity.escape(text);
+				String escapedText = text;
+				StatusUpdate statusUpdate = new StatusUpdate(escapedText);
+
+				if (inReplyToStatus != null) {
+					statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
+				}
+				configuration.getTwitterForWrite().updateStatus(statusUpdate);
+				postBox.setText("");
+				updatePostLength();
+				inReplyToStatus = null;
+				tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
+			} finally {
+				try {
+					final TwitterClientFrame this$tcf = TwitterClientFrame.this;
+					Runnable enabler = new Runnable() {
+
+						@Override
+						public void run() {
+							this$tcf.postActionButton.setEnabled(true);
+							this$tcf.postBox.setEnabled(true);
+						}
+					};
+					if (EventQueue.isDispatchThread()) {
+						enabler.run();
+					} else {
+						EventQueue.invokeAndWait(enabler);
+					}
+				} catch (InterruptedException e) {
+					// do nothing
+				} catch (InvocationTargetException e) {
+					logger.warn("doPost", e);
+				}
+			}
+		}
+
+		@Override
+		protected void onException(TwitterException ex) {
+			tab.getRenderer().onException(ex);
+		}
+	}
+
 	/**
 	 * ログイン出来るユーザー情報を取得する
 	 *
@@ -358,15 +409,10 @@ import static java.lang.Math.max;
 	/*package*/final class UserInfoFetcher implements Runnable {
 
 		public final String[] accountList = configuration.getAccountList();
-
 		final UserInfoFetcher this$uif = UserInfoFetcher.this;
-
 		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-
 		public int offset = 0;
-
 		public JMenuItem[] readTimelineMenuItems;
-
 		public JMenuItem[] postToMenuItems;
 
 		/** インスタンスを生成する。 */
@@ -441,62 +487,6 @@ import static java.lang.Math.max;
 			}
 		}
 	}
-
-	private class PostTask extends TwitterRunnable implements ParallelRunnable {
-
-		private final String text;
-		private ClientTab tab;
-
-		public PostTask(String text, ClientTab selectingTab) {
-			this.text = text;
-			tab = selectingTab;
-		}
-
-		@Override
-		protected void access() throws TwitterException {
-			try {
-				// String escapedText = HTMLEntity.escape(text);
-				String escapedText = text;
-				StatusUpdate statusUpdate = new StatusUpdate(escapedText);
-
-				if (inReplyToStatus != null) {
-					statusUpdate.setInReplyToStatusId(inReplyToStatus.getId());
-				}
-				configuration.getTwitterForWrite().updateStatus(statusUpdate);
-				postBox.setText("");
-				updatePostLength();
-				inReplyToStatus = null;
-				tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
-			} finally {
-				try {
-					final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-					Runnable enabler = new Runnable() {
-
-						@Override
-						public void run() {
-							this$tcf.postActionButton.setEnabled(true);
-							this$tcf.postBox.setEnabled(true);
-						}
-					};
-					if (EventQueue.isDispatchThread()) {
-						enabler.run();
-					} else {
-						EventQueue.invokeAndWait(enabler);
-					}
-				} catch (InterruptedException e) {
-					// do nothing
-				} catch (InvocationTargetException e) {
-					logger.warn("doPost", e);
-				}
-			}
-		}
-
-		@Override
-		protected void onException(TwitterException ex) {
-			tab.getRenderer().onException(ex);
-		}
-	}
-
 	/**
 	 * アプリケーション名
 	 *
@@ -504,84 +494,46 @@ import static java.lang.Math.max;
 	 */
 	@Deprecated
 	public static final String APPLICATION_NAME = "elnetw";
-
-	/** デフォルトフォント: TODO from config */
-	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-
-	/** UIフォント: TODO from config */
-	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
-
 	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
-
+	/** デフォルトフォント */
+	public final Font DEFAULT_FONT;
+	/** UIフォント */
+	public final Font UI_FONT;
 	/*package*/final transient ClientConfiguration configuration;
-
 	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
-
 	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
-
 	/*package*/ Status inReplyToStatus = null;
-
 	/*package*/JPanel editPanel;
-
 	/*package*/JPanel postPanel;
-
 	/*package*/JScrollPane postBoxScrollPane;
-
 	/*package*/JSplitPane jSplitPane1;
-
 	/*package*/JButton postActionButton;
-
 	/*package*/JTextArea postBox;
-
 	/*package*/JTabbedPane viewTab;
-
 	/*package*/ClientProperties configProperties;
-
 	/*package*/JMenuBar clientMenu;
-
 	/*package*/JPanel tweetViewPanel;
-
 	/*package*/JMenu accountMenu;
-
 	/*package*/JMenu readTimelineJMenu;
-
 	/*package*/JMenu postToJMenu;
-
 	/*package*/JScrollPane tweetViewScrollPane;
-
 	/*package*/JEditorPane tweetViewEditorPane;
-
 	/*package*/JLabel tweetViewCreatedByLabel;
-
 	/*package*/JLabel tweetViewCreatedAtLabel;
-
 	/*package*/transient ImageCacher imageCacher;
-
 	/*package*/JLabel tweetViewUserIconLabel;
-
 	/*package*/Map<String, String> shortcutKeyMap = new HashMap<String, String>();
-
 	/*package*/JLabel postLengthLabel;
-
 	protected transient ClientTab selectingTab;
-
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
-
 	/*package*/transient DefaultMouseListener tweetViewListener = new DefaultMouseListener();
-
 	/*package*/transient ClientTab tweetViewingTab;
-
 	/*package*/JPanel operationPanelContainer;
-
 	/*package*/JLayeredPane tweetViewTextLayeredPane;
-
 	/*package*/JLabel tweetViewTextOverlayLabel;
-
 	/*package*/int tweetViewCreatedByFlag;
-
 	/*package*/int tweetViewCreatedAtFlag;
-
 	/*package*/int tweetViewTextOverlayFlag;
 
 	/**
@@ -595,6 +547,8 @@ import static java.lang.Math.max;
 		configuration.setFrameApi(this);
 
 		configProperties = configuration.getConfigProperties();
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		initActionHandlerTable();
 
 		getLoginUser();
@@ -664,38 +618,6 @@ import static java.lang.Math.max;
 	@Override
 	public void focusPostBox() {
 		getPostBox().requestFocusInWindow();
-	}
-
-	JPopupMenu generatePopupMenu(ActionListener actionListener) {
-		JPopupMenu popupMenu = new JPopupMenu();
-		Container nowProcessingMenu = popupMenu;
-		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
-
-		for (String actionCommand : popupMenus) {
-			if (actionCommand.trim().isEmpty()) {
-				continue;
-			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
-				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
-				jMenu.setActionCommand("core!submenu");
-				nowProcessingMenu = jMenu;
-				popupMenu.add(nowProcessingMenu);
-				continue;
-			}
-			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
-			if (handler == null) {
-				logger.warn("handler {} is not found.", actionCommand); //TODO
-			} else {
-				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
-				menuItem.setActionCommand(actionCommand);
-				menuItem.addActionListener(actionListener);
-				if (nowProcessingMenu instanceof JPopupMenu) {
-					((JPopupMenu) nowProcessingMenu).add(menuItem);
-				} else {
-					((JMenu) nowProcessingMenu).add(menuItem);
-				}
-			}
-		}
-		return popupMenu;
 	}
 
 	private JMenu getAccountMenu() {

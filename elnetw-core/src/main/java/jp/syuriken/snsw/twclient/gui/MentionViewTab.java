@@ -1,7 +1,9 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import javax.swing.Icon;
 
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.Status;

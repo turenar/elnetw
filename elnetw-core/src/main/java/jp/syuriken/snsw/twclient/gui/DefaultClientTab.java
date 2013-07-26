@@ -1,9 +1,11 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -40,6 +42,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -53,10 +56,20 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import jp.syuriken.snsw.twclient.ActionHandler;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
+import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -574,35 +587,29 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 
 	}
-
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
-
 	/** ポストリストの間のパディング */
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
-
 	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
 	public static final ImageIcon IMG_FAV_OFF;
-
 	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_ON;
-
 	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_HOVER;
-
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
-
 	/** Twitterのロゴ (青背景に白) */
 	public static final ImageIcon IMG_TWITTER_LOGO;
-
 	static {
 		try {
-			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
-			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
-			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
+			IMG_FAV_OFF = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_off32.png")));
+			IMG_FAV_ON = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_on32.png")));
+			IMG_FAV_HOVER = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_hover32.png")));
 		} catch (IOException e) {
 			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
 		}
@@ -665,89 +672,65 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return appendTo;
 	}
-
-	/** {@link ClientConfiguration#getFrameApi()} */
+	/** {@link jp.syuriken.snsw.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
-
 	/** SortedPostListPanelインスタンス */
 	protected final SortedPostListPanel sortedPostListPanel;
-
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
-
 	/** ポストリストリスナのシングルインスタンス */
 	protected final PostListListener postListListenerSingleton = new PostListListener();
-
 	/*package*/final Logger logger = LoggerFactory.getLogger(DefaultClientTab.class);
-
-	/** {@link ClientProperties} */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties} */
 	protected final ClientProperties configProperties;
-
 	/**
 	 * 他のタブと区別するためのユニークなID。
 	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
 	 */
 	protected final String uniqId;
-
 	protected final String accountId;
-
+	/** デフォルトフォント */
+	public final Font DEFAULT_FONT;
+	/** UIフォント */
+	public final Font UI_FONT;
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
-
 	/** 現在選択しているポスト */
 	public StatusPanel selectingPost;
-
 	/** 取得したフォントメトリックス (Default Font) */
 	protected FontMetrics fontMetrics;
-
 	/** フォントの高さ */
 	protected int fontHeight;
-
 	/** 送信元ラベルのサイズ */
 	protected Dimension linePanelSizeOfSentBy;
-
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
-
 	/** [K=ユーザーID, V=ユーザーのツイートなど] */
 	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<>();
-
 	/** [K=ステータスID, V=ツイートなど] */
 	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<>();
-
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
-
 	/** UI更新キュー */
 	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<>();
-
 	/** ポップアップメニュー */
 	protected JPopupMenu tweetPopupMenu;
-
 	/** 慣性スクローラー */
 	protected ScrollUtility scroller;
-
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
-
 	/** 操作用パネル */
 	protected JPanel tweetViewOperationPanel;
-
 	/** ふぁぼボタン */
 	protected JLabel tweetViewFavoriteButton;
-
 	/** リツイートボタン */
 	protected JLabel tweetViewRetweetButton;
-
 	/** リプライボタン */
 	protected JLabel tweetViewReplyButton;
-
 	/** その他用ボタン */
 	protected JLabel tweetViewOtherButton;
-
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
 	 *
@@ -773,9 +756,10 @@ public abstract class DefaultClientTab implements ClientTab {
 		sortedPostListPanel = new SortedPostListPanel();
 		accountId = "$reader";
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		init(configuration);
 	}
-
 
 	/**
 	 * インスタンスを生成する。
@@ -792,6 +776,8 @@ public abstract class DefaultClientTab implements ClientTab {
 		sortedPostListPanel = new SortedPostListPanel();
 		accountId = serializedJson.optString("accountId", "$reader");
 		uniqId = serializedJson.getString("uniqId");
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		init(configuration);
 	}
 
@@ -844,7 +830,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			screenName = screenName.substring(0, 9) + "..";
 		}
 		JLabel sentBy = new JLabel(screenName);
-		sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
+		sentBy.setFont(DEFAULT_FONT);
 		statusData.sentBy = sentBy;
 
 		JLabel statusText = new JLabel(status.getText());
@@ -1098,6 +1084,38 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 	}
 
+	protected JPopupMenu generatePopupMenu(ActionListener actionListener) {
+		JPopupMenu popupMenu = new JPopupMenu();
+		Container nowProcessingMenu = popupMenu;
+		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
+
+		for (String actionCommand : popupMenus) {
+			if (actionCommand.trim().isEmpty()) {
+				continue;
+			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
+				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
+				jMenu.setActionCommand("core!submenu");
+				nowProcessingMenu = jMenu;
+				popupMenu.add(nowProcessingMenu);
+				continue;
+			}
+			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
+			if (handler == null) {
+				logger.warn("handler {} is not found.", actionCommand); //TODO
+			} else {
+				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
+				menuItem.setActionCommand(actionCommand);
+				menuItem.addActionListener(actionListener);
+				if (nowProcessingMenu instanceof JPopupMenu) {
+					((JPopupMenu) nowProcessingMenu).add(menuItem);
+				} else {
+					((JMenu) nowProcessingMenu).add(menuItem);
+				}
+			}
+		}
+		return popupMenu;
+	}
+
 	/**
 	 * 実際に描画するレンダラ。
 	 *
@@ -1147,10 +1165,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
-	* スクロールペーン。
-	*
-	* @return JScrollPane
-	*/
+	 * スクロールペーン。
+	 *
+	 * @return JScrollPane
+	 */
 	@SuppressWarnings("serial")
 	protected JScrollPane getScrollPane() {
 		if (postListScrollPane == null) {
@@ -1381,10 +1399,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
-	* ツイートビューの隣に表示するリツイートボタン
-	*
-	* @return リツイートボタン
-	*/
+	 * ツイートビューの隣に表示するリツイートボタン
+	 *
+	 * @return リツイートボタン
+	 */
 	protected JLabel getTweetViewRetweetButton() {
 		if (tweetViewRetweetButton == null) {
 			tweetViewRetweetButton = new JLabel("RT", SwingConstants.CENTER);
@@ -1433,8 +1451,9 @@ public abstract class DefaultClientTab implements ClientTab {
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				TimeUnit.MILLISECONDS);
-		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
-		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+		TweetPopupMenuListener tweetPopupMenuListener = new TweetPopupMenuListener();
+		tweetPopupMenu = generatePopupMenu(tweetPopupMenuListener);
+		tweetPopupMenu.addPopupMenuListener(tweetPopupMenuListener);
 		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
 
 			@Override

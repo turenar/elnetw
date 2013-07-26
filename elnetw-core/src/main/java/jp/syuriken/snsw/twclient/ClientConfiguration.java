@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
@@ -41,52 +42,35 @@ public class ClientConfiguration {
 
 	/** スクロール量のプロパティ名 */
 	public static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
-
 	/** フォーカスしたポストの色のプロパティ名 */
 	public static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
-
 	/** メンション判定の厳密な比較するかどうかのプロパティ名 */
 	public static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
-
 	/** 情報の生存時間のプロパティ名 */
 	public static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
-
 	/** UI更新間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
-
 	/** アカウントリストのプロパティ名 */
 	public static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
-
 	/** メンション取得の取得ステータス数のプロパティ名 */
 	public static final String PROPERTY_PAGING_MENTIONS = "twitter.mention.count";
-
 	/** メンション取得のページングのプロパティ名 */
 	public static final String PROPERTY_INTERVAL_MENTIONS = "twitter.mention.interval";
-
 	/** タイムライン取得の取得ステータス数のプロパティ名 */
 	public static final String PROPERTY_PAGING_TIMELINE = "twitter.timeline.count";
-
 	/** タイムライン取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.timeline.interval";
-
 	/** ダイレクトメッセージ取得の取得ステータス数のプロパティ名 */
 	public static final String PROPERTY_PAGING_DIRECT_MESSAGES = "twitter.dm.count";
-
 	/** ダイレクトメッセージ取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_DIRECT_MESSAGES = "twitter.dm.interval";
-
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
-
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
-
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
-
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
-
 	private static ClientConfiguration INSTANCE;
-
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
 
@@ -158,53 +142,29 @@ public class ClientConfiguration {
 	static void setInstance(ClientConfiguration conf) {
 		INSTANCE = conf;
 	}
-
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
-
 	private final Utility utility = new Utility(this);
-
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-
 	private final transient JobQueue jobQueue = new JobQueue();
-
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
-
 	/*package*/ ClientProperties configProperties;
-
 	/*package*/ ClientProperties configDefaultProperties;
-
 	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
-
 	private TrayIcon trayIcon;
-
 	private boolean isShutdownPhase = false;
-
 	private TwitterClientFrame frameApi;
-
 	private boolean isInitializing = true;
-
 	private ConfigFrameBuilder configBuilder;
-
 	private volatile ImageCacher imageCacher;
-
 	private volatile String accountIdForRead;
-
 	private volatile String accountIdForWrite;
-
 	private TwitterDataFetchScheduler fetchScheduler;
-
 	private boolean portabledConfiguration;
-
 	private volatile CacheManager cacheManager;
-
 	private List<String> args;
-
 	private transient ScheduledExecutorService timer;
-
 	private ClassLoader extraClassLoader;
-
 	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
 
 	/**
@@ -972,9 +932,13 @@ public class ClientConfiguration {
 	public Exception tryGetOAuthToken() {
 		Twitter twitter;
 		try {
-			twitter = new OAuthFrame(this).show();
+			twitter = new OAuthHelper(this).show();
 		} catch (TwitterException e) {
 			return e;
+		}
+
+		if (twitter == null) { // canceled
+			return null;
 		}
 
 		//将来の参照用に accessToken を永続化する

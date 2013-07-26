@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.internal;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -13,6 +13,8 @@ import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+
+import jp.syuriken.snsw.twclient.StatusPanel;
 
 /**
  * 日時でソートするポストリスト。

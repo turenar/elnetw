@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;

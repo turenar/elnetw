@@ -1,6 +1,10 @@
 package jp.syuriken.snsw.twclient.net;
 
+import java.util.TreeSet;
+
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -16,17 +20,21 @@ import twitter4j.UserList;
 /*package*/class VirtualMultipleMessageDispatcher implements ClientMessageListener {
 
 	private final String[] paths;
-
 	private TwitterDataFetchScheduler scheduler;
 
-	public VirtualMultipleMessageDispatcher(TwitterDataFetchScheduler scheduler, String accountId,
+	public VirtualMultipleMessageDispatcher(TwitterDataFetchScheduler scheduler, boolean recursive, String accountId,
 			String[] notifierNames) {
 		this.scheduler = scheduler;
-		String[] paths = new String[notifierNames.length];
-		for (int i = 0; i < paths.length; i++) {
-			paths[i] = scheduler.getPath(accountId, notifierNames[i]);
+		// 重複をなくすためArrayListではない。が、TreeSetのほうが結果的に重いかも
+		TreeSet<String> paths = new TreeSet<>();
+		for (String notifierName : notifierNames) {
+			if (recursive) {
+				scheduler.getRecursivePaths(paths, accountId, notifierName);
+			} else {
+				paths.add(scheduler.getPath(accountId, notifierName));
+			}
 		}
-		this.paths = paths;
+		this.paths = paths.toArray(new String[paths.size()]);
 	}
 
 	@Override

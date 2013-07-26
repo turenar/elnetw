@@ -1,4 +1,6 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
+
+import jp.syuriken.snsw.twclient.ClientMessageListener;
 
 /**
  * タブレンダラ

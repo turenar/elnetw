@@ -2,6 +2,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -12,11 +13,7 @@ import java.util.Scanner;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * ClientPropertiesのためのテスト
@@ -34,7 +31,6 @@ public class ClientPropertiesTest {
 			assertEquals("aaa", evt.getNewValue());
 		}
 	}
-
 	private static final int BENCH_COUNT = 100000;
 
 	/**
@@ -57,7 +53,6 @@ public class ClientPropertiesTest {
 		System.out.print("Obfuscated value: ");
 		System.out.println(configProperties.getProperty(key));
 	}
-
 	/* **********************
 	 *== bench report: BENCH_COUNT=10^7
 	 * == No cache result ===
@@ -121,9 +116,7 @@ public class ClientPropertiesTest {
 		assertEquals(Color.white, clientProperties.getColor("bbb"));
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetDimension() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -189,6 +182,48 @@ public class ClientPropertiesTest {
 		assertEquals(Float.NaN, clientProperties.getFloat("ddd"), 0.0001);
 		assertEquals(Float.NEGATIVE_INFINITY, clientProperties.getFloat("eee"), 0.0001);
 		assertEquals(Float.POSITIVE_INFINITY, clientProperties.getFloat("fff"), 0.0001);
+	}
+
+	@Test
+	public void testGetFont() {
+		ClientProperties clientProperties = new ClientProperties();
+		Font fontA = new Font(Font.MONOSPACED, Font.PLAIN, 10);
+		clientProperties.setFont("aaa", fontA);
+		Font fontB = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 11);
+		clientProperties.setFont("bbb", fontB);
+		clientProperties.setProperty("ccc", "Monospaced,10,plain");
+		clientProperties.setProperty("ddd", "SansSerif,  11, bold|italic");
+		clientProperties.setProperty("eee", "Monospaced,10,bold");
+		clientProperties.setProperty("fff", "Monospaced,12,italic");
+		clientProperties.setProperty("ggg", "Monospaced,13,italic|bold");
+		clientProperties.setProperty("hhh", "Monospaced,14");
+
+		timerStart();
+		for (int i = 0; i < BENCH_COUNT; i++) {
+			clientProperties.getFont("aaa");
+		}
+		timerStop("getFont");
+
+		assertEquals(fontA, clientProperties.getFont("aaa"));
+		assertEquals(fontB, clientProperties.getFont("bbb"));
+		assertEquals(fontA, clientProperties.getFont("ccc"));
+		assertEquals(fontB, clientProperties.getFont("ddd"));
+		Font fontE = clientProperties.getFont("eee");
+		assertEquals("Monospaced", fontE.getName());
+		assertEquals(10, fontE.getSize());
+		assertEquals(Font.BOLD, fontE.getStyle());
+		Font fontF = clientProperties.getFont("fff");
+		assertEquals("Monospaced", fontF.getName());
+		assertEquals(12, fontF.getSize());
+		assertEquals(Font.ITALIC, fontF.getStyle());
+		Font fontG = clientProperties.getFont("ggg");
+		assertEquals("Monospaced", fontG.getName());
+		assertEquals(13, fontG.getSize());
+		assertEquals(Font.ITALIC | Font.BOLD, fontG.getStyle());
+		Font fontH = clientProperties.getFont("hhh");
+		assertEquals("Monospaced", fontH.getName());
+		assertEquals(14, fontH.getSize());
+		assertEquals(Font.PLAIN, fontH.getStyle());
 	}
 
 	/**

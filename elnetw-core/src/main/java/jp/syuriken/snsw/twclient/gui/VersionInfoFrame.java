@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Font;
 import java.io.BufferedReader;
@@ -20,6 +20,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.VersionInfo;
 import jp.syuriken.snsw.twclient.jni.JavaGnome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,6 @@ public class VersionInfoFrame extends JFrame {
 
 		/** ライブラリ名 */
 		protected String name;
-
 		/** ライブラリ情報。ライセンスなど */
 		protected String info;
 
@@ -74,7 +75,6 @@ public class VersionInfoFrame extends JFrame {
 			return name;
 		}
 	}
-
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
 
 	private static String getData(String resourceName) {
@@ -106,17 +106,11 @@ public class VersionInfoFrame extends JFrame {
 			}
 		}
 	}
-
 	private List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
-
 	private JSplitPane splitPane;
-
 	private JScrollPane libraryListScrollPane;
-
 	private JScrollPane infoTextScrollPane;
-
 	private JTextArea infoTextPane;
-
 	private JList<String> libraryList;
 
 	/** インスタンスを生成する */

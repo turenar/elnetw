@@ -16,10 +16,9 @@ import twitter4j.auth.RequestToken;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class OAuthFrame {
+public class OAuthHelper {
 
-	private static final Logger logger = LoggerFactory.getLogger(OAuthFrame.class);
-
+	private static final Logger logger = LoggerFactory.getLogger(OAuthHelper.class);
 	private final ClientConfiguration configuration;
 
 	/**
@@ -27,7 +26,7 @@ public class OAuthFrame {
 	 *
 	 * @param configuration 設定
 	 */
-	public OAuthFrame(ClientConfiguration configuration) {
+	public OAuthHelper(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
 

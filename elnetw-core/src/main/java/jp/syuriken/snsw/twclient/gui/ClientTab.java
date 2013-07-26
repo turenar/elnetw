@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Component;
 
@@ -83,7 +83,7 @@ public interface ClientTab {
 	/**
 	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
 	 * <p>
-	 * {@link TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * {@link jp.syuriken.snsw.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
 	 * @param command コマンド名
@@ -95,7 +95,7 @@ public interface ClientTab {
 	/**
 	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
 	 * <p>
-	 * {@link TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * {@link jp.syuriken.snsw.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
 	 * @param args IntentArgumentsインスタンス

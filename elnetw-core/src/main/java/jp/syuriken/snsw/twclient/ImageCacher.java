@@ -37,25 +37,18 @@ public class ImageCacher {
 
 		/** イメージURL */
 		public final URL url;
-
 		/** 画像キー */
 		public final String imageKey;
-
 		/** Image インスタンス */
 		public Image image;
-
 		/** キャッシュ先のファイル */
 		public File cacheFile;
-
 		/** 生の画像データ */
 		public byte[] rawimage;
-
 		/** すでに書きこまれたかどうか */
 		protected volatile boolean isWritten = false;
-
 		/** 指定時間内の出現回数 */
 		public volatile int appearCount;
-
 		/** カウント終了時間 (ms) */
 		public volatile long countEndTime;
 
@@ -100,7 +93,6 @@ public class ImageCacher {
 
 		/** イメージエントリ */
 		public final ImageEntry entry;
-
 		/** イメージアイコンを設定するJLabel */
 		public final JLabel label;
 
@@ -162,27 +154,18 @@ public class ImageCacher {
 			flushImage(entry);
 		}
 	}
-
 	/** Buffersize */
 	private static final int BUFSIZE = 65536;
-
 	private final ClientConfiguration configuration;
-
 	/** キャッシュ出力先ディレクトリ */
 	public final File CACHE_DIR;
-
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File USER_ICON_CACHE_DIR;
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
 	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
-
 	/** キャッシュ有効時間 */
 	private long cacheExpire;
-
 	private int flushThreshold;
-
 	private int flushResetInterval;
 
 	/**
@@ -398,7 +381,7 @@ public class ImageCacher {
 		return fileName;
 	}
 
-	private void incrementAppearCount(ImageEntry entry) {
+	protected void incrementAppearCount(ImageEntry entry) {
 		if (entry.isWritten) {
 			return;
 		}

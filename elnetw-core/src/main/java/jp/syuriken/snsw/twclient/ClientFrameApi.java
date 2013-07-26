@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;

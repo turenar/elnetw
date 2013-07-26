@@ -67,7 +67,11 @@ import jp.syuriken.snsw.twclient.handler.TweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
-import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
+import jp.syuriken.snsw.twclient.gui.MentionViewTab;
+import jp.syuriken.snsw.twclient.gui.TimelineViewTab;
+import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.init.DynamicInitializeService;
 import jp.syuriken.snsw.twclient.init.InitCondition;
 import jp.syuriken.snsw.twclient.init.InitializeException;
@@ -696,7 +700,7 @@ public class TwitterClientMain {
 		AccessToken accessToken;
 		do {
 			try {
-				twitter = new OAuthFrame(configuration).show();
+				twitter = new OAuthHelper(configuration).show();
 				if (twitter == null) {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);

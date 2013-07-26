@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Color;
 import java.awt.event.FocusEvent;
@@ -9,6 +9,10 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 
 import com.twitter.Regex;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.User;
@@ -45,7 +49,6 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			offset = position + 9;
 		}
 	}
-
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
 		@Override
@@ -74,7 +77,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				screenName = screenName.substring(0, 9) + "..";
 			}
 			JLabel sentBy = new JLabel(screenName);
-			sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
+			sentBy.setFont(DEFAULT_FONT);
 			statusData.sentBy = sentBy;
 
 			JLabel statusText =
@@ -89,9 +92,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			// do nothing
 		}
 	};
-
 	private boolean focusGained;
-
 	private boolean isDirty;
 
 

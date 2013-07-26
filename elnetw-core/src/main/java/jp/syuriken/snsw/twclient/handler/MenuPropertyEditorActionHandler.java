@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient.handler;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.PropertyEditorFrame;
+import jp.syuriken.snsw.twclient.gui.PropertyEditorFrame;
 
 /**
  * メニューのプロパティエディタを開くためのアクションハンドラ

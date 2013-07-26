@@ -1,7 +1,9 @@
 package jp.syuriken.snsw.twclient.net;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -23,6 +25,30 @@ import twitter4j.conf.Configuration;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterDataFetchScheduler {
+	private static class NullIterable implements Iterable<ClientMessageListener> {
+		@Override
+		public Iterator<ClientMessageListener> iterator() {
+			return NULL_ITERATOR;
+		}
+	}
+
+	private static class NullIterator implements Iterator<ClientMessageListener> {
+		@Override
+		public boolean hasNext() {
+			return false;
+		}
+
+		@Override
+		public ClientMessageListener next() {
+			return null;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	}
+
 	private final class ApiConfigurationFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		@Override
@@ -30,25 +56,25 @@ public class TwitterDataFetchScheduler {
 			apiConfiguration = twitterForRead.getAPIConfiguration();
 		}
 	}
-
 	private static final Logger logger = LoggerFactory.getLogger(TwitterDataFetchScheduler.class);
+	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = new NullIterator();
+	/*package*/ static final Iterable<ClientMessageListener> NULL_LISTENERS = new NullIterable();
+
+	private static String getAppended(StringBuilder builder, String appendedString) {
+		int oldLength = builder.length();
+		String ret = builder.append(appendedString).toString();
+		builder.setLength(oldLength);
+		return ret;
+	}
 
 	/*package*/final ClientConfiguration configuration;
-
 	protected HashMap<String, String[]> virtualPathMap = new HashMap<>();
-
 	protected HashMap<String, DataFetcherFactory> fetcherMap = new HashMap<>();
-
 	protected LinkedHashMap<String, DataFetcher> pathMap = new LinkedHashMap<>();
-
 	protected HashMap<String, CopyOnWriteArrayList<ClientMessageListener>> pathListenerMap = new HashMap<>();
-
 	/*package*/ Twitter twitterForRead;
-
 	/*package*/ ClientProperties configProperties;
-
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
-
 	private volatile boolean isInitialized;
 
 	/** インスタンスを生成する。 */
@@ -78,6 +104,13 @@ public class TwitterDataFetchScheduler {
 	public synchronized boolean establish(String accountId, String notifierName, ClientMessageListener listener) {
 		String path = getPath(accountId, notifierName);
 
+		CopyOnWriteArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
+		if (messageListeners == null) {
+			messageListeners = new CopyOnWriteArrayList<>();
+			pathListenerMap.put(path, messageListeners);
+		}
+		messageListeners.add(listener);
+
 		String[] virtualPaths = virtualPathMap.get(notifierName);
 		if (virtualPaths != null) {
 			for (String virtualPath : virtualPaths) {
@@ -88,7 +121,9 @@ public class TwitterDataFetchScheduler {
 			if (dataFetcher == null) {
 				DataFetcherFactory factory = fetcherMap.get(notifierName);
 				if (factory == null) {
-					logger.warn("DataFetcher `{}' is not found.", notifierName);
+					if (!notifierName.endsWith("all")) {
+						logger.warn("DataFetcher `{}' is not found.", notifierName);
+					}
 					return false;
 				}
 				dataFetcher = factory.getInstance(this, accountId, notifierName);
@@ -99,13 +134,6 @@ public class TwitterDataFetchScheduler {
 				}
 			}
 		}
-
-		CopyOnWriteArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
-		if (messageListeners == null) {
-			messageListeners = new CopyOnWriteArrayList<>();
-			pathListenerMap.put(path, messageListeners);
-		}
-		messageListeners.add(listener);
 		return true;
 	}
 
@@ -119,7 +147,8 @@ public class TwitterDataFetchScheduler {
 	}
 
 	/*package*/ Iterable<ClientMessageListener> getInternalListeners(String path) {
-		return pathListenerMap.get(path);
+		CopyOnWriteArrayList<ClientMessageListener> listeners = pathListenerMap.get(path);
+		return listeners == null ? NULL_LISTENERS : listeners;
 	}
 
 	/**
@@ -131,11 +160,47 @@ public class TwitterDataFetchScheduler {
 	 * @return peerに通知するためのリスナ。キャッシュされるべき。
 	 */
 	public ClientMessageListener getListeners(String accountId, String... notifierName) {
-		return new VirtualMultipleMessageDispatcher(this, accountId, notifierName);
+		return getListeners(accountId, true, notifierName);
+	}
+
+	/**
+	 * DataFetcherがpeerに通知するためのリスナを取得する。返り値はキャッシュされるべき。
+	 * peerが2つあるいはそれ以上あっても、返り値のインスタンスの内部でそれぞれのpeerに通知される
+	 *
+	 * @param accountId    アカウントID (peer)
+	 * @param recursive    再帰的に通知する
+	 * @param notifierName 通知Identifier (&quot;my/timeline&quot;など)
+	 * @return peerに通知するためのリスナ。キャッシュされるべき。
+	 */
+	public ClientMessageListener getListeners(String accountId, boolean recursive, String... notifierName) {
+		return new VirtualMultipleMessageDispatcher(this, recursive, accountId, notifierName);
 	}
 
 	/*package*/ String getPath(String accountId, String notifierName) {
 		return accountId + ":" + notifierName;
+	}
+
+	public String[] getRecursivePaths(String accountId, String notifierName) {
+		ArrayList<String> paths = new ArrayList<>();
+		getRecursivePaths(paths, accountId, notifierName);
+		return paths.toArray(new String[paths.size()]);
+	}
+
+	public void getRecursivePaths(Collection<String> paths, String accountId, String notifierName) {
+		String[] notifierDirs = notifierName.split("/");
+		StringBuilder builder = new StringBuilder(accountId).append(':');
+		paths.add(getAppended(builder, "all"));
+
+		final int max = notifierDirs.length - 1;
+		for (int i = 0; i < max; i++) {
+			if (i != 0) {
+				builder.append('/');
+			}
+			builder.append(notifierDirs[i]);
+
+			paths.add(getAppended(builder, "/all"));
+		}
+		paths.add(getPath(accountId, notifierName));
 	}
 
 	/**

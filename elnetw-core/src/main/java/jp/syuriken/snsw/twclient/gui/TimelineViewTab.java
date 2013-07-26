@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -9,6 +9,11 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
