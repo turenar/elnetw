@@ -3,6 +3,8 @@ package jp.syuriken.snsw.twclient.net;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -17,6 +19,7 @@ import twitter4j.UserList;
  */
 /*package*/class VirtualMultipleMessageDispatcher implements ClientMessageListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(VirtualMultipleMessageDispatcher.class);
 	private final String[] paths;
 	private TwitterDataFetchScheduler scheduler;
 
@@ -39,7 +42,11 @@ import twitter4j.UserList;
 	public void onBlock(User source, User blockedUser) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onBlock(source, blockedUser);
+				try {
+					listener.onBlock(source, blockedUser);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -48,7 +55,11 @@ import twitter4j.UserList;
 	public void onChangeAccount(boolean forWrite) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onChangeAccount(forWrite);
+				try {
+					listener.onChangeAccount(forWrite);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -57,7 +68,11 @@ import twitter4j.UserList;
 	public void onCleanUp() {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onCleanUp();
+				try {
+					listener.onCleanUp();
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -66,7 +81,11 @@ import twitter4j.UserList;
 	public void onClientMessage(String mesName, Object arg) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onClientMessage(mesName, arg);
+				try {
+					listener.onClientMessage(mesName, arg);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -75,7 +94,11 @@ import twitter4j.UserList;
 	public void onConnect() {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onConnect();
+				try {
+					listener.onConnect();
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -84,7 +107,11 @@ import twitter4j.UserList;
 	public void onDeletionNotice(long directMessageId, long userId) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onDeletionNotice(directMessageId, userId);
+				try {
+					listener.onDeletionNotice(directMessageId, userId);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -93,7 +120,11 @@ import twitter4j.UserList;
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onDeletionNotice(statusDeletionNotice);
+				try {
+					listener.onDeletionNotice(statusDeletionNotice);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -102,7 +133,11 @@ import twitter4j.UserList;
 	public void onDirectMessage(DirectMessage directMessage) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onDirectMessage(directMessage);
+				try {
+					listener.onDirectMessage(directMessage);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -111,7 +146,11 @@ import twitter4j.UserList;
 	public void onDisconnect() {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onDisconnect();
+				try {
+					listener.onDisconnect();
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -120,7 +159,11 @@ import twitter4j.UserList;
 	public void onException(Exception ex) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onException(ex);
+				try {
+					listener.onException(ex);
+				} catch (RuntimeException re) {
+					logger.warn("uncaught exception", re);
+				}
 			}
 		}
 	}
@@ -129,7 +172,11 @@ import twitter4j.UserList;
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onFavorite(source, target, favoritedStatus);
+				try {
+					listener.onFavorite(source, target, favoritedStatus);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -138,7 +185,11 @@ import twitter4j.UserList;
 	public void onFollow(User source, User followedUser) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onFollow(source, followedUser);
+				try {
+					listener.onFollow(source, followedUser);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -147,7 +198,11 @@ import twitter4j.UserList;
 	public void onFriendList(long[] friendIds) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onFriendList(friendIds);
+				try {
+					listener.onFriendList(friendIds);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -156,7 +211,11 @@ import twitter4j.UserList;
 	public void onScrubGeo(long userId, long upToStatusId) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onScrubGeo(userId, upToStatusId);
+				try {
+					listener.onScrubGeo(userId, upToStatusId);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -165,7 +224,11 @@ import twitter4j.UserList;
 	public void onStallWarning(StallWarning warning) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onStallWarning(warning);
+				try {
+					listener.onStallWarning(warning);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -174,7 +237,11 @@ import twitter4j.UserList;
 	public void onStatus(Status status) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onStatus(status);
+				try {
+					listener.onStatus(status);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -183,7 +250,11 @@ import twitter4j.UserList;
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onTrackLimitationNotice(numberOfLimitedStatuses);
+				try {
+					listener.onTrackLimitationNotice(numberOfLimitedStatuses);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -192,7 +263,11 @@ import twitter4j.UserList;
 	public void onUnblock(User source, User unblockedUser) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUnblock(source, unblockedUser);
+				try {
+					listener.onUnblock(source, unblockedUser);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -201,7 +276,11 @@ import twitter4j.UserList;
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUnfavorite(source, target, unfavoritedStatus);
+				try {
+					listener.onUnfavorite(source, target, unfavoritedStatus);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -210,7 +289,11 @@ import twitter4j.UserList;
 	public void onUserListCreation(User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListCreation(listOwner, list);
+				try {
+					listener.onUserListCreation(listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -219,7 +302,11 @@ import twitter4j.UserList;
 	public void onUserListDeletion(User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListDeletion(listOwner, list);
+				try {
+					listener.onUserListDeletion(listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -228,7 +315,11 @@ import twitter4j.UserList;
 	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListMemberAddition(addedMember, listOwner, list);
+				try {
+					listener.onUserListMemberAddition(addedMember, listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -237,7 +328,11 @@ import twitter4j.UserList;
 	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListMemberDeletion(deletedMember, listOwner, list);
+				try {
+					listener.onUserListMemberDeletion(deletedMember, listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -246,7 +341,11 @@ import twitter4j.UserList;
 	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListSubscription(subscriber, listOwner, list);
+				try {
+					listener.onUserListSubscription(subscriber, listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -255,7 +354,11 @@ import twitter4j.UserList;
 	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListUnsubscription(subscriber, listOwner, list);
+				try {
+					listener.onUserListUnsubscription(subscriber, listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -264,7 +367,11 @@ import twitter4j.UserList;
 	public void onUserListUpdate(User listOwner, UserList list) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserListUpdate(listOwner, list);
+				try {
+					listener.onUserListUpdate(listOwner, list);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}
@@ -273,7 +380,11 @@ import twitter4j.UserList;
 	public void onUserProfileUpdate(User updatedUser) {
 		for (String name : paths) {
 			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				listener.onUserProfileUpdate(updatedUser);
+				try {
+					listener.onUserProfileUpdate(updatedUser);
+				} catch (RuntimeException ex) {
+					logger.warn("uncaught exception", ex);
+				}
 			}
 		}
 	}

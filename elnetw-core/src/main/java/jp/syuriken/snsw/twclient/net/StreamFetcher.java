@@ -21,7 +21,7 @@ public class StreamFetcher implements DataFetcher {
 	public StreamFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
 		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
 		this.accountId = accountId;
-		listener = twitterDataFetchScheduler.getListeners(accountId, "my/timeline", "stream/user");
+		listener = twitterDataFetchScheduler.getListeners(accountId, "stream/user");
 	}
 
 	@Override

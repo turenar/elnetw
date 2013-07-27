@@ -21,7 +21,6 @@ import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.UserList;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
 
@@ -33,9 +32,7 @@ import twitter4j.internal.org.json.JSONObject;
 public class TimelineViewTab extends DefaultClientTab {
 
 	/*package*/ static final Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
-
 	private static final String TAB_ID = "timeline";
-
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
 		@Override
@@ -61,11 +58,6 @@ public class TimelineViewTab extends DefaultClientTab {
 
 		@Override
 		public void onConnect() {
-		}
-
-		@Override
-		public void onDeletionNotice(long directMessageId, long userId) {
-			// TODO DM Deletion is not supported yet.
 		}
 
 		@Override
@@ -101,10 +93,6 @@ public class TimelineViewTab extends DefaultClientTab {
 			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
 			statusData.data = new JLabel(message);
 			addStatus(statusData);
-		}
-
-		@Override
-		public void onDisconnect() {
 		}
 
 		@Override
@@ -231,58 +219,8 @@ public class TimelineViewTab extends DefaultClientTab {
 				}
 			}
 		}
-
-		@Override
-		public void onUserListCreation(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListDeletion(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserListUpdate(User listOwner, UserList list) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onUserProfileUpdate(User updatedUser) {
-			// TODO Auto-generated method stub
-
-		}
 	};
-
 	private volatile boolean focusGained;
-
 	private volatile boolean isDirty;
 
 	/** インスタンスを生成する。 */

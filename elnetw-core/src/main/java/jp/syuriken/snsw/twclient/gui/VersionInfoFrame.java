@@ -116,8 +116,8 @@ public class VersionInfoFrame extends JFrame {
 	private JList<String> libraryList;
 
 	/** インスタンスを生成する */
-	public VersionInfoFrame(ClientConfiguration configuration) {
-		initLibraryInfos(configuration);
+	public VersionInfoFrame() {
+		initLibraryInfos();
 		initComponents();
 	}
 
@@ -157,12 +157,13 @@ public class VersionInfoFrame extends JFrame {
 
 	private JList<String> getLibraryList() {
 		if (libraryList == null) {
-			libraryList = new JList<String>();
-			DefaultListModel<String> defaultListModel = new DefaultListModel<String>();
+			libraryList = new JList<>();
+			DefaultListModel<String> defaultListModel = new DefaultListModel<>();
 			for (LibraryInfo libraryName : libraryInfoList) {
 				defaultListModel.addElement(libraryName.getName());
 			}
 			libraryList.setModel(defaultListModel);
+			libraryList.setSelectedIndex(0);
 			libraryList.addListSelectionListener(new ListSelectionListener() {
 
 				@Override
@@ -178,6 +179,9 @@ public class VersionInfoFrame extends JFrame {
 		if (libraryListScrollPane == null) {
 			libraryListScrollPane = new JScrollPane();
 			libraryListScrollPane.setViewportView(getLibraryList());
+			libraryListScrollPane.getVerticalScrollBar().setUnitIncrement(
+					ClientConfiguration.getInstance().getConfigProperties().getInteger(
+							ClientConfiguration.PROPERTY_LIST_SCROLL));
 		}
 		return libraryListScrollPane;
 	}
@@ -199,7 +203,7 @@ public class VersionInfoFrame extends JFrame {
 		getSplitPane().setDividerLocation(150);
 	}
 
-	private void initLibraryInfos(ClientConfiguration configuration) {
+	private void initLibraryInfos() {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("elnetw (エルナト): version")
 				.append(VersionInfo.getUniqueVersion())
@@ -216,8 +220,9 @@ public class VersionInfoFrame extends JFrame {
 					.append(javaGnome.getApiVersion())
 					.append(";version=")
 					.append(javaGnome.getVersion());
-		} else if (javaGnome.isDisabled()) {
-			stringBuilder.append(";disabled");
+			if (javaGnome.isDisabled()) {
+				stringBuilder.append(";disabled");
+			}
 		} else {
 			stringBuilder.append(";missing");
 		}

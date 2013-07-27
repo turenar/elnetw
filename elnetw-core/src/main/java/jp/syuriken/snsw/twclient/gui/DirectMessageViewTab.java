@@ -104,7 +104,8 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	 */
 	public DirectMessageViewTab() throws IllegalSyntaxException {
 		super();
-		configuration.getFetchScheduler().establish("$reader", "my/timeline", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
 	}
 
 	/**
@@ -117,7 +118,8 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	public DirectMessageViewTab(String data) throws JSONException,
 			IllegalSyntaxException {
 		super(data);
-		configuration.getFetchScheduler().establish("$reader", "my/timeline", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
 	}
 
 	@Override

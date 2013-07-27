@@ -135,7 +135,7 @@ import static java.lang.Math.max;
 				case "submenu":
 					return;
 				case "version": {
-					VersionInfoFrame frame = new VersionInfoFrame(configuration);
+					VersionInfoFrame frame = new VersionInfoFrame();
 					frame.setVisible(true);
 					break;
 				}

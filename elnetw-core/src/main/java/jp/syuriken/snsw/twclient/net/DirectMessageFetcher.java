@@ -52,7 +52,6 @@ public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher
 	protected void access() throws TwitterException {
 		ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES)));
-		logger.trace("got {} dm", directMessages.size());
 		for (DirectMessage dm : directMessages) {
 			listeners.onDirectMessage(dm);
 		}

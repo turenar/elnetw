@@ -1,5 +1,7 @@
 package jp.syuriken.snsw.twclient.gui;
 
+import java.awt.EventQueue;
+
 import javax.swing.Icon;
 
 import jp.syuriken.snsw.twclient.StatusData;
@@ -160,14 +162,10 @@ public class MentionViewTab extends DefaultClientTab {
 			// do nothing
 		}
 	}
-
 	private static final String TAB_ID = "mention";
-
 	/** レンダラ */
 	protected TabRenderer renderer = new MentionRenderer();
-
 	private boolean focusGained;
-
 	private boolean isDirty;
 
 
@@ -197,7 +195,11 @@ public class MentionViewTab extends DefaultClientTab {
 	public StatusPanel addStatus(StatusData statusData) {
 		if (focusGained == false && isDirty == false) {
 			isDirty = true;
-			configuration.refreshTab(this);
+			EventQueue.invokeLater(new Runnable() {
+				public void run() {
+					configuration.refreshTab(MentionViewTab.this);
+				}
+			});
 		}
 		return super.addStatus(statusData);
 	}

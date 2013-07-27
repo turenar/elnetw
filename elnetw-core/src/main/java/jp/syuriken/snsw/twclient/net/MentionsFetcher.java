@@ -57,7 +57,6 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 	protected void access() throws TwitterException {
 		ResponseList<Status> mentions = twitter.getMentionsTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_MENTIONS)));
-		logger.trace("got {} mentions", mentions.size());
 		for (Status status : mentions) {
 			listeners.onStatus(status);
 		}

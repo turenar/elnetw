@@ -25,17 +25,11 @@ import twitter4j.TwitterFactory;
 public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(TimelineFetcher.class);
-
 	private final Twitter twitter;
-
 	private final ClientConfiguration configuration;
-
 	private final int intervalOfTimeline;
-
 	private final ClientProperties configProperties;
-
 	private final ClientMessageListener listeners;
-
 	private ScheduledFuture<?> scheduledFuture;
 
 	/**
@@ -45,7 +39,7 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	 * @param accountId                 アカウントID (long)
 	 */
 	public TimelineFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
-		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/timeline", "my/timeline");
+		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/timeline");
 		twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
 
 		configuration = ClientConfiguration.getInstance();
@@ -58,7 +52,6 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	protected void access() throws TwitterException {
 		ResponseList<Status> timeline = twitter.getHomeTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_TIMELINE)));
-		logger.trace("got {} tweets", timeline.size());
 		for (Status status : timeline) {
 			listeners.onStatus(status);
 		}
