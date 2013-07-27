@@ -8,9 +8,9 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -47,7 +47,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * ジョブを追加する
 	 *
 	 * @param priority 優先度
-	 * @param job ジョブ
+	 * @param job      ジョブ
 	 * @deprecated use {@link ClientConfiguration#addJob(Priority, Runnable)}
 	 */
 	@Deprecated
@@ -309,5 +309,4 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	@Deprecated
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
 			String createdAtToolTip, Icon icon, JPanel operationPanel);
-
 }

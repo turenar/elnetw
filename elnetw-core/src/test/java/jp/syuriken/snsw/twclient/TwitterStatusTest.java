@@ -2,7 +2,6 @@ package jp.syuriken.snsw.twclient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -19,9 +18,7 @@ import twitter4j.UserMentionEntity;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.json.DataObjectFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * TwitterStatusのためのテスト
@@ -33,7 +30,7 @@ public class TwitterStatusTest {
 	private static final class ClientConfigurationExtension extends ClientConfiguration {
 		@Override
 		public CacheManager getCacheManager() {
-			return new CacheManager(this){
+			return new CacheManager(this) {
 				@Override
 				public User getCachedUser(long userId) {
 					return null;
@@ -109,8 +106,8 @@ public class TwitterStatusTest {
 	/**
 	 * {@link TwitterStatus#TwitterStatus(Status)} のためのテスト・メソッド。
 	 *
-	 * @throws TwitterException             json例外
-	 * @throws IOException                  IO例外
+	 * @throws TwitterException json例外
+	 * @throws IOException      IO例外
 	 */
 	@Test
 	public void testTwitterStatus() throws TwitterException, IOException {

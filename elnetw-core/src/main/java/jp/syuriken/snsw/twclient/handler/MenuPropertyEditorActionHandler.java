@@ -27,5 +27,4 @@ public class MenuPropertyEditorActionHandler implements ActionHandler {
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 		// This is always enabled.
 	}
-
 }

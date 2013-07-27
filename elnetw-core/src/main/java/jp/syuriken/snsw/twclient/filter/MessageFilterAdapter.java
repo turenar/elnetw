@@ -167,5 +167,4 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	public boolean onUserProfileUpdate(User updatedUser) {
 		return false;
 	}
-
 }

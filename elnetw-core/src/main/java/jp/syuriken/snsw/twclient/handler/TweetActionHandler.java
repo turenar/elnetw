@@ -57,5 +57,4 @@ public class TweetActionHandler extends StatusActionHandlerBase {
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 		// do nothing
 	}
-
 }

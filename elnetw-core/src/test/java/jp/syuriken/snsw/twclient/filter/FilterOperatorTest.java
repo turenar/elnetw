@@ -1,5 +1,10 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import java.util.regex.Pattern;
+
+import com.twitter.Regex;
+import org.junit.Test;
+
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.EQ;
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.GT;
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.GTE;
@@ -10,17 +15,7 @@ import static jp.syuriken.snsw.twclient.filter.FilterOperator.LTE;
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.NE;
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.compileOperatorBool;
 import static jp.syuriken.snsw.twclient.filter.FilterOperator.compileOperatorInt;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.regex.Pattern;
-
-import com.twitter.Regex;
-
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * {@link FilterOperator}のためのテスト
@@ -38,8 +33,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 完全一致
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringExactlyMatch() throws RuntimeException, IllegalSyntaxException {
@@ -53,8 +49,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 先頭一致
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringFirstMatch() throws RuntimeException, IllegalSyntaxException {
@@ -68,8 +65,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 末尾一致
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringLastMatch() throws RuntimeException, IllegalSyntaxException {
@@ -83,8 +81,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 部分一致
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringPartialMatch() throws RuntimeException, IllegalSyntaxException {
@@ -98,8 +97,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 正規表現
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringRegexMatch() throws RuntimeException, IllegalSyntaxException {
@@ -115,8 +115,9 @@ public class FilterOperatorTest {
 	/**
 	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 予期しない演算子
+	 *
 	 * @throws IllegalSyntaxException エラー
-	 * @throws RuntimeException エラー
+	 * @throws RuntimeException       エラー
 	 */
 	@Test
 	public void compareStringUnexpectedOperator() throws RuntimeException, IllegalSyntaxException {
@@ -160,6 +161,7 @@ public class FilterOperatorTest {
 
 	/**
 	 * {@link FilterOperator#compileValueString(String)} のためのテスト・メソッド
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -169,9 +171,7 @@ public class FilterOperatorTest {
 		assertTrue(FilterOperator.compileValueString("/.+") instanceof Pattern);
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(boolean, boolean)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(boolean, boolean)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompareBooleanBoolean() {
 		assertFalse(IS.compare(false, false));
@@ -217,9 +217,7 @@ public class FilterOperatorTest {
 		}
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(long, long)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(long, long)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompareLongLong() {
 		assertFalse(EQ.compare(100, -200));
@@ -242,9 +240,7 @@ public class FilterOperatorTest {
 		assertTrue(GTE.compare(0, 0));
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorBool(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorBool(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompileOperatorBool() {
 		assertEquals(compileOperatorBool("?"), IS);
@@ -261,9 +257,7 @@ public class FilterOperatorTest {
 		assertNull(compileOperatorBool(">="));
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorInt(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorInt(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompileOperatorInt() {
 		assertEquals(compileOperatorInt(":"), EQ);
@@ -281,6 +275,7 @@ public class FilterOperatorTest {
 
 	/**
 	 * {@link FilterOperator#compileValueBool(java.lang.String, java.lang.String)} のためのテスト・メソッド。
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test

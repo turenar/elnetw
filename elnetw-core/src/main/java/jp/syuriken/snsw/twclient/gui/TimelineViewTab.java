@@ -216,7 +216,8 @@ public class TimelineViewTab extends DefaultClientTab {
 				addStatus(statusData);
 				try {
 					configuration.getUtility()
-							.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
+							.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()),
+									message,
 									imageCacher.getImageFile(source));
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -284,9 +285,7 @@ public class TimelineViewTab extends DefaultClientTab {
 
 	private volatile boolean isDirty;
 
-	/**
-	 * インスタンスを生成する。
-	 */
+	/** インスタンスを生成する。 */
 	public TimelineViewTab() {
 		super();
 		configuration.getFetchScheduler().establish(accountId, "my/timeline", getRenderer());
@@ -295,7 +294,7 @@ public class TimelineViewTab extends DefaultClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param data          保存されたデータ
+	 * @param data 保存されたデータ
 	 * @throws JSONException JSON例外
 	 */
 	public TimelineViewTab(String data) throws JSONException {
@@ -362,5 +361,4 @@ public class TimelineViewTab extends DefaultClientTab {
 	public String getToolTip() {
 		return "HomeTimeline";
 	}
-
 }

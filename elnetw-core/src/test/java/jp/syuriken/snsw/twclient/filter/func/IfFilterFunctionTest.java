@@ -7,8 +7,7 @@ import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /** Test for IfFilterFunction */
 public class IfFilterFunctionTest extends FilterConstants {
@@ -26,7 +25,6 @@ public class IfFilterFunctionTest extends FilterConstants {
 		test1(obj, false, true);
 		test1(obj, true, false);
 		test1(obj, true, true);
-
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond, boolean falseCond) throws IllegalSyntaxException {
@@ -40,7 +38,6 @@ public class IfFilterFunctionTest extends FilterConstants {
 		} else if (obj instanceof DirectMessage) {
 			assertEquals(expr ? trueCond : falseCond, ifFilterFunction.filter((DirectMessage) obj));
 		}
-
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond) throws IllegalSyntaxException {
@@ -97,5 +94,4 @@ public class IfFilterFunctionTest extends FilterConstants {
 		test(STATUS_4);
 		test(STATUS_5);
 	}
-
 }

@@ -31,6 +31,7 @@ public class ClientPropertiesTest {
 			assertEquals("aaa", evt.getNewValue());
 		}
 	}
+
 	private static final int BENCH_COUNT = 100000;
 
 	/**
@@ -53,6 +54,7 @@ public class ClientPropertiesTest {
 		System.out.print("Obfuscated value: ");
 		System.out.println(configProperties.getProperty(key));
 	}
+
 	/* **********************
 	 *== bench report: BENCH_COUNT=10^7
 	 * == No cache result ===
@@ -70,9 +72,7 @@ public class ClientPropertiesTest {
 	 * ***********************/
 	private long timerDate;
 
-	/**
-	 * {@link ClientProperties#addPropertyChangedListener(PropertyChangeListener)} のためのテスト・メソッド。
-	 */
+	/** {@link ClientProperties#addPropertyChangedListener(PropertyChangeListener)} のためのテスト・メソッド。 */
 	@Test
 	public void testAddPropertyChangedListener() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -80,9 +80,7 @@ public class ClientPropertiesTest {
 		clientProperties.setProperty("test", "aaa");
 	}
 
-	/**
-	 * {@link ClientProperties#getBoolean(String)} のためのテスト・メソッド。
-	 */
+	/** {@link ClientProperties#getBoolean(String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetBoolean() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -98,9 +96,7 @@ public class ClientPropertiesTest {
 		assertFalse(clientProperties.getBoolean("bbb"));
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetColor() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -132,9 +128,7 @@ public class ClientPropertiesTest {
 		assertEquals(new Dimension(0, 0), clientProperties.getDimension("bbb"));
 	}
 
-	/**
-	 * {@link ClientProperties#getDouble(String)} のためのテスト・メソッド。
-	 */
+	/** {@link ClientProperties#getDouble(String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetDouble() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -158,9 +152,7 @@ public class ClientPropertiesTest {
 		assertEquals(Double.POSITIVE_INFINITY, clientProperties.getFloat("fff"), 0.0001);
 	}
 
-	/**
-	 * {@link ClientProperties#getFloat(String)} のためのテスト・メソッド。
-	 */
+	/** {@link ClientProperties#getFloat(String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetFloat() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -226,9 +218,7 @@ public class ClientPropertiesTest {
 		assertEquals(Font.PLAIN, fontH.getStyle());
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetInteger() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -244,9 +234,7 @@ public class ClientPropertiesTest {
 		assertEquals(Integer.MIN_VALUE, clientProperties.getInteger("bbb"));
 	}
 
-	/**
-	 * {@link jp.syuriken.snsw.twclient.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。
-	 */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetLong() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -262,9 +250,7 @@ public class ClientPropertiesTest {
 		assertEquals(Long.MIN_VALUE, clientProperties.getLong("bbb"));
 	}
 
-	/**
-	 * {@link ClientProperties#getPrivateString(String, String)}
-	 */
+	/** {@link ClientProperties#getPrivateString(String, String)} */
 	@Test
 	public void testGetPrivateString() throws InvalidKeyException {
 		ClientProperties clientProperties = new ClientProperties();
@@ -303,7 +289,6 @@ public class ClientPropertiesTest {
 		} catch (InvalidKeyException e) {
 			// success
 		}
-
 	}
 
 	private void timerStart() {
@@ -318,5 +303,4 @@ public class ClientPropertiesTest {
 	private void timerStop(String messagePrefix) {
 		timerStop(messagePrefix, 1);
 	}
-
 }

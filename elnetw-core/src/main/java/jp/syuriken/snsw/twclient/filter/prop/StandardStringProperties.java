@@ -53,9 +53,9 @@ public class StandardStringProperties implements FilterProperty {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param name プロパティ名
-	 * @param operator 演算子文字列。ない場合は null。
-	 * @param value 比較する値。ない場合は null。
+	 * @param name          プロパティ名
+	 * @param operator      演算子文字列。ない場合は null。
+	 * @param value         比較する値。ない場合は null。
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
 	public StandardStringProperties(ClientConfiguration configuration, String name, String operator, Object value)

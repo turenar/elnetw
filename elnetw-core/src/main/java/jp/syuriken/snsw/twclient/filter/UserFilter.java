@@ -35,10 +35,10 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 
 
 	/**
-	* インスタンスを生成する。
-	*
-	* @param configuration 設定
-	*/
+	 * インスタンスを生成する。
+	 *
+	 * @param configuration 設定
+	 */
 	public UserFilter(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		configuration.getConfigProperties().addPropertyChangedListener(this);
@@ -64,7 +64,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 		if (idsString == null) {
 			return;
 		}
-		for (int offset = 0; offset < idsString.length();) {
+		for (int offset = 0; offset < idsString.length(); ) {
 			int end = idsString.indexOf(' ', offset);
 			if (end < 0) {
 				end = idsString.length();

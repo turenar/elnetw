@@ -1,12 +1,10 @@
 package jp.syuriken.snsw.twclient.filter.func;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * {@link OneOfFilterFunction}のためのテスト
@@ -42,6 +40,7 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 
 	/**
 	 * {@link OneOfFilterFunction#filter(twitter4j.DirectMessage)} のためのテスト・メソッド。
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -60,6 +59,7 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 
 	/**
 	 * {@link OneOfFilterFunction#filter(twitter4j.Status)} のためのテスト・メソッド。
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -75,5 +75,4 @@ public class OneOfFilterFunctionTest extends FilterConstants {
 		assertTrue(get(true, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 		assertFalse(get(false, false, false, false, false, false, false, false, false, false).filter(STATUS_1));
 	}
-
 }

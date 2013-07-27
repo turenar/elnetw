@@ -17,9 +17,7 @@ public abstract class TwitterRunnable implements Runnable {
 	protected ClientConfiguration configuration;
 
 
-	/**
-	 * インスタンスを生成する。失敗時はジョブキューに追加する。
-	 */
+	/** インスタンスを生成する。失敗時はジョブキューに追加する。 */
 	public TwitterRunnable() {
 		this(true);
 	}
@@ -36,17 +34,19 @@ public abstract class TwitterRunnable implements Runnable {
 
 	/**
 	 * Twitterへのアクセス
+	 *
 	 * @throws TwitterException Twitterへのアクセス中に発生した例外
 	 */
 	protected abstract void access() throws TwitterException;
 
 	/**
 	 * 設定を取得する
+	 *
 	 * @return 設定
 	 * @deprecated use {@link #configuration}
 	 */
 	@Deprecated
-	protected ClientConfiguration getConfiguration(){
+	protected ClientConfiguration getConfiguration() {
 		return configuration;
 	}
 

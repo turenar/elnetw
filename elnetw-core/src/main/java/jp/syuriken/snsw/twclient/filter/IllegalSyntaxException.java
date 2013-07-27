@@ -10,6 +10,7 @@ public class IllegalSyntaxException extends Exception {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param message 詳細メッセージ
 	 */
 	public IllegalSyntaxException(String message) {
@@ -18,8 +19,9 @@ public class IllegalSyntaxException extends Exception {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param message 詳細メッセージ
-	 * @param cause この例外クラスが作られる原因となった {@link Throwable}
+	 * @param cause   この例外クラスが作られる原因となった {@link Throwable}
 	 */
 	public IllegalSyntaxException(String message, Throwable cause) {
 		super(message, cause);

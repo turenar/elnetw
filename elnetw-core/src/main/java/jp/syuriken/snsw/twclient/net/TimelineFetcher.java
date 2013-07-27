@@ -7,7 +7,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +40,9 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 
 	/**
 	 * インスタンスを生成する
+	 *
 	 * @param twitterDataFetchScheduler スケジューラー
-	 * @param accountId アカウントID (long)
+	 * @param accountId                 アカウントID (long)
 	 */
 	public TimelineFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
 		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/timeline", "my/timeline");

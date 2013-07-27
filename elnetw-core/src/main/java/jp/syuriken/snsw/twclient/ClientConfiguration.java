@@ -86,6 +86,7 @@ public class ClientConfiguration {
 
 	/**
 	 * インスタンスを取得する。
+	 *
 	 * @return ClientConfiguration インスタンス
 	 */
 	public static synchronized ClientConfiguration getInstance() {
@@ -136,12 +137,14 @@ public class ClientConfiguration {
 
 	/**
 	 * テスト以外呼び出し禁止！
+	 *
 	 * @param conf インスタンス
 	 */
 	/*package*/
 	static void setInstance(ClientConfiguration conf) {
 		INSTANCE = conf;
 	}
+
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
@@ -167,17 +170,14 @@ public class ClientConfiguration {
 	private ClassLoader extraClassLoader;
 	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
 
-	/**
-	 * インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()}
-	 *
-	 */
+	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
 	}
 
 	/**
 	 * アクションハンドラを追加する
 	 *
-	 * @param name ハンドラ名
+	 * @param name    ハンドラ名
 	 * @param handler ハンドラ
 	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
 	 */
@@ -197,9 +197,9 @@ public class ClientConfiguration {
 	/**
 	 * 新しいタブを追加する。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean addFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -258,8 +258,8 @@ public class ClientConfiguration {
 	/**
 	 * 指定されたタブをフォーカスする。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public void focusFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -465,6 +465,7 @@ public class ClientConfiguration {
 
 	/**
 	 * ジョブキューを取得する。
+	 *
 	 * @return ジョブキュー
 	 */
 	public JobQueue getJobQueue() {
@@ -610,9 +611,9 @@ public class ClientConfiguration {
 	/**
 	 * 指定したタブが選択されているかどうかを取得する
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 選択されているかどうか
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean isFocusTab(ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -747,8 +748,8 @@ public class ClientConfiguration {
 	/**
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public void refreshTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -767,9 +768,9 @@ public class ClientConfiguration {
 	/**
 	 * タブを削除する
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean removeFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -910,6 +911,7 @@ public class ClientConfiguration {
 
 	/**
 	 * store User's access token.
+	 *
 	 * @param accessToken accessToken Instance
 	 */
 	public void storeAccessToken(AccessToken accessToken) {

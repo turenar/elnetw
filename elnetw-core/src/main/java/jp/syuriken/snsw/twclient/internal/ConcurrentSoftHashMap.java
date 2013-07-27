@@ -21,11 +21,11 @@ import org.slf4j.LoggerFactory;
 /**
  * SoftReference を使った ConcurrentHashMap を操作するクラス。
  *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
  * @param <K> キー型パラメータ。
- *   {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link Object#equals(Object)} はfalseを
- *   返さなければなりません。
+ *            {@link #equals(Object)} の比較に使われるため、型Vが異なれば {@link Object#equals(Object)} はfalseを
+ *            返さなければなりません。
  * @param <V> 値型パラメータ。hashCodeはキャッシュされるため、hashCodeが変わらないオブジェクトであることが要求されます。
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
@@ -165,9 +165,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 
 		private volatile boolean isQueued = false;
 
-		/**
-		 * ジョブキューに追加する
-		 */
+		/** ジョブキューに追加する */
 		protected void queue() {
 			synchronized (this) {
 				if (isQueued == false) {
@@ -227,7 +225,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		public void remove() {
 			iterator.remove();
 		}
-
 	}
 
 	/**
@@ -291,7 +288,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		public V setValue(V value) {
 			return expandReference(entry.setValue(wrapReference(getKey(), value)));
 		}
-
 	}
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ConcurrentSoftHashMap.class);
@@ -331,7 +327,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
+	 * @param configuration   設定
 	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
 	 * @throws IllegalArgumentException 初期容量が負である場合
 	 */
@@ -345,11 +341,10 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
+	 * @param configuration   設定
 	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
-	 * @param loadFactor
-	 *   サイズ変更の制御に使用される負荷係数のしきい値。
-	 *   サイズ変更は、ビンごとの要素の平均数がこのしきい値を超えた場合に実行できる
+	 * @param loadFactor      サイズ変更の制御に使用される負荷係数のしきい値。
+	 *                        サイズ変更は、ビンごとの要素の平均数がこのしきい値を超えた場合に実行できる
 	 * @throws IllegalArgumentException 初期容量が負であるか、負荷係数が正ではない場合
 	 */
 	public ConcurrentSoftHashMap(ClientConfiguration configuration, int initialCapacity, float loadFactor) {
@@ -361,11 +356,10 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
-	 * @param initialCapacity 初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
-	 * @param loadFactor
-	 *   サイズ変更の制御に使用される負荷係数のしきい値。
-	 *   サイズ変更は、ビンごとの要素の平均数がこのしきい値を超えた場合に実行できる
+	 * @param configuration    設定
+	 * @param initialCapacity  初期容量多数の要素に適合するよう、実装は内部のサイズ設定を実行する
+	 * @param loadFactor       サイズ変更の制御に使用される負荷係数のしきい値。
+	 *                         サイズ変更は、ビンごとの要素の平均数がこのしきい値を超えた場合に実行できる
 	 * @param concurrencyLevel 並行して更新中のスレッドの推定数。多数のスレッドに適合するよう、実装は内部のサイズ設定を実行する
 	 * @throws IllegalArgumentException 初期容量が負であるか、負荷係数または concurrencyLevel が正ではない場合
 	 */

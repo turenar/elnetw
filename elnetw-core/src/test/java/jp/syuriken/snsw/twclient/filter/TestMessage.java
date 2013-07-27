@@ -98,5 +98,4 @@ class TestMessage implements DirectMessage {
 	public UserMentionEntity[] getUserMentionEntities() {
 		return null;
 	}
-
 }

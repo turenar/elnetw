@@ -47,7 +47,8 @@ public class OAuthHelper {
 				requestToken = twitter.getOAuthRequestToken();
 			} catch (TwitterException e) {
 				logger.warn("Could not retrieve requestToken", e);
-				JOptionPane.showMessageDialog(null, "リクエストトークンが取得できませんでした。しばらく経ってからお試しください。\n\n" + e.getLocalizedMessage(),
+				JOptionPane.showMessageDialog(null,
+						"リクエストトークンが取得できませんでした。しばらく経ってからお試しください。\n\n" + e.getLocalizedMessage(),
 						ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
 				throw e;
 			}
@@ -92,5 +93,4 @@ public class OAuthHelper {
 			}
 		}
 	}
-
 }

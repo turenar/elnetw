@@ -7,7 +7,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
-import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,7 @@ import twitter4j.TwitterFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MentionsFetcher extends TwitterRunnable implements DataFetcher{
+public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(MentionsFetcher.class);
 
@@ -41,8 +40,9 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher{
 
 	/**
 	 * インスタンスを生成する
+	 *
 	 * @param twitterDataFetchScheduler スケジューラー
-	 * @param accountId アカウントID (long)
+	 * @param accountId                 アカウントID (long)
 	 */
 	public MentionsFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
 		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/mentions");
@@ -57,7 +57,7 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher{
 	protected void access() throws TwitterException {
 		ResponseList<Status> mentions = twitter.getMentionsTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_MENTIONS)));
-		logger.trace("got {} mentions",mentions.size());
+		logger.trace("got {} mentions", mentions.size());
 		for (Status status : mentions) {
 			listeners.onStatus(status);
 		}

@@ -97,9 +97,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public abstract class DefaultClientTab implements ClientTab {
 
-	/**
-	 * Entityの開始位置を比較する
-	 */
+	/** Entityの開始位置を比較する */
 	private static final class EntityComparator implements Comparator<Object>, Serializable {
 
 		private static final long serialVersionUID = 8166780199866981253L;
@@ -259,8 +257,8 @@ public abstract class DefaultClientTab implements ClientTab {
 					if (selectingPost != null) {
 						StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
-					StringSelection stringSelection = new StringSelection(statusData.user);
-					clipboard.setContents(stringSelection, stringSelection);
+						StringSelection stringSelection = new StringSelection(statusData.user);
+						clipboard.setContents(stringSelection, stringSelection);
 					}
 					break;
 				case REQUEST_BROWSER_USER_HOME:
@@ -500,7 +498,6 @@ public abstract class DefaultClientTab implements ClientTab {
 		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
-
 	}
 
 	/**
@@ -585,8 +582,8 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			}
 		}
-
 	}
+
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
@@ -602,6 +599,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
 	/** Twitterのロゴ (青背景に白) */
 	public static final ImageIcon IMG_TWITTER_LOGO;
+
 	static {
 		try {
 			IMG_FAV_OFF = new ImageIcon(
@@ -635,7 +633,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
 	 *
-	 * @param text テキスト
+	 * @param text     テキスト
 	 * @param appendTo 追加先
 	 * @return {@link StringBuilder}
 	 */
@@ -672,6 +670,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 		return appendTo;
 	}
+
 	/** {@link jp.syuriken.snsw.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
 	/** SortedPostListPanelインスタンス */
@@ -744,9 +743,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected TabRenderer teeFilter;
 
-	/**
-	 * インスタンスを生成する。
-	 */
+	/** インスタンスを生成する。 */
 	protected DefaultClientTab() {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -924,7 +921,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * リストにステータスを追加する。その後deltionDelayミリ秒後に該当するステータスを削除する。
 	 *
-	 * @param statusData StatusDataインスタンス。
+	 * @param statusData    StatusDataインスタンス。
 	 * @param deletionDelay 削除を予約する時間。ミリ秒
 	 * @return 追加された (もしくはそのあと削除された) ステータス。
 	 */
@@ -939,7 +936,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * @param e Focusイベント
 	 * @throws IllegalArgumentException 正しくないプロパティ
-	 * @throws NumberFormatException 数値ではないプロパティ
+	 * @throws NumberFormatException    数値ではないプロパティ
 	 */
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
@@ -1135,6 +1132,7 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/**
 	 * Create IntentArguments
+	 *
 	 * @param actionCommand (name)[!(key)[=(value)][, ...]]
 	 * @return IntentArguments
 	 */
@@ -1152,6 +1150,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * <p>フィルタクエリの解析中にエラーが発生したときは、 {@link #getActualRenderer()} が代わりに
 	 * 返り値として使用されます。</p>
+	 *
 	 * @return TeeFilterインスタンス ({@link #teeFilter}変数)
 	 * @see #getActualRenderer()
 	 * @see #teeFilter
@@ -1199,9 +1198,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		return postListScrollPane;
 	}
 
-	/**
-	 * このクラスではJSONが返されます。
-	 */
+	/** このクラスではJSONが返されます。 */
 	@Override
 	public String getSerializedData() {
 		try {
@@ -1225,6 +1222,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * JSON例外を返すことができます。その他の例外は推奨されませんが {@link RuntimeException} などに
 	 * ラップしてください。
 	 * </p>
+	 *
 	 * @return 次回タブ復元時に必要なデータ
 	 * @throws JSONException JSON例外
 	 */
@@ -1314,7 +1312,6 @@ public abstract class DefaultClientTab implements ClientTab {
 					}
 				}
 			});
-
 		}
 		return tweetViewFavoriteButton;
 	}
@@ -1513,7 +1510,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * ステータスを削除する
 	 *
 	 * @param statusData ステータスデータ
-	 * @param delay 遅延ミリ秒
+	 * @param delay      遅延ミリ秒
 	 */
 	public void removeStatus(final StatusData statusData, int delay) {
 		configuration.getTimer().schedule(new Runnable() {
@@ -1524,5 +1521,4 @@ public abstract class DefaultClientTab implements ClientTab {
 			}
 		}, delay, TimeUnit.MILLISECONDS);
 	}
-
 }

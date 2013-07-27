@@ -6,10 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import twitter4j.Status;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * UserFilterのためのTest
@@ -175,5 +172,4 @@ public class UserFilterTest {
 			assertTrue(userFilter.onUnfavorite(new TestUser(0), new TestUser(1), status));
 		}
 	}
-
 }

@@ -18,6 +18,7 @@ public final class VersionInfo {
 
 	/** バージョン情報が格納されたファイルのResourceBundle */
 	public static final Properties VERSION_INFO_RESOURCE;
+
 	static {
 		InputStream stream =
 				VersionInfo.class.getClassLoader().getResourceAsStream(

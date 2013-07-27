@@ -3,8 +3,6 @@ package jp.syuriken.snsw.twclient.net;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;

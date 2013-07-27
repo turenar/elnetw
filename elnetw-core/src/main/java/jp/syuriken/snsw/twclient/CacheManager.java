@@ -74,7 +74,7 @@ public class CacheManager {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param userIds ユーザーID
+		 * @param userIds   ユーザーID
 		 * @param intoQueue キューに追加するかどうか
 		 */
 		public UserFetcher(long[] userIds, boolean intoQueue) {
@@ -217,6 +217,7 @@ public class CacheManager {
 	/**
 	 * キャッシュ済みStatusを取得する。キャッシュされていなかったりStatusが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
+	 *
 	 * @param statusId Status ID
 	 * @return Statusインスタンス。キャッシュされていなかったりStatusが存在しない(404)場合はnull。
 	 */
@@ -227,6 +228,7 @@ public class CacheManager {
 	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
+	 *
 	 * @param userId User ID
 	 * @return Userインスタンス。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 */
@@ -237,6 +239,7 @@ public class CacheManager {
 	/**
 	 * Statusを取得する。なんらかの理由でStatusが取得できなかった場合はnull。
 	 * このメソッドはブロックする可能性がある。
+	 *
 	 * @param statusId Status ID
 	 * @return Statusインスタンス。
 	 */
@@ -263,6 +266,7 @@ public class CacheManager {
 	/**
 	 * Userを取得する。なんらかの理由でUserが取得できなかった場合はnull。
 	 * このメソッドはブロックする可能性がある。
+	 *
 	 * @param userId User ID
 	 * @return Userインスタンス。
 	 */
@@ -297,6 +301,7 @@ public class CacheManager {
 	 * Statusが存在しない(404)場合もtrueを返すことに注意。エラーキャッシュではなくキャッシュされているかどうかのみを
 	 * 調べるときは、 {@link #getCachedStatus(long)} != statusId を用いる。
 	 * </p>
+	 *
 	 * @param statusId ステータスID
 	 * @return キャッシュされているかどうか
 	 */
@@ -311,6 +316,7 @@ public class CacheManager {
 	 * Userが存在しない(404)場合もtrueを返すことに注意。エラーキャッシュではなくキャッシュされているかどうかのみを
 	 * 調べるときは、 {@link #getCachedUser(long)} != userId を用いる。
 	 * </p>
+	 *
 	 * @param userId ステータスID
 	 * @return キャッシュされているかどうか
 	 */
@@ -365,10 +371,9 @@ public class CacheManager {
 	/**
 	 * UserFetcherを走らせる。
 	 *
-	 * @param expectedLength
-	 *   {@link #userCacheQueue}のこのメソッドが呼び出される前の長さ。
-	 *   同時更新していると思われる時にはreturn falseします。
-	 * @param intoQueue trueの場合ジョブキューに追加する。falseの場合UserFetcherが完了するまでブロックします。
+	 * @param expectedLength {@link #userCacheQueue}のこのメソッドが呼び出される前の長さ。
+	 *                       同時更新していると思われる時にはreturn falseします。
+	 * @param intoQueue      trueの場合ジョブキューに追加する。falseの場合UserFetcherが完了するまでブロックします。
 	 * @return {@link #userCacheQueue} が更新されたと思われる場合false。 正常にキューできたときはtrue。
 	 */
 	protected boolean runUserFetcher(int expectedLength, boolean intoQueue) {

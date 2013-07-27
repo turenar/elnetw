@@ -8,6 +8,6 @@ package jp.syuriken.snsw.twclient.net;
 public class DirectMessageFetcherFactory implements DataFetcherFactory {
 	@Override
 	public DataFetcher getInstance(TwitterDataFetchScheduler scheduler, String accountId, String path) {
-		return new DirectMessageFetcher(scheduler,accountId);
+		return new DirectMessageFetcher(scheduler, accountId);
 	}
 }

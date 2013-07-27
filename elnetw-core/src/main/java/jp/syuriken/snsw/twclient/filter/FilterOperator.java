@@ -131,7 +131,7 @@ public enum FilterOperator {
 	 * boolを比較する。
 	 *
 	 * @param target 比較される側
-	 * @param value 比較する側
+	 * @param value  比較する側
 	 * @return 演算子が成り立つときはtrue、それ以外はfalse
 	 * @throws RuntimeException boolでは対応していない演算子
 	 */
@@ -175,14 +175,13 @@ public enum FilterOperator {
 			default:
 				throw new RuntimeException("longの比較では対応していない演算子です");
 		}
-
 	}
 
 	/**
 	 * stringを比較する。
 	 *
 	 * @param target 被比較値
-	 * @param value 比較値
+	 * @param value  比較値
 	 * @return 演算子が成り立つときはtrue、それ以外はfalse
 	 * @throws RuntimeException 比較失敗
 	 */
@@ -221,7 +220,7 @@ public enum FilterOperator {
 	 * 真偽値 (文字列) をbooleanに変換する
 	 *
 	 * @param propName プロパティ名
-	 * @param value 値
+	 * @param value    値
 	 * @return valueを変換した真偽値、あるいはvalueを必要としない場合false
 	 * @throws IllegalSyntaxException エラー
 	 */

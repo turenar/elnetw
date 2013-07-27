@@ -22,10 +22,9 @@ public interface TweetLengthUpdater {
 	/**
 	 * ポストの長さを示すラベルを更新する
 	 *
-	 * @param length 長さを表す文字列。int文字列である必要はありません
-	 * @param color 前景色
+	 * @param length  長さを表す文字列。int文字列である必要はありません
+	 * @param color   前景色
 	 * @param tooltip ツールチップ
 	 */
 	void updatePostLength(String length, Color color, String tooltip);
-
 }

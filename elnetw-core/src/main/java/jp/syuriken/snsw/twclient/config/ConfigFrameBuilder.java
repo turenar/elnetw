@@ -19,6 +19,7 @@ public class ConfigFrameBuilder {
 	 *
 	 * <p>グループは、フレームのタブ名です</p>
 	 * <p>サブグループは、まとめられます</p>
+	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public static class Config implements Comparable<Config> {
@@ -41,11 +42,11 @@ public class ConfigFrameBuilder {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param group グループ名
-		 * @param subgroup サブグループ名
-		 * @param configKey 設定名 (プロパティーキー)。表示しません
+		 * @param group       グループ名
+		 * @param subgroup    サブグループ名
+		 * @param configKey   設定名 (プロパティーキー)。表示しません
 		 * @param description 設定名 (説明)
-		 * @param type 設定のタイプ
+		 * @param type        設定のタイプ
 		 */
 		public Config(String group, String subgroup, String configKey, String description, ConfigType type) {
 			this(group, subgroup, configKey, description, null, type);
@@ -54,27 +55,28 @@ public class ConfigFrameBuilder {
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param group グループ名
-		 * @param subgroup サブグループ名
-		 * @param configKey 設定名 (プロパティーキー)。表示しません
+		 * @param group       グループ名
+		 * @param subgroup    サブグループ名
+		 * @param configKey   設定名 (プロパティーキー)。表示しません
 		 * @param description 設定名 (説明)
-		 * @param hint ヒント
-		 * @param type 設定のタイプ
+		 * @param hint        ヒント
+		 * @param type        設定のタイプ
 		 */
-		public Config(String group, String subgroup, String configKey, String description, String hint, ConfigType type) {
+		public Config(String group, String subgroup, String configKey, String description, String hint,
+				ConfigType type) {
 			this(group, subgroup, configKey, description, hint, type, 0);
 		}
 
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param group グループ名
-		 * @param subgroup サブグループ名
-		 * @param configKey 設定名 (プロパティーキー)。表示しません
+		 * @param group       グループ名
+		 * @param subgroup    サブグループ名
+		 * @param configKey   設定名 (プロパティーキー)。表示しません
 		 * @param description 設定名 (説明)
-		 * @param hint ヒント
-		 * @param type 設定のタイプ
-		 * @param priority 順序付け優先度
+		 * @param hint        ヒント
+		 * @param type        設定のタイプ
+		 * @param priority    順序付け優先度
 		 */
 		public Config(String group, String subgroup, String configKey, String description, String hint,
 				ConfigType type, int priority) {
@@ -205,10 +207,10 @@ public class ConfigFrameBuilder {
 		/**
 		 * 設定を追加する。subgroupはnullを指定します。{@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
 		 *
-		 * @param configKey 設定キー
+		 * @param configKey   設定キー
 		 * @param description 説明
-		 * @param hint ヒント
-		 * @param type タイプ
+		 * @param hint        ヒント
+		 * @param type        タイプ
 		 * @return このインスタンス
 		 */
 		public ConfigGroup addConfig(String configKey, String description, String hint, ConfigType type) {
@@ -219,11 +221,11 @@ public class ConfigFrameBuilder {
 		/**
 		 * 設定を追加する。subgroupはnullを指定します。{@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
 		 *
-		 * @param configKey 設定キー
+		 * @param configKey   設定キー
 		 * @param description 説明
-		 * @param hint ヒント
-		 * @param type タイプ
-		 * @param priority 順序付け優先度
+		 * @param hint        ヒント
+		 * @param type        タイプ
+		 * @param priority    順序付け優先度
 		 * @return このインスタンス
 		 */
 		public ConfigGroup addConfig(String configKey, String description, String hint, ConfigType type, int priority) {
@@ -280,10 +282,10 @@ public class ConfigFrameBuilder {
 		/**
 		 * 設定を追加する。 {@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
 		 *
-		 * @param configKey 設定キー
+		 * @param configKey   設定キー
 		 * @param description 説明
-		 * @param hint ヒント
-		 * @param type タイプ
+		 * @param hint        ヒント
+		 * @param type        タイプ
 		 * @return このインスタンス
 		 */
 
@@ -296,15 +298,16 @@ public class ConfigFrameBuilder {
 		/**
 		 * 設定を追加する。 {@link ConfigFrameBuilder#addConfig(Config)}の糖衣構文です
 		 *
-		 * @param configKey 設定キー
+		 * @param configKey   設定キー
 		 * @param description 説明
-		 * @param hint ヒント
-		 * @param type タイプ
-		 * @param priority 順序付け優先度
+		 * @param hint        ヒント
+		 * @param type        タイプ
+		 * @param priority    順序付け優先度
 		 * @return このインスタンス
 		 */
 
-		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type, int priority) {
+		public ConfigSubgroup addConfig(String configKey, String description, String hint, ConfigType type,
+				int priority) {
 			ConfigFrameBuilder.this.addConfig(new Config(group.getGroupName(), subgroup, configKey, description, hint,
 					type, priority));
 			return this;

@@ -27,9 +27,7 @@ import twitter4j.internal.http.HttpResponseCode;
  */
 public class InListProperty implements FilterProperty {
 
-	/**
-	 * {@link UserFollewedByListFetcher} のスケジューラ
-	 */
+	/** {@link UserFollewedByListFetcher} のスケジューラ */
 	public class ListFetcherScheduler extends TimerTask {
 
 		@Override
@@ -38,9 +36,7 @@ public class InListProperty implements FilterProperty {
 		}
 	}
 
-	/**
-	 * リストでフォローされているユーザーIDを取得するクラス
-	 */
+	/** リストでフォローされているユーザーIDを取得するクラス */
 	protected class UserFollewedByListFetcher implements ParallelRunnable {
 
 		/** リストID */
@@ -72,7 +68,7 @@ public class InListProperty implements FilterProperty {
 				} else {
 					listOwner =
 							configuration.getCacheManager()
-								.getUser(Long.parseLong(configuration.getAccountIdForRead())).getScreenName();
+									.getUser(Long.parseLong(configuration.getAccountIdForRead())).getScreenName();
 					slug = listIdentifier;
 				}
 
@@ -181,9 +177,9 @@ public class InListProperty implements FilterProperty {
 	 * インスタンスを生成する。
 	 *
 	 * @param configuration 設定
-	 * @param name プロパティ名 (in_list)
-	 * @param operatorStr 演算子
-	 * @param value 値 (文字列)
+	 * @param name          プロパティ名 (in_list)
+	 * @param operatorStr   演算子
+	 * @param value         値 (文字列)
 	 * @throws IllegalSyntaxException 正しくないarg
 	 */
 	public InListProperty(ClientConfiguration configuration, String name, String operatorStr, Object value)
@@ -217,5 +213,4 @@ public class InListProperty implements FilterProperty {
 	public boolean filter(Status status) {
 		return isEqual == (Arrays.binarySearch(userIdsFollowedByList, status.getUser().getId()) >= 0);
 	}
-
 }

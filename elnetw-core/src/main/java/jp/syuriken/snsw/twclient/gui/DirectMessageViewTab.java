@@ -49,6 +49,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			offset = position + 9;
 		}
 	}
+
 	private DefaultRenderer renderer = new DefaultRenderer() {
 
 		@Override
@@ -110,7 +111,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param data 保存されたデータ
-	 * @throws JSONException JSON例外
+	 * @throws JSONException          JSON例外
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
 	public DirectMessageViewTab(String data) throws JSONException,

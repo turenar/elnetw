@@ -56,6 +56,7 @@ public class TwitterDataFetchScheduler {
 			apiConfiguration = twitterForRead.getAPIConfiguration();
 		}
 	}
+
 	private static final Logger logger = LoggerFactory.getLogger(TwitterDataFetchScheduler.class);
 	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = new NullIterator();
 	/*package*/ static final Iterable<ClientMessageListener> NULL_LISTENERS = new NullIterable();

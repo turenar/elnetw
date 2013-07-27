@@ -47,6 +47,7 @@ public class IntegerConfigType implements ConfigType {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param maximum 最大値
 	 * @param minimum 最小値
 	 */
@@ -56,8 +57,9 @@ public class IntegerConfigType implements ConfigType {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param minimum 最大値
-	 * @param maximum 最小値
+	 *
+	 * @param minimum    最大値
+	 * @param maximum    最小値
 	 * @param multiplier 倍数。秒をミリ秒に変換するときは1000を指定する。
 	 */
 	public IntegerConfigType(int minimum, int maximum, int multiplier) {

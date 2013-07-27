@@ -14,14 +14,10 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
  */
 public interface ClientTab {
 
-	/**
-	 * タブが選択された
-	 */
+	/** タブが選択された */
 	void focusGained();
 
-	/**
-	 * タブの選択が解除された
-	 */
+	/** タブの選択が解除された */
 	void focusLost();
 
 	/**
@@ -86,6 +82,7 @@ public interface ClientTab {
 	 * {@link jp.syuriken.snsw.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
+	 *
 	 * @param command コマンド名
 	 * @deprecated use {@link #handleAction(jp.syuriken.snsw.twclient.handler.IntentArguments)}
 	 */
@@ -98,13 +95,11 @@ public interface ClientTab {
 	 * {@link jp.syuriken.snsw.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
+	 *
 	 * @param args IntentArgumentsインスタンス
 	 */
 	void handleAction(IntentArguments args);
 
-	/**
-	 * タブとして表示できる状態となったことを通知するメソッド
-	 */
+	/** タブとして表示できる状態となったことを通知するメソッド */
 	void initTimeline();
-
 }

@@ -40,8 +40,10 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
 		}
 
-		final int shortURLLength = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH : apiConfiguration.getShortURLLength();
-		final int shortURLLengthHttps = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH_HTTPS : apiConfiguration.getShortURLLengthHttps();
+		final int shortURLLength = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH
+				: apiConfiguration.getShortURLLength();
+		final int shortURLLengthHttps = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH_HTTPS
+				: apiConfiguration.getShortURLLengthHttps();
 
 		int length = original.length();
 		Matcher matcher = urlPattern.matcher(original);
@@ -86,5 +88,4 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	public String getShortenedText(String original) {
 		return original;
 	}
-
 }

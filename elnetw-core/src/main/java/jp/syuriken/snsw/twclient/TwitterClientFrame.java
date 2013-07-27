@@ -224,7 +224,6 @@ import static java.lang.Math.max;
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -487,6 +486,7 @@ import static java.lang.Math.max;
 			}
 		}
 	}
+
 	/**
 	 * アプリケーション名
 	 *
@@ -504,37 +504,37 @@ import static java.lang.Math.max;
 	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
 	/*package*/ Status inReplyToStatus = null;
-	/*package*/JPanel editPanel;
-	/*package*/JPanel postPanel;
-	/*package*/JScrollPane postBoxScrollPane;
-	/*package*/JSplitPane jSplitPane1;
-	/*package*/JButton postActionButton;
-	/*package*/JTextArea postBox;
-	/*package*/JTabbedPane viewTab;
-	/*package*/ClientProperties configProperties;
-	/*package*/JMenuBar clientMenu;
-	/*package*/JPanel tweetViewPanel;
-	/*package*/JMenu accountMenu;
-	/*package*/JMenu readTimelineJMenu;
-	/*package*/JMenu postToJMenu;
-	/*package*/JScrollPane tweetViewScrollPane;
-	/*package*/JEditorPane tweetViewEditorPane;
-	/*package*/JLabel tweetViewCreatedByLabel;
-	/*package*/JLabel tweetViewCreatedAtLabel;
+	/*package*/ JPanel editPanel;
+	/*package*/ JPanel postPanel;
+	/*package*/ JScrollPane postBoxScrollPane;
+	/*package*/ JSplitPane jSplitPane1;
+	/*package*/ JButton postActionButton;
+	/*package*/ JTextArea postBox;
+	/*package*/ JTabbedPane viewTab;
+	/*package*/ ClientProperties configProperties;
+	/*package*/ JMenuBar clientMenu;
+	/*package*/ JPanel tweetViewPanel;
+	/*package*/ JMenu accountMenu;
+	/*package*/ JMenu readTimelineJMenu;
+	/*package*/ JMenu postToJMenu;
+	/*package*/ JScrollPane tweetViewScrollPane;
+	/*package*/ JEditorPane tweetViewEditorPane;
+	/*package*/ JLabel tweetViewCreatedByLabel;
+	/*package*/ JLabel tweetViewCreatedAtLabel;
 	/*package*/transient ImageCacher imageCacher;
-	/*package*/JLabel tweetViewUserIconLabel;
-	/*package*/Map<String, String> shortcutKeyMap = new HashMap<String, String>();
-	/*package*/JLabel postLengthLabel;
+	/*package*/ JLabel tweetViewUserIconLabel;
+	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<String, String>();
+	/*package*/ JLabel postLengthLabel;
 	protected transient ClientTab selectingTab;
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
 	/*package*/transient DefaultMouseListener tweetViewListener = new DefaultMouseListener();
 	/*package*/transient ClientTab tweetViewingTab;
-	/*package*/JPanel operationPanelContainer;
-	/*package*/JLayeredPane tweetViewTextLayeredPane;
-	/*package*/JLabel tweetViewTextOverlayLabel;
-	/*package*/int tweetViewCreatedByFlag;
-	/*package*/int tweetViewCreatedAtFlag;
-	/*package*/int tweetViewTextOverlayFlag;
+	/*package*/ JPanel operationPanelContainer;
+	/*package*/ JLayeredPane tweetViewTextLayeredPane;
+	/*package*/ JLabel tweetViewTextOverlayLabel;
+	/*package*/ int tweetViewCreatedByFlag;
+	/*package*/ int tweetViewCreatedAtFlag;
+	/*package*/ int tweetViewTextOverlayFlag;
 
 	/**
 	 * Creates new form TwitterClientFrame
@@ -708,7 +708,6 @@ import static java.lang.Math.max;
 							.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 							.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
-
 		}
 		return editPanel;
 	}
@@ -755,7 +754,6 @@ import static java.lang.Math.max;
 					doPost();
 				}
 			});
-
 		}
 		return postActionButton;
 	}
@@ -1453,5 +1451,4 @@ import static java.lang.Math.max;
 	public void windowOpened(WindowEvent e) {
 		// do nothing
 	}
-
 }

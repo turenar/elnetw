@@ -185,7 +185,7 @@ public class MentionViewTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param data 保存されたデータ
-	 * @throws JSONException JSON例外
+	 * @throws JSONException          JSON例外
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
 	public MentionViewTab(String data) throws JSONException, IllegalSyntaxException {
@@ -248,5 +248,4 @@ public class MentionViewTab extends DefaultClientTab {
 	public String getToolTip() {
 		return "@関連";
 	}
-
 }

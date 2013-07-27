@@ -7,8 +7,8 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.StatusData;
-import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -79,6 +79,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 			tab.getRenderer().onException(ex);
 		}
 	}
+
 	private static Logger logger = LoggerFactory.getLogger(UserInfoViewActionHandler.class);
 
 	@Override
@@ -125,7 +126,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 				status = status.getRetweetedStatus();
 			}
 			menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
-				.getUser().getName()));
+					.getUser().getName()));
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

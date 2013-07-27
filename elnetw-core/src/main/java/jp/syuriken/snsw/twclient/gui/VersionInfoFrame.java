@@ -75,6 +75,7 @@ public class VersionInfoFrame extends JFrame {
 			return name;
 		}
 	}
+
 	private static Logger logger = LoggerFactory.getLogger(VersionInfoFrame.class);
 
 	private static String getData(String resourceName) {
@@ -106,6 +107,7 @@ public class VersionInfoFrame extends JFrame {
 			}
 		}
 	}
+
 	private List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
 	private JSplitPane splitPane;
 	private JScrollPane libraryListScrollPane;

@@ -59,6 +59,7 @@ public abstract class InitializeService {
 
 	/**
 	 * check initializer which has specified name is already registered.
+	 *
 	 * @param name initializer name
 	 * @return registered?
 	 */
@@ -66,6 +67,7 @@ public abstract class InitializeService {
 
 	/**
 	 * provide null-initializer as name
+	 *
 	 * @param name initializer's name
 	 * @return this object
 	 * @throws IllegalArgumentException name is already registered

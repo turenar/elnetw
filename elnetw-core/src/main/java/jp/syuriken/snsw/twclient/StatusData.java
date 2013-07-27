@@ -55,7 +55,8 @@ public class StatusData {
 	 * インスタンスを生成する。
 	 *
 	 * <p>idは自動で <code>0xffff_ffff_0000_0000L</code>を増分していった値を付ける。</p>
-	 * @param tag インスタンスを生成する原因の情報。null可。
+	 *
+	 * @param tag  インスタンスを生成する原因の情報。null可。
 	 * @param date インスタンスを生成する原因の発生日時
 	 */
 	public StatusData(Object tag, Date date) {
@@ -64,10 +65,10 @@ public class StatusData {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param tag インスタンスを生成する原因の情報。null可。
-	 * @param date インスタンスを生成する原因の発生日時
-	 * @param id ユニークなID
 	 *
+	 * @param tag  インスタンスを生成する原因の情報。null可。
+	 * @param date インスタンスを生成する原因の発生日時
+	 * @param id   ユニークなID
 	 */
 	public StatusData(Object tag, Date date, long id) {
 		this.tag = tag;

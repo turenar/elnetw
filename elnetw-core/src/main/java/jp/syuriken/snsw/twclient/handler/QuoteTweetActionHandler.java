@@ -43,5 +43,4 @@ public class QuoteTweetActionHandler extends StatusActionHandlerBase {
 			menuItem.setEnabled(false);
 		}
 	}
-
 }

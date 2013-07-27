@@ -121,5 +121,4 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
 	}
-
 }

@@ -8,9 +8,10 @@ package jp.syuriken.snsw.twclient.net;
 public interface DataFetcherFactory {
 	/**
 	 * インスタンスを生成する
+	 *
 	 * @param scheduler スケジューラー
 	 * @param accountId アカウントID (long)
-	 * @param path "my/timeline"など
+	 * @param path      "my/timeline"など
 	 * @return DataFetcherインスタンス。nullを投げるくらいなら例外をくれ
 	 */
 	DataFetcher getInstance(TwitterDataFetchScheduler scheduler, String accountId, String path);

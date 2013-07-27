@@ -8,6 +8,6 @@ package jp.syuriken.snsw.twclient.net;
 public class StreamFetcherFactory implements DataFetcherFactory {
 	@Override
 	public DataFetcher getInstance(TwitterDataFetchScheduler scheduler, String accountId, String path) {
-		return new StreamFetcher(scheduler,accountId);
+		return new StreamFetcher(scheduler, accountId);
 	}
 }

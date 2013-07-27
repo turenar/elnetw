@@ -121,6 +121,7 @@ public class ClientProperties extends Properties {
 		byte[] keyBytes = Arrays.copyOf(digest, KEY_BIT / 8);
 		return new SecretKeySpec(keyBytes, "AES");
 	}
+
 	/** リスナの配列 */
 	protected transient ArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
@@ -373,16 +374,17 @@ public class ClientProperties extends Properties {
 	 * keyに関連付けられた値を利用して、Fontインスタンスを取得する。
 	 *
 	 * <p>
-	 *     書式：<i>String&lt;font-name&gt;</i>,<i>int&lt;font-size&gt;</i>[,<i>mixed&lt;font-style&gt;</i>]
+	 * 書式：<i>String&lt;font-name&gt;</i>,<i>int&lt;font-size&gt;</i>[,<i>mixed&lt;font-style&gt;</i>]
 	 * </p>
 	 * <p>
-	 *     font-styleにはint値、または&quot;plain&quot;, &quot;italic&quot;, &quot;bold&quot;,
-	 *     &quot;bold|italic&quot;, &quot;italic|bold&quot;を指定してください。
+	 * font-styleにはint値、または&quot;plain&quot;, &quot;italic&quot;, &quot;bold&quot;,
+	 * &quot;bold|italic&quot;, &quot;italic|bold&quot;を指定してください。
 	 * </p>
+	 *
 	 * @param key キー
 	 * @return keyに関連付けられたfloat
 	 * @throws IllegalArgumentException font-sizeが指定されていない。font-styleが指定されていない。
-	 *                                正しいint値が指定されていない。
+	 *                                  正しいint値が指定されていない。
 	 */
 	public synchronized Font getFont(String key) throws IllegalArgumentException {
 		Font font = getCachedValue(key, Font.class);
@@ -456,7 +458,7 @@ public class ClientProperties extends Properties {
 	 *
 	 * 書式：int
 	 *
-	 * @param key キー
+	 * @param key          キー
 	 * @param defaultValue デフォルト値
 	 * @return keyに関連付けられたint
 	 */
@@ -685,7 +687,7 @@ public class ClientProperties extends Properties {
 	/**
 	 * keyにFontを関連付ける
 	 *
-	 * @param key   キー
+	 * @param key  キー
 	 * @param font フォントインスタンス
 	 */
 	public synchronized void setFont(String key, Font font) throws IllegalArgumentException {

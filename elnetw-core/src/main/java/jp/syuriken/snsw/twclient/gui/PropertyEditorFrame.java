@@ -54,7 +54,6 @@ public class PropertyEditorFrame extends JFrame {
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			return types[columnIndex];
-
 		}
 
 		@Override
@@ -300,5 +299,4 @@ public class PropertyEditorFrame extends JFrame {
 			initTableModel();
 		}
 	}
-
 }

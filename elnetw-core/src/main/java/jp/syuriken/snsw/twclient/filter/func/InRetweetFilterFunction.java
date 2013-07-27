@@ -42,7 +42,7 @@ public class InRetweetFilterFunction implements FilterFunction {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param name 関数名
+	 * @param name  関数名
 	 * @param child 子要素
 	 * @throws IllegalSyntaxException エラー
 	 */
@@ -62,5 +62,4 @@ public class InRetweetFilterFunction implements FilterFunction {
 	public boolean filter(Status status) {
 		return child.filter(status.isRetweet() ? status.getRetweetedStatus() : status);
 	}
-
 }

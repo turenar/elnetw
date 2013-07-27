@@ -36,9 +36,11 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	private TabRenderer renderer;
 
 	private ClientConfiguration configuration;
+
 	/**
 	 * インスタンスを生成する。グローバルフィルタを使用する。
-	 * @param uniqId ユニークなID
+	 *
+	 * @param uniqId      ユニークなID
 	 * @param tabRenderer 移譲先レンダラ
 	 */
 	public TeeFilter(String uniqId, TabRenderer tabRenderer) {
@@ -47,8 +49,9 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param uniqId ユニークなID
-	 * @param tabRenderer 移譲先レンダラ
+	 *
+	 * @param uniqId          ユニークなID
+	 * @param tabRenderer     移譲先レンダラ
 	 * @param useGlobalFilter グローバルフィルタを使用するかどうか
 	 */
 	public TeeFilter(String uniqId, TabRenderer tabRenderer, boolean useGlobalFilter) {
@@ -362,7 +365,9 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 		}
 		renderer.onUserListUpdate(listOwner, list);
 	}
-	private TreeSet<Long> statusSet=new TreeSet<>();
+
+	private TreeSet<Long> statusSet = new TreeSet<>();
+
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
 		for (MessageFilter filter : globalFilters) {

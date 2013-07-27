@@ -36,7 +36,7 @@ public interface InitCondition {
 	/**
 	 * set status as fail
 	 *
-	 * @param cause cause of failure
+	 * @param cause    cause of failure
 	 * @param reason   fail reason
 	 * @param exitCode exit code
 	 */

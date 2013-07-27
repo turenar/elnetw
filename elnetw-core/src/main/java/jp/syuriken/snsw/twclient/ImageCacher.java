@@ -78,7 +78,8 @@ public class ImageCacher {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
 					.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
-					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append("],isWritten=")
+					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append(
+					"],isWritten=")
 					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
 			return stringBuilder.toString();
 		}
@@ -154,6 +155,7 @@ public class ImageCacher {
 			flushImage(entry);
 		}
 	}
+
 	/** Buffersize */
 	private static final int BUFSIZE = 65536;
 	private final ClientConfiguration configuration;

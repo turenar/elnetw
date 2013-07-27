@@ -289,5 +289,4 @@ public class NullUser implements User {
 	public boolean isVerified() {
 		return false;
 	}
-
 }
