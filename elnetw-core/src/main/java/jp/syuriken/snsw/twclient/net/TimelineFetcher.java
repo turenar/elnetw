@@ -8,8 +8,6 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -23,14 +21,14 @@ import twitter4j.TwitterFactory;
  * @Author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
-
-	private static final Logger logger = LoggerFactory.getLogger(TimelineFetcher.class);
-	private final Twitter twitter;
 	private final ClientConfiguration configuration;
 	private final int intervalOfTimeline;
 	private final ClientProperties configProperties;
 	private final ClientMessageListener listeners;
-	private ScheduledFuture<?> scheduledFuture;
+	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final String accountId;
+	private volatile Twitter twitter;
+	private volatile ScheduledFuture<?> scheduledFuture;
 
 	/**
 	 * インスタンスを生成する
@@ -39,8 +37,9 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	 * @param accountId                 アカウントID (long)
 	 */
 	public TimelineFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
+		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
+		this.accountId = accountId;
 		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/timeline");
-		twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -49,7 +48,7 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	}
 
 	@Override
-	protected void access() throws TwitterException {
+	protected synchronized void access() throws TwitterException {
 		ResponseList<Status> timeline = twitter.getHomeTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_TIMELINE)));
 		for (Status status : timeline) {
@@ -65,6 +64,7 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	public synchronized void disconnect() {
 		if (scheduledFuture != null) {
 			scheduledFuture.cancel(false);
+			scheduledFuture = null;
 		}
 	}
 
@@ -76,6 +76,8 @@ public class TimelineFetcher extends TwitterRunnable implements DataFetcher {
 	@Override
 	public synchronized void realConnect() {
 		if (scheduledFuture == null) {
+			twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
 				@Override

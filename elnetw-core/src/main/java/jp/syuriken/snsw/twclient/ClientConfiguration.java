@@ -154,15 +154,14 @@ public class ClientConfiguration {
 	/*package*/ ClientProperties configProperties;
 	/*package*/ ClientProperties configDefaultProperties;
 	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
-	private TrayIcon trayIcon;
-	private boolean isShutdownPhase = false;
+	private volatile TrayIcon trayIcon;
 	private TwitterClientFrame frameApi;
-	private boolean isInitializing = true;
+	private volatile boolean isInitializing = true;
 	private ConfigFrameBuilder configBuilder;
 	private volatile ImageCacher imageCacher;
 	private volatile String accountIdForRead;
 	private volatile String accountIdForWrite;
-	private TwitterDataFetchScheduler fetchScheduler;
+	private volatile TwitterDataFetchScheduler fetchScheduler;
 	private boolean portabledConfiguration;
 	private volatile CacheManager cacheManager;
 	private List<String> args;
@@ -698,9 +697,9 @@ public class ClientConfiguration {
 	 */
 	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
 		String userId;
-		if (accountId.equals("$reader")) {
+		if (accountId.equals(TwitterDataFetchScheduler.READER_ACCOUNT_ID)) {
 			userId = getAccountIdForRead();
-		} else if (accountId.equals("$writer")) {
+		} else if (accountId.equals(TwitterDataFetchScheduler.WRITER_ACCOUNT_ID)) {
 			userId = getAccountIdForWrite();
 		} else {
 			userId = accountId;
@@ -734,15 +733,6 @@ public class ClientConfiguration {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * シャットダウンフェーズかどうかを取得する。
-	 *
-	 * @return シャットダウンフェーズかどうか
-	 */
-	public boolean isShutdownPhase() {
-		return isShutdownPhase;
 	}
 
 	/**
@@ -795,13 +785,16 @@ public class ClientConfiguration {
 	 * @param accountId アカウントID。ユニーク。
 	 * @return 古い読み込み用アカウントID。
 	 */
-	public String setAccountIdForRead(String accountId) {
-		if (checkValidAccountId(accountId) == false) {
+	public synchronized String setAccountIdForRead(String accountId) {
+		if (!checkValidAccountId(accountId)) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
 		String old = accountIdForRead;
-		if (old == null || old.equals(accountId) == false) {
-			accountIdForRead = accountId; // TODO notify TwitterDataFetchScheduler
+		if (old == null || !old.equals(accountId)) {
+			accountIdForRead = accountId;
+			if (fetchScheduler != null) {
+				fetchScheduler.onChangeAccount(false);
+			}
 		}
 		return old;
 	}
@@ -812,22 +805,27 @@ public class ClientConfiguration {
 	 * @param accountId アカウントID。ユニーク
 	 * @return 古い書き込み用アカウントID。
 	 */
-	public String setAccountIdForWrite(String accountId) {
-		if (checkValidAccountId(accountId) == false) {
+	public synchronized String setAccountIdForWrite(String accountId) {
+		if (!checkValidAccountId(accountId)) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
 		String old = accountIdForWrite;
-		if (old == null || old.equals(accountId) == false) {
+		if (old == null || !old.equals(accountId)) {
 			accountIdForWrite = accountId;
+			if (fetchScheduler != null) {
+				fetchScheduler.onChangeAccount(true);
+			}
 		}
 		return old;
 	}
 
-	/*package*/void setCacheManager(CacheManager cacheManager) {
+	/*package*/
+	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
 	}
 
-	/*package*/ void setConfigBuilder(ConfigFrameBuilder configBuilder) {
+	/*package*/
+	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
 		this.configBuilder = configBuilder;
 	}
 
@@ -836,7 +834,7 @@ public class ClientConfiguration {
 	 *
 	 * @param configDefaultProperties the configDefaultProperties to set
 	 */
-	public void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
+	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
 		this.configDefaultProperties = configDefaultProperties;
 	}
 
@@ -845,15 +843,17 @@ public class ClientConfiguration {
 	 *
 	 * @param configProperties the configProperties to set
 	 */
-	public void setConfigProperties(ClientProperties configProperties) {
+	public synchronized void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
 	}
 
-	/*package*/ void setExtraClassLoader(ClassLoader extraClassLoader) {
+	/*package*/
+	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
 		this.extraClassLoader = extraClassLoader;
 	}
 
-	/*package*/void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
+	/*package*/
+	synchronized void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
 		this.fetchScheduler = fetchScheduler;
 	}
 
@@ -887,16 +887,8 @@ public class ClientConfiguration {
 		portabledConfiguration = portable;
 	}
 
-	/**
-	 * シャットダウンフェーズであるかどうかを設定する
-	 *
-	 * @param isShutdownPhase シャットダウンフェーズかどうか。
-	 */
-	public void setShutdownPhase(boolean isShutdownPhase) {
-		this.isShutdownPhase = isShutdownPhase;
-	}
-
-	/*package*/ void setTimer(ScheduledExecutorService timer) {
+	/*package*/
+	synchronized void setTimer(ScheduledExecutorService timer) {
 		this.timer = timer;
 	}
 
@@ -905,7 +897,7 @@ public class ClientConfiguration {
 	 *
 	 * @param trayIcon the trayIcon to set
 	 */
-	public void setTrayIcon(TrayIcon trayIcon) {
+	public synchronized void setTrayIcon(TrayIcon trayIcon) {
 		this.trayIcon = trayIcon;
 	}
 

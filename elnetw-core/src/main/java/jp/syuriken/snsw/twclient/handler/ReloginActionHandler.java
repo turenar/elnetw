@@ -13,7 +13,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 public class ReloginActionHandler implements ActionHandler {
 
 	private final boolean forWrite;
-
 	private final ClientConfiguration configuration;
 
 	/**
@@ -33,8 +32,11 @@ public class ReloginActionHandler implements ActionHandler {
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		String actionName = args.getIntentName();
-		String accountId = actionName.substring(actionName.indexOf('!') + 1);
+		String accountId = args.getExtraObj("accountId", String.class);
+		if (accountId == null) {
+			throw new IllegalArgumentException("Required arg: `accountId'");
+		}
+
 		if (forWrite) {
 			configuration.setAccountIdForWrite(accountId);
 		} else {

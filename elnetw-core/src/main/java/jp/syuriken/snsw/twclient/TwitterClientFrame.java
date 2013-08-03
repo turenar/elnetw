@@ -425,7 +425,7 @@ import static java.lang.Math.max;
 				String accountId = accountList[i];
 
 				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
-				readMenuItem.setActionCommand("menu_login_read!" + accountId);
+				readMenuItem.setActionCommand("menu_login_read!accountId=" + accountId);
 				readMenuItem.addActionListener(menuActionListener);
 				if (accountId.equals(defaultAccountId)) {
 					readMenuItem.setSelected(true);
@@ -436,7 +436,7 @@ import static java.lang.Math.max;
 				readButtonGroup.add(readMenuItem);
 
 				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
-				writeMenuItem.setActionCommand("menu_login_write!" + accountId);
+				writeMenuItem.setActionCommand("menu_login_write!accountId=" + accountId);
 				writeMenuItem.addActionListener(menuActionListener);
 				if (accountId.equals(defaultAccountId)) {
 					writeMenuItem.setSelected(true);
@@ -587,11 +587,6 @@ import static java.lang.Math.max;
 		tab.initTimeline();
 	}
 
-	/** 終了できるようにお掃除する */
-	public void cleanUp() {
-		configuration.setShutdownPhase(true);
-	}
-
 	@Override
 	public void clearTweetView() {
 		setTweetViewText(null, null, DO_NOTHING_WHEN_POINTED);
@@ -602,7 +597,7 @@ import static java.lang.Math.max;
 
 	@Override
 	public void doPost() {
-		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
+		if (postActionButton.isEnabled() && !postBox.getText().isEmpty()) {
 			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);

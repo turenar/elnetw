@@ -18,7 +18,16 @@ public interface DataFetcher {
 	 */
 	void connect();
 
-	/** このDataFetcherが使用されなくなったので、もう通知する必要がなくなった */
+	/**
+	 * このDataFetcherが使用されなくなったので、もう通知する必要がなくなった。
+	 * <p>
+	 * accountIdが
+	 * {@link TwitterDataFetchScheduler#READER_ACCOUNT_ID} {@link TwitterDataFetchScheduler#WRITER_ACCOUNT_ID}で、
+	 * 読み込み用/書き込み用アカウントが変更された時もこのメソッドが呼び出されます。
+	 * この場合は続いて {@link #connect()} {@link #realConnect()}(アプリケーションの初期化が完了しているのみ)が呼び出されますが、
+	 * 呼ばれた理由がアカウント変更であるかを取得できるメソッドは現在のところありません。
+	 * </p>
+	 */
 	void disconnect();
 
 	/**

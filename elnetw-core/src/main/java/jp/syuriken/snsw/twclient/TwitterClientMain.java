@@ -82,6 +82,10 @@ import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
+import jp.syuriken.snsw.twclient.net.DirectMessageFetcherFactory;
+import jp.syuriken.snsw.twclient.net.MentionsFetcherFactory;
+import jp.syuriken.snsw.twclient.net.StreamFetcherFactory;
+import jp.syuriken.snsw.twclient.net.TimelineFetcherFactory;
 import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,9 +102,7 @@ public class TwitterClientMain {
 
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
-
 	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
-
 	@InitializerInstance
 	private static volatile TwitterClientMain SINGLETON;
 
@@ -122,28 +124,18 @@ public class TwitterClientMain {
 
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-
 	/** for interruption */
 	private final Thread MAIN_THREAD;
-
 	/** 設定データ */
 	protected ClientProperties configProperties;
-
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
 	protected Getopt getopt;
-
 	protected JobWorkerThread jobWorkerThread;
-
 	protected boolean debugMode;
-
 	protected boolean portable;
-
 	protected TwitterDataFetchScheduler fetchScheduler;
-
 	protected TwitterClientFrame frame;
 
 	/**
@@ -226,7 +218,7 @@ public class TwitterClientMain {
 				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_MENTIONS, "メンション(@通知)", "秒数",
 						new IntegerConfigType(60, 3600))
 				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_DIRECT_MESSAGES, "ダイレクトメッセージ", "秒数",
-						new IntegerConfigType(60, 3600))
+						new IntegerConfigType(60, 10800))
 				.getParentGroup().getSubgroup("取得数 (ツイート数)")
 				.addConfig(ClientConfiguration.PROPERTY_PAGING_TIMELINE, "タイムライン", "ツイート",
 						new IntegerConfigType(1, 200))
@@ -448,12 +440,11 @@ public class TwitterClientMain {
 
 		synchronized (threadHolder) {
 			try {
-				while (configuration.isShutdownPhase() == false) {
+				while (true) {
 					threadHolder.wait();
 				}
 			} catch (InterruptedException e) {
 				// interrupted shows TCM#quit() is called.
-				configuration.setShutdownPhase(true);
 			}
 		}
 
@@ -560,6 +551,15 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
+	public void setFetcherFactory() {
+		fetchScheduler.addVirtualNotifier("my/timeline", new String[]{"stream/user", "statuses/timeline"});
+		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
+		fetchScheduler.addFetcherFactory("statuses/timeline", new TimelineFetcherFactory());
+		fetchScheduler.addFetcherFactory("statuses/mentions", new MentionsFetcherFactory());
+		fetchScheduler.addFetcherFactory("direct_messages", new DirectMessageFetcherFactory());
+	}
+
 	@Initializer(name = "finish-initPhase", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
@@ -643,7 +643,6 @@ public class TwitterClientMain {
 				}
 			});
 		} else {
-			frame.cleanUp();
 			logger.info("Exiting elnetw...");
 			try {
 				EventQueue.invokeAndWait(new Runnable() {

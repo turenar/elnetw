@@ -1,10 +1,11 @@
 package jp.syuriken.snsw.twclient.net;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -32,23 +33,6 @@ public class TwitterDataFetchScheduler {
 		}
 	}
 
-	private static class NullIterator implements Iterator<ClientMessageListener> {
-		@Override
-		public boolean hasNext() {
-			return false;
-		}
-
-		@Override
-		public ClientMessageListener next() {
-			return null;
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-	}
-
 	private final class ApiConfigurationFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		@Override
@@ -58,8 +42,10 @@ public class TwitterDataFetchScheduler {
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(TwitterDataFetchScheduler.class);
-	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = new NullIterator();
+	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = Collections.emptyIterator();
 	/*package*/ static final Iterable<ClientMessageListener> NULL_LISTENERS = new NullIterable();
+	public static final String READER_ACCOUNT_ID = "$reader";
+	public static final String WRITER_ACCOUNT_ID = "$writer";
 
 	private static String getAppended(StringBuilder builder, String appendedString) {
 		int oldLength = builder.length();
@@ -69,10 +55,16 @@ public class TwitterDataFetchScheduler {
 	}
 
 	/*package*/final ClientConfiguration configuration;
+	/** {String=path, String[]=paths} */
 	protected HashMap<String, String[]> virtualPathMap = new HashMap<>();
+	/** {String=notifierName, DataFetcherFactory=fetcherFactory} */
 	protected HashMap<String, DataFetcherFactory> fetcherMap = new HashMap<>();
+	/** {String=path, DataFetcher=fetcher} */
 	protected LinkedHashMap<String, DataFetcher> pathMap = new LinkedHashMap<>();
+	/** {K=path, V=listeners} */
 	protected HashMap<String, CopyOnWriteArrayList<ClientMessageListener>> pathListenerMap = new HashMap<>();
+	/** {K=accountId, V=DataFetchers} */
+	protected HashMap<String, CopyOnWriteArrayList<DataFetcher>> userListenerMap = new HashMap<>();
 	/*package*/ Twitter twitterForRead;
 	/*package*/ ClientProperties configProperties;
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
@@ -82,12 +74,33 @@ public class TwitterDataFetchScheduler {
 	public TwitterDataFetchScheduler() {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
-		twitterForRead = configuration.getTwitterForRead();
 		init(); // for tests
 	}
 
+	/**
+	 * add fetcher factory
+	 *
+	 * @param notifierName notifier name
+	 * @param factory      fetcher factory
+	 * @return old fetcher factory
+	 */
+	public synchronized DataFetcherFactory addFetcherFactory(String notifierName, DataFetcherFactory factory) {
+		return fetcherMap.put(notifierName, factory);
+	}
+
+	/**
+	 * add virtual notifiers
+	 *
+	 * @param virtualPath notifier name (like &quot;my/timeline&quot;)
+	 * @param notifiers   child notifiers (like &quot;stream/user&quot;, &quot;rest/timeline&quot;)
+	 * @return old virtual notifiers
+	 */
+	public synchronized String[] addVirtualNotifier(String virtualPath, String[] notifiers) {
+		return virtualPathMap.put(virtualPath, notifiers);
+	}
+
 	/** お掃除する */
-	public void cleanUp() {
+	public synchronized void cleanUp() {
 		Collection<DataFetcher> entries = pathMap.values();
 		for (DataFetcher entry : entries) {
 			entry.disconnect();
@@ -129,6 +142,14 @@ public class TwitterDataFetchScheduler {
 				}
 				dataFetcher = factory.getInstance(this, accountId, notifierName);
 				pathMap.put(path, dataFetcher);
+
+				CopyOnWriteArrayList<DataFetcher> userListeners = userListenerMap.get(accountId);
+				if (userListeners == null) {
+					userListeners = new CopyOnWriteArrayList<>();
+					userListenerMap.put(accountId, userListeners);
+				}
+				userListeners.add(dataFetcher);
+
 				dataFetcher.connect();
 				if (isInitialized) {
 					dataFetcher.realConnect();
@@ -177,12 +198,19 @@ public class TwitterDataFetchScheduler {
 		return new VirtualMultipleMessageDispatcher(this, recursive, accountId, notifierName);
 	}
 
-	/*package*/ String getPath(String accountId, String notifierName) {
+	/**
+	 * アカウントIDと通知Identifierから通知に使用するパスを生成する。
+	 *
+	 * @param accountId    アカウントID
+	 * @param notifierName 通知Identifier
+	 * @return パス
+	 */
+	public String getPath(String accountId, String notifierName) {
 		return accountId + ":" + notifierName;
 	}
 
 	public String[] getRecursivePaths(String accountId, String notifierName) {
-		ArrayList<String> paths = new ArrayList<>();
+		TreeSet<String> paths = new TreeSet<>();
 		getRecursivePaths(paths, accountId, notifierName);
 		return paths.toArray(new String[paths.size()]);
 	}
@@ -211,9 +239,9 @@ public class TwitterDataFetchScheduler {
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration(String accountId) {
-		if (accountId.equals("$reader")) {
+		if (accountId.equals(READER_ACCOUNT_ID)) {
 			return configuration.getTwitterConfiguration(configuration.getAccountIdForRead());
-		} else if (accountId.equals("$writer")) {
+		} else if (accountId.equals(WRITER_ACCOUNT_ID)) {
 			return configuration.getTwitterConfiguration(configuration.getAccountIdForWrite());
 		} else {
 			return configuration.getTwitterConfiguration(accountId);
@@ -221,15 +249,8 @@ public class TwitterDataFetchScheduler {
 	}
 
 	protected void init() {
-		virtualPathMap.put("my/timeline", new String[]{"stream/user", "statuses/timeline"});
-		fetcherMap.put("stream/user", new StreamFetcherFactory());
-		fetcherMap.put("statuses/timeline", new TimelineFetcherFactory());
-		fetcherMap.put("statuses/mentions", new MentionsFetcherFactory());
-		fetcherMap.put("direct_messages", new DirectMessageFetcherFactory());
-
+		twitterForRead = configuration.getTwitterForRead();
 		scheduleGettingTwitterApiConfiguration();
-		onChangeAccount(true);
-		onChangeAccount(false);
 	}
 
 	/**
@@ -239,9 +260,9 @@ public class TwitterDataFetchScheduler {
 	 */
 	public void onChangeAccount(boolean forWrite) {
 		if (forWrite) {
-			reloginForWrite(configuration.getAccountIdForWrite());
+			relogin(WRITER_ACCOUNT_ID);
 		} else {
-			reloginForRead(configuration.getAccountIdForRead());
+			relogin(READER_ACCOUNT_ID);
 		}
 	}
 
@@ -253,12 +274,19 @@ public class TwitterDataFetchScheduler {
 		}
 	}
 
-	private void reloginForRead(String accountId) {
-		// TODO
-	}
+	private synchronized void relogin(String accountId) {
+		CopyOnWriteArrayList<DataFetcher> clientMessageListeners = userListenerMap.get(accountId);
+		if (clientMessageListeners == null) {
+			return;
+		}
 
-	private void reloginForWrite(String accountId) {
-		// TODO
+		for (DataFetcher fetcher : clientMessageListeners) {
+			fetcher.disconnect();
+			fetcher.connect();
+			if (isInitialized) {
+				fetcher.realConnect();
+			}
+		}
 	}
 
 	private void scheduleGettingTwitterApiConfiguration() {

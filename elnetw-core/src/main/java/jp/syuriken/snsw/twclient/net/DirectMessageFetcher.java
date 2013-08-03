@@ -25,22 +25,19 @@ import twitter4j.TwitterFactory;
 public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(TimelineFetcher.class);
-
-	private final Twitter twitter;
-
 	private final ClientConfiguration configuration;
-
 	private final int intervalOfDirectMessage;
-
 	private final ClientProperties configProperties;
-
 	private final ClientMessageListener listeners;
-
-	private ScheduledFuture<?> scheduledFuture;
+	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final String accountId;
+	private volatile ScheduledFuture<?> scheduledFuture;
+	private volatile Twitter twitter;
 
 	public DirectMessageFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
+		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
+		this.accountId = accountId;
 		listeners = twitterDataFetchScheduler.getListeners(accountId, "direct_messages");
-		twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -49,7 +46,7 @@ public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher
 	}
 
 	@Override
-	protected void access() throws TwitterException {
+	protected synchronized void access() throws TwitterException {
 		ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES)));
 		for (DirectMessage dm : directMessages) {
@@ -77,6 +74,9 @@ public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher
 	@Override
 	public synchronized void realConnect() {
 		if (scheduledFuture == null) {
+			twitter = new TwitterFactory(
+					twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
 				@Override

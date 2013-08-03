@@ -25,18 +25,14 @@ import twitter4j.TwitterFactory;
 public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(MentionsFetcher.class);
-
-	private final Twitter twitter;
-
 	private final ClientConfiguration configuration;
-
 	private final int intervalOfMentions;
-
 	private final ClientProperties configProperties;
-
 	private final ClientMessageListener listeners;
-
-	private ScheduledFuture<?> scheduledFuture;
+	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final String accountId;
+	private volatile Twitter twitter;
+	private volatile ScheduledFuture<?> scheduledFuture;
 
 	/**
 	 * インスタンスを生成する
@@ -45,8 +41,9 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 	 * @param accountId                 アカウントID (long)
 	 */
 	public MentionsFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
+		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
+		this.accountId = accountId;
 		listeners = twitterDataFetchScheduler.getListeners(accountId, "statuses/mentions");
-		twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -54,7 +51,7 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 	}
 
 	@Override
-	protected void access() throws TwitterException {
+	protected synchronized void access() throws TwitterException {
 		ResponseList<Status> mentions = twitter.getMentionsTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_MENTIONS)));
 		for (Status status : mentions) {
@@ -70,6 +67,7 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 	public synchronized void disconnect() {
 		if (scheduledFuture != null) {
 			scheduledFuture.cancel(false);
+			scheduledFuture = null;
 		}
 	}
 
@@ -81,6 +79,8 @@ public class MentionsFetcher extends TwitterRunnable implements DataFetcher {
 	@Override
 	public synchronized void realConnect() {
 		if (scheduledFuture == null) {
+			twitter = new TwitterFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
 				@Override

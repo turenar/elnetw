@@ -11,12 +11,9 @@ import twitter4j.TwitterStreamFactory;
  */
 public class StreamFetcher implements DataFetcher {
 	private final String accountId;
-
 	private final ClientMessageListener listener;
-
-	private TwitterStream stream;
-
-	private TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private volatile TwitterStream stream;
 
 	public StreamFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
 		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
@@ -26,16 +23,21 @@ public class StreamFetcher implements DataFetcher {
 
 	@Override
 	public synchronized void connect() {
-		stream = new TwitterStreamFactory(twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
-		stream.addConnectionLifeCycleListener(listener);
-		stream.addListener(listener);
-		stream.user();
+		if (stream == null) {
+			stream = new TwitterStreamFactory(
+					twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+			stream.addConnectionLifeCycleListener(listener);
+			stream.addListener(listener);
+			stream.user();
+		}
 	}
 
 	@Override
 	public synchronized void disconnect() {
-		stream.shutdown();
-		stream = null;
+		if (stream != null) {
+			stream.shutdown();
+			stream = null;
+		}
 	}
 
 	@Override
