@@ -32,10 +32,6 @@
 
 	<repositories>
 		<repository>
-			<id>central</id>
-			<url>http://repo1.maven.org/maven2/</url>
-		</repository>
-		<repository>
 			<id>twitter4j.org</id>
 			<name>twitter4j.org Repository</name>
 			<url>http://twitter4j.org/maven2</url>
@@ -103,9 +99,8 @@
 			<version>1.6.1</version>
 		</dependency>
 		<dependency>
-			<groupId>findbugs</groupId>
+			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
-			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>jp.syuriken.snsw</groupId>

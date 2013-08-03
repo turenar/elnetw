@@ -12,7 +12,7 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
 ## 動作環境等
 
  * OS
-     JRE1.6以上がインストールされGUIが利用できること
+     JRE1.7以上がインストールされGUIが利用できること
  * メモリ
      あればたくさん (目安としては空き領域が128MB以上)
  * ストレージ
@@ -21,7 +21,8 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
 ### あると幸せになれるかも
 
  * 高速なインターネット
- * notify-sendコマンド (Ubuntuではlibnotify-binパッケージ)
+ * notify-sendコマンド (Linuxのみ？: Ubuntuではlibnotify-binパッケージ)
+ * java-gnome (Linuxのみ: gtk.jarへの(ハードorシンボリック)リンクを~/.elnetw/libに作成してください)
 
 ## パッケージのダウンロード
 
