@@ -342,7 +342,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 			try {
 				final JLabel closeIcon =
 						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewActionHandler.class
-								.getResource("../close16.png"))));
+								.getResource("/jp/syuriken/snsw/twclient/img/close16.png"))));
 				closeIcon.setText("閉じる");
 				closeIcon.setFont(operationFont);
 				closeIcon.addMouseListener(new MouseAdapter() {
