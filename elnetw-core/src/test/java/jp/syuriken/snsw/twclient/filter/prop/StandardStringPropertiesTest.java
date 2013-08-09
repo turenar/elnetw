@@ -12,9 +12,7 @@ import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * {@link StandardStringProperties}のためのテスト
@@ -51,7 +49,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 		configuration.setConfigDefaultProperties(defaultProperties);
 		ClientProperties properties = new ClientProperties(defaultProperties);
 		properties
-			.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
+				.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
 		configuration.setConfigProperties(properties);
 	}
 
@@ -89,9 +87,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 		assertTrue(testEqual("text", DM_1.getText(), DM_1));
 	}
 
-	/**
-	 * 無知の名前に対するテスト
-	 */
+	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
 		try {
@@ -117,5 +113,4 @@ public class StandardStringPropertiesTest extends FilterConstants {
 		assertFalse(testEqual("user", "*ture*", DM_1));
 		assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
 	}
-
 }

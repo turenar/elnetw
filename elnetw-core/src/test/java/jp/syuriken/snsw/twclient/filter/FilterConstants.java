@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient.filter;
 
-import static junit.framework.Assert.assertEquals;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -10,6 +8,8 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.json.DataObjectFactory;
+
+import static junit.framework.Assert.*;
 
 /**
  * フィルタ・テスト用の定数等を格納したクラス。
@@ -36,7 +36,6 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 		public boolean filter(Status status) {
 			return bool;
 		}
-
 	}
 
 
@@ -47,8 +46,8 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	public static final FilterDispatcherBase TRUE_DISPATCHER = new BooleanFilterDispatcher(true);
 
 	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
-	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[] {
-		this
+	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[]{
+			this
 	};
 
 	/** 最後にフィルタしようとしたオブジェクト */
@@ -72,19 +71,13 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	 */
 	public static final Status STATUS_3;
 
-	/**
-	 * API Documentに記述されているリツイートされたStatusのテスト用データ
-	 */
+	/** API Documentに記述されているリツイートされたStatusのテスト用データ */
 	public static final Status STATUS_4;
 
-	/**
-	 * {@link #STATUS_2}とほとんど同じだが、verifiedおよびprotectedがtrueになってる実在しないデータ
-	 */
+	/** {@link #STATUS_2}とほとんど同じだが、verifiedおよびprotectedがtrueになってる実在しないデータ */
 	public static final Status STATUS_5;
 
-	/**
-	 * API Documentに記述されているダイレクトメッセージのテスト用データ
-	 */
+	/** API Documentに記述されているダイレクトメッセージのテスト用データ */
 	public static final DirectMessage DM_1;
 
 	static {
@@ -167,5 +160,4 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 		lastFilteringObject = status;
 		return false;
 	}
-
 }

@@ -1,3 +1,7 @@
+Version 0.0.2-alpha5
+
+	+ UserInfoTab shows user's icon
+
 Version 0.0.2-alpha4 (Sat May 25 19:15:42 2013 +0900)
 
 	! Require jre1.7

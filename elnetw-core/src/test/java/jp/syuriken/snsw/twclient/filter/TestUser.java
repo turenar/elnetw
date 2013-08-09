@@ -276,5 +276,4 @@ class TestUser implements User {
 	public boolean isVerified() {
 		return false;
 	}
-
 }

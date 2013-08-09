@@ -37,25 +37,18 @@ public class ImageCacher {
 
 		/** イメージURL */
 		public final URL url;
-
 		/** 画像キー */
 		public final String imageKey;
-
 		/** Image インスタンス */
 		public Image image;
-
 		/** キャッシュ先のファイル */
 		public File cacheFile;
-
 		/** 生の画像データ */
 		public byte[] rawimage;
-
 		/** すでに書きこまれたかどうか */
 		protected volatile boolean isWritten = false;
-
 		/** 指定時間内の出現回数 */
 		public volatile int appearCount;
-
 		/** カウント終了時間 (ms) */
 		public volatile long countEndTime;
 
@@ -85,7 +78,8 @@ public class ImageCacher {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
 					.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
-					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append("],isWritten=")
+					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append(
+					"],isWritten=")
 					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
 			return stringBuilder.toString();
 		}
@@ -100,7 +94,6 @@ public class ImageCacher {
 
 		/** イメージエントリ */
 		public final ImageEntry entry;
-
 		/** イメージアイコンを設定するJLabel */
 		public final JLabel label;
 
@@ -165,24 +158,16 @@ public class ImageCacher {
 
 	/** Buffersize */
 	private static final int BUFSIZE = 65536;
-
 	private final ClientConfiguration configuration;
-
 	/** キャッシュ出力先ディレクトリ */
 	public final File CACHE_DIR;
-
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File USER_ICON_CACHE_DIR;
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
 	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
-
 	/** キャッシュ有効時間 */
 	private long cacheExpire;
-
 	private int flushThreshold;
-
 	private int flushResetInterval;
 
 	/**
@@ -305,6 +290,31 @@ public class ImageCacher {
 	}
 
 	/**
+	 * 指定したユーザーの画像を取得
+	 *
+	 * @param user ユーザー
+	 * @return 画像がすでに取得されていればその画像、そうでなければnull
+	 */
+	public Image getImage(User user) {
+		String imageKey = getImageKey(user);
+		String url = user.getProfileImageURL();
+		ImageEntry entry = cacheManager.get(imageKey);
+		if (entry == null) {
+			try {
+				entry = new ImageEntry(new URL(url), imageKey);
+			} catch (MalformedURLException e) {
+				throw new AssertionError(e); // would never happen
+			}
+			entry.cacheFile = getImageFilename(user);
+			configuration.addJob(new ImageFetcher(entry, null));
+			return null;
+		} else {
+			incrementAppearCount(entry);
+			return entry.image;
+		}
+	}
+
+	/**
 	 * URLの画像をストレージ上に保存し、そのファイル名を返す。
 	 * この呼び出しは極力キャッシュされます。
 	 *
@@ -398,7 +408,7 @@ public class ImageCacher {
 		return fileName;
 	}
 
-	private void incrementAppearCount(ImageEntry entry) {
+	protected void incrementAppearCount(ImageEntry entry) {
 		if (entry.isWritten) {
 			return;
 		}

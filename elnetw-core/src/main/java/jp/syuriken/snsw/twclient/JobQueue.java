@@ -13,13 +13,12 @@ public class JobQueue {
 
 	/**
 	 * 簡易LinkedList。最後に追加と先頭から取得しかできない。
+	 *
 	 * @param <E> 格納する値のクラス
 	 */
 	protected static class LinkedQueue<E> {
 		private int size;
-
 		private Node<E> first;
-
 		private Node<E> last;
 
 		/**
@@ -41,7 +40,7 @@ public class JobQueue {
 		/**
 		 * emptyかしらべる
 		 *
-		 * @return
+		 * @return サイズ0かどうか
 		 */
 		public synchronized boolean isEmpty() {
 			return size == 0;
@@ -68,7 +67,6 @@ public class JobQueue {
 
 	protected static class Node<E> {
 		public final E item;
-
 		public Node<E> next;
 
 		public Node(E element, Node<E> next) {
@@ -89,8 +87,7 @@ public class JobQueue {
 		MEDIUM,
 		/** 優先度：低 */
 		LOW;
-
-		public static int PRIORITY_COUNT = 3;
+		public static final int PRIORITY_COUNT = 3;
 
 		public int getPriorityValue() {
 			switch (this) {
@@ -107,23 +104,17 @@ public class JobQueue {
 	}
 
 	private static final int HIGH_THRESHOLD = 100;
-
 	private static final int MEDIUM_THRESHOLD = 10;
-
 	private static final int LOW_THRESHOLD = 1;
-
 	private final LinkedQueue<Runnable>[] queues;
-
 	private final AtomicInteger size = new AtomicInteger();
-
 	private final Random random;
-
 	private Object jobWorkerThreadHolder = null;
 
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
-		queues = new LinkedQueue[Priority.PRIORITY_COUNT];
+		queues = makeLinkedQueueArray();
 		for (int i = 0; i < Priority.PRIORITY_COUNT; i++) {
 			queues[i] = new LinkedQueue<>();
 		}
@@ -134,10 +125,10 @@ public class JobQueue {
 	 * ジョブを追加する。
 	 *
 	 * <p>
-	 *     priorityごとにキューは独立しており、同じpriority内では追加された順番に取得されます。
-	 *     しかし、全体ではrandomによるpriorityによるキューの選択があるため、
-	 *     高いpriorityのジョブはあとから追加されても、低いpriorityのジョブより早くキューから出る可能性が「高い」です。
-	 *     逆も同様で、低いpriorityのジョブは高いpriorityのジョブより早くキューから出る可能性は「低い」です。
+	 * priorityごとにキューは独立しており、同じpriority内では追加された順番に取得されます。
+	 * しかし、全体ではrandomによるpriorityによるキューの選択があるため、
+	 * 高いpriorityのジョブはあとから追加されても、低いpriorityのジョブより早くキューから出る可能性が「高い」です。
+	 * 逆も同様で、低いpriorityのジョブは高いpriorityのジョブより早くキューから出る可能性は「低い」です。
 	 * </p>
 	 *
 	 * @param priority 優先度
@@ -221,6 +212,11 @@ public class JobQueue {
 	 */
 	public boolean isEmpty() {
 		return size.get() == 0;
+	}
+
+	@SuppressWarnings("unchecked")
+	private LinkedQueue<Runnable>[] makeLinkedQueueArray() {
+		return new LinkedQueue[Priority.PRIORITY_COUNT];
 	}
 
 	/**

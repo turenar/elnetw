@@ -76,7 +76,6 @@ public class RemoveTweetActionHandler extends StatusActionHandlerBase {
 						}
 					}
 				}
-
 			});
 			dialog.setVisible(true);
 		}

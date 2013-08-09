@@ -33,9 +33,9 @@ public class ActionButtonConfigType implements ConfigType {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param buttonText ボタンに表示するテキスト
+	 * @param buttonText    ボタンに表示するテキスト
 	 * @param actionCommand アクションコマンド
-	 * @param frameApi フレーム操作用API
+	 * @param frameApi      フレーム操作用API
 	 */
 	public ActionButtonConfigType(String buttonText, String actionCommand, ClientFrameApi frameApi) {
 		this.buttonText = buttonText;
@@ -65,5 +65,4 @@ public class ActionButtonConfigType implements ConfigType {
 	public boolean isValid(JComponent component) {
 		return true;
 	}
-
 }

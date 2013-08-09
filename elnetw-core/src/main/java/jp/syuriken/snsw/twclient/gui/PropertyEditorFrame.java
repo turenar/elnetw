@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -27,6 +27,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientProperties;
+
 /**
  * プロパティーエディター。
  *
@@ -51,7 +54,6 @@ public class PropertyEditorFrame extends JFrame {
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			return types[columnIndex];
-
 		}
 
 		@Override
@@ -297,5 +299,4 @@ public class PropertyEditorFrame extends JFrame {
 			initTableModel();
 		}
 	}
-
 }

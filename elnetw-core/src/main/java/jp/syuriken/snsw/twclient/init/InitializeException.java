@@ -22,9 +22,11 @@ public class InitializeException extends Exception {
 	public InitializeException(Throwable cause) {
 		this(null, cause);
 	}
+
 	public InitializeException(InitializerInfo initializerInfo, String reason) {
 		this(initializerInfo, null, reason);
 	}
+
 	public InitializeException(InitializerInfo initializerInfo, String reason, int exitCode) {
 		this(initializerInfo, null, reason, exitCode);
 	}

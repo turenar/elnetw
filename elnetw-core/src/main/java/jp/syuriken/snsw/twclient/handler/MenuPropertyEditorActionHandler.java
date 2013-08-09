@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient.handler;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
-import jp.syuriken.snsw.twclient.PropertyEditorFrame;
+import jp.syuriken.snsw.twclient.gui.PropertyEditorFrame;
 
 /**
  * メニューのプロパティエディタを開くためのアクションハンドラ
@@ -27,5 +27,4 @@ public class MenuPropertyEditorActionHandler implements ActionHandler {
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 		// This is always enabled.
 	}
-
 }

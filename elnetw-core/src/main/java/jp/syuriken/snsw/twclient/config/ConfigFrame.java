@@ -48,11 +48,12 @@ public class ConfigFrame extends JFrame {
 	/**
 	 * 指定された設定の配列からフレームを生成する。すでにフレームが存在したときはそのフレームを返す。
 	 *
-	 * @param configs 設定の配列
+	 * @param configs       設定の配列
 	 * @param configuration 実行時設定
 	 * @return フレーム
 	 */
-	/*package*/static JFrame build(Config[] configs, ClientConfiguration configuration) {
+	/*package*/
+	static JFrame build(Config[] configs, ClientConfiguration configuration) {
 		synchronized (staticHolder) {
 			if (openingFrame != null) {
 				return openingFrame;
@@ -91,11 +92,11 @@ public class ConfigFrame extends JFrame {
 				horizontalCombinedGroup = layout.createParallelGroup();
 				layout.setVerticalGroup(verticalGroup);
 				layout
-					.setHorizontalGroup(layout
-						.createParallelGroup()
-						.addGroup(
-								layout.createSequentialGroup().addGroup(horizontalNameGroup)
-									.addGroup(horizontalValueGroup)).addGroup(horizontalCombinedGroup));
+						.setHorizontalGroup(layout
+								.createParallelGroup()
+								.addGroup(
+										layout.createSequentialGroup().addGroup(horizontalNameGroup)
+												.addGroup(horizontalValueGroup)).addGroup(horizontalCombinedGroup));
 				tabContent.add(subgroupPanel);
 				if (subgroup != null) {
 					subgroupPanel.setBorder(new TitledBorder(subgroup));
@@ -115,7 +116,7 @@ public class ConfigFrame extends JFrame {
 			} else {
 				verticalGroup.addGroup(
 						layout.createBaselineGroup(false, true).addComponent(label)
-							.addComponent(valueComponent, 24, 24, 24)).addGap(2, 2, 2);
+								.addComponent(valueComponent, 24, 24, 24)).addGap(2, 2, 2);
 				horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
 				horizontalValueGroup.addComponent(valueComponent, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
@@ -140,7 +141,7 @@ public class ConfigFrame extends JFrame {
 	/**
 	 * 実行時設定に反映させる。
 	 *
-	 * @param key キー
+	 * @param key   キー
 	 * @param value 値
 	 * @return 以前キーに関連付けられていた値
 	 */

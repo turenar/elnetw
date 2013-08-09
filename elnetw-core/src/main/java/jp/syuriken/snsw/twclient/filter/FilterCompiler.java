@@ -212,7 +212,6 @@ public class FilterCompiler implements FilterParserVisitor {
 			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
 					+ ">に関連付けられたConstructorは正しくありません", e);
 		}
-
 	}
 
 	@Override
@@ -297,5 +296,4 @@ public class FilterCompiler implements FilterParserVisitor {
 	public Object visit(SimpleNode node, Object data) {
 		return null;
 	}
-
 }

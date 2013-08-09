@@ -21,8 +21,7 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -37,7 +36,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -52,6 +50,8 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -135,7 +135,7 @@ import static java.lang.Math.max;
 				case "submenu":
 					return;
 				case "version": {
-					VersionInfoFrame frame = new VersionInfoFrame(configuration);
+					VersionInfoFrame frame = new VersionInfoFrame();
 					frame.setVisible(true);
 					break;
 				}
@@ -224,7 +224,6 @@ import static java.lang.Math.max;
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -235,17 +234,12 @@ import static java.lang.Math.max;
 	private final class DefaultMouseListener implements MouseListener {
 
 		private static final String DEL_FTAG = "<!-- del -->";
-
 		private static final String DEL_ETAG = "<!-- /del -->";
-
 		private static final String DEL_ALL = "<!-- delbefthis -->";
-
 		private static final String UNDERLINE_TAG = DEL_FTAG
 				+ "<span style='text-decoration:underline' class='autoinserted'>" + DEL_ETAG;
-
 		private static final String HTML_UNDERLINE_TAG =
 				"<html><span style='text-decoration:underline' class='autohtmled'>" + DEL_ALL;
-
 		private static final String END_TAG = DEL_FTAG + "</span>" + DEL_ETAG;
 
 		@Override
@@ -351,98 +345,6 @@ import static java.lang.Math.max;
 		}
 	}
 
-	/**
-	 * ログイン出来るユーザー情報を取得する
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	/*package*/final class UserInfoFetcher implements Runnable {
-
-		public final String[] accountList = configuration.getAccountList();
-
-		final UserInfoFetcher this$uif = UserInfoFetcher.this;
-
-		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
-
-		public int offset = 0;
-
-		public JMenuItem[] readTimelineMenuItems;
-
-		public JMenuItem[] postToMenuItems;
-
-		/** インスタンスを生成する。 */
-		public UserInfoFetcher() {
-			readTimelineMenuItems = new JMenuItem[accountList.length];
-			postToMenuItems = new JMenuItem[accountList.length];
-			String defaultAccountId = configuration.getDefaultAccountId();
-			ButtonGroup readButtonGroup = new ButtonGroup();
-			ButtonGroup writeButtonGroup = new ButtonGroup();
-			for (int i = 0; i < accountList.length; i++) {
-				String accountId = accountList[i];
-
-				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
-				readMenuItem.setActionCommand("menu_login_read!" + accountId);
-				readMenuItem.addActionListener(menuActionListener);
-				if (accountId.equals(defaultAccountId)) {
-					readMenuItem.setSelected(true);
-					readMenuItem.setFont(readMenuItem.getFont().deriveFont(Font.BOLD));
-				}
-				readTimelineMenuItems[i] = readMenuItem;
-				getReadTimelineJMenu().add(readMenuItem);
-				readButtonGroup.add(readMenuItem);
-
-				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
-				writeMenuItem.setActionCommand("menu_login_write!" + accountId);
-				writeMenuItem.addActionListener(menuActionListener);
-				if (accountId.equals(defaultAccountId)) {
-					writeMenuItem.setSelected(true);
-					writeMenuItem.setFont(writeMenuItem.getFont().deriveFont(Font.BOLD));
-				}
-				postToMenuItems[i] = writeMenuItem;
-				getPostToJMenu().add(writeMenuItem);
-				writeButtonGroup.add(writeMenuItem);
-			}
-		}
-
-		@Override
-		public void run() {
-			if (offset < accountList.length) {
-				int lookupUsersSize = accountList.length - offset;
-				lookupUsersSize = lookupUsersSize <= 100 ? lookupUsersSize : 100;
-				try {
-					long[] ids = new long[lookupUsersSize];
-
-					for (int i = 0; i < lookupUsersSize; i++) {
-						ids[i] = Long.parseLong(accountList[offset + i]);
-					}
-
-					ResponseList<User> users = configuration.getTwitterForRead().lookupUsers(ids);
-
-					int finish = offset + lookupUsersSize;
-					for (User user : users) {
-						for (int i = offset; i < finish; i++) {
-							if (accountList[i].equals(String.valueOf(user.getId()))) {
-								readTimelineMenuItems[i].setText(user.getScreenName());
-								postToMenuItems[i].setText(user.getScreenName());
-							}
-						}
-					}
-					offset += lookupUsersSize;
-				} catch (TwitterException e) {
-					e.printStackTrace(); //TODO
-				}
-
-				getTimer().schedule(new TimerTask() {
-
-					@Override
-					public void run() {
-						this$tcf.addJob(Priority.LOW, this$uif);
-					}
-				}, 10000);
-			}
-		}
-	}
-
 	private class PostTask extends TwitterRunnable implements ParallelRunnable {
 
 		private final String text;
@@ -493,8 +395,95 @@ import static java.lang.Math.max;
 		}
 
 		@Override
-		protected void handleException(TwitterException ex) {
+		protected void onException(TwitterException ex) {
 			tab.getRenderer().onException(ex);
+		}
+	}
+
+	/**
+	 * ログイン出来るユーザー情報を取得する
+	 *
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
+	 */
+	/*package*/final class UserInfoFetcher implements Runnable {
+
+		public final String[] accountList = configuration.getAccountList();
+		final UserInfoFetcher this$uif = UserInfoFetcher.this;
+		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
+		public int offset = 0;
+		public JMenuItem[] readTimelineMenuItems;
+		public JMenuItem[] postToMenuItems;
+
+		/** インスタンスを生成する。 */
+		public UserInfoFetcher() {
+			readTimelineMenuItems = new JMenuItem[accountList.length];
+			postToMenuItems = new JMenuItem[accountList.length];
+			String defaultAccountId = configuration.getDefaultAccountId();
+			ButtonGroup readButtonGroup = new ButtonGroup();
+			ButtonGroup writeButtonGroup = new ButtonGroup();
+			for (int i = 0; i < accountList.length; i++) {
+				String accountId = accountList[i];
+
+				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
+				readMenuItem.setActionCommand("menu_login_read!accountId=" + accountId);
+				readMenuItem.addActionListener(menuActionListener);
+				if (accountId.equals(defaultAccountId)) {
+					readMenuItem.setSelected(true);
+					readMenuItem.setFont(readMenuItem.getFont().deriveFont(Font.BOLD));
+				}
+				readTimelineMenuItems[i] = readMenuItem;
+				getReadTimelineJMenu().add(readMenuItem);
+				readButtonGroup.add(readMenuItem);
+
+				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
+				writeMenuItem.setActionCommand("menu_login_write!accountId=" + accountId);
+				writeMenuItem.addActionListener(menuActionListener);
+				if (accountId.equals(defaultAccountId)) {
+					writeMenuItem.setSelected(true);
+					writeMenuItem.setFont(writeMenuItem.getFont().deriveFont(Font.BOLD));
+				}
+				postToMenuItems[i] = writeMenuItem;
+				getPostToJMenu().add(writeMenuItem);
+				writeButtonGroup.add(writeMenuItem);
+			}
+		}
+
+		@Override
+		public void run() {
+			if (offset < accountList.length) {
+				int lookupUsersSize = accountList.length - offset;
+				lookupUsersSize = lookupUsersSize <= 100 ? lookupUsersSize : 100;
+				try {
+					long[] ids = new long[lookupUsersSize];
+
+					for (int i = 0; i < lookupUsersSize; i++) {
+						ids[i] = Long.parseLong(accountList[offset + i]);
+					}
+
+					ResponseList<User> users = configuration.getTwitterForRead().lookupUsers(ids);
+
+					int finish = offset + lookupUsersSize;
+					for (User user : users) {
+						for (int i = offset; i < finish; i++) {
+							if (accountList[i].equals(String.valueOf(user.getId()))) {
+								readTimelineMenuItems[i].setText(user.getScreenName());
+								postToMenuItems[i].setText(user.getScreenName());
+							}
+						}
+					}
+					offset += lookupUsersSize;
+				} catch (TwitterException e) {
+					e.printStackTrace(); //TODO
+				}
+
+				configuration.getTimer().schedule(new Runnable() {
+
+					@Override
+					public void run() {
+						this$tcf.addJob(Priority.LOW, this$uif);
+					}
+				}, 10, TimeUnit.SECONDS); // TODO: why 10?
+			}
 		}
 	}
 
@@ -505,87 +494,47 @@ import static java.lang.Math.max;
 	 */
 	@Deprecated
 	public static final String APPLICATION_NAME = "elnetw";
-
-	/** デフォルトフォント: TODO from config */
-	public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-
-	/** UIフォント: TODO from config */
-	public static final Font UI_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
-
 	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
-
+	/** デフォルトフォント */
+	public final Font DEFAULT_FONT;
+	/** UIフォント */
+	public final Font UI_FONT;
 	/*package*/final transient ClientConfiguration configuration;
-
 	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
-
 	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
 			new DefaultTweetLengthCalculator(this);
-
 	/*package*/ Status inReplyToStatus = null;
-
-	/*package*/JPanel editPanel;
-
-	/*package*/JPanel postPanel;
-
-	/*package*/JScrollPane postBoxScrollPane;
-
-	/*package*/JSplitPane jSplitPane1;
-
-	/*package*/JButton postActionButton;
-
-	/*package*/JTextArea postBox;
-
-	/*package*/JTabbedPane viewTab;
-
-	/*package*/ClientProperties configProperties;
-
-	/*package*/JMenuBar clientMenu;
-
-	/*package*/JPanel tweetViewPanel;
-
-	/*package*/JMenu accountMenu;
-
-	/*package*/JMenu readTimelineJMenu;
-
-	/*package*/JMenu postToJMenu;
-
-	/*package*/JScrollPane tweetViewScrollPane;
-
-	/*package*/JEditorPane tweetViewEditorPane;
-
-	/*package*/JLabel tweetViewCreatedByLabel;
-
-	/*package*/JLabel tweetViewCreatedAtLabel;
-
+	/*package*/ JPanel editPanel;
+	/*package*/ JPanel postPanel;
+	/*package*/ JScrollPane postBoxScrollPane;
+	/*package*/ JSplitPane jSplitPane1;
+	/*package*/ JButton postActionButton;
+	/*package*/ JTextArea postBox;
+	/*package*/ JTabbedPane viewTab;
+	/*package*/ ClientProperties configProperties;
+	/*package*/ JMenuBar clientMenu;
+	/*package*/ JPanel tweetViewPanel;
+	/*package*/ JMenu accountMenu;
+	/*package*/ JMenu readTimelineJMenu;
+	/*package*/ JMenu postToJMenu;
+	/*package*/ JScrollPane tweetViewScrollPane;
+	/*package*/ JEditorPane tweetViewEditorPane;
+	/*package*/ JLabel tweetViewCreatedByLabel;
+	/*package*/ JLabel tweetViewCreatedAtLabel;
 	/*package*/transient ImageCacher imageCacher;
-
-	/*package*/JLabel tweetViewUserIconLabel;
-
-	/*package*/Map<String, String> shortcutKeyMap = new HashMap<String, String>();
-
-	/*package*/transient FilterService rootFilterService;
-
-	/*package*/JLabel postLengthLabel;
-
+	/*package*/ JLabel tweetViewUserIconLabel;
+	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<String, String>();
+	/*package*/ JLabel postLengthLabel;
 	protected transient ClientTab selectingTab;
-
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
-
 	/*package*/transient DefaultMouseListener tweetViewListener = new DefaultMouseListener();
-
 	/*package*/transient ClientTab tweetViewingTab;
-
-	/*package*/JPanel operationPanelContainer;
-
-	/*package*/JLayeredPane tweetViewTextLayeredPane;
-
-	/*package*/JLabel tweetViewTextOverlayLabel;
-
-	/*package*/int tweetViewCreatedByFlag;
-
-	/*package*/int tweetViewCreatedAtFlag;
-
-	/*package*/int tweetViewTextOverlayFlag;
+	/*package*/ JPanel operationPanelContainer;
+	/*package*/ JLayeredPane tweetViewTextLayeredPane;
+	/*package*/ JLabel tweetViewTextOverlayLabel;
+	/*package*/ int tweetViewCreatedByFlag;
+	/*package*/ int tweetViewCreatedAtFlag;
+	/*package*/ int tweetViewTextOverlayFlag;
 
 	/**
 	 * Creates new form TwitterClientFrame
@@ -597,8 +546,9 @@ import static java.lang.Math.max;
 		this.configuration = configuration;
 		configuration.setFrameApi(this);
 
-		rootFilterService = configuration.getRootFilterService();
 		configProperties = configuration.getConfigProperties();
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		initActionHandlerTable();
 
 		getLoginUser();
@@ -637,11 +587,6 @@ import static java.lang.Math.max;
 		tab.initTimeline();
 	}
 
-	/** 終了できるようにお掃除する */
-	public void cleanUp() {
-		configuration.setShutdownPhase(true);
-	}
-
 	@Override
 	public void clearTweetView() {
 		setTweetViewText(null, null, DO_NOTHING_WHEN_POINTED);
@@ -652,7 +597,7 @@ import static java.lang.Math.max;
 
 	@Override
 	public void doPost() {
-		if (postActionButton.isEnabled() && postBox.getText().isEmpty() == false) {
+		if (postActionButton.isEnabled() && !postBox.getText().isEmpty()) {
 			final String text = tweetLengthCalculator.getShortenedText(getPostBox().getText());
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
@@ -668,38 +613,6 @@ import static java.lang.Math.max;
 	@Override
 	public void focusPostBox() {
 		getPostBox().requestFocusInWindow();
-	}
-
-	JPopupMenu generatePopupMenu(ActionListener actionListener) {
-		JPopupMenu popupMenu = new JPopupMenu();
-		Container nowProcessingMenu = popupMenu;
-		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
-
-		for (String actionCommand : popupMenus) {
-			if (actionCommand.trim().isEmpty()) {
-				continue;
-			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
-				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
-				jMenu.setActionCommand("core!submenu");
-				nowProcessingMenu = jMenu;
-				popupMenu.add(nowProcessingMenu);
-				continue;
-			}
-			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
-			if (handler == null) {
-				logger.warn("handler {} is not found.", actionCommand); //TODO
-			} else {
-				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
-				menuItem.setActionCommand(actionCommand);
-				menuItem.addActionListener(actionListener);
-				if (nowProcessingMenu instanceof JPopupMenu) {
-					((JPopupMenu) nowProcessingMenu).add(menuItem);
-				} else {
-					((JMenu) nowProcessingMenu).add(menuItem);
-				}
-			}
-		}
-		return popupMenu;
 	}
 
 	private JMenu getAccountMenu() {
@@ -790,7 +703,6 @@ import static java.lang.Math.max;
 							.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 							.addComponent(getTweetViewPanel(), 72, 72, Short.MAX_VALUE)));
-
 		}
 		return editPanel;
 	}
@@ -837,7 +749,6 @@ import static java.lang.Math.max;
 					doPost();
 				}
 			});
-
 		}
 		return postActionButton;
 	}
@@ -955,17 +866,6 @@ import static java.lang.Math.max;
 			}
 		}
 		return jSplitPane1;
-	}
-
-	/**
-	 * タイマーを取得する。
-	 *
-	 * @return タイマー
-	 */
-	@Deprecated
-	@Override
-	public Timer getTimer() {
-		return configuration.getTimer();
 	}
 
 	/*package*/JLabel getTweetViewCreatedAtLabel() {
@@ -1311,7 +1211,7 @@ import static java.lang.Math.max;
 	 */
 	@Override
 	public void handleException(Exception ex) {
-		rootFilterService.onException(ex);
+		// TODO rootFilterService.onException(ex);
 	}
 
 	/**
@@ -1546,5 +1446,4 @@ import static java.lang.Math.max;
 	public void windowOpened(WindowEvent e) {
 		// do nothing
 	}
-
 }

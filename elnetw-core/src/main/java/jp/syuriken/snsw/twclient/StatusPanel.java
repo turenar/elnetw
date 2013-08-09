@@ -17,7 +17,7 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param layout レイアウトマネージャ
+	 * @param layout     レイアウトマネージャ
 	 * @param statusData 元になる {@link StatusData}
 	 */
 	public StatusPanel(LayoutManager layout, StatusData statusData) {
@@ -35,9 +35,7 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 		this.statusData = statusData;
 	}
 
-	/**
-	 * 元になる情報が作成された日時で比較する。同じ場合はidを比較する。
-	 */
+	/** 元になる情報が作成された日時で比較する。同じ場合はidを比較する。 */
 	@Override
 	public int compareTo(StatusPanel o) {
 		int result = statusData.date.compareTo(o.statusData.date);
@@ -68,5 +66,4 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	public int hashCode() {
 		return super.hashCode() + statusData.hashCode();
 	}
-
 }

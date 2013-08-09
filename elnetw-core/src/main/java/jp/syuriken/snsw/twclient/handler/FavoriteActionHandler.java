@@ -20,9 +20,7 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 	private static class FavTask extends TwitterRunnable {
 
 		private final boolean favFlag;
-
 		private final long statusId;
-
 		private final Status status;
 
 		public FavTask(boolean favFlag, Status status) {
@@ -60,9 +58,9 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 		boolean favFlag = !status.isFavorited();
 
 		String forceFlag = arguments.getExtraObj("force", String.class);
-		if (forceFlag.equals("f") || forceFlag.equals("fav")) {
+		if ("f".equals(forceFlag) || "fav".equals(forceFlag)) {
 			favFlag = true;
-		} else if (forceFlag.equals("u") || forceFlag.equals("unfav")) {
+		} else if ("u".equals(forceFlag) || "unfav".equals(forceFlag)) {
 			favFlag = false;
 		}
 

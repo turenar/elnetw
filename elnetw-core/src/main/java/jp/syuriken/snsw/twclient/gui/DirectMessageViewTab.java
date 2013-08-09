@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Color;
 import java.awt.event.FocusEvent;
@@ -9,6 +9,10 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 
 import com.twitter.Regex;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.User;
@@ -74,7 +78,7 @@ public class DirectMessageViewTab extends DefaultClientTab {
 				screenName = screenName.substring(0, 9) + "..";
 			}
 			JLabel sentBy = new JLabel(screenName);
-			sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
+			sentBy.setFont(DEFAULT_FONT);
 			statusData.sentBy = sentBy;
 
 			JLabel statusText =
@@ -89,33 +93,33 @@ public class DirectMessageViewTab extends DefaultClientTab {
 			// do nothing
 		}
 	};
-
 	private boolean focusGained;
-
 	private boolean isDirty;
 
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public DirectMessageViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
-		super(configuration);
+	public DirectMessageViewTab() throws IllegalSyntaxException {
+		super();
+		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param data 保存されたデータ
-	 * @throws JSONException JSON例外
+	 * @throws JSONException          JSON例外
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public DirectMessageViewTab(ClientConfiguration configuration, String data) throws JSONException,
+	public DirectMessageViewTab(String data) throws JSONException,
 			IllegalSyntaxException {
-		super(configuration, data);
+		super(data);
+		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
+		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
 	}
 
 	@Override

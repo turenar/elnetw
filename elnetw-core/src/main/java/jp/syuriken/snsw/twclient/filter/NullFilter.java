@@ -34,5 +34,4 @@ public class NullFilter implements FilterDispatcherBase {
 	public boolean filter(Status status) {
 		return false;
 	}
-
 }

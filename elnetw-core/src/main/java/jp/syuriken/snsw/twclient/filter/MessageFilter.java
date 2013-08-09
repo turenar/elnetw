@@ -13,6 +13,14 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MessageFilter {
+	/**
+	 * blocked user
+	 *
+	 * @param source      source user
+	 * @param blockedUser user blocked by source
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onBlock(User source, User blockedUser);
 
 	/**
 	 * アカウントを変更したという情報のフィルタ
@@ -23,19 +31,33 @@ public interface MessageFilter {
 	boolean onChangeAccount(boolean forWrite);
 
 	/**
+	 * (for Stream) called before thread gets cleaned up
+	 *
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onCleanUp();
+
+	/**
 	 * クライアントメッセージのフィルタ
 	 *
 	 * @param name 名前
-	 * @param arg オブジェクト
+	 * @param arg  オブジェクト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onClientMessage(String name, Object arg);
 
 	/**
+	 * (for Stream) called after connection was established
+	 *
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onConnect();
+
+	/**
 	 * 削除通知のフィルタ
 	 *
 	 * @param directMessageId ダイレクトメッセージID
-	 * @param userId ユーザーID
+	 * @param userId          ユーザーID
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onDeletionNotice(long directMessageId, long userId);
@@ -57,6 +79,13 @@ public interface MessageFilter {
 	DirectMessage onDirectMessage(DirectMessage message);
 
 	/**
+	 * (for Stream) called after connection was disconnected
+	 *
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onDisconnect();
+
+	/**
 	 * 例外が発生した
 	 *
 	 * @param obj 例外
@@ -67,8 +96,8 @@ public interface MessageFilter {
 	/**
 	 * ふぁぼられたをフィルタ
 	 *
-	 * @param source ふぁぼ本
-	 * @param target ふぁぼ先
+	 * @param source          ふぁぼ本
+	 * @param target          ふぁぼ先
 	 * @param favoritedStatus ふぁぼったステータス
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -77,7 +106,7 @@ public interface MessageFilter {
 	/**
 	 * フォローをフィルタ
 	 *
-	 * @param source フォロー元
+	 * @param source       フォロー元
 	 * @param followedUser フォロー先
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -94,8 +123,8 @@ public interface MessageFilter {
 	/**
 	 * リツイートをフィルタ
 	 *
-	 * @param source リツイート元
-	 * @param target リツイートされた人
+	 * @param source          リツイート元
+	 * @param target          リツイートされた人
 	 * @param retweetedStatus リツイートされたステータス
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -104,7 +133,7 @@ public interface MessageFilter {
 	/**
 	 * ロケーション削除の通知をフィルタ。
 	 *
-	 * @param userId ロケーション削除した人
+	 * @param userId       ロケーション削除した人
 	 * @param upToStatusId IDの上限
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -158,7 +187,7 @@ public interface MessageFilter {
 	/**
 	 * ブロックを解除したことをフィルタ
 	 *
-	 * @param source 自分
+	 * @param source        自分
 	 * @param unblockedUser ブロック解除されたユーザー
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -167,8 +196,8 @@ public interface MessageFilter {
 	/**
 	 * ふぁぼやめられたことの通知をフィルタ
 	 *
-	 * @param source ふぁぼやめた人
-	 * @param target ふぁぼやめられた人
+	 * @param source            ふぁぼやめた人
+	 * @param target            ふぁぼやめられた人
 	 * @param unfavoritedStatus ふぁぼやめられたステータス
 	 * @return true=フィルタ中止, false=続行
 	 */
@@ -178,7 +207,7 @@ public interface MessageFilter {
 	 * リスト作成をフィルタ
 	 *
 	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param list      リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListCreation(User listOwner, UserList list);
@@ -187,7 +216,7 @@ public interface MessageFilter {
 	 * リスト削除をフィルタ
 	 *
 	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param list      リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListDeletion(User listOwner, UserList list);
@@ -196,8 +225,8 @@ public interface MessageFilter {
 	 * リストにメンバーを追加したことをフィルタ
 	 *
 	 * @param addedMember 追加されたユーザー
-	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param listOwner   リスト作成者
+	 * @param list        リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list);
@@ -206,8 +235,8 @@ public interface MessageFilter {
 	 * リストからメンバーを削除したことをフィルタ
 	 *
 	 * @param deletedMember 削除されたユーザー
-	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param listOwner     リスト作成者
+	 * @param list          リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list);
@@ -216,8 +245,8 @@ public interface MessageFilter {
 	 * リストの購読をフィルタ
 	 *
 	 * @param subscriber 購読者
-	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param listOwner  リスト作成者
+	 * @param list       リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListSubscription(User subscriber, User listOwner, UserList list);
@@ -226,8 +255,8 @@ public interface MessageFilter {
 	 * リストの購読解除をフィルタ
 	 *
 	 * @param subscriber 購読してた人
-	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param listOwner  リスト作成者
+	 * @param list       リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list);
@@ -236,7 +265,7 @@ public interface MessageFilter {
 	 * リストの更新をフィルタ
 	 *
 	 * @param listOwner リスト作成者
-	 * @param list リスト
+	 * @param list      リスト
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserListUpdate(User listOwner, UserList list);
@@ -248,5 +277,4 @@ public interface MessageFilter {
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUserProfileUpdate(User updatedUser);
-
 }

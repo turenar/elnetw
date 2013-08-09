@@ -1,12 +1,12 @@
 package jp.syuriken.snsw.twclient.internal;
 
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
-import jp.syuriken.snsw.twclient.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH;
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH_HTTPS;
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.*;
 
 /**
  * {@link DefaultTweetLengthCalculator}のためのテスト
@@ -54,7 +54,8 @@ public class DefaultTweetLengthCalculatorTest {
 		configuration.setGlobalInstance();
 		try {
 			DefaultTweetLengthCalculator.clearApiConfiguration();
-			DefaultTweetLengthCalculator lengthCalculator = new DefaultTweetLengthCalculator(new TweetLengthUpdaterImpl());
+			DefaultTweetLengthCalculator lengthCalculator = new DefaultTweetLengthCalculator(
+					new TweetLengthUpdaterImpl());
 			assertEquals(TEXT1, lengthCalculator.getShortenedText(TEXT1));
 			assertEquals(TEXT2, lengthCalculator.getShortenedText(TEXT2));
 			assertEquals(TEXT3, lengthCalculator.getShortenedText(TEXT3));
@@ -76,12 +77,12 @@ public class DefaultTweetLengthCalculatorTest {
 			assertEquals(120 + DEFAULT_SHORT_URL_LENGTH, DefaultTweetLengthCalculator.getTweetLength(TEXT1));
 			assertEquals(120 + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT2));
 			assertEquals(1 + (DEFAULT_SHORT_URL_LENGTH * 2), DefaultTweetLengthCalculator.getTweetLength(TEXT3));
-			assertEquals(1 + DEFAULT_SHORT_URL_LENGTH + DEFAULT_SHORT_URL_LENGTH_HTTPS, DefaultTweetLengthCalculator.getTweetLength(TEXT4));
+			assertEquals(1 + DEFAULT_SHORT_URL_LENGTH + DEFAULT_SHORT_URL_LENGTH_HTTPS,
+					DefaultTweetLengthCalculator.getTweetLength(TEXT4));
 			assertEquals(140, DefaultTweetLengthCalculator.getTweetLength(TEXT5));
 			assertEquals(17, DefaultTweetLengthCalculator.getTweetLength(TEXT6));
 		} finally {
 			configuration.clearGlobalInstance();
 		}
 	}
-
 }

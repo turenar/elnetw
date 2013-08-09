@@ -24,6 +24,7 @@ public class InitialMessage implements DirectMessage {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param originalMessage 元のDM
 	 */
 	public InitialMessage(DirectMessage originalMessage) {

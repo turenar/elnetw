@@ -12,10 +12,7 @@ import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * {@link StandardIntProperties}のためのテスト
@@ -52,7 +49,7 @@ public class StandardIntPropertiesTest extends FilterConstants {
 		configuration.setConfigDefaultProperties(defaultProperties);
 		ClientProperties properties = new ClientProperties(defaultProperties);
 		properties
-			.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
+				.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
 		configuration.setConfigProperties(properties);
 	}
 
@@ -80,7 +77,6 @@ public class StandardIntPropertiesTest extends FilterConstants {
 
 		assertTrue(testEqual("in_reply_to_userid", DM_1.getRecipientId(), DM_1));
 		assertFalse(testEqual("in_reply_to_userid", STATUS_1.getUser().getId(), DM_1));
-
 	}
 
 	/**
@@ -99,9 +95,7 @@ public class StandardIntPropertiesTest extends FilterConstants {
 		assertFalse(testEqual("rtcount", -1, DM_1));
 	}
 
-	/**
-	 * 無知の名前に対するテスト
-	 */
+	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
 		try {
@@ -127,5 +121,4 @@ public class StandardIntPropertiesTest extends FilterConstants {
 		assertTrue(testEqual("userid", DM_1.getSenderId(), DM_1));
 		assertFalse(testEqual("userid", STATUS_1.getUser().getId(), DM_1));
 	}
-
 }

@@ -1,7 +1,11 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
+
+import java.awt.EventQueue;
 
 import javax.swing.Icon;
 
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -158,47 +162,51 @@ public class MentionViewTab extends DefaultClientTab {
 			// do nothing
 		}
 	}
-
-
 	private static final String TAB_ID = "mention";
-
 	/** レンダラ */
 	protected TabRenderer renderer = new MentionRenderer();
-
 	private boolean focusGained;
-
 	private boolean isDirty;
 
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public MentionViewTab(ClientConfiguration configuration) throws IllegalSyntaxException {
-		super(configuration);
+	public MentionViewTab() throws IllegalSyntaxException {
+		super();
+		establishTweetPipe();
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param data 保存されたデータ
-	 * @throws JSONException JSON例外
+	 * @throws JSONException          JSON例外
 	 * @throws IllegalSyntaxException クエリエラー
 	 */
-	public MentionViewTab(ClientConfiguration configuration, String data) throws JSONException, IllegalSyntaxException {
-		super(configuration, data);
+	public MentionViewTab(String data) throws JSONException, IllegalSyntaxException {
+		super(data);
+		establishTweetPipe();
 	}
 
 	@Override
 	public StatusPanel addStatus(StatusData statusData) {
 		if (focusGained == false && isDirty == false) {
 			isDirty = true;
-			configuration.refreshTab(this);
+			EventQueue.invokeLater(new Runnable() {
+				public void run() {
+					configuration.refreshTab(MentionViewTab.this);
+				}
+			});
 		}
 		return super.addStatus(statusData);
+	}
+
+	private void establishTweetPipe() {
+		configuration.getFetchScheduler().establish(accountId, "statuses/mentions", getRenderer());
+		configuration.getFetchScheduler().establish(accountId, "stream/user", getRenderer());
 	}
 
 	@Override
@@ -242,5 +250,4 @@ public class MentionViewTab extends DefaultClientTab {
 	public String getToolTip() {
 		return "@関連";
 	}
-
 }

@@ -44,5 +44,4 @@ class TestNotice implements StatusDeletionNotice {
 
 	public void test() {
 	}
-
 }

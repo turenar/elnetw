@@ -113,6 +113,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param originalUser オリジナルユーザー
 	 */
 	public TwitterUser(User originalUser) {
@@ -121,8 +122,9 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param originalUser オリジナルユーザー
-	 * @param jsonObject 生JSON。取得できなかった場合にはnull。
+	 * @param jsonObject   生JSON。取得できなかった場合にはnull。
 	 */
 	public TwitterUser(User originalUser, JSONObject jsonObject) {
 		createdAt = originalUser.getCreatedAt();
@@ -167,7 +169,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		try {
 			statusJsonObject =
 					jsonObject == null ? null : (jsonObject.isNull("status") ? null : jsonObject
-						.getJSONObject("status"));
+							.getJSONObject("status"));
 		} catch (JSONException e) {
 			logger.error("Cannot parse json", e);
 			throw new RuntimeException(e);
@@ -212,9 +214,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return ((User) obj).getId() == id;
 	}
 
-	/**
-	 * -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない)
-	 */
+	/** -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない) */
 	@Override
 	public int getAccessLevel() {
 		return -1;
@@ -260,7 +260,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return id;
 	}
 
-	@Override
+	//@Override
 	public String getJson() {
 		return json;
 	}
@@ -400,9 +400,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileTextColor;
 	}
 
-	/**
-	 * nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
-	 */
+	/** nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない) */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
 		return null;
@@ -492,7 +490,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	 * Original Code: twitter4j.internal.json.UserJSONImpl (v3.0.2)
 	 *
 	 * @param originalURL オリジナルURL
-	 * @param sizeSuffix サイズ指定子
+	 * @param sizeSuffix  サイズ指定子
 	 * @return URL
 	 */
 	private String toResizedURL(String originalURL, String sizeSuffix) {

@@ -12,9 +12,9 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.ClientTab;
 import jp.syuriken.snsw.twclient.config.ConfigFrame;
 import jp.syuriken.snsw.twclient.config.ConfigType;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
 
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
@@ -41,7 +41,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		 * インスタンスを生成する。
 		 *
 		 * @param displayString 表示名
-		 * @param propertyKey プロパティキー
+		 * @param propertyKey   プロパティキー
 		 */
 		public KVItem(String displayString, String propertyKey) {
 			this.displayString = displayString;
@@ -62,10 +62,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 	private JButton editButton;
 
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 */
+	/** インスタンスを生成する。 */
 	public FilterConfigurator(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -84,11 +81,11 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		JPanel panel = new JPanel();
 		GroupLayout layout = new GroupLayout(panel);
 		layout.setHorizontalGroup(layout.createParallelGroup() //
-			.addComponent(getComponentFilterChooser()) //
-			.addComponent(getComponentEditButton(), Alignment.TRAILING));
+				.addComponent(getComponentFilterChooser()) //
+				.addComponent(getComponentEditButton(), Alignment.TRAILING));
 		layout.setVerticalGroup(layout.createSequentialGroup() //
-			.addComponent(getComponentFilterChooser()) //
-			.addComponent(getComponentEditButton()));
+				.addComponent(getComponentFilterChooser()) //
+				.addComponent(getComponentEditButton()));
 		return panel;
 	}
 
@@ -129,5 +126,4 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 	public boolean isValid(JComponent component) {
 		return true;
 	}
-
 }

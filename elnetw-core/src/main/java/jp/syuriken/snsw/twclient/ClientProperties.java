@@ -2,6 +2,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -39,13 +40,9 @@ import org.slf4j.LoggerFactory;
 public class ClientProperties extends Properties {
 
 	private static final long serialVersionUID = 7476401456972225006L;
-
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
-
 	private static final int KEY_BIT = 128;
-
 	private static final String ENCRYPT_HEADER = "$priv$0$";
-
 	private static final String ENCRYPT_FOOTER = "$";
 
 	private static byte[] decrypt(byte[] src, Key decryptKey) throws InvalidKeyException {
@@ -127,10 +124,8 @@ public class ClientProperties extends Properties {
 
 	/** リスナの配列 */
 	protected transient ArrayList<PropertyChangeListener> listeners;
-
 	/** 保存先のファイル */
 	protected File storeFile;
-
 	private transient Hashtable<String, Object> cacheTable;
 
 	/** インスタンスを生成する。 */
@@ -376,6 +371,68 @@ public class ClientProperties extends Properties {
 	}
 
 	/**
+	 * keyに関連付けられた値を利用して、Fontインスタンスを取得する。
+	 *
+	 * <p>
+	 * 書式：<i>String&lt;font-name&gt;</i>,<i>int&lt;font-size&gt;</i>[,<i>mixed&lt;font-style&gt;</i>]
+	 * </p>
+	 * <p>
+	 * font-styleにはint値、または&quot;plain&quot;, &quot;italic&quot;, &quot;bold&quot;,
+	 * &quot;bold|italic&quot;, &quot;italic|bold&quot;を指定してください。
+	 * </p>
+	 *
+	 * @param key キー
+	 * @return keyに関連付けられたfloat
+	 * @throws IllegalArgumentException font-sizeが指定されていない。font-styleが指定されていない。
+	 *                                  正しいint値が指定されていない。
+	 */
+	public synchronized Font getFont(String key) throws IllegalArgumentException {
+		Font font = getCachedValue(key, Font.class);
+		if (font != null) {
+			return font;
+		}
+
+		String value = getProperty(key);
+		if (value == null) {
+			return null;
+		}
+
+		int indexOfFontNameSeparator = value.indexOf(',');
+		if (indexOfFontNameSeparator == -1) {
+			throw new IllegalArgumentException(
+					MessageFormat.format("Font size is not specified: `{1}' ({0})", key, value));
+		}
+		String fontName = value.substring(0, indexOfFontNameSeparator).trim();
+
+		int indexOfFontSizeSeparator = value.indexOf(',', indexOfFontNameSeparator + 1);
+		String fontSizeString;
+		int fontStyle;
+		if (indexOfFontSizeSeparator == -1) {
+			fontSizeString = value.substring(indexOfFontNameSeparator + 1);
+			fontStyle = Font.PLAIN;
+		} else {
+			fontSizeString = value.substring(indexOfFontNameSeparator + 1, indexOfFontSizeSeparator);
+			String fontStyleString = value.substring(indexOfFontSizeSeparator + 1).trim().toLowerCase();
+			if (fontStyleString.equals("plain")) {
+				fontStyle = Font.PLAIN;
+			} else if (fontStyleString.equals("bold")) {
+				fontStyle = Font.BOLD;
+			} else if (fontStyleString.equals("italic")) {
+				fontStyle = Font.ITALIC;
+			} else if (fontStyleString.equals("bold|italic") || fontStyleString.equals("italic|bold")) {
+				fontStyle = Font.BOLD | Font.ITALIC;
+			} else {
+				fontStyle = Integer.parseInt(fontStyleString);
+			}
+		}
+		int fontSize = Integer.parseInt(fontSizeString.trim());
+
+		font = new Font(fontName, fontStyle, fontSize);
+		cacheValue(key, font);
+		return font;
+	}
+
+	/**
 	 * keyに関連付けられた値を利用して、intを取得する。
 	 *
 	 * 書式：int
@@ -401,7 +458,7 @@ public class ClientProperties extends Properties {
 	 *
 	 * 書式：int
 	 *
-	 * @param key キー
+	 * @param key          キー
 	 * @param defaultValue デフォルト値
 	 * @return keyに関連付けられたint
 	 */
@@ -625,6 +682,19 @@ public class ClientProperties extends Properties {
 	public synchronized void setFloat(String key, float value) {
 		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
+	}
+
+	/**
+	 * keyにFontを関連付ける
+	 *
+	 * @param key  キー
+	 * @param font フォントインスタンス
+	 */
+	public synchronized void setFont(String key, Font font) throws IllegalArgumentException {
+		clearCachedValue(key);
+		StringBuilder property = new StringBuilder(font.getName()).append(',')
+				.append(font.getSize()).append(',').append(font.getStyle());
+		setProperty(key, property.toString());
 	}
 
 	/**

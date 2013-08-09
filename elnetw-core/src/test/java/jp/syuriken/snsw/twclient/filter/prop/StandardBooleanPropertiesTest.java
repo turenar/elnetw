@@ -12,9 +12,7 @@ import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * {@link StandardBooleanProperties}のためのテスト

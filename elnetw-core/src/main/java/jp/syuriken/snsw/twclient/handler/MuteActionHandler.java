@@ -39,41 +39,40 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 			throwIllegalArgument();
 		}
 		if (status.isRetweet()) {
-				status = status.getRetweetedStatus();
-			}
-			final User user = status.getUser();
+			status = status.getRetweetedStatus();
+		}
+		final User user = status.getUser();
 		boolean isTweetedByMe = user.getId() == getLoginUserId();
 		if (isTweetedByMe == false) {
-				JPanel panel = new JPanel();
-				BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
-				panel.setLayout(layout);
-				panel.add(new JLabel("次のツイートをミュートしますか？"));
-				panel.add(Box.createVerticalStrut(15));
-				panel.add(new JLabel(MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName())));
-				final JOptionPane pane =
-						new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-				JDialog dialog = pane.createDialog(null, "確認");
-				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-				pane.addPropertyChangeListener(new PropertyChangeListener() {
+			JPanel panel = new JPanel();
+			BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+			panel.setLayout(layout);
+			panel.add(new JLabel("次のツイートをミュートしますか？"));
+			panel.add(Box.createVerticalStrut(15));
+			panel.add(new JLabel(MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName())));
+			final JOptionPane pane =
+					new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+			JDialog dialog = pane.createDialog(null, "確認");
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			pane.addPropertyChangeListener(new PropertyChangeListener() {
 
-					@Override
-					public void propertyChange(PropertyChangeEvent evt) {
-						if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
-							if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-								ClientProperties configProperties = configuration.getConfigProperties();
-								String idsString = configProperties.getProperty("core.filter.user.ids");
-								idsString =
-										idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
-												: idsString + " " + user.getId();
-								configProperties.setProperty("core.filter.user.ids", idsString);
-							}
+				@Override
+				public void propertyChange(PropertyChangeEvent evt) {
+					if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
+						if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
+							ClientProperties configProperties = configuration.getConfigProperties();
+							String idsString = configProperties.getProperty("core.filter.user.ids");
+							idsString =
+									idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
+											: idsString + " " + user.getId();
+							configProperties.setProperty("core.filter.user.ids", idsString);
 						}
 					}
-
-				});
-				dialog.setVisible(true);
-			}
+				}
+			});
+			dialog.setVisible(true);
 		}
+	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
@@ -106,5 +105,4 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 			menuItem.setEnabled(false);
 		}
 	}
-
 }

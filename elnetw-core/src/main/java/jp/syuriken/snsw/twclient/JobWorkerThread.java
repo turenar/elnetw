@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
 			serializeQueue = parent.serializeQueue;
 			runningChildThreadCount = parent.runningChildThreadCount;
 		}
-
 	}
 
 	public void cleanUp() {
@@ -113,7 +112,7 @@ import org.slf4j.LoggerFactory;
 						logger.warn("uncaught runtime-exception", e);
 					}
 				} else { // ただのRunnableは親で動かす
-					logger.trace("{}: Add to SerializeQueue", getName(), job);
+					logger.trace("{}: Add to SerializeQueue: {}", getName(), job);
 					serializeQueue.add(job);
 				}
 			}

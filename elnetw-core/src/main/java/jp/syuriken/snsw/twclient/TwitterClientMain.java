@@ -13,11 +13,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Properties;
-import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -36,7 +36,6 @@ import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.RootFilter;
 import jp.syuriken.snsw.twclient.filter.UserFilter;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
@@ -49,6 +48,11 @@ import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
 import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
 import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
+import jp.syuriken.snsw.twclient.gui.MentionViewTab;
+import jp.syuriken.snsw.twclient.gui.TimelineViewTab;
+import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
@@ -68,7 +72,6 @@ import jp.syuriken.snsw.twclient.handler.TweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UnofficialRetweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.UrlActionHandler;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
-import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.init.DynamicInitializeService;
 import jp.syuriken.snsw.twclient.init.InitCondition;
 import jp.syuriken.snsw.twclient.init.InitializeException;
@@ -79,6 +82,11 @@ import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
+import jp.syuriken.snsw.twclient.net.DirectMessageFetcherFactory;
+import jp.syuriken.snsw.twclient.net.MentionsFetcherFactory;
+import jp.syuriken.snsw.twclient.net.StreamFetcherFactory;
+import jp.syuriken.snsw.twclient.net.TimelineFetcherFactory;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -94,9 +102,7 @@ public class TwitterClientMain {
 
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
-
 	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
-
 	@InitializerInstance
 	private static volatile TwitterClientMain SINGLETON;
 
@@ -118,28 +124,18 @@ public class TwitterClientMain {
 
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-
 	/** for interruption */
 	private final Thread MAIN_THREAD;
-
 	/** 設定データ */
 	protected ClientProperties configProperties;
-
 	/** スレッドホルダ */
 	protected Object threadHolder = new Object();
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
 	protected Getopt getopt;
-
 	protected JobWorkerThread jobWorkerThread;
-
 	protected boolean debugMode;
-
 	protected boolean portable;
-
 	protected TwitterDataFetchScheduler fetchScheduler;
-
 	protected TwitterClientFrame frame;
 
 	/**
@@ -217,26 +213,30 @@ public class TwitterClientMain {
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
 		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
-				.addConfig("twitter.interval.timeline", "タイムライン", "秒数", new IntegerConfigType(0, 3600, 1000))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE, "タイムライン", "秒数",
+						new IntegerConfigType(60, 3600))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_MENTIONS, "メンション(@通知)", "秒数",
+						new IntegerConfigType(60, 3600))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_DIRECT_MESSAGES, "ダイレクトメッセージ", "秒数",
+						new IntegerConfigType(60, 10800))
 				.getParentGroup().getSubgroup("取得数 (ツイート数)")
-				.addConfig("twitter.page.timeline", "タイムライン", "(ツイート)", new IntegerConfigType(1, 200))
-				.addConfig("twitter.page.initial_timeline", "タイムライン (起動時)", "(ツイート)", new IntegerConfigType(1, 200));
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_TIMELINE, "タイムライン", "ツイート",
+						new IntegerConfigType(1, 200))
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_MENTIONS, "メンション(@通知)", "ツイート",
+						new IntegerConfigType(1, 200))
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES, "ダイレクトメッセージ", "メッセージ",
+						new IntegerConfigType(1, 200));
 		configBuilder.getGroup("UI")
 				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
 				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
 		configBuilder
 				.getGroup("core")
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
-						new IntegerConfigType(1, 5, 1000))
+						new IntegerConfigType(1, 60, 1000))
 				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
 						new BooleanConfigType());
 		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
 				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
-	}
-
-	@Initializer(name = "rootFilterService", dependencies = "cacheManager", phase = "init")
-	public void initFilterDispatcherService() {
-		configuration.setRootFilterService(new FilterService(configuration));
 	}
 
 	@Initializer(name = "filter-functions", phase = "preinit")
@@ -341,20 +341,28 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "internal-init-fetchSched", dependencies = "recover-clientTabs", phase = "prestart")
+	public void realConnectFetchSched() {
+		fetchScheduler.onInitialized();
+	}
+
 	@Initializer(name = "recover-clientTabs", phase = "prestart")
 	public void recoverClientTabs() {
 		String tabsList = configProperties.getProperty("gui.tabs.list");
 		if (tabsList == null) {
 			try {
-				configuration.addFrameTab(new TimelineViewTab(configuration));
-				configuration.addFrameTab(new MentionViewTab(configuration));
-				configuration.addFrameTab(new DirectMessageViewTab(configuration));
+				configuration.addFrameTab(new TimelineViewTab());
+				configuration.addFrameTab(new MentionViewTab());
+				configuration.addFrameTab(new DirectMessageViewTab());
 			} catch (IllegalSyntaxException e) {
 				throw new AssertionError(e); // This can't happen: because no query
 			}
 		} else {
 			String[] tabs = tabsList.split(" ");
 			for (String tabIndetifier : tabs) {
+				if (tabIndetifier.isEmpty()) {
+					continue;
+				}
 				int separatorPosition = tabIndetifier.indexOf(':');
 				String tabId = tabIndetifier.substring(0, separatorPosition);
 				String uniqId = tabIndetifier.substring(separatorPosition + 1);
@@ -363,9 +371,8 @@ public class TwitterClientMain {
 					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
 				} else {
 					try {
-						ClientTab tab =
-								tabConstructor.newInstance(configuration,
-										configProperties.getProperty("gui.tabs.data." + uniqId));
+						ClientTab tab = tabConstructor.newInstance(
+								configProperties.getProperty("gui.tabs.data." + uniqId));
 						configuration.addFrameTab(tab);
 					} catch (IllegalArgumentException e) {
 						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
@@ -407,15 +414,6 @@ public class TwitterClientMain {
 
 		setDebugLogger();
 
-		ArrayList<String> requirement = new ArrayList<String>();
-		Method[] methods = TwitterClientMain.class.getMethods();
-		for (Method method : methods) {
-			Initializer annotation = method.getAnnotation(Initializer.class);
-			if (annotation != null) {
-				requirement.add(annotation.name());
-			}
-		}
-
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
 		initializeService
 				.registerPhase("earlyinit") //
@@ -440,22 +438,13 @@ public class TwitterClientMain {
 		}
 		logger.info("Initialized");
 
-		for (String name : requirement) {
-			if (!initializeService.isInitialized(name)) {
-				logger.error("{} is not initialized!!! not resolved dependencies:{}", name,
-						initializeService.getInfo(name).getRemainDependencies());
-				return 1;
-			}
-		}
-
 		synchronized (threadHolder) {
 			try {
-				while (configuration.isShutdownPhase() == false) {
+				while (true) {
 					threadHolder.wait();
 				}
 			} catch (InterruptedException e) {
 				// interrupted shows TCM#quit() is called.
-				configuration.setShutdownPhase(true);
 			}
 		}
 
@@ -546,14 +535,13 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	@Initializer(name = "set-filter",
-			dependencies = {"config", "rootFilterService", "filter-functions", "filter-properties"}, phase = "init")
+	@Initializer(name = "set-globalfilter",
+			dependencies = {"config", "filter-functions", "filter-properties"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(configuration));
-		configuration.addFilter(new RootFilter(configuration));
 	}
 
-	@Initializer(name = "fetch-sched", dependencies = "recover-clientTabs", phase = "prestart")
+	@Initializer(name = "fetch-sched", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
 	public void setFetchScheduler(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			fetchScheduler = new TwitterDataFetchScheduler();
@@ -563,9 +551,19 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
+	public void setFetcherFactory() {
+		fetchScheduler.addVirtualNotifier("my/timeline", new String[]{"stream/user", "statuses/timeline"});
+		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
+		fetchScheduler.addFetcherFactory("statuses/timeline", new TimelineFetcherFactory());
+		fetchScheduler.addFetcherFactory("statuses/mentions", new MentionsFetcherFactory());
+		fetchScheduler.addFetcherFactory("direct_messages", new DirectMessageFetcherFactory());
+	}
+
 	@Initializer(name = "finish-initPhase", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
+		fetchScheduler.onInitialized();
 	}
 
 	@Initializer(name = "internal-messageNotifiers", phase = "prestart")
@@ -592,9 +590,18 @@ public class TwitterClientMain {
 	@Initializer(name = "timer", phase = "earlyinit")
 	public void setTimer(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			configuration.setTimer(new Timer("timer"));
+			configuration.setTimer(Executors.newSingleThreadScheduledExecutor());
 		} else {
-			configuration.getTimer().cancel();
+			ScheduledExecutorService timer = configuration.getTimer();
+			timer.shutdown();
+			try {
+				if (!timer.awaitTermination(5, TimeUnit.SECONDS)) {
+					logger.error("Failed shutdown timer: timeout");
+					timer.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				timer.shutdownNow();
+			}
 		}
 	}
 
@@ -636,7 +643,6 @@ public class TwitterClientMain {
 				}
 			});
 		} else {
-			frame.cleanUp();
 			logger.info("Exiting elnetw...");
 			try {
 				EventQueue.invokeAndWait(new Runnable() {
@@ -693,7 +699,7 @@ public class TwitterClientMain {
 		AccessToken accessToken;
 		do {
 			try {
-				twitter = new OAuthFrame(configuration).show();
+				twitter = new OAuthHelper(configuration).show();
 				if (twitter == null) {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -731,5 +737,15 @@ public class TwitterClientMain {
 	public void updateConfigToV1() {
 		logger.info("Updating config to v1");
 		configProperties.setProperty("cfg.version", "1");
+	}
+
+	@Initializer(name = "config-v2", dependencies = "config-v1", phase = "earlyinit")
+	public void updateConfigToV2() {
+		logger.info("Updating config to v2");
+		if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
+			configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
+					configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+		}
+		configProperties.setProperty("cfg.version", "2");
 	}
 }

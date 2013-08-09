@@ -41,7 +41,7 @@ public class AndFilterFunction implements FilterFunction {
 	 * インスタンスを生成する。
 	 *
 	 * @param functionName 関数名
-	 * @param child 子要素の配列
+	 * @param child        子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")
@@ -71,5 +71,4 @@ public class AndFilterFunction implements FilterFunction {
 		}
 		return true;
 	}
-
 }

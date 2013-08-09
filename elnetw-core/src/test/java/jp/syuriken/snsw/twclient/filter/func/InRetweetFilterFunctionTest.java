@@ -1,12 +1,11 @@
 package jp.syuriken.snsw.twclient.filter.func;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.FilterDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * TODO tyanar
@@ -15,13 +14,11 @@ import org.junit.Test;
  */
 public class InRetweetFilterFunctionTest extends FilterConstants {
 
-	/**
-	 * コンストラクタのテスト
-	 */
+	/** コンストラクタのテスト */
 	@Test
 	public void testConstructor() {
 		try {
-			new InRetweetFilterFunction("inrt", new FilterDispatcherBase[] {});
+			new InRetweetFilterFunction("inrt", new FilterDispatcherBase[]{});
 			fail("childの個数を無視したよう");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
@@ -44,6 +41,7 @@ public class InRetweetFilterFunctionTest extends FilterConstants {
 
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction#filter(twitter4j.DirectMessage)} のためのテスト・メソッド。
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -56,6 +54,7 @@ public class InRetweetFilterFunctionTest extends FilterConstants {
 
 	/**
 	 * {@link jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction#filter(twitter4j.Status)} のためのテスト・メソッド。
+	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
@@ -74,5 +73,4 @@ public class InRetweetFilterFunctionTest extends FilterConstants {
 		assertFalse(filterFunction.filter(STATUS_4));
 		assertFilteringObject(STATUS_4.getRetweetedStatus());
 	}
-
 }

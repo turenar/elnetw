@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Initializer Annotation.
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -56,5 +56,4 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 			});
 		}
 	}
-
 }

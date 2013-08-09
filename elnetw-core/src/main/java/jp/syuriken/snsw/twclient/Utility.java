@@ -36,7 +36,6 @@ public class Utility {
 			this.key = key;
 			this.value = value;
 		}
-
 	}
 
 	private static class MessageNotifierEntry {

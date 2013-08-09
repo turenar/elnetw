@@ -1,9 +1,11 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -29,8 +31,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Stack;
-import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
@@ -40,6 +42,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -53,11 +56,20 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.ActionHandler;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.StatusData;
+import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
+import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -85,9 +97,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public abstract class DefaultClientTab implements ClientTab {
 
-	/**
-	 * Entityの開始位置を比較する
-	 */
+	/** Entityの開始位置を比較する */
 	private static final class EntityComparator implements Comparator<Object>, Serializable {
 
 		private static final long serialVersionUID = 8166780199866981253L;
@@ -247,8 +257,8 @@ public abstract class DefaultClientTab implements ClientTab {
 					if (selectingPost != null) {
 						StatusData statusData = selectingPost.getStatusData();
 					/* TODO: StringSelection is not copied into gnome-terminal */
-					StringSelection stringSelection = new StringSelection(statusData.user);
-					clipboard.setContents(stringSelection, stringSelection);
+						StringSelection stringSelection = new StringSelection(statusData.user);
+						clipboard.setContents(stringSelection, stringSelection);
 					}
 					break;
 				case REQUEST_BROWSER_USER_HOME:
@@ -488,7 +498,6 @@ public abstract class DefaultClientTab implements ClientTab {
 		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
-
 	}
 
 	/**
@@ -496,7 +505,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public class PostListUpdater extends TimerTask {
+	public class PostListUpdater implements Runnable {
 
 		@Override
 		public void run() {
@@ -573,37 +582,32 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 			}
 		}
-
 	}
 
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
-
 	/** ポストリストの間のパディング */
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
-
 	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
 	public static final ImageIcon IMG_FAV_OFF;
-
 	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_ON;
-
 	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
 	public static final ImageIcon IMG_FAV_HOVER;
-
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
-
 	/** Twitterのロゴ (青背景に白) */
 	public static final ImageIcon IMG_TWITTER_LOGO;
 
 	static {
 		try {
-			IMG_FAV_OFF = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_off32.png")));
-			IMG_FAV_ON = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_on32.png")));
-			IMG_FAV_HOVER = new ImageIcon(ImageIO.read(DefaultClientTab.class.getResource("img/fav_hover32.png")));
+			IMG_FAV_OFF = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_off32.png")));
+			IMG_FAV_ON = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_on32.png")));
+			IMG_FAV_HOVER = new ImageIcon(
+					ImageIO.read(DefaultClientTab.class.getResource("/jp/syuriken/snsw/twclient/img/fav_hover32.png")));
 		} catch (IOException e) {
 			throw new AssertionError("必要なリソース img/fav_{off,on,hover}32.png が読み込めませんでした");
 		}
@@ -629,7 +633,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
 	 *
-	 * @param text テキスト
+	 * @param text     テキスト
 	 * @param appendTo 追加先
 	 * @return {@link StringBuilder}
 	 */
@@ -667,86 +671,65 @@ public abstract class DefaultClientTab implements ClientTab {
 		return appendTo;
 	}
 
-	/** {@link ClientConfiguration#getFrameApi()} */
+	/** {@link jp.syuriken.snsw.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
-
 	/** SortedPostListPanelインスタンス */
 	protected final SortedPostListPanel sortedPostListPanel;
-
 	/** 設定 */
 	protected final ClientConfiguration configuration;
-
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
-
 	/** ポストリストリスナのシングルインスタンス */
 	protected final PostListListener postListListenerSingleton = new PostListListener();
-
 	/*package*/final Logger logger = LoggerFactory.getLogger(DefaultClientTab.class);
-
-	/** {@link ClientProperties} */
+	/** {@link jp.syuriken.snsw.twclient.ClientProperties} */
 	protected final ClientProperties configProperties;
-
 	/**
 	 * 他のタブと区別するためのユニークなID。
 	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
 	 */
 	protected final String uniqId;
-
+	protected final String accountId;
+	/** デフォルトフォント */
+	public final Font DEFAULT_FONT;
+	/** UIフォント */
+	public final Font UI_FONT;
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<StatusPanel> inReplyToStack = new Stack<StatusPanel>();
-
 	/** 現在選択しているポスト */
 	public StatusPanel selectingPost;
-
 	/** 取得したフォントメトリックス (Default Font) */
 	protected FontMetrics fontMetrics;
-
 	/** フォントの高さ */
 	protected int fontHeight;
-
 	/** 送信元ラベルのサイズ */
 	protected Dimension linePanelSizeOfSentBy;
-
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
-
-	/** <K=ユーザーID, V=ユーザーのツイートなど> */
-	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<String, ArrayList<StatusPanel>>();
-
-	/** <K=ステータスID, V=ツイートなど> */
-	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<Long, StatusPanel>();
-
+	/** [K=ユーザーID, V=ユーザーのツイートなど] */
+	protected TreeMap<String, ArrayList<StatusPanel>> listItems = new TreeMap<>();
+	/** [K=ステータスID, V=ツイートなど] */
+	protected TreeMap<Long, StatusPanel> statusMap = new TreeMap<>();
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
-
 	/** UI更新キュー */
-	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<StatusPanel>();
-
+	protected LinkedList<StatusPanel> postListAddQueue = new LinkedList<>();
 	/** ポップアップメニュー */
 	protected JPopupMenu tweetPopupMenu;
-
 	/** 慣性スクローラー */
 	protected ScrollUtility scroller;
-
 	/** {@link ClientConfiguration#getUtility()} */
 	protected Utility utility;
-
 	/** 操作用パネル */
 	protected JPanel tweetViewOperationPanel;
-
 	/** ふぁぼボタン */
 	protected JLabel tweetViewFavoriteButton;
-
 	/** リツイートボタン */
 	protected JLabel tweetViewRetweetButton;
-
 	/** リプライボタン */
 	protected JLabel tweetViewReplyButton;
-
 	/** その他用ボタン */
 	protected JLabel tweetViewOtherButton;
-
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
 	 *
@@ -760,50 +743,49 @@ public abstract class DefaultClientTab implements ClientTab {
 	 */
 	protected TabRenderer teeFilter;
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
-	 */
-	protected DefaultClientTab(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	/** インスタンスを生成する。 */
+	protected DefaultClientTab() {
+		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
+		accountId = "$reader";
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		init(configuration);
 	}
-
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの形式が正しくないか必要とするキーが存在しない
 	 */
-	protected DefaultClientTab(ClientConfiguration configuration, JSONObject serializedJson) throws JSONException {
-		this.configuration = configuration;
+	protected DefaultClientTab(JSONObject serializedJson) throws JSONException {
+		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
+		accountId = serializedJson.optString("accountId", "$reader");
 		uniqId = serializedJson.getString("uniqId");
+		UI_FONT = configProperties.getFont("gui.font.ui");
+		DEFAULT_FONT = configProperties.getFont("gui.font.default");
 		init(configuration);
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param configuration 設定
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの復号化中に例外
 	 */
-	protected DefaultClientTab(ClientConfiguration configuration, String serializedJson) throws JSONException {
-		this(configuration, new JSONObject(serializedJson));
+	protected DefaultClientTab(String serializedJson) throws JSONException {
+		this(new JSONObject(serializedJson));
 	}
 
 	/**
@@ -845,7 +827,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			screenName = screenName.substring(0, 9) + "..";
 		}
 		JLabel sentBy = new JLabel(screenName);
-		sentBy.setFont(TwitterClientFrame.DEFAULT_FONT);
+		sentBy.setFont(DEFAULT_FONT);
 		statusData.sentBy = sentBy;
 
 		JLabel statusText = new JLabel(status.getText());
@@ -939,7 +921,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	/**
 	 * リストにステータスを追加する。その後deltionDelayミリ秒後に該当するステータスを削除する。
 	 *
-	 * @param statusData StatusDataインスタンス。
+	 * @param statusData    StatusDataインスタンス。
 	 * @param deletionDelay 削除を予約する時間。ミリ秒
 	 * @return 追加された (もしくはそのあと削除された) ステータス。
 	 */
@@ -954,7 +936,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * @param e Focusイベント
 	 * @throws IllegalArgumentException 正しくないプロパティ
-	 * @throws NumberFormatException 数値ではないプロパティ
+	 * @throws NumberFormatException    数値ではないプロパティ
 	 */
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException, NumberFormatException {
 		if (selectingPost != null) {
@@ -1071,7 +1053,7 @@ public abstract class DefaultClientTab implements ClientTab {
 		} else if (statusData.tag instanceof Exception) {
 			Exception ex = (Exception) statusData.tag;
 			Throwable handlingException = ex;
-			StringBuilder stringBuilder = new StringBuilder(ex.getLocalizedMessage()).append("<br><br>");
+			StringBuilder stringBuilder = new StringBuilder().append(ex.getLocalizedMessage()).append("<br><br>");
 			while (null != (handlingException = handlingException.getCause())) {
 				stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 			}
@@ -1099,6 +1081,38 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 	}
 
+	protected JPopupMenu generatePopupMenu(ActionListener actionListener) {
+		JPopupMenu popupMenu = new JPopupMenu();
+		Container nowProcessingMenu = popupMenu;
+		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
+
+		for (String actionCommand : popupMenus) {
+			if (actionCommand.trim().isEmpty()) {
+				continue;
+			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
+				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
+				jMenu.setActionCommand("core!submenu");
+				nowProcessingMenu = jMenu;
+				popupMenu.add(nowProcessingMenu);
+				continue;
+			}
+			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
+			if (handler == null) {
+				logger.warn("handler {} is not found.", actionCommand); //TODO
+			} else {
+				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
+				menuItem.setActionCommand(actionCommand);
+				menuItem.addActionListener(actionListener);
+				if (nowProcessingMenu instanceof JPopupMenu) {
+					((JPopupMenu) nowProcessingMenu).add(menuItem);
+				} else {
+					((JMenu) nowProcessingMenu).add(menuItem);
+				}
+			}
+		}
+		return popupMenu;
+	}
+
 	/**
 	 * 実際に描画するレンダラ。
 	 *
@@ -1118,6 +1132,7 @@ public abstract class DefaultClientTab implements ClientTab {
 
 	/**
 	 * Create IntentArguments
+	 *
 	 * @param actionCommand (name)[!(key)[=(value)][, ...]]
 	 * @return IntentArguments
 	 */
@@ -1135,6 +1150,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 *
 	 * <p>フィルタクエリの解析中にエラーが発生したときは、 {@link #getActualRenderer()} が代わりに
 	 * 返り値として使用されます。</p>
+	 *
 	 * @return TeeFilterインスタンス ({@link #teeFilter}変数)
 	 * @see #getActualRenderer()
 	 * @see #teeFilter
@@ -1142,21 +1158,16 @@ public abstract class DefaultClientTab implements ClientTab {
 	@Override
 	public TabRenderer getRenderer() {
 		if (teeFilter == null) {
-			try {
-				teeFilter = new TeeFilter(configuration, uniqId, getActualRenderer());
-			} catch (IllegalSyntaxException e) {
-				logger.error("TeeFilterを初期化できません。filter queryは無視されます", e);
-				teeFilter = getActualRenderer();
-			}
+			teeFilter = new TeeFilter(uniqId, getActualRenderer());
 		}
 		return teeFilter;
 	}
 
 	/**
-	* スクロールペーン。
-	*
-	* @return JScrollPane
-	*/
+	 * スクロールペーン。
+	 *
+	 * @return JScrollPane
+	 */
 	@SuppressWarnings("serial")
 	protected JScrollPane getScrollPane() {
 		if (postListScrollPane == null) {
@@ -1187,14 +1198,12 @@ public abstract class DefaultClientTab implements ClientTab {
 		return postListScrollPane;
 	}
 
-	/**
-	 * このクラスではJSONが返されます。
-	 */
+	/** このクラスではJSONが返されます。 */
 	@Override
 	public String getSerializedData() {
 		try {
-			return new JSONObject().put("twitterId", "reader").put("uniqId", getUniqId()).put("tabId", getTabId())
-				.put("extended", getSerializedExtendedData()).toString();
+			return new JSONObject().put("accountId", accountId).put("uniqId", getUniqId()).put("tabId", getTabId())
+					.put("extended", getSerializedExtendedData()).toString();
 		} catch (JSONException e) {
 			throw new RuntimeException(e);
 		}
@@ -1213,6 +1222,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * JSON例外を返すことができます。その他の例外は推奨されませんが {@link RuntimeException} などに
 	 * ラップしてください。
 	 * </p>
+	 *
 	 * @return 次回タブ復元時に必要なデータ
 	 * @throws JSONException JSON例外
 	 */
@@ -1302,7 +1312,6 @@ public abstract class DefaultClientTab implements ClientTab {
 					}
 				}
 			});
-
 		}
 		return tweetViewFavoriteButton;
 	}
@@ -1387,10 +1396,10 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/**
-	* ツイートビューの隣に表示するリツイートボタン
-	*
-	* @return リツイートボタン
-	*/
+	 * ツイートビューの隣に表示するリツイートボタン
+	 *
+	 * @return リツイートボタン
+	 */
 	protected JLabel getTweetViewRetweetButton() {
 		if (tweetViewRetweetButton == null) {
 			tweetViewRetweetButton = new JLabel("RT", SwingConstants.CENTER);
@@ -1435,11 +1444,13 @@ public abstract class DefaultClientTab implements ClientTab {
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);
-		configuration.getTimer().schedule(new PostListUpdater(),
+		configuration.getTimer().scheduleWithFixedDelay(new PostListUpdater(),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
-				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE));
-		tweetPopupMenu = ((TwitterClientFrame) (frameApi)).generatePopupMenu(new TweetPopupMenuListener());
-		tweetPopupMenu.addPopupMenuListener(new TweetPopupMenuListener());
+				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
+				TimeUnit.MILLISECONDS);
+		TweetPopupMenuListener tweetPopupMenuListener = new TweetPopupMenuListener();
+		tweetPopupMenu = generatePopupMenu(tweetPopupMenuListener);
+		tweetPopupMenu.addPopupMenuListener(tweetPopupMenuListener);
 		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
 
 			@Override
@@ -1480,7 +1491,7 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * @return 呼ばれたかどうか
 	 */
 	protected boolean isMentioned(UserMentionEntity[] userMentionEntities) {
-		return configuration.isMentioned(userMentionEntities);
+		return configuration.isMentioned(accountId, userMentionEntities);
 	}
 
 	/**
@@ -1499,16 +1510,15 @@ public abstract class DefaultClientTab implements ClientTab {
 	 * ステータスを削除する
 	 *
 	 * @param statusData ステータスデータ
-	 * @param delay 遅延ミリ秒
+	 * @param delay      遅延ミリ秒
 	 */
 	public void removeStatus(final StatusData statusData, int delay) {
-		configuration.getTimer().schedule(new TimerTask() {
+		configuration.getTimer().schedule(new Runnable() {
 
 			@Override
 			public void run() {
 				removeStatus(statusData);
 			}
-		}, delay);
+		}, delay, TimeUnit.MILLISECONDS);
 	}
-
 }

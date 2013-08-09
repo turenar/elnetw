@@ -20,8 +20,7 @@ import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstan
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTPROPERTYOPERATOR;
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTPROPERTYVALUE;
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.jjtNodeName;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * {@link FilterCompiler} のためのテスト・クラス
@@ -156,7 +155,6 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		assertToken(list, JJTPROPERTYOPERATOR, "<=");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
-
 	}
 
 	/**
@@ -322,5 +320,4 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		node.childrenAccept(this, data);
 		return null;
 	}
-
 }

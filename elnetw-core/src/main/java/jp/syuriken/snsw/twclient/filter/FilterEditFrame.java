@@ -121,7 +121,6 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		public Object visit(SimpleNode node, Object data) {
 			return null;
 		}
-
 	}
 
 	/** スペースを削除するフィルタクエリビジター */
@@ -174,7 +173,6 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		public Object visit(SimpleNode node, Object data) {
 			return null;
 		}
-
 	}
 
 	private String propertyKey;

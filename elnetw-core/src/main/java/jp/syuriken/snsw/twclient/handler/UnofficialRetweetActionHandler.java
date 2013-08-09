@@ -33,5 +33,4 @@ public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
 		Status status = getStatus(args);
 		menuItem.setEnabled(status != null);
 	}
-
 }

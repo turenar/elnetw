@@ -37,5 +37,4 @@ public class HashtagActionHandler implements ActionHandler {
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
-
 }

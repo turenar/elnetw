@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.internal;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -14,6 +14,8 @@ import java.util.ListIterator;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+import jp.syuriken.snsw.twclient.StatusPanel;
+
 /**
  * 日時でソートするポストリスト。
  *
@@ -26,10 +28,10 @@ import javax.swing.JPanel;
  * このクラスは、Twitterの、次のような性質を元にして作られています。
  * </p>
  * <ul>
- *   <li>必ずしも時系列に沿ってツイートが送信されるわけではない (次の同じAPIを使った取得では、
- *     前回の取得の一番新しいツイートより古いツイートを取得する可能性がある)
- *   </li>
- *   <li>通常のTL表示は新→古であり、単純に末尾に追加する (→配列の拡張時のコピーだけで対処が可能) わけにはいかない</li>
+ * <li>必ずしも時系列に沿ってツイートが送信されるわけではない (次の同じAPIを使った取得では、
+ * 前回の取得の一番新しいツイートより古いツイートを取得する可能性がある)
+ * </li>
+ * <li>通常のTL表示は新→古であり、単純に末尾に追加する (→配列の拡張時のコピーだけで対処が可能) わけにはいかない</li>
  * </ul>
  * <p>
  * 具体的な処理は以下のとおりとなります。 (leafSize=2, maxSize=2)
@@ -73,6 +75,7 @@ import javax.swing.JPanel;
  * branches -&gt; [ [15:00, 14:30] <del>[14:00, 12:00]</del> ]
  * </pre>
  * </p>
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class SortedPostListPanel extends JPanel {
@@ -106,6 +109,7 @@ public class SortedPostListPanel extends JPanel {
 
 	/**
 	 * {@link StatusPanel} を日時で比較する。
+	 *
 	 * @param a 比較する側
 	 * @param b 比較される側
 	 * @return a.compareTo(b)
@@ -126,19 +130,16 @@ public class SortedPostListPanel extends JPanel {
 
 	private int size;
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 */
+	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
 		this(3200, 50);
 	}
 
 	/**
 	 * インスタンスを生成する。
-	 * @param leafSize 二層目のJPanelの期待サイズ (このサイズより大きくなる可能性があります)
-	 * @param maxSize このクラスが格納する要素数
 	 *
+	 * @param leafSize 二層目のJPanelの期待サイズ (このサイズより大きくなる可能性があります)
+	 * @param maxSize  このクラスが格納する要素数
 	 */
 	public SortedPostListPanel(int leafSize, int maxSize) {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -194,7 +195,7 @@ public class SortedPostListPanel extends JPanel {
 
 		Collections.sort(values, ComponentComparator.SINGLETON);
 
-		for (ListIterator<StatusPanel> iterator = firstBranch.listIterator(); iterator.hasNext();) {
+		for (ListIterator<StatusPanel> iterator = firstBranch.listIterator(); iterator.hasNext(); ) {
 			if (values.isEmpty()) {
 				break;
 			}
@@ -219,7 +220,7 @@ public class SortedPostListPanel extends JPanel {
 				size++;
 			}
 		} else {
-			for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext();) {
+			for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
 				if (values.isEmpty()) {
 					break;
 				}
@@ -363,6 +364,7 @@ public class SortedPostListPanel extends JPanel {
 
 	/**
 	 * 最初のコンポーネントをフォーカスする
+	 *
 	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
 	 */
 	public synchronized boolean requestFocusFirstComponent() {
@@ -392,7 +394,7 @@ public class SortedPostListPanel extends JPanel {
 			}
 			return firstBranch.get(indexOf + 1).requestFocusInWindow();
 		} else {
-			for (Iterator<JPanel> iterator = branches.listIterator(); iterator.hasNext();) {
+			for (Iterator<JPanel> iterator = branches.listIterator(); iterator.hasNext(); ) {
 				JPanel next = iterator.next();
 				if (compareDate(panel, (StatusPanel) next.getComponent(0)) > 0) {
 					return next.getComponent(0).requestFocusInWindow();
@@ -419,7 +421,7 @@ public class SortedPostListPanel extends JPanel {
 	 * @return フォーカスが成功しそうかどうか
 	 */
 	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
-		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasPrevious();) {
+		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasPrevious(); ) {
 			JPanel previous = iterator.previous();
 			if (compareDate(panel, (StatusPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
 				return previous.getComponent(previous.getComponentCount() - 1).requestFocusInWindow();
@@ -445,9 +447,7 @@ public class SortedPostListPanel extends JPanel {
 		return firstBranch.get(indexOf - 1).requestFocusInWindow();
 	}
 
-	/**
-	 * firstBranchを分割する。分割しない時もある。
-	 */
+	/** firstBranchを分割する。分割しない時もある。 */
 	private synchronized void splitFirstBranch() {
 		while (firstBranch.size() > (leafSize << 1)) {
 			ListIterator<StatusPanel> li = firstBranch.listIterator(firstBranch.size());
@@ -466,7 +466,7 @@ public class SortedPostListPanel extends JPanel {
 	public synchronized String toString() {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("SortedPostListPanel{leaf=").append(leafSize).append(",max=").append(maxContainSize)
-			.append(",size=").append(size);
+				.append(",size=").append(size);
 		stringBuilder.append("}[").append(firstBranch.size()).append(", ");
 		for (JPanel container : branches) {
 			stringBuilder.append(container.getComponentCount()).append(", ");
@@ -477,9 +477,7 @@ public class SortedPostListPanel extends JPanel {
 		return stringBuilder.toString();
 	}
 
-	/**
-	 * いくつかの要素を開放する。開放しない時もある。
-	 */
+	/** いくつかの要素を開放する。開放しない時もある。 */
 	private synchronized void tryRelease() {
 		while (size > maxContainSize + leafSize) {
 			remove(getComponentCount() - 1);

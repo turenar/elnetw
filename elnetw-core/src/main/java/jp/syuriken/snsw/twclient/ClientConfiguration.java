@@ -12,13 +12,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -39,49 +42,35 @@ public class ClientConfiguration {
 
 	/** スクロール量のプロパティ名 */
 	public static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
-
 	/** フォーカスしたポストの色のプロパティ名 */
 	public static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
-
 	/** メンション判定の厳密な比較するかどうかのプロパティ名 */
 	public static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
-
 	/** 情報の生存時間のプロパティ名 */
 	public static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";
-
 	/** UI更新間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_POSTLIST_UPDATE = "gui.interval.list_update";
-
-	/** ダイレクトメッセージ初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_DIRECTMESSAGE = "twitter.page.initial_dm";
-
 	/** アカウントリストのプロパティ名 */
 	public static final String PROPERTY_ACCOUNT_LIST = "twitter.oauth.access_token.list";
-
-	/** メンション初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_MENTION = "twitter.page.initial_mention";
-
+	/** メンション取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_MENTIONS = "twitter.mention.count";
+	/** メンション取得のページングのプロパティ名 */
+	public static final String PROPERTY_INTERVAL_MENTIONS = "twitter.mention.interval";
+	/** タイムライン取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_TIMELINE = "twitter.timeline.count";
 	/** タイムライン取得間隔のプロパティ名 */
-	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.interval.timeline";
-
-	/** タイムライン取得のページングの更新間隔 */
-	public static final String PROPERTY_PAGING_TIMELINE = "twitter.page.timeline";
-
-	/** タイムライン初期取得のページングのプロパティ名 */
-	public static final String PROPERTY_PAGING_INITIAL_TIMELINE = "twitter.page.initial_timeline";
-
+	public static final String PROPERTY_INTERVAL_TIMELINE = "twitter.timeline.interval";
+	/** ダイレクトメッセージ取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_DIRECT_MESSAGES = "twitter.dm.count";
+	/** ダイレクトメッセージ取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_DIRECT_MESSAGES = "twitter.dm.interval";
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
-
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
-
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
-
 	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
-
 	private static ClientConfiguration INSTANCE;
-
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
 
@@ -97,6 +86,7 @@ public class ClientConfiguration {
 
 	/**
 	 * インスタンスを取得する。
+	 *
 	 * @return ClientConfiguration インスタンス
 	 */
 	public static synchronized ClientConfiguration getInstance() {
@@ -114,20 +104,21 @@ public class ClientConfiguration {
 	 * @param id     タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
 	 * @return 以前 id に関連付けられていたコンストラクタ
+	 * @throws IllegalArgumentException 不正なコンストラクタ
 	 * @see #putClientTabConstructor(String, Constructor)
 	 */
 	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
-			Class<? extends ClientTab> class1) {
+			Class<? extends ClientTab> class1) throws IllegalArgumentException {
 		try {
-			return putClientTabConstructor(id, class1.getConstructor(ClientConfiguration.class, String.class));
-		} catch (Exception e) {
-			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(ClientConfiguration, String)を持ちません", e);
+			return putClientTabConstructor(id, class1.getConstructor(String.class));
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(String)を持ちません", e);
 		}
 	}
 
 	/**
 	 * タブ復元時に使用するコンストラクタを追加する。
-	 * コンストラクタは {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタである必要があります。
+	 * コンストラクタは {@link String} ()の2つの引数を持つコンストラクタである必要があります。
 	 *
 	 * @param id          タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
 	 * @param constructor タブ復元時に呼ばれるコンストラクタ
@@ -136,8 +127,7 @@ public class ClientConfiguration {
 	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
 			Constructor<? extends ClientTab> constructor) {
 		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		if (parameterTypes.length == 2 && parameterTypes[0].isAssignableFrom(ClientConfiguration.class)
-				&& parameterTypes[1].isAssignableFrom(String.class)) {
+		if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(String.class)) {
 			return clientTabConstructorsMap.put(id, constructor);
 		} else {
 			throw new IllegalArgumentException(
@@ -147,6 +137,7 @@ public class ClientConfiguration {
 
 	/**
 	 * テスト以外呼び出し禁止！
+	 *
 	 * @param conf インスタンス
 	 */
 	/*package*/
@@ -155,64 +146,37 @@ public class ClientConfiguration {
 	}
 
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
-
 	private final Utility utility = new Utility(this);
-
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-
 	private final transient JobQueue jobQueue = new JobQueue();
-
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
-
 	/*package*/ ClientProperties configProperties;
-
 	/*package*/ ClientProperties configDefaultProperties;
-
 	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
-
-	private TrayIcon trayIcon;
-
-	private boolean isShutdownPhase = false;
-
+	private volatile TrayIcon trayIcon;
 	private TwitterClientFrame frameApi;
-
-	private boolean isInitializing = true;
-
+	private volatile boolean isInitializing = true;
 	private ConfigFrameBuilder configBuilder;
-
-	private volatile FilterService rootFilterService;
-
 	private volatile ImageCacher imageCacher;
-
 	private volatile String accountIdForRead;
-
 	private volatile String accountIdForWrite;
-
-	private TwitterDataFetchScheduler fetchScheduler;
-
+	private volatile TwitterDataFetchScheduler fetchScheduler;
 	private boolean portabledConfiguration;
-
 	private volatile CacheManager cacheManager;
-
 	private List<String> args;
-
-	private transient Timer timer;
-
+	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
+	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
 
-	/**
-	 * インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()}
-	 *
-	 */
+	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
 	}
 
 	/**
 	 * アクションハンドラを追加する
 	 *
-	 * @param name ハンドラ名
+	 * @param name    ハンドラ名
 	 * @param handler ハンドラ
 	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
 	 */
@@ -223,18 +187,18 @@ public class ClientConfiguration {
 	/**
 	 * フィルタを追加する
 	 *
-	 * @param rootFilter フィルター
+	 * @param filter フィルター
 	 */
-	public void addFilter(MessageFilter rootFilter) {
-		getRootFilterService().addFilter(rootFilter);
+	public void addFilter(MessageFilter filter) {
+		messageFilters.add(filter);
 	}
 
 	/**
 	 * 新しいタブを追加する。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 追加されたかどうか。
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean addFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -293,8 +257,8 @@ public class ClientConfiguration {
 	/**
 	 * 指定されたタブをフォーカスする。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public void focusFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -435,6 +399,10 @@ public class ClientConfiguration {
 		return fetchScheduler;
 	}
 
+	public MessageFilter[] getFilters() {
+		return messageFilters.toArray(new MessageFilter[0]);
+	}
+
 	/**
 	 * FrameApiを取得する
 	 *
@@ -496,6 +464,7 @@ public class ClientConfiguration {
 
 	/**
 	 * ジョブキューを取得する。
+	 *
 	 * @return ジョブキュー
 	 */
 	public JobQueue getJobQueue() {
@@ -513,20 +482,11 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * すべての入力をフィルターするクラスを取得する。
-	 *
-	 * @return フィルター
-	 */
-	public FilterService getRootFilterService() {
-		return rootFilterService;
-	}
-
-	/**
 	 * タイマーを取得する。
 	 *
 	 * @return タイマー
 	 */
-	public Timer getTimer() {
+	public ScheduledExecutorService getTimer() {
 		return timer;
 	}
 
@@ -650,9 +610,9 @@ public class ClientConfiguration {
 	/**
 	 * 指定したタブが選択されているかどうかを取得する
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 選択されているかどうか
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean isFocusTab(ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -682,7 +642,9 @@ public class ClientConfiguration {
 	 *
 	 * @param userMentionEntities エンティティ
 	 * @return 呼ばれたかどうか
+	 * @deprecated use {@link #isMentioned(long, twitter4j.UserMentionEntity[])}
 	 */
+	@Deprecated
 	public boolean isMentioned(UserMentionEntity[] userMentionEntities) {
 		if (userMentionEntities == null) {
 			return false;
@@ -699,6 +661,50 @@ public class ClientConfiguration {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * IDが呼ばれたかどうかを判定する
+	 *
+	 * @param accountId           ユーザーID (long)
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	public boolean isMentioned(long accountId, UserMentionEntity[] userMentionEntities) {
+		if (userMentionEntities == null) {
+			return false;
+		}
+		for (UserMentionEntity userMentionEntity : userMentionEntities) {
+			if (configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH)) {
+				if (userMentionEntity.getId() == accountId) {
+					return true;
+				}
+			} else {
+				if (userMentionEntity.getScreenName().startsWith(cacheManager.getUser(accountId).getScreenName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * IDが呼ばれたかどうかを判定する
+	 *
+	 * @param accountId           アカウントID (long|$reader|$writer)
+	 * @param userMentionEntities エンティティ
+	 * @return 呼ばれたかどうか
+	 */
+	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
+		String userId;
+		if (accountId.equals(TwitterDataFetchScheduler.READER_ACCOUNT_ID)) {
+			userId = getAccountIdForRead();
+		} else if (accountId.equals(TwitterDataFetchScheduler.WRITER_ACCOUNT_ID)) {
+			userId = getAccountIdForWrite();
+		} else {
+			userId = accountId;
+		}
+		return isMentioned(Long.parseLong(userId), userMentionEntities);
 	}
 
 	/**
@@ -730,19 +736,10 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * シャットダウンフェーズかどうかを取得する。
-	 *
-	 * @return シャットダウンフェーズかどうか
-	 */
-	public boolean isShutdownPhase() {
-		return isShutdownPhase;
-	}
-
-	/**
 	 * タブの表示を更新する。タブのタイトルを変更するときなどに使用してください。
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public void refreshTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -761,9 +758,9 @@ public class ClientConfiguration {
 	/**
 	 * タブを削除する
 	 *
-	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 * @param tab タブ
 	 * @return 削除されたかどうか。
+	 * @throws IllegalStateException {@link EventQueue#isDispatchThread()}がfalseを返す場合
 	 */
 	public boolean removeFrameTab(final ClientTab tab) throws IllegalStateException {
 		ensureRunningInDispatcherThread();
@@ -788,15 +785,15 @@ public class ClientConfiguration {
 	 * @param accountId アカウントID。ユニーク。
 	 * @return 古い読み込み用アカウントID。
 	 */
-	public String setAccountIdForRead(String accountId) {
-		if (checkValidAccountId(accountId) == false) {
+	public synchronized String setAccountIdForRead(String accountId) {
+		if (!checkValidAccountId(accountId)) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
 		String old = accountIdForRead;
-		if (old == null || old.equals(accountId) == false) {
+		if (old == null || !old.equals(accountId)) {
 			accountIdForRead = accountId;
-			if (rootFilterService != null) {
-				rootFilterService.onChangeAccount(false);
+			if (fetchScheduler != null) {
+				fetchScheduler.onChangeAccount(false);
 			}
 		}
 		return old;
@@ -808,25 +805,27 @@ public class ClientConfiguration {
 	 * @param accountId アカウントID。ユニーク
 	 * @return 古い書き込み用アカウントID。
 	 */
-	public String setAccountIdForWrite(String accountId) {
-		if (checkValidAccountId(accountId) == false) {
+	public synchronized String setAccountIdForWrite(String accountId) {
+		if (!checkValidAccountId(accountId)) {
 			throw new IllegalArgumentException("accountId is not in user's accounts: " + accountId);
 		}
 		String old = accountIdForWrite;
-		if (old == null || old.equals(accountId) == false) {
+		if (old == null || !old.equals(accountId)) {
 			accountIdForWrite = accountId;
-			if (rootFilterService != null) {
-				rootFilterService.onChangeAccount(true);
+			if (fetchScheduler != null) {
+				fetchScheduler.onChangeAccount(true);
 			}
 		}
 		return old;
 	}
 
-	/*package*/void setCacheManager(CacheManager cacheManager) {
+	/*package*/
+	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
 	}
 
-	/*package*/ void setConfigBuilder(ConfigFrameBuilder configBuilder) {
+	/*package*/
+	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
 		this.configBuilder = configBuilder;
 	}
 
@@ -835,7 +834,7 @@ public class ClientConfiguration {
 	 *
 	 * @param configDefaultProperties the configDefaultProperties to set
 	 */
-	public void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
+	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
 		this.configDefaultProperties = configDefaultProperties;
 	}
 
@@ -844,15 +843,17 @@ public class ClientConfiguration {
 	 *
 	 * @param configProperties the configProperties to set
 	 */
-	public void setConfigProperties(ClientProperties configProperties) {
+	public synchronized void setConfigProperties(ClientProperties configProperties) {
 		this.configProperties = configProperties;
 	}
 
-	/*package*/ void setExtraClassLoader(ClassLoader extraClassLoader) {
+	/*package*/
+	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
 		this.extraClassLoader = extraClassLoader;
 	}
 
-	/*package*/void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
+	/*package*/
+	synchronized void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
 		this.fetchScheduler = fetchScheduler;
 	}
 
@@ -886,20 +887,8 @@ public class ClientConfiguration {
 		portabledConfiguration = portable;
 	}
 
-	/*package*/ void setRootFilterService(FilterService service) {
-		rootFilterService = service;
-	}
-
-	/**
-	 * シャットダウンフェーズであるかどうかを設定する
-	 *
-	 * @param isShutdownPhase シャットダウンフェーズかどうか。
-	 */
-	public void setShutdownPhase(boolean isShutdownPhase) {
-		this.isShutdownPhase = isShutdownPhase;
-	}
-
-	/*package*/ void setTimer(Timer timer) {
+	/*package*/
+	synchronized void setTimer(ScheduledExecutorService timer) {
 		this.timer = timer;
 	}
 
@@ -908,12 +897,13 @@ public class ClientConfiguration {
 	 *
 	 * @param trayIcon the trayIcon to set
 	 */
-	public void setTrayIcon(TrayIcon trayIcon) {
+	public synchronized void setTrayIcon(TrayIcon trayIcon) {
 		this.trayIcon = trayIcon;
 	}
 
 	/**
 	 * store User's access token.
+	 *
 	 * @param accessToken accessToken Instance
 	 */
 	public void storeAccessToken(AccessToken accessToken) {
@@ -936,9 +926,13 @@ public class ClientConfiguration {
 	public Exception tryGetOAuthToken() {
 		Twitter twitter;
 		try {
-			twitter = new OAuthFrame(this).show();
+			twitter = new OAuthHelper(this).show();
 		} catch (TwitterException e) {
 			return e;
+		}
+
+		if (twitter == null) { // canceled
+			return null;
 		}
 
 		//将来の参照用に accessToken を永続化する

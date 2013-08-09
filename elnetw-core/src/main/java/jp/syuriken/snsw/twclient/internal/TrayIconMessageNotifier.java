@@ -4,7 +4,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.TrayIcon;
 import java.io.File;
 import java.util.LinkedList;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue;
@@ -46,13 +46,13 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 			long tempTime = lastNotified + 5000; //TODO 5000 from configure
 			if (tempTime > System.currentTimeMillis()) {
 
-				configuration.getTimer().schedule(new TimerTask() {
+				configuration.getTimer().schedule(new Runnable() {
 
 					@Override
 					public void run() {
 						TrayIconMessageNotifier.this.run();
 					}
-				}, tempTime - System.currentTimeMillis());
+				}, tempTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 				return;
 			}
 			Object[] arr = queue.poll();
