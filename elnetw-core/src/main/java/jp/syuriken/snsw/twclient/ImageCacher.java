@@ -290,6 +290,31 @@ public class ImageCacher {
 	}
 
 	/**
+	 * 指定したユーザーの画像を取得
+	 *
+	 * @param user ユーザー
+	 * @return 画像がすでに取得されていればその画像、そうでなければnull
+	 */
+	public Image getImage(User user) {
+		String imageKey = getImageKey(user);
+		String url = user.getProfileImageURL();
+		ImageEntry entry = cacheManager.get(imageKey);
+		if (entry == null) {
+			try {
+				entry = new ImageEntry(new URL(url), imageKey);
+			} catch (MalformedURLException e) {
+				throw new AssertionError(e); // would never happen
+			}
+			entry.cacheFile = getImageFilename(user);
+			configuration.addJob(new ImageFetcher(entry, null));
+			return null;
+		} else {
+			incrementAppearCount(entry);
+			return entry.image;
+		}
+	}
+
+	/**
 	 * URLの画像をストレージ上に保存し、そのファイル名を返す。
 	 * この呼び出しは極力キャッシュされます。
 	 *

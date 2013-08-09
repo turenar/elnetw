@@ -104,6 +104,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	/*package*/ JCheckBox muteCheckBox;
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
+	private ImageIcon imageIcon;
 
 	/**
 	 * インスタンスを生成する。
@@ -437,7 +438,16 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	@Override
 	public Icon getIcon() {
-		// TODO Auto-generated method stub
+		if (imageIcon != null) {
+			return imageIcon;
+		} else if (user != null) {
+			Image image = imageCacher.getImage(user);
+			if (image != null) {
+				image = image.getScaledInstance(24, 24, Image.SCALE_AREA_AVERAGING);
+				imageIcon = new ImageIcon(image);
+				return imageIcon;
+			}
+		}
 		return null;
 	}
 
