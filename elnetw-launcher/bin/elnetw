@@ -1,25 +1,44 @@
 #!/bin/sh
 
-#====== 設定開始 ======
-## ↓強制的にポータブル状態にするときは1、しないときは0
-TURETWCL_FORCE_PORTABLE=0
-
-## ↓javaコマンドに渡す引数
-TURETWCL_JAVA_ARGS=""
-
-#===== 設定おわり =====
-
 #+-----------------------
 #|Elnetw Launcher
 #|
 #|ランチャーjarを見付け出して起動させる。
 #+-----------------------
 
-if test "${TURETWCL_FORCE_PORTABLE}" = "1"; then
-  PORTABLE_CFG=true
-else
-  PORTABLE_CFG=false
-fi
+# functions
+
+#########################
+# add_java_arg
+#   javaコマンドへ渡す引数
+# $1=arg
+#########################
+add_java_arg() {
+  tt_java_args="${tt_java_args} $1"
+}
+
+#########################
+# add_arg
+#   アプリケーションへ渡す引数
+# $1=arg
+#########################
+add_arg() {
+  tt_args="${tt_args} $1"
+}
+
+#########################
+# add_classpath_dir
+#   $1がディレクトリとして存在するのならば、クラスパスへ追加する
+# $1=arg
+#########################
+add_classpath_dir() {
+  test -d "$1" && add_arg "-L$1"
+}
+
+#========================
+# main
+#========================
+
 
 # JAVA_HOMEがない
 if test -z "${JAVA_HOME}"; then
@@ -61,12 +80,12 @@ BATCH_PARENT_DIR="$(pwd)"
 cd "${WORKDIR}"
 
 # binディレクトリから直接起動させたときは上のディレクトリにする。
-if test "${BATCH_DIR}" = "${WORKDIR}";then cd ..; fi
+if test "${BATCH_DIR}" = "${WORKDIR}"; then cd ..; fi
 
 # targetが存在するならポータブル設定
 if test -e "${BATCH_PARENT_DIR}/target/elnetw-dist.jar"; then
   TTJAR="${BATCH_PARENT_DIR}/target/elnetw-dist.jar"
-  PORTABLE_CFG=true
+  add_java_arg '-Dconfig.portable=true'
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
   TTJAR="${BATCH_PARENT_DIR}/bin/launcher.jar"
 else
@@ -80,6 +99,23 @@ else
   exit 1
 fi
 
-JAVA_ARGS="-Dconfig.portable=${PORTABLE_CFG} ${TURETWCL_JAVA_ARGS}"
 
-"${JAVA_BIN}" ${JAVA_ARGS} -jar "${TTJAR}" "-L${BATCH_PARENT_DIR}/lib" $@
+while true; do
+  case "$1" in
+    -J)   add_java_arg "$2"; shift;;
+    -J*)  add_java_arg "${1#-J}";;
+    *)    break;;
+  esac
+
+  shift
+done
+
+add_classpath_dir "${HOME}/.elnetw/lib"
+add_classpath_dir "${BATCH_PARENT_DIR}/lib"
+
+
+# load ~/.elnetw/launcher.cfg
+test -x "${HOME}/.elnetw/launcher.cfg" && source "${HOME}/.elnetw/launcher.cfg"
+
+
+"${JAVA_BIN}" ${tt_java_args} -jar "${TTJAR}" ${tt_args} $@

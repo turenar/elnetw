@@ -20,6 +20,7 @@ import java.util.Map;
  */
 public class TwitterClientLauncher {
 
+	public static final String DEFAULT_LAUNCHING_CLASS = "jp.syuriken.snsw.twclient.TwitterClientMain";
 	private static FilenameFilter jarFilter = new FilenameFilter() {
 
 		@Override
@@ -29,7 +30,7 @@ public class TwitterClientLauncher {
 	};
 
 	private static void addURL(Map<String, ClasspathEntry> urlMap, File file) {
-		if (file.exists() == false) {
+		if (!file.exists()) {
 			System.err.println("[launcher] Specified classpath is not found: " + file.getPath());
 			return;
 		}
@@ -47,6 +48,11 @@ public class TwitterClientLauncher {
 				urlMap.put(classpathEntry.getLibraryName(), classpathEntry);
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T castTo(Object object) {
+		return (T) object;
 	}
 
 	/** 環境チェック */
@@ -71,8 +77,7 @@ public class TwitterClientLauncher {
 	}
 
 	private final String[] args;
-
-	private ArrayList<String> classpath = new ArrayList<String>();
+	private ArrayList<String> classpath = new ArrayList<>();
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")
 	private TwitterClientLauncher(String[] args) {
@@ -91,18 +96,104 @@ public class TwitterClientLauncher {
 		this.args = args;
 	}
 
+	private int getAbiVersion(Class<?> clazz) {
+		Method abiVersionMethod;
+		try {
+			abiVersionMethod = clazz.getDeclaredMethod("getLauncherAbiVersion");
+		} catch (NoSuchMethodException e) {
+			return 0;
+		}
+		abiVersionMethod.setAccessible(true);
+		try {
+			return (Integer) abiVersionMethod.invoke(null);
+		} catch (IllegalAccessException e) {
+			System.err.println("[launcher] Access denied");
+			e.printStackTrace();
+			return -1;
+		} catch (InvocationTargetException e) {
+			System.err.println("[launcher] Failed getting MainClass ABI Version");
+			e.printStackTrace();
+			return -1;
+		}
+	}
+
+	public Class<?> getMainClass(URLClassLoader classLoader) {
+		String launchClass = System.getProperty("elnetw.launch.class", DEFAULT_LAUNCHING_CLASS);
+		try {
+			return Class.forName(launchClass, false, classLoader);
+		} catch (ClassNotFoundException e) {
+			System.err.println("[launcher] 起動に必要なクラスの準備に失敗しました。");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private Object getMainClassInstance(Class<?> clazz, URLClassLoader classLoader) {
+		Method getInstance;
+		try {
+			getInstance = clazz.getMethod("getInstance", String[].class, ClassLoader.class);
+		} catch (NoSuchMethodException e) {
+			System.err.println("[launcher] Failed instantiation main class");
+			e.printStackTrace();
+			return null;
+		}
+
+		try {
+			return getInstance.invoke(null, args, classLoader);
+		} catch (IllegalAccessException e) {
+			System.err.println("[launcher] Access denied");
+			e.printStackTrace();
+			return null;
+		} catch (InvocationTargetException e) {
+			System.err.println("[launcher] Failed getting MainClass instance");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private int invokeMainClass0(Class<?> clazz, URLClassLoader classLoader) {
+		Object instance = getMainClassInstance(clazz, classLoader);
+		if (instance == null) {
+			return 1;
+		}
+		try {
+			Method method = clazz.getMethod("run");
+			return (Integer) method.invoke(instance);
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+			return 16;
+		} catch (ReflectiveOperationException e) {
+			System.err.println("[launcher] 起動することができませんでした。");
+			e.printStackTrace();
+			return 16;
+		}
+	}
+
+	private int invokeMainClass1(Class<?> clazz, URLClassLoader classLoader) {
+		Object instance = getMainClassInstance(clazz, classLoader);
+		if (instance == null) {
+			return 1;
+		}
+		try {
+			Method method = clazz.getMethod("run");
+			HashMap<String, Object> ret = castTo(method.invoke(instance));
+			return (Integer) ret.get("exitCode");
+		} catch (ReflectiveOperationException e) {
+			System.err.println("[launcher] 起動することができませんでした。");
+			e.printStackTrace();
+			return 1;
+		}
+	}
+
 	private URLClassLoader prepareClassLoader() {
-		HashMap<String, ClasspathEntry> libMap = new HashMap<String, ClasspathEntry>();
+		HashMap<String, ClasspathEntry> libMap = new HashMap<>();
 
 		// Handle -L option
 		for (String classpathEntry : classpath) {
 			addURL(libMap, new File(classpathEntry));
 		}
 
-		// handle ~/.elnetw/lib
-		addURL(libMap, new File(System.getProperty("user.home"), ".elnetw/lib"));
-
-		ArrayList<URL> urlList = new ArrayList<URL>();
+		ArrayList<URL> urlList = new ArrayList<>();
 		for (ClasspathEntry entry : libMap.values()) {
 			urlList.add(entry.getLibraryUrl());
 		}
@@ -117,30 +208,23 @@ public class TwitterClientLauncher {
 
 	public int run() {
 		URLClassLoader classLoader = prepareClassLoader();
-		Class<?> clazz;
-		try {
-			clazz = Class.forName("jp.syuriken.snsw.twclient.TwitterClientMain", false, classLoader);
-			Method getInstance = clazz.getMethod("getInstance", String[].class, ClassLoader.class);
-			Object instance = getInstance.invoke(null, args, classLoader);
-			Method method = clazz.getMethod("run");
-			Integer retCode = (Integer) method.invoke(instance);
-			return retCode;
-		} catch (ClassNotFoundException e) {
-			System.err.println("[launcher] 起動に必要なクラスの準備に失敗しました。");
-			e.printStackTrace();
-			return 16;
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+		Class<?> clazz = getMainClass(classLoader);
+		if (clazz == null) {
 			return 1;
-			// } catch (SecurityException e) {
-			// } catch (NoSuchMethodException e) {
-			// } catch (IllegalArgumentException e) {
-			// } catch (InstantiationException e) {
-			// } catch (IllegalAccessException e) {
-		} catch (Exception e) {
-			System.err.println("[launcher] 起動することができませんでした。");
-			e.printStackTrace();
-			return 16;
+		}
+
+		// check ABI version
+		int abiVersion = getAbiVersion(clazz);
+		switch (abiVersion) {
+			case -1:
+				return 1;
+			case 0:
+				return invokeMainClass0(clazz, classLoader);
+			case 1:
+				return invokeMainClass1(clazz, classLoader);
+			default:
+				System.err.println("[launcher] Out-dated launcher!");
+				return 1;
 		}
 	}
 }

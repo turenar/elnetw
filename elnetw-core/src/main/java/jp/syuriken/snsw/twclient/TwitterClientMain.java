@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -103,6 +104,7 @@ public class TwitterClientMain {
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
 	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
+	public static final int LAUNCHER_ABI_VERSION = 1;
 	@InitializerInstance
 	private static volatile TwitterClientMain SINGLETON;
 
@@ -112,6 +114,18 @@ public class TwitterClientMain {
 		}
 		SINGLETON = new TwitterClientMain(args, classLoader);
 		return SINGLETON;
+	}
+
+	/*package*/
+	static int getLauncherAbiVersion() {
+		return LAUNCHER_ABI_VERSION;
+	}
+
+	private static HashMap<String, Object> getResultMap(int exitCode, boolean isCrash) {
+		HashMap<String, Object> ret = new HashMap<>();
+		ret.put("exitCode", exitCode);
+		ret.put("isCrash", isCrash);
+		return ret;
 	}
 
 	/** 終了する。 */
@@ -127,10 +141,10 @@ public class TwitterClientMain {
 	protected final ClientConfiguration configuration;
 	/** for interruption */
 	private final Thread MAIN_THREAD;
+	/** スレッドホルダ */
+	protected final Object threadHolder = new Object();
 	/** 設定データ */
 	protected ClientProperties configProperties;
-	/** スレッドホルダ */
-	protected Object threadHolder = new Object();
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	protected Getopt getopt;
 	protected JobWorkerThread jobWorkerThread;
@@ -395,7 +409,7 @@ public class TwitterClientMain {
 	 *
 	 * @return 終了値
 	 */
-	public int run() {
+	public HashMap<String, Object> run() {
 		Getopt getopt = this.getopt;
 		int c;
 		portable = Boolean.getBoolean("config.portable");
@@ -436,7 +450,7 @@ public class TwitterClientMain {
 					.enterPhase("start");
 		} catch (InitializeException e) {
 			logger.error("failed initialization", e);
-			return e.getExitCode();
+			return getResultMap(e.getExitCode(), true);
 		}
 		logger.info("Initialized");
 
@@ -454,10 +468,10 @@ public class TwitterClientMain {
 			initializeService.uninit();
 		} catch (InitializeException e) {
 			logger.error("failed quitting", e);
-			return e.getExitCode();
+			return getResultMap(e.getExitCode(), true);
 		}
 
-		return 0;
+		return getResultMap(0, false);
 	}
 
 	@Initializer(name = "twitterAccountId", dependencies = "config", phase = "earlyinit")
@@ -535,6 +549,17 @@ public class TwitterClientMain {
 			logger.error("デフォルト設定が読み込めません", e);
 		}
 		configuration.setConfigDefaultProperties(defaultConfig);
+	}
+
+	@Initializer(name = "internal-setDefaultExceptionHandler", phase = "earlyinit")
+	public void setDefaultExceptionHandler() {
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				logger.error("Uncaught exception", e);
+				quit();
+			}
+		});
 	}
 
 	@Initializer(name = "set-globalfilter",
