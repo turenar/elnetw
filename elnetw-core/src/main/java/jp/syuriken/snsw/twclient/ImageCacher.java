@@ -35,10 +35,10 @@ public class ImageCacher {
 	 */
 	protected static class ImageEntry {
 
-		/** イメージURL */
-		public final URL url;
 		/** 画像キー */
 		public final String imageKey;
+		/** イメージURL */
+		public volatile URL url;
 		/** Image インスタンス */
 		public Image image;
 		/** キャッシュ先のファイル */
@@ -110,7 +110,7 @@ public class ImageCacher {
 
 		@Override
 		public void run() {
-			ImageEntry entry = this.entry;
+			final ImageEntry entry = this.entry;
 			if (cacheManager.containsKey(entry.imageKey)) {
 				synchronized (entry) {
 					label.setIcon(getImageIcon(cacheManager.get(entry.imageKey).image));
@@ -156,19 +156,19 @@ public class ImageCacher {
 		}
 	}
 
-	/** Buffersize */
+	/** Buffer size */
 	private static final int BUFSIZE = 65536;
 	private final ClientConfiguration configuration;
 	/** キャッシュ出力先ディレクトリ */
-	public final File CACHE_DIR;
+	public final File cacheDir;
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
-	public final File USER_ICON_CACHE_DIR;
-	private Logger logger = LoggerFactory.getLogger(getClass());
-	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<String, ImageEntry>();
+	public final File userIconCacheDir;
+	private final Logger logger = LoggerFactory.getLogger(ImageCacher.class);
 	/** キャッシュ有効時間 */
-	private long cacheExpire;
-	private int flushThreshold;
-	private int flushResetInterval;
+	private final long cacheExpire;
+	private final int flushThreshold;
+	private final int flushResetInterval;
+	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<>();
 
 	/**
 	 * インスタンスを生成する。
@@ -183,15 +183,45 @@ public class ImageCacher {
 
 		switch (Utility.getOstype()) {
 			case WINDOWS:
-				CACHE_DIR = new File(System.getProperty("java.io.tmpdir") + "/elnetw/cache");
+				cacheDir = new File(System.getProperty("java.io.tmpdir") + "/elnetw/cache");
 				break;
 			default:
-				CACHE_DIR = new File(System.getProperty("user.home") + "/.cache/elnetw");
+				cacheDir = new File(System.getProperty("user.home") + "/.cache/elnetw");
 				break;
 		}
-		USER_ICON_CACHE_DIR = new File(CACHE_DIR, "user");
+		userIconCacheDir = new File(cacheDir, "user");
 
-		loadUserIconFromCaches(USER_ICON_CACHE_DIR);
+		cleanOldUserIconCache(userIconCacheDir);
+	}
+
+	/**
+	 * ディスクキャッシュから期限切れのユーザーアイコンを削除する。
+	 *
+	 * @param directory 再起対象ディレクトリ
+	 */
+	private void cleanOldUserIconCache(File directory) {
+		File[] listFiles = directory.listFiles();
+		if (listFiles == null) {
+			return;
+		}
+		for (File file : listFiles) {
+			if (file.isDirectory()) {
+				cleanOldUserIconCache(file);
+			}
+
+			long lastModified = file.lastModified();
+			if (lastModified == 0) {
+				continue;
+			} else if (lastModified + cacheExpire < System.currentTimeMillis()) {
+				if (file.delete()) {
+					logger.debug("clean expired cache: {} (lastModified:{})", Utility.protectPrivacy(file.getPath()),
+							lastModified);
+					continue;
+				} else {
+					logger.warn("Failed cleaning cache: {}", Utility.protectPrivacy(file.getPath()));
+				}
+			}
+		}
 	}
 
 	/**
@@ -206,6 +236,18 @@ public class ImageCacher {
 		}
 
 		synchronized (entry) {
+			if (entry.cacheFile != null && entry.cacheFile.exists()) {
+				try {
+					File cacheFile = entry.cacheFile;
+					logger.debug("loadCache: file={}", cacheFile.getPath());
+					entry.url = cacheFile.toURI().toURL();
+					entry.isWritten = true;
+				} catch (MalformedURLException e) {
+					// would never happen
+					throw new AssertionError(e);
+				}
+			}
+
 			URLConnection connection;
 			try {
 				connection = url.openConnection();
@@ -249,7 +291,7 @@ public class ImageCacher {
 	 */
 	protected boolean flushImage(ImageEntry entry) {
 		synchronized (entry) {
-			if (entry.isWritten == false) {
+			if (!entry.isWritten) {
 				if (entry.cacheFile == null) {
 					return false;
 				}
@@ -257,8 +299,8 @@ public class ImageCacher {
 				try {
 					File file = entry.cacheFile;
 					File dirName = file.getParentFile();
-					if (dirName.exists() == false) {
-						if (dirName.mkdirs() == false) {
+					if (!dirName.exists()) {
+						if (!dirName.mkdirs()) {
 							logger.warn("{} is not exist and can't mkdir", Utility.protectPrivacy(dirName.getPath()));
 						}
 					}
@@ -344,7 +386,7 @@ public class ImageCacher {
 			entry.cacheFile = getImageFilename(user);
 			fetchImage(entry);
 		}
-		if (entry.isWritten == false) {
+		if (!entry.isWritten) {
 			flushImage(entry);
 		}
 		return entry.cacheFile;
@@ -360,7 +402,7 @@ public class ImageCacher {
 		String fileName = getProfileImageName(user);
 		long id = user.getId();
 		String subdir = Integer.toHexString((int) (id & 0xff));
-		return new File(USER_ICON_CACHE_DIR, MessageFormat.format("{0}/{1}-{2}", subdir, Long.toString(id), fileName));
+		return new File(userIconCacheDir, MessageFormat.format("{0}/{1}-{2}", subdir, Long.toString(id), fileName));
 	}
 
 	/**
@@ -419,53 +461,6 @@ public class ImageCacher {
 		int appearCount = ++entry.appearCount;
 		if (appearCount > flushThreshold) {
 			configuration.addJob(Priority.LOW, new ImageFlusher(entry));
-		}
-	}
-
-	/**
-	 * ディスクキャッシュからユーザーアイコンを読み込む。
-	 *
-	 * @param directory 再起対象ディレクトリ
-	 */
-	private void loadUserIconFromCaches(File directory) {
-		File[] listFiles = directory.listFiles();
-		if (listFiles == null) {
-			return;
-		}
-		for (File file : listFiles) {
-			if (file.isDirectory()) {
-				loadUserIconFromCaches(file);
-			}
-
-			long lastModified = file.lastModified();
-			if (lastModified == 0) {
-				continue;
-			} else if (lastModified + cacheExpire < System.currentTimeMillis()) {
-				if (file.delete()) {
-					logger.debug("clean expired cache: {} (lastModified:{})", Utility.protectPrivacy(file.getPath()),
-							lastModified);
-					continue;
-				} else {
-					logger.warn("Failed cleaning cache: {}", Utility.protectPrivacy(file.getPath()));
-				}
-			}
-			String name = file.getName(); // "userId-imageName"
-			int separatorPosition = name.indexOf('-');
-
-			if (separatorPosition == -1) {
-				continue; // not icon cache
-			}
-
-			String userId = name.substring(0, separatorPosition);
-			String fileName = name.substring(separatorPosition + 1, name.length());
-			logger.debug("loadCache: file={}", name);
-			ImageEntry imageEntry;
-			try {
-				imageEntry = new ImageEntry(file.toURI().toURL(), getImageKey(userId, fileName));
-			} catch (MalformedURLException e) {
-				throw new AssertionError(e); // would never happen
-			}
-			configuration.addJob(new ImageFetcher(imageEntry, null));
 		}
 	}
 
