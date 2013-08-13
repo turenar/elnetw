@@ -5,6 +5,7 @@ import java.util.Date;
 
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.URLEntity;
 import twitter4j.User;
 
 /**
@@ -253,6 +254,16 @@ public class NullUser implements User {
 	@Override
 	public boolean isFollowRequestSent() {
 		return false;
+	}
+
+	@Override
+	public URLEntity[] getDescriptionURLEntities() {
+		return new URLEntity[0];
+	}
+
+	@Override
+	public URLEntity getURLEntity() {
+		return null;
 	}
 
 	@Override

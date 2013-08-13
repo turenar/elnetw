@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -21,7 +22,6 @@ import twitter4j.json.DataObjectFactory;
 public class TwitterUser implements User, TwitterExtendedObject {
 
 	private static final long serialVersionUID = 1893110786616307437L;
-
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
 
 	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
@@ -39,76 +39,43 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	private final Date createdAt;
-
 	private final long id;
-
 	private final boolean isContributorsEnabled;
-
 	private final boolean isFollowRequestSent;
-
 	private final boolean isGeoEnabled;
-
 	private final boolean isVerified;
-
 	private final String lang;
-
 	private final String profileBackgroundColor;
-
 	private final boolean profileBackgroundTiled;
-
 	private final String profileLinkColor;
-
 	private final String profileSidebarBorderColor;
-
 	private final String profileSidebarFillColor;
-
 	private final String profileTextColor;
-
 	private final boolean showAllInlineMedia;
-
 	private final String timeZone;
-
 	private final boolean translator;
-
 	private final int utcOffset;
-
 	private final String json;
-
 	private boolean profileUseBackgroundImage;
-
 	private String description;
-
 	private int favouritesCount;
-
 	private int followersCount;
-
 	private int friendsCount;
-
 	private boolean isProtected;
-
 	private int listedCount;
-
 	private String location;
-
 	private String name;
-
 	private String screenName;
-
 	private Status status;
-
 	private int statusesCount;
-
 	private String url;
-
 	private String profileBackgroundImageUrl;
-
 	private String profileBackgroundImageUrlHttps;
-
 	private String profileImageUrl;
-
 	private String profileImageUrlHttps;
-
 	private String profileBannerImageUrl;
+	private URLEntity[] descriptionURLEntities;
+	private URLEntity urlEntity;
 
 
 	/**
@@ -161,6 +128,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		screenName = originalUser.getScreenName();
 		statusesCount = originalUser.getStatusesCount();
 		profileBannerImageUrl = originalUser.getProfileBannerURL();
+		descriptionURLEntities = originalUser.getDescriptionURLEntities();
+		urlEntity = originalUser.getURLEntity();
 
 		json = jsonObject == null ? null : jsonObject.toString();
 
@@ -238,6 +207,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public String getDescription() {
 		return description;
+	}
+
+	@Override
+	public URLEntity[] getDescriptionURLEntities() {
+		return descriptionURLEntities;
 	}
 
 	@Override
@@ -429,6 +403,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public String getURL() {
 		return url;
+	}
+
+	@Override
+	public URLEntity getURLEntity() {
+		return urlEntity;
 	}
 
 	@Override

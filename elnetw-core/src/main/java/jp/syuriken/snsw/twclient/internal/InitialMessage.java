@@ -6,6 +6,7 @@ import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
+import twitter4j.SymbolEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -54,6 +55,11 @@ public class InitialMessage implements DirectMessage {
 	@Override
 	public MediaEntity[] getMediaEntities() {
 		return originalMessage.getMediaEntities();
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return originalMessage.getSymbolEntities();
 	}
 
 	@Override

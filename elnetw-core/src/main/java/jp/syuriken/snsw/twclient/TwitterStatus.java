@@ -10,6 +10,7 @@ import twitter4j.MediaEntity;
 import twitter4j.Place;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.SymbolEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -126,6 +127,10 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private boolean possiblySensitive;
 
 	private long currentUserRetweetId;
+	private boolean retweeted;
+	private long favoriteCount;
+	private String isoLanguageCode;
+	private SymbolEntity[] symbolEntities;
 
 
 	/**
@@ -168,6 +173,10 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		user = getCachedUser(originalStatus.getUser());
 		possiblySensitive = originalStatus.isPossiblySensitive();
 		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
+		retweeted = originalStatus.isRetweeted();
+		favoriteCount = originalStatus.getFavoriteCount();
+		isoLanguageCode = originalStatus.getIsoLanguageCode();
+		symbolEntities = originalStatus.getSymbolEntities();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (originalStatus instanceof TwitterStatus) {
@@ -300,6 +309,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return symbolEntities;
+	}
+
+	@Override
 	public Place getPlace() {
 		return place;
 	}
@@ -357,6 +371,16 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return favorited;
 	}
 
+	@Override
+	public boolean isRetweeted() {
+		return retweeted;
+	}
+
+	@Override
+	public long getFavoriteCount() {
+		return favoriteCount;
+	}
+
 	/**
 	 * このステータスが起動時に読み込まれたものかどうかを調べる
 	 *
@@ -369,6 +393,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public boolean isPossiblySensitive() {
 		return possiblySensitive;
+	}
+
+	@Override
+	public String getIsoLanguageCode() {
+		return isoLanguageCode;
 	}
 
 	@Override

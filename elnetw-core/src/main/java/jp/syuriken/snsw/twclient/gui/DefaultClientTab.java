@@ -770,7 +770,11 @@ public abstract class DefaultClientTab implements ClientTab {
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
-		accountId = serializedJson.optString("accountId", "$reader");
+		String accountId = serializedJson.getString("accountId");
+		if (accountId == null) {
+			accountId = "$reader";
+		}
+		this.accountId = accountId;
 		uniqId = serializedJson.getString("uniqId");
 		UI_FONT = configProperties.getFont("gui.font.ui");
 		DEFAULT_FONT = configProperties.getFont("gui.font.default");

@@ -8,6 +8,7 @@ import twitter4j.MediaEntity;
 import twitter4j.Place;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.SymbolEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -100,6 +101,11 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return new SymbolEntity[0];
+	}
+
+	@Override
 	public Place getPlace() {
 		return null;
 	}
@@ -150,8 +156,23 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
+	public boolean isRetweeted() {
+		return false;
+	}
+
+	@Override
+	public long getFavoriteCount() {
+		return 0;
+	}
+
+	@Override
 	public boolean isPossiblySensitive() {
 		return false;
+	}
+
+	@Override
+	public String getIsoLanguageCode() {
+		return null;
 	}
 
 	@Override
