@@ -478,7 +478,6 @@ public abstract class DefaultClientTab implements ClientTab {
 				selectingPost = (StatusPanel) e.getComponent();
 			} */
 			if (e.getClickCount() == 2) {
-				StatusPanel panel = ((StatusPanel) e.getComponent());
 				handleAction(new IntentArguments("reply"));
 			}
 		}

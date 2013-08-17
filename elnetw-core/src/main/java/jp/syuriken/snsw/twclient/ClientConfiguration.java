@@ -279,7 +279,7 @@ public class ClientConfiguration {
 	 *
 	 * @return アカウントID (ユニーク)
 	 */
-	public String getAccountIdForRead() {
+	public synchronized String getAccountIdForRead() {
 		return accountIdForRead;
 	}
 
@@ -288,7 +288,7 @@ public class ClientConfiguration {
 	 *
 	 * @return アカウントID (ユニーク)
 	 */
-	public String getAccountIdForWrite() {
+	public synchronized String getAccountIdForWrite() {
 		return accountIdForWrite;
 	}
 
@@ -317,7 +317,7 @@ public class ClientConfiguration {
 	 *
 	 * @return キャッシュマネージャ
 	 */
-	public CacheManager getCacheManager() {
+	public synchronized CacheManager getCacheManager() {
 		return cacheManager;
 	}
 
@@ -326,7 +326,7 @@ public class ClientConfiguration {
 	 *
 	 * @return 設定ビルダー
 	 */
-	public ConfigFrameBuilder getConfigBuilder() {
+	public synchronized ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
 	}
 
@@ -335,7 +335,7 @@ public class ClientConfiguration {
 	 *
 	 * @return the configDefaultProperties
 	 */
-	public ClientProperties getConfigDefaultProperties() {
+	public synchronized ClientProperties getConfigDefaultProperties() {
 		return configDefaultProperties;
 	}
 
@@ -344,7 +344,7 @@ public class ClientConfiguration {
 	 *
 	 * @return the configProperties
 	 */
-	public ClientProperties getConfigProperties() {
+	public synchronized ClientProperties getConfigProperties() {
 		return configProperties;
 	}
 
@@ -386,7 +386,7 @@ public class ClientConfiguration {
 		return accountId;
 	}
 
-	public ClassLoader getExtraClassLoader() {
+	public synchronized ClassLoader getExtraClassLoader() {
 		return extraClassLoader;
 	}
 
@@ -395,7 +395,7 @@ public class ClientConfiguration {
 	 *
 	 * @return スケジューラ
 	 */
-	public TwitterDataFetchScheduler getFetchScheduler() {
+	public synchronized TwitterDataFetchScheduler getFetchScheduler() {
 		return fetchScheduler;
 	}
 
@@ -486,7 +486,7 @@ public class ClientConfiguration {
 	 *
 	 * @return タイマー
 	 */
-	public ScheduledExecutorService getTimer() {
+	public synchronized ScheduledExecutorService getTimer() {
 		return timer;
 	}
 
@@ -495,7 +495,7 @@ public class ClientConfiguration {
 	 *
 	 * @return トレイアイコン
 	 */
-	public TrayIcon getTrayIcon() {
+	public synchronized TrayIcon getTrayIcon() {
 		return trayIcon;
 	}
 

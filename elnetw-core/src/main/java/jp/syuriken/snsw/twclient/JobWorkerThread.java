@@ -15,21 +15,13 @@ import org.slf4j.LoggerFactory;
 /*package*/class JobWorkerThread extends Thread {
 
 	private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
-
 	private static final AtomicInteger threadNumber = new AtomicInteger();
-
 	private final Object threadHolder;
-
 	private final JobQueue jobQueue;
-
 	private final ConcurrentLinkedQueue<Runnable> serializeQueue;
-
 	private final AtomicInteger runningChildThreadCount;
-
 	private final boolean isParent;
-
 	private final JobWorkerThread parent;
-
 	private ArrayList<JobWorkerThread> childThreads;
 
 	public JobWorkerThread(JobQueue jobQueue) {
@@ -62,7 +54,7 @@ import org.slf4j.LoggerFactory;
 
 	public void cleanUp() {
 		jobQueue.setJobWorkerThread(null);
-		interrupt();
+		this.interrupt(); // JobWorkerMainThread
 		for (JobWorkerThread workerThread : childThreads) {
 			workerThread.interrupt();
 		}

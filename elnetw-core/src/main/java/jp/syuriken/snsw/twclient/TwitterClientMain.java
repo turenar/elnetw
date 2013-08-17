@@ -119,6 +119,7 @@ public class TwitterClientMain {
 		if (SINGLETON == null) {
 			throw new IllegalStateException("no instance running!");
 		}
+		SINGLETON.isInterrupted = true;
 		SINGLETON.MAIN_THREAD.interrupt();
 	}
 
@@ -137,6 +138,7 @@ public class TwitterClientMain {
 	protected boolean portable;
 	protected TwitterDataFetchScheduler fetchScheduler;
 	protected TwitterClientFrame frame;
+	private boolean isInterrupted;
 
 	/**
 	 * インスタンスを生成する。
@@ -440,7 +442,7 @@ public class TwitterClientMain {
 
 		synchronized (threadHolder) {
 			try {
-				while (true) {
+				while (!isInterrupted) {
 					threadHolder.wait();
 				}
 			} catch (InterruptedException e) {
