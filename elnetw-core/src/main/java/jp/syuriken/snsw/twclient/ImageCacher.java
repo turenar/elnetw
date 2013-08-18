@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.Icon;
@@ -111,9 +112,9 @@ public class ImageCacher {
 		@Override
 		public void run() {
 			final ImageEntry entry = this.entry;
-			if (cacheManager.containsKey(entry.imageKey)) {
+			if (cachedImages.containsKey(entry.imageKey)) {
 				synchronized (entry) {
-					label.setIcon(getImageIcon(cacheManager.get(entry.imageKey).image));
+					label.setIcon(getImageIcon(cachedImages.get(entry.imageKey).image));
 					incrementAppearCount(entry);
 				}
 				return;
@@ -168,7 +169,7 @@ public class ImageCacher {
 	private final long cacheExpire;
 	private final int flushThreshold;
 	private final int flushResetInterval;
-	/*private*/ ConcurrentHashMap<String, ImageEntry> cacheManager = new ConcurrentHashMap<>();
+	/*private*/ ConcurrentHashMap<String, ImageEntry> cachedImages = new ConcurrentHashMap<>();
 
 	/**
 	 * インスタンスを生成する。
@@ -231,67 +232,66 @@ public class ImageCacher {
 	 */
 	protected void fetchImage(ImageEntry entry) throws InterruptedException {
 		URL url = entry.url;
-		if (cacheManager.containsKey(entry.imageKey)) {
+		if (cachedImages.containsKey(entry.imageKey)) {
 			return;
 		}
 
 		synchronized (entry) {
-			byte[] imageData = null;
 			if (entry.cacheFile != null && entry.cacheFile.exists()) {
-				File cacheFile = entry.cacheFile;
 				try {
+					File cacheFile = entry.cacheFile;
 					logger.debug("loadCache: file={}", cacheFile.getPath());
-					URL fileUrl = cacheFile.toURI().toURL();
-
-					imageData = fetchImage(fileUrl);
-					entry.url = fileUrl;
+					entry.url = cacheFile.toURI().toURL();
 					entry.isWritten = true;
 				} catch (MalformedURLException e) {
 					// would never happen
 					throw new AssertionError(e);
-				} catch (IOException e) {
-					logger.warn("Failed loading cache: " + cacheFile, e);
 				}
 			}
-			if (imageData == null) {
-				try {
-					imageData = fetchImage(url);
-				} catch (IOException e) {
-					logger.warn("Failed fetching image: " + url, e);
-					return;
-				}
-			}
-			entry.rawimage = imageData;
-			Image cacheImage = Toolkit.getDefaultToolkit().createImage(imageData);
-			entry.image = cacheImage;
-			cacheManager.put(entry.imageKey, entry);
-		}
-	}
 
-	private byte[] fetchImage(URL url) throws InterruptedException, IOException {
-		URLConnection connection = url.openConnection();
-		InputStream stream = connection.getInputStream();
-		byte[] buf = new byte[BUFSIZE];
-		byte[] imageData = new byte[0];
-		int imageLen = 0;
-		int loadLen;
-		while ((loadLen = stream.read(buf)) != -1) {
-			logger.trace("Image: Loaded {} bytes", loadLen);
-			byte[] oldimage = imageData;
-			imageData = new byte[imageLen + loadLen];
-			System.arraycopy(oldimage, 0, imageData, 0, imageLen);
-			System.arraycopy(buf, 0, imageData, imageLen, loadLen);
-			imageLen += loadLen;
-			synchronized (this) {
-				try {
-					wait(1);
-				} catch (InterruptedException e) {
-					throw e;
+			URLConnection connection;
+			try {
+				connection = url.openConnection();
+				int contentLength = connection.getContentLength();
+				InputStream stream = connection.getInputStream();
+
+				int bufLength = contentLength < 0 ? BUFSIZE : contentLength + 1;
+				byte[] data = new byte[bufLength];
+				int imageLen = 0;
+				int loadLen;
+				while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
+					imageLen += loadLen;
+
+					if (bufLength == imageLen) {
+						bufLength = bufLength << 1;
+						if (bufLength < 0) {
+							bufLength = Integer.MAX_VALUE;
+						}
+						byte[] newData = new byte[bufLength];
+						System.arraycopy(data, 0, newData, 0, imageLen);
+						data = newData;
+					}
+
+					logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
+
+					synchronized (this) {
+						try {
+							wait(1);
+						} catch (InterruptedException e) {
+							throw e;
+						}
+					}
 				}
+				stream.close(); // help keep-alive
+
+				entry.rawimage = Arrays.copyOfRange(data, 0, bufLength);
+				Image image = Toolkit.getDefaultToolkit().createImage(entry.rawimage);
+				entry.image = image;
+				cachedImages.put(entry.imageKey, entry);
+			} catch (IOException e) {
+				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
 			}
 		}
-		stream.close(); // help keep-alive
-		return imageData;
 	}
 
 	/**
@@ -351,7 +351,7 @@ public class ImageCacher {
 	public Image getImage(User user) {
 		String imageKey = getImageKey(user);
 		String url = user.getProfileImageURL();
-		ImageEntry entry = cacheManager.get(imageKey);
+		ImageEntry entry = cachedImages.get(imageKey);
 		if (entry == null) {
 			try {
 				entry = new ImageEntry(new URL(url), imageKey);
@@ -387,7 +387,7 @@ public class ImageCacher {
 	 */
 	public File getImageFile(User user) throws InterruptedException {
 		String imageKey = getImageKey(user);
-		ImageEntry entry = cacheManager.get(imageKey);
+		ImageEntry entry = cachedImages.get(imageKey);
 		if (entry == null) {
 			try {
 				entry = new ImageEntry(new URL(user.getProfileImageURL()), imageKey);
@@ -457,7 +457,8 @@ public class ImageCacher {
 	 */
 	protected String getProfileImageName(User user) {
 		String url = user.getProfileImageURL();
-		return url.substring(url.lastIndexOf('/') + 1);
+		String fileName = url.substring(url.lastIndexOf('/') + 1);
+		return fileName;
 	}
 
 	protected void incrementAppearCount(ImageEntry entry) {
@@ -484,7 +485,7 @@ public class ImageCacher {
 	 */
 	public boolean setImageIcon(JLabel label, URL url) {
 		String urlString = url.toString();
-		ImageEntry entry = cacheManager.get(urlString);
+		ImageEntry entry = cachedImages.get(urlString);
 		if (entry == null) {
 			configuration.addJob(new ImageFetcher(new ImageEntry(url, urlString), label));
 			return false;
@@ -506,7 +507,7 @@ public class ImageCacher {
 	public boolean setImageIcon(JLabel label, User user) {
 		String imageKey = getImageKey(user);
 		String url = user.getProfileImageURL();
-		ImageEntry entry = cacheManager.get(imageKey);
+		ImageEntry entry = cachedImages.get(imageKey);
 		if (entry == null) {
 			try {
 				entry = new ImageEntry(new URL(url), imageKey);

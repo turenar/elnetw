@@ -61,6 +61,7 @@ import jp.syuriken.snsw.twclient.handler.ListActionHandler;
 import jp.syuriken.snsw.twclient.handler.MenuPropertyEditorActionHandler;
 import jp.syuriken.snsw.twclient.handler.MenuQuitActionHandler;
 import jp.syuriken.snsw.twclient.handler.MuteActionHandler;
+import jp.syuriken.snsw.twclient.handler.OpenImageActionHandler;
 import jp.syuriken.snsw.twclient.handler.PostActionHandler;
 import jp.syuriken.snsw.twclient.handler.QuoteTweetActionHandler;
 import jp.syuriken.snsw.twclient.handler.ReloginActionHandler;
@@ -193,6 +194,7 @@ public class TwitterClientMain {
 		configuration.addActionHandler("list", new ListActionHandler());
 		configuration.addActionHandler("hashtag", new HashtagActionHandler());
 		configuration.addActionHandler("search", new SearchActionHandler());
+		configuration.addActionHandler("openimg",new OpenImageActionHandler());
 		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
 		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());

@@ -1000,7 +1000,12 @@ public abstract class DefaultClientTab implements ClientTab {
 					url = "http://command/hashtag!name=" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
 					URLEntity urlEntity = (URLEntity) entity;
-					url = urlEntity.getURL();
+					if (urlEntity instanceof MediaEntity) {
+						MediaEntity mediaEntity = (MediaEntity) urlEntity;
+						url = "http://command/openimg!url=" + mediaEntity.getMediaURL();
+					} else {
+						url = urlEntity.getURL();
+					}
 					start = TwitterStatus.getEntityStart(urlEntity);
 					end = TwitterStatus.getEntityEnd(urlEntity);
 					replaceText = urlEntity.getDisplayURL();
