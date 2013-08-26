@@ -29,7 +29,6 @@ public class Utility {
 	private static class KVEntry {
 
 		final String key;
-
 		final String value;
 
 		public KVEntry(String key, String value) {
@@ -40,7 +39,6 @@ public class Utility {
 
 	private static class MessageNotifierEntry {
 		protected int priority;
-
 		protected Class<? extends MessageNotifier> messageNotifierClass;
 
 		protected MessageNotifierEntry(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
@@ -65,24 +63,16 @@ public class Utility {
 
 	/** 秒→ミリセカンド */
 	public static final long SEC2MS = 1000;
-
 	/** 分→ミリセカンド */
 	public static final long MINUTE2MS = SEC2MS * 60;
-
 	/** 時→ミリセカンド */
 	public static final long HOUR2MS = MINUTE2MS * 60;
-
 	/** 日→ミリセカンド */
 	public static final long DAY2MS = HOUR2MS * 24;
-
 	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
-
-	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<MessageNotifierEntry>();
-
+	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<>();
 	private static volatile OSType ostype;
-
 	private static KVEntry[] privacyEntries;
-
 	/** DateFormatを管理する */
 	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
 
@@ -96,8 +86,6 @@ public class Utility {
 	 * Register MessageNotifier.
 	 *
 	 * <p>Elnetw select notifier which has higher priority and is usable.</p>
-	 *
-	 * <p>TODO: use Annotation</p>
 	 *
 	 * @param priority             higher priority will be selected.
 	 * @param messageNotifierClass Class object.
@@ -171,28 +159,6 @@ public class Utility {
 	}
 
 	/**
-	 * 文字列が等しいかどうかを調べる。単にequalsとするよりも速くなるかもしれないぐらいの程度
-	 *
-	 * @param a 文字列A
-	 * @param b 文字列B
-	 * @return 等しいかどうか
-	 * @deprecated use just {@link String#equals(Object)} or string-switch
-	 */
-	@Deprecated
-	public static boolean equalString(String a, String b) {
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		if (a.hashCode() != b.hashCode()) {
-			return false;
-		}
-		return a.equals(b);
-	}
-
-	/**
 	 * yyyy/MM/dd HH:mm:ssな {@link SimpleDateFormat} を取得する。
 	 *
 	 * このメソッドはマルチスレッド対応ですが、このメソッドで返されるインスタンスは<strong>スレッドローカルなので
@@ -219,7 +185,7 @@ public class Utility {
 		long timeDiff = System.currentTimeMillis() - date.getTime();
 		String dateFormatted = dateFormat.get().format(date);
 		if (timeDiff < 0 || timeDiff > DAY2MS) {
-			// date is fortune or older than 24hours
+			// date is future or older than 24hours
 			return dateFormatted;
 		} else {
 			StringBuilder stringBuilder = new StringBuilder();
@@ -388,16 +354,6 @@ public class Utility {
 	}
 
 	/**
-	 * 単にobjを配列として返すだけの
-	 *
-	 * @param obj オブジェクト
-	 * @return 配列
-	 */
-	public static Object[] toArray(Object... obj) {
-		return obj;
-	}
-
-	/**
 	 * キーをキー文字列に変換する
 	 *
 	 * @param e キーイベント
@@ -434,9 +390,7 @@ public class Utility {
 	}
 
 	private final ClientConfiguration configuration;
-
 	private String detectedBrowser = null;
-
 	/** 通知を送信するクラス */
 	public volatile MessageNotifier notifySender = null;
 

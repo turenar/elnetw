@@ -190,7 +190,7 @@ public class TimelineViewTab extends DefaultClientTab {
 		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}",
-						Utility.toArray(source, target, unfavoritedStatus));
+						source, target, unfavoritedStatus);
 			}
 			if (target.getId() == frameApi.getLoginUser().getId()) {
 				StatusData statusData = new StatusData(unfavoritedStatus, new Date());
