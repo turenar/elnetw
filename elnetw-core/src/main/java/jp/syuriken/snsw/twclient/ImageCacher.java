@@ -236,51 +236,62 @@ public class ImageCacher {
 		}
 
 		synchronized (entry) {
+			byte[] imageData = null;
 			if (entry.cacheFile != null && entry.cacheFile.exists()) {
+				File cacheFile = entry.cacheFile;
 				try {
-					File cacheFile = entry.cacheFile;
 					logger.debug("loadCache: file={}", cacheFile.getPath());
-					entry.url = cacheFile.toURI().toURL();
+					URL fileUrl = cacheFile.toURI().toURL();
+
+					imageData = fetchImage(fileUrl);
+					entry.url = fileUrl;
 					entry.isWritten = true;
 				} catch (MalformedURLException e) {
 					// would never happen
 					throw new AssertionError(e);
+				} catch (IOException e) {
+					logger.warn("Failed loading cache: " + cacheFile, e);
 				}
 			}
-
-			URLConnection connection;
-			try {
-				connection = url.openConnection();
-				InputStream stream = connection.getInputStream();
-				byte[] buf = new byte[BUFSIZE];
-				byte[] imagedata = new byte[0];
-				int imagelen = 0;
-				int loadlen;
-				while ((loadlen = stream.read(buf)) != -1) {
-					logger.trace("Image: Loaded {} bytes", loadlen);
-					byte[] oldimage = imagedata;
-					imagedata = new byte[imagelen + loadlen];
-					System.arraycopy(oldimage, 0, imagedata, 0, imagelen);
-					System.arraycopy(buf, 0, imagedata, imagelen, loadlen);
-					imagelen += loadlen;
-					synchronized (this) {
-						try {
-							wait(1);
-						} catch (InterruptedException e) {
-							throw e;
-						}
-					}
+			if (imageData == null) {
+				try {
+					imageData = fetchImage(url);
+				} catch (IOException e) {
+					logger.warn("Failed fetching image: " + url, e);
+					return;
 				}
-				stream.close(); // help keep-alive
+			}
+			entry.rawimage = imageData;
+			Image cacheImage = Toolkit.getDefaultToolkit().createImage(imageData);
+			entry.image = cacheImage;
+			cacheManager.put(entry.imageKey, entry);
+		}
+	}
 
-				entry.rawimage = imagedata;
-				Image image = Toolkit.getDefaultToolkit().createImage(imagedata);
-				entry.image = image;
-				cacheManager.put(entry.imageKey, entry);
-			} catch (IOException e) {
-				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+	private byte[] fetchImage(URL url) throws InterruptedException, IOException {
+		URLConnection connection = url.openConnection();
+		InputStream stream = connection.getInputStream();
+		byte[] buf = new byte[BUFSIZE];
+		byte[] imageData = new byte[0];
+		int imageLen = 0;
+		int loadLen;
+		while ((loadLen = stream.read(buf)) != -1) {
+			logger.trace("Image: Loaded {} bytes", loadLen);
+			byte[] oldimage = imageData;
+			imageData = new byte[imageLen + loadLen];
+			System.arraycopy(oldimage, 0, imageData, 0, imageLen);
+			System.arraycopy(buf, 0, imageData, imageLen, loadLen);
+			imageLen += loadLen;
+			synchronized (this) {
+				try {
+					wait(1);
+				} catch (InterruptedException e) {
+					throw e;
+				}
 			}
 		}
+		stream.close(); // help keep-alive
+		return imageData;
 	}
 
 	/**
@@ -446,8 +457,7 @@ public class ImageCacher {
 	 */
 	protected String getProfileImageName(User user) {
 		String url = user.getProfileImageURL();
-		String fileName = url.substring(url.lastIndexOf('/') + 1);
-		return fileName;
+		return url.substring(url.lastIndexOf('/') + 1);
 	}
 
 	protected void incrementAppearCount(ImageEntry entry) {
