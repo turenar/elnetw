@@ -3,6 +3,8 @@ package jp.syuriken.snsw.twclient.gui;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,12 +27,20 @@ import static jp.syuriken.snsw.twclient.JobQueue.Priority;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ImageViewerFrame extends JFrame {
+public class ImageViewerFrame extends JFrame implements WindowListener {
 	protected class ImageFetcher implements ParallelRunnable {
+		private final Logger logger = LoggerFactory.getLogger(ImageFetcher.class);
 		private final URL url;
+		/** フレームが閉じられた */
+		private boolean isInterrupted;
 
 		public ImageFetcher(URL url) {
 			this.url = url;
+		}
+
+		/** フレームが閉じられたことに対する通知 */
+		public void interrupt() {
+			isInterrupted = true;
 		}
 
 		@Override
@@ -69,7 +79,12 @@ public class ImageViewerFrame extends JFrame {
 
 					synchronized (this) {
 						try {
-							wait(1);
+							if (isInterrupted) {
+								logger.debug("Viewer frame closed: cancel fetch");
+								return;
+							} else {
+								wait(1);
+							}
 						} catch (InterruptedException e) {
 							updateImageLabel("割り込まれました");
 							Thread.currentThread().interrupt();
@@ -82,7 +97,7 @@ public class ImageViewerFrame extends JFrame {
 				final Image image = Toolkit.getDefaultToolkit().createImage(data, 0, imageLen);
 				final ImageIcon imageIcon = new ImageIcon(image);
 				if (imageIcon.getIconHeight() < 0) {
-					updateImageLabel("画像のロードに失敗");
+					updateImageLabel("画像のロードに失敗したもよう");
 				} else {
 					EventQueue.invokeLater(new Runnable() {
 						@Override
@@ -90,6 +105,7 @@ public class ImageViewerFrame extends JFrame {
 							getComponentImageLabel().setText(null);
 							getComponentImageLabel().setIcon(imageIcon);
 							pack();
+							setIconImage(image);
 						}
 					});
 				}
@@ -112,9 +128,11 @@ public class ImageViewerFrame extends JFrame {
 	private static Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
 	private final URL url;
 	private JLabel imageLabel;
+	private ImageViewerFrame.ImageFetcher imageFetcher;
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param url 画像のURL。
 	 */
 	public ImageViewerFrame(URL url) {
@@ -133,6 +151,7 @@ public class ImageViewerFrame extends JFrame {
 	private void initComponents() {
 		setSize(256, 256);
 		setTitle(url.toString());
+		addWindowListener(this);
 		add(getComponentImageLabel());
 	}
 
@@ -151,6 +170,36 @@ public class ImageViewerFrame extends JFrame {
 	}
 
 	private void scheduleImageFetcher(URL url) {
-		ClientConfiguration.getInstance().addJob(Priority.HIGH, new ImageFetcher(url));
+		imageFetcher = new ImageFetcher(url);
+		ClientConfiguration.getInstance().addJob(Priority.HIGH, imageFetcher);
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		imageFetcher.interrupt();
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
 	}
 }
