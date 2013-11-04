@@ -81,6 +81,6 @@ public class BenchmarkDataCollector extends UserStreamAdapter {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.printf("\rWritten %d tweets", ++count);
+		System.out.printf("\r\u001b[0KWritten %d tweets: @%s", ++count, status.getUser().getScreenName());
 	}
 }
