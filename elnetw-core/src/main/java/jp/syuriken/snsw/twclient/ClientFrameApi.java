@@ -7,7 +7,6 @@ import java.awt.event.KeyEvent;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 
-import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
@@ -25,10 +24,8 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 
 	/** ポインタ時にはforegroundをblueに設定する */
 	/*public static final*/ int SET_FOREGROUND_COLOR_BLUE = 1;
-
 	/** ポインタ時にはunderlineを引く */
 	/*public static final*/ int UNDERLINE = 1 << 1;
-
 	/** ポインタ時に何もしない */
 	/*public static final*/ int DO_NOTHING_WHEN_POINTED = 0;
 
@@ -42,25 +39,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 */
 	@Deprecated
 	ActionHandler addActionHandler(String name, ActionHandler handler);
-
-	/**
-	 * ジョブを追加する
-	 *
-	 * @param priority 優先度
-	 * @param job      ジョブ
-	 * @deprecated use {@link ClientConfiguration#addJob(Priority, Runnable)}
-	 */
-	@Deprecated
-	void addJob(Priority priority, Runnable job);
-
-	/**
-	 * ジョブを追加する
-	 *
-	 * @param job ジョブ
-	 * @deprecated use {@link ClientConfiguration#addJob(Runnable)}
-	 */
-	@Deprecated
-	void addJob(Runnable job);
 
 	/**
 	 * ショートカットキーとアクションコマンドを関連付ける

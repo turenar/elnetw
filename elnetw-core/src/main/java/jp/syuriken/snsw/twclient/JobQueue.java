@@ -1,6 +1,6 @@
 package jp.syuriken.snsw.twclient;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -10,6 +10,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class JobQueue {
+
+	/** 優先度を格納するクラスもどき。このクラスの定数は全て{@link JobQueue}で定義されています。 */
+	public static interface Priority {
+		/** 優先度 高 */
+		public static final byte HIGH = PRIORITY_HIGH;
+		/** 優先度 中 */
+		public static final byte MEDIUM = PRIORITY_MEDIUM;
+		/** 優先度 低 */
+		public static final byte LOW = PRIORITY_LOW;
+		/** 優先度 最高 */
+		public static final byte MAX = PRIORITY_MAX;
+		/** UI更新用の高め優先度 */
+		public static final byte UI = PRIORITY_UI;
+		/** アイドル時に... */
+		public static final byte IDLE = PRIORITY_IDLE;
+	}
 
 	/**
 	 * 簡易LinkedList。最後に追加と先頭から取得しかできない。
@@ -75,50 +91,61 @@ public class JobQueue {
 		}
 	}
 
-	/**
-	 * 優先度を格納する
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public static enum Priority {
-		/** 優先度：高 */
-		HIGH,
-		/** 優先度：中 */
-		MEDIUM,
-		/** 優先度：低 */
-		LOW;
-		public static final int PRIORITY_COUNT = 3;
+	/** 優先度 最高 */
+	public static final byte PRIORITY_MAX = 15;
+	/** 優先度 高 */
+	public static final byte PRIORITY_HIGH = 12;
+	/** UI更新用の高め優先度 */
+	public static final byte PRIORITY_UI = 10;
+	/** 優先度 中 */
+	public static final byte PRIORITY_MEDIUM = 8;
+	/** 優先度 低 */
+	public static final byte PRIORITY_LOW = 4;
+	/** アイドル時に... */
+	public static final byte PRIORITY_IDLE = 0;
+	/** 優先度 デフォルト */
+	public static final byte PRIORITY_DEFAULT = PRIORITY_MEDIUM;
 
-		public int getPriorityValue() {
-			switch (this) {
-				case HIGH:
-					return 0;
-				case MEDIUM:
-					return 1;
-				case LOW:
-					return 2;
-				default:
-					throw new AssertionError();
+	/*package*/
+	static int binarySearch(int[] table, int needle) {
+		int start = 0;
+		int end = table.length - 1;
+		while (start <= end) {
+			int pivot = (start + end) >>> 1;
+			int v = table[pivot];
+			if (v == needle) {
+				return pivot;
+			} else if (v > needle) {
+				end = pivot - 1;
+			} else {
+				start = pivot + 1;
 			}
 		}
+		return end;
 	}
 
-	private static final int HIGH_THRESHOLD = 100;
-	private static final int MEDIUM_THRESHOLD = 10;
-	private static final int LOW_THRESHOLD = 1;
-	private final LinkedQueue<Runnable>[] queues;
-	private final AtomicInteger size = new AtomicInteger();
-	private final Random random;
-	private Object jobWorkerThreadHolder = null;
+	@SuppressWarnings("unchecked")
+	private static LinkedQueue<Runnable>[] makeLinkedQueueArray() {
+		return new LinkedQueue[PRIORITY_MAX + 1];
+	}
 
+	private final LinkedQueue<Runnable>[] queues;
+	private final int[] randomToPriorityTable;
+	private final AtomicInteger size = new AtomicInteger();
+	private final int priorityRandomMax;
+	private Object jobWorkerThreadHolder = null;
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
 		queues = makeLinkedQueueArray();
-		for (int i = 0; i < Priority.PRIORITY_COUNT; i++) {
+		randomToPriorityTable = new int[PRIORITY_MAX + 2];
+
+		for (int i = 0; i <= PRIORITY_MAX; i++) {
 			queues[i] = new LinkedQueue<>();
+			randomToPriorityTable[i] = (i == 0 ? 0 : 1 << i);
 		}
-		random = new Random();
+		priorityRandomMax = 1 << (PRIORITY_MAX + 1);
+		randomToPriorityTable[PRIORITY_MAX + 1] = priorityRandomMax;
 	}
 
 	/**
@@ -134,13 +161,16 @@ public class JobQueue {
 	 * @param priority 優先度
 	 * @param job      追加するジョブ
 	 */
-	public void addJob(Priority priority, Runnable job) {
+	public void addJob(byte priority, Runnable job) {
+		if (priority > PRIORITY_MAX || priority < 0) {
+			throw new IllegalArgumentException("priority must be 0 - 15");
+		}
+
 		if (job != null) {
 			if (jobWorkerThreadHolder == null) {
 				job.run();
 			} else {
-
-				LinkedQueue<Runnable> queue = queues[priority.getPriorityValue()];
+				LinkedQueue<Runnable> queue = queues[priority];
 				queue.add(job);
 				size.incrementAndGet();
 			}
@@ -158,7 +188,7 @@ public class JobQueue {
 	 * @param job ジョブ
 	 */
 	public void addJob(Runnable job) {
-		addJob(Priority.MEDIUM, job);
+		addJob(PRIORITY_DEFAULT, job);
 	}
 
 	/**
@@ -173,30 +203,15 @@ public class JobQueue {
 		}
 		Runnable job;
 
-		// 1: 乱数ベースのジョブ選択
-		int randomInt = random.nextInt(HIGH_THRESHOLD);
-		int priorityNumber;
-		if (randomInt < LOW_THRESHOLD) {
-			priorityNumber = 2;
-		} else if (randomInt < MEDIUM_THRESHOLD) {
-			priorityNumber = 1;
-		} else {
-			priorityNumber = 0;
-		}
-		LinkedQueue<Runnable> queue = queues[priorityNumber];
-		job = queue.poll();
-		if (job != null) {
-			size.decrementAndGet();
-			return job;
-		}
+		int randomInt = ThreadLocalRandom.current().nextInt(priorityRandomMax);
+		int priorityNumber = binarySearch(randomToPriorityTable, randomInt);
 
-		// 2: 総当り式
-		final int max = priorityNumber + Priority.PRIORITY_COUNT;
-		for (int i = priorityNumber + 1; i < max; i++) {
+		final int max = priorityNumber + PRIORITY_MAX;
+		for (int i = priorityNumber; i <= max; i++) {
 			if (size.get() == 0) {
 				return null;
 			}
-			job = queues[i % Priority.PRIORITY_COUNT].poll();
+			job = queues[i % (PRIORITY_MAX + 1)].poll();
 			if (job != null) {
 				size.decrementAndGet();
 				return job;
@@ -214,15 +229,10 @@ public class JobQueue {
 		return size.get() == 0;
 	}
 
-	@SuppressWarnings("unchecked")
-	private LinkedQueue<Runnable>[] makeLinkedQueueArray() {
-		return new LinkedQueue[Priority.PRIORITY_COUNT];
-	}
-
 	/**
 	 * ジョブワーカースレッドを設定する。
 	 * <p>
-	 * ジョブワーカースレッドは、ジョブキューにジョブが追加されたときに {@link Thread#notifyAll()}される
+	 * ジョブワーカースレッドは、ジョブキューにジョブが追加されたときに {@link Thread#notify()}される
 	 * スレッドです。このスレッドでは、ジョブキューの消費が仕事となります。
 	 * </p>
 	 * <p>

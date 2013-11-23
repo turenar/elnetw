@@ -5,7 +5,6 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.JobQueue.LinkedQueue;
-import static jp.syuriken.snsw.twclient.JobQueue.Priority;
 import static org.junit.Assert.*;
 
 /**
@@ -16,12 +15,10 @@ import static org.junit.Assert.*;
 public class JobQueueTest {
 	public static class AddIntoQueueThread extends Thread {
 		private final JobQueue queue;
-
-		private final Priority priority;
-
+		private final byte priority;
 		private final CountDownLatch latch;
 
-		public AddIntoQueueThread(JobQueue queue, CountDownLatch latch, Priority priority) {
+		public AddIntoQueueThread(JobQueue queue, CountDownLatch latch, byte priority) {
 			this.latch = latch;
 			this.queue = queue;
 			this.priority = priority;
@@ -42,7 +39,6 @@ public class JobQueueTest {
 
 	public static class AddJobThread extends Thread {
 		private final LinkedQueue<Runnable> queue;
-
 		private final CountDownLatch latch;
 
 		public AddJobThread(LinkedQueue<Runnable> queue, CountDownLatch latch, int loop) {
@@ -65,9 +61,7 @@ public class JobQueueTest {
 
 	public static class ConsumeJobThread extends Thread {
 		private final LinkedQueue<Runnable> queue;
-
 		private final CountDownLatch latch;
-
 		private volatile int jobsCount;
 
 		public ConsumeJobThread(LinkedQueue<Runnable> queue, CountDownLatch latch) {
@@ -93,9 +87,7 @@ public class JobQueueTest {
 
 	public static class ConsumeQueueThread extends Thread {
 		private final JobQueue queue;
-
 		private final CountDownLatch latch;
-
 		private volatile int jobsCount;
 
 		public ConsumeQueueThread(JobQueue queue, CountDownLatch latch) {
@@ -132,20 +124,10 @@ public class JobQueueTest {
 	}
 
 	public static final int COUNT_PER_THREAD = 10000;
-
 	public static final int THREADS_COUNT = 100;
 
-	private Priority getPriority(int i) {
-		switch (i % 4) {
-			case 0:
-			case 1:
-				return Priority.MEDIUM;
-			case 2:
-				return Priority.HIGH;
-			case 3:
-				return Priority.LOW;
-		}
-		throw new AssertionError();
+	private byte getPriority(int i) {
+		return (byte) (i % 16);
 	}
 
 	@Test

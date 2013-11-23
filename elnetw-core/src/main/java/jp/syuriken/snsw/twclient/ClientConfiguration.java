@@ -226,7 +226,7 @@ public class ClientConfiguration {
 	 * @param priority 優先度
 	 * @param job      ジョブ
 	 */
-	public void addJob(JobQueue.Priority priority, Runnable job) {
+	public void addJob(byte priority, Runnable job) {
 		jobQueue.addJob(priority, job);
 	}
 

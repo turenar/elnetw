@@ -409,7 +409,6 @@ import static java.lang.Math.max;
 
 		public final String[] accountList = configuration.getAccountList();
 		final UserInfoFetcher this$uif = UserInfoFetcher.this;
-		final TwitterClientFrame this$tcf = TwitterClientFrame.this;
 		public int offset = 0;
 		public JMenuItem[] readTimelineMenuItems;
 		public JMenuItem[] postToMenuItems;
@@ -480,7 +479,7 @@ import static java.lang.Math.max;
 
 					@Override
 					public void run() {
-						this$tcf.addJob(Priority.LOW, this$uif);
+						configuration.addJob(Priority.LOW, this$uif);
 					}
 				}, 10, TimeUnit.SECONDS); // TODO: why 10?
 			}
@@ -523,7 +522,7 @@ import static java.lang.Math.max;
 	/*package*/ JLabel tweetViewCreatedAtLabel;
 	/*package*/transient ImageCacher imageCacher;
 	/*package*/ JLabel tweetViewUserIconLabel;
-	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<String, String>();
+	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ JLabel postLengthLabel;
 	protected transient ClientTab selectingTab;
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
@@ -565,17 +564,6 @@ import static java.lang.Math.max;
 		return configuration.addActionHandler(name, handler);
 	}
 
-	@Override
-	@Deprecated
-	public void addJob(Priority priority, Runnable job) {
-		configuration.addJob(priority, job);
-	}
-
-	@Override
-	@Deprecated
-	public void addJob(Runnable job) {
-		configuration.addJob(job);
-	}
 
 	@Override
 	public void addShortcutKey(String keyString, String actionName) {
@@ -602,7 +590,7 @@ import static java.lang.Math.max;
 			postActionButton.setEnabled(false);
 			postBox.setEnabled(false);
 
-			addJob(Priority.HIGH, new PostTask(text, getSelectingTab()));
+			configuration.addJob(Priority.HIGH, new PostTask(text, getSelectingTab()));
 		}
 	}
 
@@ -619,7 +607,7 @@ import static java.lang.Math.max;
 		if (accountMenu == null) {
 			accountMenu = new JMenu("アカウント");
 
-			addJob(Priority.LOW, new UserInfoFetcher());
+			configuration.addJob(Priority.LOW, new UserInfoFetcher());
 			accountMenu.add(getReadTimelineJMenu());
 			accountMenu.add(getPostToJMenu());
 
@@ -897,7 +885,7 @@ import static java.lang.Math.max;
 			tweetViewEditorPane.setFont(UI_FONT);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setEditorKit(new HTMLEditorKitExtension());
-			tweetViewEditorPane.setText(APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.setText(ClientConfiguration.APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
 			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
 
 				@Override
