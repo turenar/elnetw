@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 		// avoid getfield mnemonic
 		JobQueue jobQueue = this.jobQueue;
 		ConcurrentLinkedQueue<Runnable> serializeQueue = this.serializeQueue;
+		boolean isParent = this.isParent;
 
 		if (isParent) {
 			jobQueue.setJobWorkerThread(threadHolder);
@@ -88,7 +89,11 @@ import org.slf4j.LoggerFactory;
 				synchronized (threadHolder) {
 					try {
 						logger.trace("{}: Try to wait", getName());
-						threadHolder.wait();
+						if (isInterrupted()) {
+							break;
+						} else {
+							threadHolder.wait();
+						}
 						logger.trace("{}: Wake up", getName());
 					} catch (InterruptedException e) {
 						logger.trace("{}: Interrupted", getName());

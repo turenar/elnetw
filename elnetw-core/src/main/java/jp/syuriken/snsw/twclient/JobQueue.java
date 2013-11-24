@@ -14,17 +14,17 @@ public class JobQueue {
 	/** 優先度を格納するクラスもどき。このクラスの定数は全て{@link JobQueue}で定義されています。 */
 	public static interface Priority {
 		/** 優先度 高 */
-		public static final byte HIGH = PRIORITY_HIGH;
+		/*public static*/ final byte HIGH = PRIORITY_HIGH;
 		/** 優先度 中 */
-		public static final byte MEDIUM = PRIORITY_MEDIUM;
+		/*public static*/ final byte MEDIUM = PRIORITY_MEDIUM;
 		/** 優先度 低 */
-		public static final byte LOW = PRIORITY_LOW;
+		/*public static*/ final byte LOW = PRIORITY_LOW;
 		/** 優先度 最高 */
-		public static final byte MAX = PRIORITY_MAX;
+		/*public static*/ final byte MAX = PRIORITY_MAX;
 		/** UI更新用の高め優先度 */
-		public static final byte UI = PRIORITY_UI;
+		/*public static*/ final byte UI = PRIORITY_UI;
 		/** アイドル時に... */
-		public static final byte IDLE = PRIORITY_IDLE;
+		/*public static*/ final byte IDLE = PRIORITY_IDLE;
 	}
 
 	/**
@@ -173,8 +173,6 @@ public class JobQueue {
 				LinkedQueue<Runnable> queue = queues[priority];
 				queue.add(job);
 				size.incrementAndGet();
-			}
-			if (jobWorkerThreadHolder != null) {
 				synchronized (jobWorkerThreadHolder) {
 					jobWorkerThreadHolder.notify();
 				}
