@@ -267,6 +267,28 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>taglist-maven-plugin</artifactId>
 				<version>2.4</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<sourceFileLocale>ja</sourceFileLocale>
+					<emptyComments>true</emptyComments>
+					<tagListOptions>
+						<tagClasses>
+							<tagClass>
+								<displayName>Code Work</displayName>
+								<tags>
+									<tag>
+										<matchString>FIXME</matchString>
+										<matchType>exact</matchType>
+									</tag>
+									<tag>
+										<matchString>TODO</matchString>
+										<matchType>ignoreCase</matchType>
+									</tag>
+								</tags>
+							</tagClass>
+						</tagClasses>
+					</tagListOptions>
+				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>
