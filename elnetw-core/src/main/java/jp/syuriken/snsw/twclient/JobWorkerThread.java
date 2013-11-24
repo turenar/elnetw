@@ -121,7 +121,9 @@ import org.slf4j.LoggerFactory;
 				synchronized (threadHolder) {
 					try {
 						logger.trace("{}: Wait for child destroyed", getName());
-						threadHolder.wait();
+						if (!isInterrupted()){
+							threadHolder.wait();
+						}
 					} catch (InterruptedException e) {
 						// do nothing
 					}
