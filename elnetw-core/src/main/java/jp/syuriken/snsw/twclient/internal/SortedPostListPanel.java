@@ -4,17 +4,18 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.StatusPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 日時でソートするポストリスト。
@@ -87,8 +88,7 @@ public class SortedPostListPanel extends JPanel {
 	 */
 	public static final class ComponentComparator implements Comparator<Component>, Serializable {
 
-		private static final long serialVersionUID = 5164218366463800406L;
-
+		private static final long serialVersionUID = 815936876127042870L;
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
 
@@ -105,7 +105,8 @@ public class SortedPostListPanel extends JPanel {
 		}
 	}
 
-	private static final long serialVersionUID = 5744052485948702454L;
+	private static final long serialVersionUID = -2699588004179912235L;
+	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
 
 	/**
 	 * {@link StatusPanel} を日時で比較する。
@@ -114,25 +115,26 @@ public class SortedPostListPanel extends JPanel {
 	 * @param b 比較される側
 	 * @return a.compareTo(b)
 	 */
-	public static int compareDate(StatusPanel a, StatusPanel b) {
-		return a.compareTo(b);
+	protected static int compareDate(StatusPanel a, StatusPanel b) {
+		if (b == null) {
+			return 1;
+		} else {
+			return a.compareTo(b);
+		}
+	}
+
+	private static int getProperty(String key) {
+		return ClientConfiguration.getInstance().getConfigProperties().getInteger(key);
 	}
 
 	private final int leafSize;
-
 	private final int maxContainSize;
-
 	private LinkedList<JPanel> branches;
-
-	private LinkedList<StatusPanel> firstBranch;
-
-	private JPanel firstPanel;
-
 	private int size;
 
 	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
-		this(3200, 50);
+		this(getProperty("core.postlist.max_size"), getProperty("core.postlist.split_size"));
 	}
 
 	/**
@@ -145,20 +147,16 @@ public class SortedPostListPanel extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		this.leafSize = leafSize;
 		maxContainSize = maxSize;
-		branches = new LinkedList<JPanel>();
-		firstBranch = new LinkedList<StatusPanel>();
-		firstPanel = new JPanel();
-		firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.Y_AXIS));
-		super.add(firstPanel, 0);
+		branches = new LinkedList<>();
 	}
 
 	@Deprecated
 	@Override
 	public Component add(Component comp) {
 		if (comp instanceof StatusPanel) {
-			LinkedList<StatusPanel> list = new LinkedList<StatusPanel>();
+			LinkedList<StatusPanel> list = new LinkedList<>();
 			list.add((StatusPanel) comp);
-			add(comp);
+			add(list);
 			return comp;
 		} else {
 			throw new IllegalArgumentException();
@@ -191,100 +189,36 @@ public class SortedPostListPanel extends JPanel {
 		if (values.size() == 0) {
 			return;
 		}
-		invalidate();
 
 		Collections.sort(values, ComponentComparator.SINGLETON);
 
-		for (ListIterator<StatusPanel> iterator = firstBranch.listIterator(); iterator.hasNext(); ) {
+		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
 			if (values.isEmpty()) {
 				break;
 			}
-			StatusPanel value = values.peekFirst();
-			StatusPanel branchValue = iterator.next();
-
-			if (compareDate(value, branchValue) < 0) {
-				continue;
-			} else {
-				firstPanel.add(values.peekFirst(), iterator.previousIndex());
-				iterator.previous();
-				iterator.add(values.pollFirst());
-				size++;
-				firstPanel.invalidate();
-				continue;
-			}
+			JPanel branch = listIterator.next();
+			addPanelIntoBranch(values, branch, listIterator, false);
 		}
-		if (branches.isEmpty()) {
-			while (values.isEmpty() == false) {
-				firstBranch.addLast(values.peekFirst());
-				firstPanel.add(values.pollFirst());
-				size++;
+		if (!values.isEmpty()) { // all are added into last
+			JPanel branch;
+			if (branches.isEmpty()) { // first branch
+				branch = createPanel();
+				branches.add(branch);
+				super.add(branch);
+			} else {
+				branch = branches.getLast();
 			}
-		} else {
-			for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
-				if (values.isEmpty()) {
-					break;
-				}
-				JPanel branch = listIterator.next();
-				Component lastOfBranch = branch.getComponent(branch.getComponentCount() - 1);
-				while (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
-					Component[] newBranch = Arrays.copyOf(branch.getComponents(), branch.getComponentCount() + 1);
-					newBranch[newBranch.length - 1] = values.pollFirst();
-					Arrays.sort(newBranch, ComponentComparator.SINGLETON);
-					branch.removeAll();
-					for (Component component : newBranch) {
-						branch.add(component);
-					}
-					branch.invalidate();
-					size++;
-				}
-			}
-			if (values.isEmpty() == false) { // all are added into last
-				JPanel branch = branches.getLast();
-				Component[] newBranch =
-						Arrays.copyOf(branch.getComponents(), branch.getComponentCount() + values.size());
-				for (int i = 1; values.isEmpty() == false; i++) {
-					newBranch[newBranch.length - i] = values.pollFirst();
-					size++;
-				}
-				Arrays.sort(newBranch, ComponentComparator.SINGLETON);
-				int branchSize = newBranch.length;
-				int offset = 0;
-				if (branchSize > (leafSize * 2)) {
-					branches.removeLast(); // it is lastBranch
-					remove(getComponentCount() - 1);
-					while (branchSize > offset + (leafSize * 2)) {
-						JPanel panel = new JPanel();
-						panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-						for (int i = 0; i < leafSize; i++) {
-							panel.add(newBranch[offset + i]);
-						}
-						offset += leafSize;
-						branches.addLast(panel);
-						super.add(panel);
-					}
-					JPanel panel = new JPanel();
-					panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-					for (int i = offset; i < branchSize; i++) {
-						panel.add(newBranch[i]);
-					}
-					branches.addLast(panel);
-					super.add(panel);
-				} else {
-					branch.removeAll();
-					for (Component component : newBranch) {
-						branch.add(component);
-					}
-					branch.invalidate();
-				}
-			}
+			addPanelIntoBranch(values, branch, branches.listIterator(branches.size()), true);
 		}
 		if (values.size() != 0) {
 			throw new AssertionError();
 		}
-		splitFirstBranch();
 
 		tryRelease();
-		validate();
+		if (logger.isTraceEnabled()) {
+			logger.trace("{}", this);
+			assertSequence();
+		}
 	}
 
 	/**
@@ -293,7 +227,7 @@ public class SortedPostListPanel extends JPanel {
 	 * @param panel パネル
 	 */
 	public void add(StatusPanel panel) {
-		LinkedList<StatusPanel> list = new LinkedList<StatusPanel>();
+		LinkedList<StatusPanel> list = new LinkedList<>();
 		list.add(panel);
 		add(list);
 	}
@@ -301,6 +235,66 @@ public class SortedPostListPanel extends JPanel {
 	@Override
 	public Component add(String name, Component comp) {
 		return this.add(comp);
+	}
+
+	private void addPanelIntoBranch(LinkedList<StatusPanel> values, JPanel branch,
+			ListIterator<JPanel> listIteratorOfBranches, boolean addAll) {
+		Component lastOfBranch = addAll ? null : branch.getComponent(branch.getComponentCount() - 1);
+		if (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
+			LinkedList<Component> newBranchItems = new LinkedList<>();
+			synchronized (branch.getTreeLock()) {
+				Collections.addAll(newBranchItems, branch.getComponents());
+			}
+
+			do {
+				StatusPanel panel = values.pollFirst();
+				int insertPos = Collections.binarySearch(newBranchItems, panel,
+						ComponentComparator.SINGLETON);
+				if (insertPos < 0) {
+					// I already values.first should be added into branch
+					newBranchItems.add((-insertPos - 1), panel);
+				}
+				size++;
+			} while (!values.isEmpty() && compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0);
+
+			ListIterator<Component> componentListIterator = newBranchItems.listIterator();
+			boolean panelAppendFlag = newBranchItems.size() > (leafSize << 1);
+			int max = panelAppendFlag ? (newBranchItems.size() >>> 1) : newBranchItems.size();
+			branch.removeAll();
+			for (int i = 0; i < max; i++) {
+				branch.add(componentListIterator.next());
+			}
+			if (panelAppendFlag) {
+				JPanel panel = createPanel();
+				for (; componentListIterator.hasNext(); ) {
+					panel.add(componentListIterator.next());
+				}
+				int indexOfAddedPanel = listIteratorOfBranches.nextIndex();
+				listIteratorOfBranches.add(panel);
+				super.add(panel, indexOfAddedPanel);
+			}
+		}
+	}
+
+	private void assertSequence() {
+		StatusPanel previous = null;
+		for (JPanel panel : branches) {
+			for (Component comp : panel.getComponents()) {
+				StatusPanel status = (StatusPanel) comp;
+				if (previous != null) {
+					if (compareDate(previous, status) <= 0) {
+						throw new AssertionError();
+					}
+				}
+				previous = status;
+			}
+		}
+	}
+
+	protected JPanel createPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		return panel;
 	}
 
 	/**
@@ -312,18 +306,14 @@ public class SortedPostListPanel extends JPanel {
 	 */
 	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
 		Rectangle bounds = panel.getBounds();
-		if (compareDate(panel, firstBranch.peekLast()) >= 0) {
-			Rectangle branchBounds = firstPanel.getBounds();
-			bounds.y += branchBounds.y;
-		} else {
-			for (JPanel branch : branches) {
-				StatusPanel lastComponent = (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
-				if (compareDate(panel, lastComponent) >= 0) {
-					Rectangle branchBounds = branch.getBounds();
-					// bounds.x += branchBounds.x;
-					bounds.y += branchBounds.y;
-					break;
-				}
+		for (JPanel branch : branches) {
+			int componentCount = branch.getComponentCount();
+			StatusPanel lastComponent = (StatusPanel) branch.getComponent(componentCount - 1);
+			if (compareDate(panel, lastComponent) >= 0) {
+				Rectangle branchBounds = branch.getBounds();
+				// bounds.x += branchBounds.x;
+				bounds.y += branchBounds.y;
+				break;
 			}
 		}
 		return bounds;
@@ -343,20 +333,11 @@ public class SortedPostListPanel extends JPanel {
 	 * @return 削除したかどうか
 	 */
 	public synchronized boolean remove(StatusPanel value) {
-		if (compareDate(firstBranch.peekLast(), value) < 0) {
-			firstBranch.remove(value);
-			firstPanel.remove(value);
-			firstPanel.invalidate();
-			size--;
-			return true;
-		} else {
-			for (JPanel container : branches) {
-				if (compareDate((StatusPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
-					container.remove(value);
-					container.invalidate();
-					size--;
-					return true;
-				}
+		for (JPanel container : branches) {
+			if (compareDate((StatusPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
+				container.remove(value);
+				size--;
+				return true;
 			}
 		}
 		return false;
@@ -368,14 +349,9 @@ public class SortedPostListPanel extends JPanel {
 	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
 	 */
 	public synchronized boolean requestFocusFirstComponent() {
-		StatusPanel panel = firstBranch.getFirst();
-		if (panel == null) {
-			panel = (StatusPanel) branches.getFirst().getComponent(0);
-		}
-		if (panel == null) {
-			return false;
-		}
-		return panel.requestFocusInWindow();
+		Component panel;
+		panel = branches.getFirst().getComponent(0);
+		return panel != null && panel.requestFocusInWindow();
 	}
 
 	/**
@@ -385,33 +361,22 @@ public class SortedPostListPanel extends JPanel {
 	 * @return フォーカスが成功しそうかどうか
 	 */
 	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
-		int comparison = compareDate(panel, firstBranch.getLast());
-
-		if (comparison > 0) { // firstBranchのlastではない
-			int indexOf = firstBranch.indexOf(panel);
-			if (indexOf < 0) {
-				return false; // not found
+		for (JPanel branch : branches) {
+			if (compareDate(panel, (StatusPanel) branch.getComponent(0)) > 0) {
+				return branch.getComponent(0).requestFocusInWindow();
 			}
-			return firstBranch.get(indexOf + 1).requestFocusInWindow();
-		} else {
-			for (Iterator<JPanel> iterator = branches.listIterator(); iterator.hasNext(); ) {
-				JPanel next = iterator.next();
-				if (compareDate(panel, (StatusPanel) next.getComponent(0)) > 0) {
-					return next.getComponent(0).requestFocusInWindow();
-				}
-				if (compareDate(panel, (StatusPanel) next.getComponent(next.getComponentCount() - 1)) <= 0) {
-					continue;
-				}
-				Component[] components = next.getComponents();
-				for (int i = 0; i < components.length - 1; i++) {
-					StatusPanel statusPanel = (StatusPanel) components[i];
-					if (compareDate(panel, statusPanel) == 0) {
-						return components[i + 1].requestFocusInWindow();
-					}
+			if (compareDate(panel, (StatusPanel) branch.getComponent(branch.getComponentCount() - 1)) <= 0) {
+				continue;
+			}
+			Component[] components = branch.getComponents();
+			for (int i = 0; i < components.length - 1; i++) {
+				StatusPanel statusPanel = (StatusPanel) components[i];
+				if (compareDate(panel, statusPanel) == 0) {
+					return components[i + 1].requestFocusInWindow();
 				}
 			}
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -437,29 +402,7 @@ public class SortedPostListPanel extends JPanel {
 				}
 			}
 		}
-		if (compareDate(panel, firstBranch.peekLast()) < 0) { // panelがsecondBranchの最初
-			return firstBranch.peekLast().requestFocusInWindow();
-		}
-		int indexOf = firstBranch.indexOf(panel);
-		if (indexOf <= 0) { // not found OR first
-			return false;
-		}
-		return firstBranch.get(indexOf - 1).requestFocusInWindow();
-	}
-
-	/** firstBranchを分割する。分割しない時もある。 */
-	private synchronized void splitFirstBranch() {
-		while (firstBranch.size() > (leafSize << 1)) {
-			ListIterator<StatusPanel> li = firstBranch.listIterator(firstBranch.size());
-			JPanel panel = new JPanel();
-			panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-			for (int i = leafSize - 1; i >= 0; i--) {
-				panel.add(li.previous(), 0);
-				li.remove();
-			}
-			branches.addFirst(panel);
-			super.add(panel, 1);
-		}
+		return false;
 	}
 
 	@Override
@@ -467,7 +410,7 @@ public class SortedPostListPanel extends JPanel {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("SortedPostListPanel{leaf=").append(leafSize).append(",max=").append(maxContainSize)
 				.append(",size=").append(size);
-		stringBuilder.append("}[").append(firstBranch.size()).append(", ");
+		stringBuilder.append("}[");
 		for (JPanel container : branches) {
 			stringBuilder.append(container.getComponentCount()).append(", ");
 		}
@@ -479,7 +422,7 @@ public class SortedPostListPanel extends JPanel {
 
 	/** いくつかの要素を開放する。開放しない時もある。 */
 	private synchronized void tryRelease() {
-		while (size > maxContainSize + leafSize) {
+		while (branches.size() > 1 && size > maxContainSize + leafSize) {
 			remove(getComponentCount() - 1);
 			size -= branches.removeLast().getComponentCount();
 		}

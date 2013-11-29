@@ -47,10 +47,7 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof StatusPanel == false) {
-			return false;
-		}
-		return compareTo((StatusPanel) obj) == 0;
+		return (obj instanceof StatusPanel) && (compareTo((StatusPanel) obj) == 0);
 	}
 
 	/**
@@ -65,5 +62,10 @@ public class StatusPanel extends JPanel implements Comparable<StatusPanel> {
 	@Override
 	public int hashCode() {
 		return super.hashCode() + statusData.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "{date=" + statusData.date + ",id=" + statusData.id + "}";
 	}
 }

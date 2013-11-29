@@ -41,7 +41,7 @@ public class JobQueueTest {
 		private final LinkedQueue<Runnable> queue;
 		private final CountDownLatch latch;
 
-		public AddJobThread(LinkedQueue<Runnable> queue, CountDownLatch latch, int loop) {
+		public AddJobThread(LinkedQueue<Runnable> queue, CountDownLatch latch) {
 			this.latch = latch;
 			this.queue = queue;
 		}
@@ -184,6 +184,11 @@ public class JobQueueTest {
 		assertEquals(0, queue.size());
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalPriority() {
+		new JobQueue().addJob((byte) -1, new TestRunnable(0));
+	}
+
 	@Test
 	public void testIsEmpty() throws Exception {
 		JobQueue jobQueue = new JobQueue();
@@ -257,7 +262,7 @@ public class JobQueueTest {
 		CountDownLatch latch = new CountDownLatch(THREADS_COUNT);
 		synchronized (queue) {
 			for (int i = 0; i < THREADS_COUNT; i++) {
-				new AddJobThread(queue, latch, COUNT_PER_THREAD).start();
+				new AddJobThread(queue, latch).start();
 			}
 		}
 		latch.await();
