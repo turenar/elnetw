@@ -97,17 +97,6 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public abstract class DefaultClientTab implements ClientTab {
 
-	/** Entityの開始位置を比較する */
-	private static final class EntityComparator implements Comparator<Object>, Serializable {
-
-		private static final long serialVersionUID = 8166780199866981253L;
-
-		@Override
-		public int compare(Object o1, Object o2) {
-			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
-		}
-	}
-
 	/**
 	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
 	 *
@@ -435,6 +424,17 @@ public abstract class DefaultClientTab implements ClientTab {
 		}
 	}
 
+	/** Entityの開始位置を比較する */
+	private static final class EntityComparator implements Comparator<Object>, Serializable {
+
+		private static final long serialVersionUID = 8166780199866981253L;
+
+		@Override
+		public int compare(Object o1, Object o2) {
+			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
+		}
+	}
+
 	/**
 	 * ポストリストリスナ。
 	 *
@@ -447,7 +447,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			// should scroll? if focus-window changed, i skip scrolling
 			boolean scroll = (e.getOppositeComponent() == null && selectingPost != null);
 			focusGainOfLinePanel(e);
-			if (scroll == false) {
+			if (!scroll) {
 				scroller.scrollTo(selectingPost);
 			}
 		}
@@ -1459,7 +1459,7 @@ public abstract class DefaultClientTab implements ClientTab {
 				}
 				return sortedPostListPanel.getBoundsOf((StatusPanel) component);
 			}
-		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
+		}, configuration.getConfigProperties().getBoolean("gui.scroll.momentumEnabled"));
 	}
 
 	/**

@@ -134,7 +134,7 @@ public class SortedPostListPanel extends JPanel {
 
 	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
-		this(getProperty("core.postlist.max_size"), getProperty("core.postlist.split_size"));
+		this(getProperty("gui.postlist.leaf_size"), getProperty("gui.postlist.max_size"));
 	}
 
 	/**
@@ -164,17 +164,21 @@ public class SortedPostListPanel extends JPanel {
 	}
 
 	@Deprecated
+	@SuppressWarnings("deprecated")
 	@Override
 	public Component add(Component comp, int index) {
 		return this.add(comp);
 	}
 
 	@Deprecated
+	@SuppressWarnings("deprecated")
 	@Override
 	public void add(Component comp, Object constraints) {
 		this.add(comp);
 	}
 
+	@Deprecated
+	@SuppressWarnings("deprecated")
 	@Override
 	public void add(Component comp, Object constraints, int index) {
 		this.add(comp);
@@ -233,6 +237,7 @@ public class SortedPostListPanel extends JPanel {
 	}
 
 	@Override
+	@SuppressWarnings("deprecated")
 	public Component add(String name, Component comp) {
 		return this.add(comp);
 	}
