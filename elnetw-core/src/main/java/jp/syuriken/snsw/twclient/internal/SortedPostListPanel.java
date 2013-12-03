@@ -15,7 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,20 +79,20 @@ import org.slf4j.LoggerFactory;
 public class SortedPostListPanel extends JPanel implements PropertyChangeListener {
 	private static class Bucket {
 		private static final Logger logger = LoggerFactory.getLogger(Bucket.class);
-		private StatusPanel[] bucket;
+		private RenderPanel[] bucket;
 		private int startIndex;
 		private int nextIndex;
 		private int len;
 
 		public Bucket(int maxSize) {
-			this.bucket = new StatusPanel[maxSize];
+			this.bucket = new RenderPanel[maxSize];
 		}
 
 		public boolean isEmpty() {
 			return nextIndex >= len;
 		}
 
-		public void make(LinkedList<StatusPanel> list, int maxSize) {
+		public void make(LinkedList<RenderPanel> list, int maxSize) {
 			if (list.isEmpty()) {
 				startIndex = nextIndex;
 				return;
@@ -112,7 +112,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 					newSize = maxSize;
 				}
 				if (newSize > bucket.length) {
-					StatusPanel[] newBucket = new StatusPanel[maxSize];
+					RenderPanel[] newBucket = new RenderPanel[maxSize];
 					System.arraycopy(bucket, nextIndex, newBucket, 0, remainedSize);
 					bucket = newBucket;
 				} else if (remainedSize > 0) {
@@ -133,11 +133,11 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 			len = newSize;
 		}
 
-		public StatusPanel peek() {
+		public RenderPanel peek() {
 			return isEmpty() ? null : bucket[nextIndex];
 		}
 
-		public StatusPanel poll() {
+		public RenderPanel poll() {
 			return isEmpty() ? null : bucket[nextIndex++];
 		}
 
@@ -155,7 +155,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	protected static final class ComponentComparator implements Comparator<StatusPanel> {
+	protected static final class ComponentComparator implements Comparator<RenderPanel> {
 
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
@@ -164,7 +164,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		}
 
 		@Override
-		public int compare(StatusPanel o1, StatusPanel o2) {
+		public int compare(RenderPanel o1, RenderPanel o2) {
 			return -compareDate(o1, o2);
 		}
 	}
@@ -176,13 +176,13 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	private static final String PROPERTY_LIMIT_ELAPSED_TIME = "gui.splp.limit_elapsed_time";
 	private static final String PROPERTY_BUCKET_SIZE = "gui.splp.bucket_size";
 
-	private static int binarySearch(JComponent panel, StatusPanel key, int start) {
+	private static int binarySearch(JComponent panel, RenderPanel key, int start) {
 		int low = start;
 		int high = panel.getComponentCount() - 1;
 
 		while (low <= high) {
 			int mid = (low + high) >>> 1;
-			StatusPanel midVal = (StatusPanel) panel.getComponent(mid);
+			RenderPanel midVal = (RenderPanel) panel.getComponent(mid);
 			int cmp = midVal.compareTo(key);
 
 			if (cmp > 0) {
@@ -201,13 +201,13 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	/**
-	 * {@link StatusPanel} を日時で比較する。
+	 * {@link RenderPanel} を日時で比較する。
 	 *
 	 * @param a 比較する側
 	 * @param b 比較される側
 	 * @return a.compareTo(b)
 	 */
-	protected static int compareDate(StatusPanel a, StatusPanel b) {
+	protected static int compareDate(RenderPanel a, RenderPanel b) {
 		if (b == null) {
 			return 1;
 		} else {
@@ -252,9 +252,9 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	@Deprecated
 	@Override
 	public Component add(Component comp) {
-		if (comp instanceof StatusPanel) {
-			LinkedList<StatusPanel> list = new LinkedList<>();
-			list.add((StatusPanel) comp);
+		if (comp instanceof RenderPanel) {
+			LinkedList<RenderPanel> list = new LinkedList<>();
+			list.add((RenderPanel) comp);
 			add(list);
 			return comp;
 		} else {
@@ -286,9 +286,9 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	/**
 	 * valuesの内容をこのパネルに追加する
 	 *
-	 * @param values StatusPanelのLinkedList
+	 * @param values RenderPanelのLinkedList
 	 */
-	public synchronized int add(LinkedList<StatusPanel> values) {
+	public synchronized int add(LinkedList<RenderPanel> values) {
 		Bucket bucket = this.bucket;
 		long limitTime = System.currentTimeMillis() + limitElapsedTime;
 		bucket.make(values, bucketMaxSize);
@@ -319,6 +319,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		if (logger.isTraceEnabled()) {
 			logger.trace("took {}ms: {}/{}", System.currentTimeMillis() + limitElapsedTime - limitTime,
 					bucket.processedSize(), bucket.size());
+			logger.trace("{}", this);
 			assertSequence();
 		}
 		validate();
@@ -330,8 +331,8 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 *
 	 * @param panel パネル
 	 */
-	public void add(StatusPanel panel) {
-		LinkedList<StatusPanel> list = new LinkedList<>();
+	public void add(RenderPanel panel) {
+		LinkedList<RenderPanel> list = new LinkedList<>();
 		list.add(panel);
 		add(list);
 	}
@@ -345,13 +346,13 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 
 	private void addPanelIntoBranch(Bucket values, JPanel branch, ListIterator<JPanel> listIteratorOfBranches,
 			long limitTime, boolean addAll) {
-		StatusPanel lastOfBranch = addAll ? null : (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
+		RenderPanel lastOfBranch = addAll ? null : (RenderPanel) branch.getComponent(branch.getComponentCount() - 1);
 		if (compareDate(values.peek(), lastOfBranch) >= 0) {
 			// binarySearch+insert is usually faster than mergeSort+clear
 			synchronized (branch.getTreeLock()) {
 				int insertPos = 0; // values is sorted, I skip before inserted element
 				do {
-					StatusPanel panel = values.poll();
+					RenderPanel panel = values.poll();
 					insertPos = binarySearch(branch, panel, insertPos);
 					// I already values.first should be added into branch
 					branch.add(panel, insertPos);
@@ -383,10 +384,10 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	private void assertSequence() {
-		StatusPanel previous = null;
+		RenderPanel previous = null;
 		for (JPanel panel : branches) {
 			for (Component comp : panel.getComponents()) {
-				StatusPanel status = (StatusPanel) comp;
+				RenderPanel status = (RenderPanel) comp;
 				if (previous != null) {
 					if (compareDate(previous, status) <= 0) {
 						throw new AssertionError();
@@ -410,7 +411,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @param panel 調べるコンポーネント
 	 * @return 絶対位置情報
 	 */
-	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
+	public synchronized Rectangle getBoundsOf(RenderPanel panel) {
 		if (panel == null) {
 			throw new NullPointerException();
 		}
@@ -418,7 +419,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		Rectangle bounds = panel.getBounds();
 		for (JPanel branch : branches) {
 			int componentCount = branch.getComponentCount();
-			StatusPanel lastComponent = (StatusPanel) branch.getComponent(componentCount - 1);
+			RenderPanel lastComponent = (RenderPanel) branch.getComponent(componentCount - 1);
 			if (compareDate(panel, lastComponent) >= 0) {
 				Rectangle branchBounds = branch.getBounds();
 				// bounds.x += branchBounds.x;
@@ -430,12 +431,12 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	@Override
-	public StatusPanel getComponentAt(Point p) {
+	public RenderPanel getComponentAt(Point p) {
 		return getComponentAt(p.x, p.y);
 	}
 
 	@Override
-	public StatusPanel getComponentAt(int x, int y) {
+	public RenderPanel getComponentAt(int x, int y) {
 		JPanel parentPanel = (JPanel) super.getComponentAt(x, y);
 		if (parentPanel == this) {
 			parentPanel = branches.peekFirst();
@@ -445,10 +446,10 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		}
 		Point bounds = parentPanel.getLocation();
 		Component componentAt = parentPanel.getComponentAt(x - bounds.x, y - bounds.y);
-		if (!(componentAt instanceof StatusPanel)) {
+		if (!(componentAt instanceof RenderPanel)) {
 			componentAt = parentPanel.getComponent(0);
 		}
-		return (StatusPanel) componentAt;
+		return (RenderPanel) componentAt;
 	}
 
 	@Override
@@ -472,12 +473,12 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	/**
 	 * valueをこのパネルから削除する。
 	 *
-	 * @param value 削除するStatusPanel
+	 * @param value 削除するRenderPanel
 	 * @return 削除したかどうか
 	 */
-	public synchronized boolean remove(StatusPanel value) {
+	public synchronized boolean remove(RenderPanel value) {
 		for (JPanel container : branches) {
-			if (compareDate((StatusPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
+			if (compareDate((RenderPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
 				container.remove(value);
 				size--;
 				return true;
@@ -503,18 +504,18 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
 	 */
-	public synchronized boolean requestFocusNextOf(StatusPanel panel) {
+	public synchronized boolean requestFocusNextOf(RenderPanel panel) {
 		for (JPanel branch : branches) {
-			if (compareDate(panel, (StatusPanel) branch.getComponent(0)) > 0) {
+			if (compareDate(panel, (RenderPanel) branch.getComponent(0)) > 0) {
 				return branch.getComponent(0).requestFocusInWindow();
 			}
-			if (compareDate(panel, (StatusPanel) branch.getComponent(branch.getComponentCount() - 1)) <= 0) {
+			if (compareDate(panel, (RenderPanel) branch.getComponent(branch.getComponentCount() - 1)) <= 0) {
 				continue;
 			}
 			Component[] components = branch.getComponents();
 			for (int i = 0; i < components.length - 1; i++) {
-				StatusPanel statusPanel = (StatusPanel) components[i];
-				if (compareDate(panel, statusPanel) == 0) {
+				RenderPanel RenderPanel = (RenderPanel) components[i];
+				if (compareDate(panel, RenderPanel) == 0) {
 					return components[i + 1].requestFocusInWindow();
 				}
 			}
@@ -528,19 +529,19 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @param panel パネル
 	 * @return フォーカスが成功しそうかどうか
 	 */
-	public synchronized boolean requestFocusPreviousOf(StatusPanel panel) {
+	public synchronized boolean requestFocusPreviousOf(RenderPanel panel) {
 		for (ListIterator<JPanel> iterator = branches.listIterator(branches.size()); iterator.hasPrevious(); ) {
 			JPanel previous = iterator.previous();
-			if (compareDate(panel, (StatusPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
+			if (compareDate(panel, (RenderPanel) previous.getComponent(previous.getComponentCount() - 1)) < 0) {
 				return previous.getComponent(previous.getComponentCount() - 1).requestFocusInWindow();
 			}
-			if (compareDate(panel, (StatusPanel) previous.getComponent(0)) >= 0) {
+			if (compareDate(panel, (RenderPanel) previous.getComponent(0)) >= 0) {
 				continue;
 			}
 			Component[] components = previous.getComponents();
 			for (int i = components.length - 1; i > 0; i--) {
-				StatusPanel statusPanel = (StatusPanel) components[i];
-				if (compareDate(panel, statusPanel) == 0) {
+				RenderPanel RenderPanel = (RenderPanel) components[i];
+				if (compareDate(panel, RenderPanel) == 0) {
 					return components[i - 1].requestFocusInWindow();
 				}
 			}

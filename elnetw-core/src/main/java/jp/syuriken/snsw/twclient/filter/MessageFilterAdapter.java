@@ -44,8 +44,8 @@ public abstract class MessageFilterAdapter implements MessageFilter {
 	}
 
 	@Override
-	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		return statusDeletionNotice;
+	public boolean onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		return false;
 	}
 
 	@Override

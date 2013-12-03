@@ -1,11 +1,9 @@
 package jp.syuriken.snsw.twclient.filter;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +19,14 @@ import twitter4j.UserList;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TeeFilter implements TabRenderer, PropertyChangeListener {
+public class TeeFilter implements TabRenderer {
 
 	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 	private final String filterPropertyName;
-	private final ClientProperties configProperties;
-	private final MessageFilter[] globalFilters;
-	private FilterDispatcherBase filterQuery;
+	private final MessageFilter[] filters;
+	private final TreeSet<Long> statusSet = new TreeSet<>();
 	private TabRenderer renderer;
 	private ClientConfiguration configuration;
-	private TreeSet<Long> statusSet = new TreeSet<>();
 
 	/**
 	 * インスタンスを生成する。グローバルフィルタを使用する。
@@ -42,6 +38,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 		this(uniqId, tabRenderer, true);
 	}
 
+
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -52,39 +49,21 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	public TeeFilter(String uniqId, TabRenderer tabRenderer, boolean useGlobalFilter) {
 		configuration = ClientConfiguration.getInstance();
 		renderer = tabRenderer;
-		configProperties = configuration.getConfigProperties();
 		filterPropertyName = "core.filter._tabs." + uniqId;
-		initQuery();
-		configProperties.addPropertyChangedListener(this);
+		UserFilter userFilter = new UserFilter(filterPropertyName);
 		if (useGlobalFilter) {
-			globalFilters = configuration.getFilters();
+			MessageFilter[] globalFilters = configuration.getFilters();
+			globalFilters = Arrays.copyOf(globalFilters, globalFilters.length + 1);
+			globalFilters[globalFilters.length - 1] = userFilter;
+			filters = globalFilters;
 		} else {
-			globalFilters = new MessageFilter[0];
-		}
-	}
-
-	/**
-	 * 初期化
-	 *
-	 * @throws IllegalSyntaxException 正しくない文法のためエラー
-	 */
-	protected void initQuery() {
-		String filterQueryString = configProperties.getProperty(filterPropertyName);
-		if (filterQueryString == null || filterQueryString.trim().isEmpty()) {
-			filterQuery = NullFilter.getInstance();
-		} else {
-			try {
-				filterQuery = FilterCompiler.getCompiledObject(configuration, filterQueryString);
-			} catch (IllegalSyntaxException e) {
-				logger.error("Illegal syntax filter query", e);
-				filterQuery = NullFilter.getInstance();
-			}
+			filters = new MessageFilter[] {userFilter};
 		}
 	}
 
 	@Override
 	public void onBlock(User source, User blockedUser) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onBlock(source, blockedUser)) {
 				return;
 			}
@@ -95,7 +74,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onChangeAccount(boolean forWrite) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onChangeAccount(forWrite)) {
 				return;
 			}
@@ -105,7 +84,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onCleanUp() {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onCleanUp()) {
 				return;
 			}
@@ -115,7 +94,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onClientMessage(String name, Object arg) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onClientMessage(name, arg)) {
 				return;
 			}
@@ -125,7 +104,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onConnect() {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onConnect()) {
 				return;
 			}
@@ -135,7 +114,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onDeletionNotice(long directMessageId, long userId) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onDeletionNotice(directMessageId, userId)) {
 				return;
 			}
@@ -145,8 +124,8 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		for (MessageFilter filter : globalFilters) {
-			if ((statusDeletionNotice = filter.onDeletionNotice(statusDeletionNotice)) == null) {
+		for (MessageFilter filter : filters) {
+			if (filter.onDeletionNotice(statusDeletionNotice)) {
 				return;
 			}
 		}
@@ -155,19 +134,16 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onDirectMessage(DirectMessage directMessage) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if ((directMessage = filter.onDirectMessage(directMessage)) == null) {
 				return;
 			}
-		}
-		if (filterQuery.filter(directMessage) == false) {
-			renderer.onDirectMessage(directMessage);
 		}
 	}
 
 	@Override
 	public void onDisconnect() {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onDisconnect()) {
 				return;
 			}
@@ -177,7 +153,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onException(Exception ex) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onException(ex)) {
 				return;
 			}
@@ -187,19 +163,16 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onFavorite(source, target, favoritedStatus)) {
 				return;
 			}
-		}
-		if (filterQuery.filter(favoritedStatus) == false) {
-			renderer.onFavorite(source, target, favoritedStatus);
 		}
 	}
 
 	@Override
 	public void onFollow(User source, User followedUser) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onFollow(source, followedUser)) {
 				return;
 			}
@@ -209,7 +182,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onFriendList(long[] friendIds) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if ((friendIds = filter.onFriendList(friendIds)) == null) {
 				return;
 			}
@@ -218,8 +191,13 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 	}
 
 	@Override
+	public void onInitTimeline() {
+		renderer.onInitTimeline();
+	}
+
+	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onScrubGeo(userId, upToStatusId)) {
 				return;
 			}
@@ -229,7 +207,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onStallWarning(StallWarning warning) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onStallWarning(warning)) {
 				return;
 			}
@@ -249,19 +227,17 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 			}
 		}
 
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if ((status = filter.onStatus(status)) == null) {
 				return;
 			}
 		}
-		if (filterQuery.filter(status) == false) {
-			renderer.onStatus(status);
-		}
+		renderer.onStatus(status);
 	}
 
 	@Override
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onTrackLimitationNotice(numberOfLimitedStatuses)) {
 				return;
 			}
@@ -271,7 +247,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUnblock(User source, User unblockedUser) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUnblock(source, unblockedUser)) {
 				return;
 			}
@@ -281,19 +257,17 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUnfavorite(source, target, unfavoritedStatus)) {
 				return;
 			}
 		}
-		if (filterQuery.filter(unfavoritedStatus) == false) {
-			renderer.onUnfavorite(source, target, unfavoritedStatus);
-		}
+		renderer.onUnfavorite(source, target, unfavoritedStatus);
 	}
 
 	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListCreation(listOwner, list)) {
 				return;
 			}
@@ -303,7 +277,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListDeletion(User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListDeletion(listOwner, list)) {
 				return;
 			}
@@ -313,7 +287,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListMemberAddition(addedMember, listOwner, list)) {
 				return;
 			}
@@ -323,7 +297,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListMemberDeletion(deletedMember, listOwner, list)) {
 				return;
 			}
@@ -333,7 +307,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListSubscription(subscriber, listOwner, list)) {
 				return;
 			}
@@ -343,7 +317,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListUnsubscription(subscriber, listOwner, list)) {
 				return;
 			}
@@ -353,7 +327,7 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserListUpdate(User listOwner, UserList list) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserListUpdate(listOwner, list)) {
 				return;
 			}
@@ -363,19 +337,11 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
-		for (MessageFilter filter : globalFilters) {
+		for (MessageFilter filter : filters) {
 			if (filter.onUserProfileUpdate(updatedUser)) {
 				return;
 			}
 		}
 		renderer.onUserProfileUpdate(updatedUser);
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		String propertyName = evt.getPropertyName();
-		if (propertyName.equals(filterPropertyName)) {
-			initQuery();
-		}
 	}
 }

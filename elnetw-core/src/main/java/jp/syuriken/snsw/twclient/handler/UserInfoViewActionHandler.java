@@ -6,8 +6,8 @@ import java.text.MessageFormat;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,16 +94,16 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		if (user == null) {
 			String screenName = arguments.getExtraObj("screenName", String.class);
 			if (screenName == null) {
-				StatusData statusData = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA, StatusData.class);
-				if (statusData != null && statusData.tag instanceof Status) {
-					Status status = (Status) statusData.tag;
+				RenderPanel renderPanel = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA, RenderPanel.class);
+				if (renderPanel != null && renderPanel.getRenderObject().getBasedObject() instanceof Status) {
+					Status status = (Status) renderPanel.getRenderObject().getBasedObject();
 					if (status.isRetweet()) {
 						status = status.getRetweetedStatus();
 					}
 					user = status.getUser();
 				} else {
 					throw new IllegalArgumentException(
-							"[userinfo AH] must call as userinfo!screenName=<screenName> or must statusData.tag is Status");
+							"[userinfo AH] must call as userinfo!screenName=<screenName> or must renderPanel.basedObject is Status");
 				}
 			} else {
 				user = new UserFetcher(screenName).getUser();

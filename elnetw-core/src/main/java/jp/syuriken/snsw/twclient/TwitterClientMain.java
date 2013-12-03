@@ -83,6 +83,9 @@ import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
+import jp.syuriken.snsw.twclient.media.NullMediaProvider;
+import jp.syuriken.snsw.twclient.media.RegexpMediaProvider;
+import jp.syuriken.snsw.twclient.media.UrlProvider;
 import jp.syuriken.snsw.twclient.net.DirectMessageFetcherFactory;
 import jp.syuriken.snsw.twclient.net.MentionsFetcherFactory;
 import jp.syuriken.snsw.twclient.net.StreamFetcherFactory;
@@ -345,6 +348,14 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "urlProvider", phase = "init")
+	public void initUrlProviders() {
+		UrlProvider.addMediaProvider("\\.(jpe?g|png|gif)",
+				new NullMediaProvider());
+		UrlProvider.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
+				new RegexpMediaProvider("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
+	}
+
 	@Initializer(name = "internal-init-fetchSched", dependencies = "recover-clientTabs", phase = "prestart")
 	public void realConnectFetchSched() {
 		fetchScheduler.onInitialized();
@@ -542,7 +553,7 @@ public class TwitterClientMain {
 	@Initializer(name = "set-globalfilter",
 			dependencies = {"config", "filter-functions", "filter-properties"}, phase = "init")
 	public void setDefaultFilter() {
-		configuration.addFilter(new UserFilter(configuration));
+		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
 	@Initializer(name = "fetch-sched", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")

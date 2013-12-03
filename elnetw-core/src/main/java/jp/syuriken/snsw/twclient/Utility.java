@@ -506,12 +506,8 @@ public class Utility {
 					Class<?> fileMgr = null;
 					fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class<?>[] {
-							String.class
-					});
-					openURL.invoke(null, new Object[] {
-							url.trim()
-					});
+					Method openURL = fileMgr.getDeclaredMethod("openURL", String.class	);
+					openURL.invoke(null, url.trim());
 					break;
 				case OTHER:
 					String browser = detectBrowser();

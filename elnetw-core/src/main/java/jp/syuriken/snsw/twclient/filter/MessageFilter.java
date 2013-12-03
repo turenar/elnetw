@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient.filter;
 
+import jp.syuriken.snsw.twclient.ClientEventConstants;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -12,7 +13,7 @@ import twitter4j.UserList;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface MessageFilter {
+public interface MessageFilter extends ClientEventConstants {
 	/**
 	 * blocked user
 	 *
@@ -66,9 +67,9 @@ public interface MessageFilter {
 	 * 削除通知のフィルタ
 	 *
 	 * @param statusDeletionNotice 削除情報
-	 * @return null=フィルタ中止,null以外の場合は次のフィルタは返り値をフィルタしようとします
+	 * @return true=フィルタ中止, false=続行
 	 */
-	StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice);
+	boolean onDeletionNotice(StatusDeletionNotice statusDeletionNotice);
 
 	/**
 	 * ダイレクトメッセージのフィルタ

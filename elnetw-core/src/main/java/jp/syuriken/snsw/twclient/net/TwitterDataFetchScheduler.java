@@ -160,6 +160,27 @@ public class TwitterDataFetchScheduler {
 	}
 
 	/**
+	 * accountIdの実際のユーザーIDを取得する
+	 *
+	 * @param accountId アカウントID (long|$reader|$writer)
+	 * @return Twitter User ID
+	 */
+	public long getActualUser(String accountId) {
+		return Long.parseLong(getActualUserIdString(accountId));
+	}
+
+	private String getActualUserIdString(String accountId) {
+		switch (accountId) {
+			case READER_ACCOUNT_ID:
+				return configuration.getAccountIdForRead();
+			case WRITER_ACCOUNT_ID:
+				return configuration.getAccountIdForWrite();
+			default:
+				return accountId;
+		}
+	}
+
+	/**
 	 * 現在のREST API情報を取得する
 	 *
 	 * @return {@link TwitterAPIConfiguration}インスタンス。まだ取得されていない場合null。
@@ -239,13 +260,7 @@ public class TwitterDataFetchScheduler {
 	 * @return Twitter Configuration
 	 */
 	public Configuration getTwitterConfiguration(String accountId) {
-		if (accountId.equals(READER_ACCOUNT_ID)) {
-			return configuration.getTwitterConfiguration(configuration.getAccountIdForRead());
-		} else if (accountId.equals(WRITER_ACCOUNT_ID)) {
-			return configuration.getTwitterConfiguration(configuration.getAccountIdForWrite());
-		} else {
-			return configuration.getTwitterConfiguration(accountId);
-		}
+		return configuration.getTwitterConfiguration(getActualUserIdString(accountId));
 	}
 
 	protected void init() {

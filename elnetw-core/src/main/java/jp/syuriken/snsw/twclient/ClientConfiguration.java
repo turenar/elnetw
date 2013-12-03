@@ -44,7 +44,12 @@ public class ClientConfiguration {
 	public static final String PROPERTY_LIST_SCROLL = "gui.list.scroll";
 	/** フォーカスしたポストの色のプロパティ名 */
 	public static final String PROPERTY_COLOR_FOCUS_LIST = "gui.color.list.focus";
-	/** メンション判定の厳密な比較するかどうかのプロパティ名 */
+	/**
+	 * メンション判定の厳密な比較するかどうかのプロパティ名
+	 *
+	 * @deprecated you can use {@link #isMyAccount(long)}
+	 */
+	@Deprecated
 	public static final String PROPERTY_ID_STRICT_MATCH = "core.id_strict_match";
 	/** 情報の生存時間のプロパティ名 */
 	public static final String PROPERTY_INFO_SURVIVE_TIME = "core.info.survive_time";

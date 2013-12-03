@@ -1,24 +1,18 @@
 package jp.syuriken.snsw.twclient.gui;
 
-import java.awt.Color;
 import java.awt.EventQueue;
-import java.text.MessageFormat;
-import java.util.Date;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.StatusData;
-import jp.syuriken.snsw.twclient.StatusPanel;
+import jp.syuriken.snsw.twclient.gui.render.RenderObject;
+import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
-import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -28,195 +22,53 @@ import twitter4j.internal.org.json.JSONObject;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TimelineViewTab extends DefaultClientTab {
+public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 
 	/*package*/ static final Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
 	private static final String TAB_ID = "timeline";
-	private DefaultRenderer renderer = new DefaultRenderer() {
+	private DelegateRenderer renderer = new DelegateRenderer() {
+		@Override
+		public void onStatus(Status status) {
+			actualRenderer.onStatus(status);
+		}
 
 		@Override
 		public void onChangeAccount(boolean forWrite) {
-			StatusData statusData = new StatusData(null, new Date());
-			statusData.backgroundColor = Color.LIGHT_GRAY;
-			statusData.foregroundColor = Color.BLACK;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel(ClientConfiguration.APPLICATION_NAME);
-			if (forWrite) {
-				statusData.user = "!core.change.account!write";
-				statusData.data = new JLabel("書き込み用アカウントを変更しました。");
-			} else {
-				statusData.user = "!core.change.account!read";
-				statusData.data = new JLabel("読み込み用アカウントを変更しました。");
-			}
-			addStatus(statusData, frameApi.getInfoSurviveTime());
-		}
-
-		@Override
-		public void onCleanUp() {
-		}
-
-		@Override
-		public void onConnect() {
+			actualRenderer.onChangeAccount(forWrite);
 		}
 
 		@Override
 		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-			logger.trace("onDeletionNotice: {}", statusDeletionNotice);
-
-			StatusData statusData = getStatus(statusDeletionNotice.getStatusId());
-			if (statusData != null) {
-				if (statusData.tag instanceof Status == false) {
-					return;
-				}
-				Status status = (Status) statusData.tag;
-				StatusData deletionStatusData = new StatusData(statusDeletionNotice, new Date());
-				deletionStatusData.backgroundColor = Color.LIGHT_GRAY;
-				deletionStatusData.foregroundColor = Color.RED;
-				deletionStatusData.image = new JLabel();
-				deletionStatusData.sentBy = new JLabel(status.getUser().getScreenName());
-				deletionStatusData.user = "!twdel." + statusDeletionNotice.getUserId();
-				deletionStatusData.data = new JLabel("DELETED: " + status.getText());
-				addStatus(deletionStatusData, getInfoSurviveTime() * 2);
-				removeStatus(statusData, getInfoSurviveTime() * 2);
-			}
 		}
 
 		@Override
 		public void onDirectMessage(DirectMessage directMessage) {
-			StatusData statusData = new StatusData(directMessage, directMessage.getCreatedAt());
-			statusData.backgroundColor = Color.LIGHT_GRAY;
-			statusData.foregroundColor = Color.CYAN;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel(directMessage.getSenderScreenName());
-			statusData.user = "!dm." + directMessage.getSenderScreenName();
-			String message = MessageFormat.format("DMを受信しました: \"{0}\"", directMessage.getText());
-			statusData.data = new JLabel(message);
-			addStatus(statusData);
+			actualRenderer.onDirectMessage(directMessage);
 		}
 
 		@Override
 		public void onException(Exception ex) {
-			StatusData statusData = new StatusData(ex, new Date());
-			statusData.backgroundColor = Color.BLACK;
-			statusData.foregroundColor = Color.RED;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel("!ERROR!");
-			statusData.user = "!ex." + ex.getClass().getName();
-			String exString;
-			if (ex instanceof TwitterException) {
-				TwitterException twex = (TwitterException) ex;
-				if (twex.isCausedByNetworkIssue()) {
-					exString = twex.getCause().toString();
-				} else {
-					exString = twex.getStatusCode() + ": " + twex.getErrorMessage();
-				}
-			} else {
-				exString = ex.toString();
-			}
-			if (exString.length() > 256) {
-				exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
-			}
-			statusData.data = new JLabel(exString);
-			addStatus(statusData);
+			actualRenderer.onException(ex);
 		}
 
 		@Override
 		public void onFavorite(User source, User target, Status favoritedStatus) {
-			if (target.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(favoritedStatus, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.YELLOW;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.user = "!fav." + source.getScreenName();
-				String message = MessageFormat.format("ふぁぼられました: \"{0}\"", favoritedStatus.getText());
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				try {
-					configuration.getUtility().sendNotify(
-							MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-							imageCacher.getImageFile(source));
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-			if (source.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = getStatus(favoritedStatus.getId());
-				if (statusData.tag instanceof TwitterStatus) {
-					TwitterStatus status = (TwitterStatus) statusData.tag;
-					status.setFavorited(true);
-				}
-			}
+			actualRenderer.onFavorite(source, target, favoritedStatus);
 		}
 
 		@Override
 		public void onFollow(User source, User followedUser) {
-			if (followedUser.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(null, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.YELLOW;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.user = "!follow." + source.getScreenName();
-				String message = "@" + followedUser.getScreenName() + " をフォローしました";
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				try {
-					configuration.getUtility().sendNotify(
-							MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()), message,
-							imageCacher.getImageFile(source));
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
+			actualRenderer.onFollow(source, followedUser);
 		}
 
 		@Override
 		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-			logger.trace("onTrackLimitationNotice: {}", numberOfLimitedStatuses);
-			StatusData statusData = new StatusData(null, new Date());
-			statusData.backgroundColor = Color.BLACK;
-			statusData.foregroundColor = Color.LIGHT_GRAY;
-			statusData.image = new JLabel();
-			statusData.sentBy = new JLabel();
-			statusData.user = "!stream.overlimit";
-			statusData.data =
-					new JLabel("TwitterStreamは " + numberOfLimitedStatuses + " ツイート数をスキップしました： TrackLimitationNotice");
-			addStatus(statusData, getInfoSurviveTime() * 2);
+			actualRenderer.onTrackLimitationNotice(numberOfLimitedStatuses);
 		}
 
 		@Override
 		public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}",
-						source, target, unfavoritedStatus);
-			}
-			if (target.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = new StatusData(unfavoritedStatus, new Date());
-				statusData.backgroundColor = Color.GRAY;
-				statusData.foregroundColor = Color.LIGHT_GRAY;
-				statusData.image = new JLabel(new ImageIcon(source.getProfileImageURL()));
-				statusData.sentBy = new JLabel(source.getScreenName());
-				statusData.user = "!unfav." + source.getScreenName();
-				String message = "ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"";
-				statusData.data = new JLabel(message);
-				addStatus(statusData);
-				try {
-					configuration.getUtility()
-							.sendNotify(MessageFormat.format("{0} ({1})", source.getScreenName(), source.getName()),
-									message,
-									imageCacher.getImageFile(source));
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-			if (source.getId() == frameApi.getLoginUser().getId()) {
-				StatusData statusData = getStatus(unfavoritedStatus.getId());
-				if (statusData.tag instanceof TwitterStatus) {
-					TwitterStatus status = (TwitterStatus) statusData.tag;
-					status.setFavorited(false);
-				}
-			}
+			actualRenderer.onUnfavorite(source, target, unfavoritedStatus);
 		}
 	};
 	private volatile boolean focusGained;
@@ -240,8 +92,9 @@ public class TimelineViewTab extends DefaultClientTab {
 	}
 
 	@Override
-	public StatusPanel addStatus(StatusData statusData) {
-		if (focusGained == false && isDirty == false) {
+	public void addStatus(RenderObject renderObject) {
+		super.addStatus(renderObject);
+		if (!(focusGained || isDirty)) {
 			isDirty = true;
 			EventQueue.invokeLater(new Runnable() {
 				public void run() {
@@ -249,7 +102,6 @@ public class TimelineViewTab extends DefaultClientTab {
 				}
 			});
 		}
-		return super.addStatus(statusData);
 	}
 
 	@Override
@@ -270,7 +122,7 @@ public class TimelineViewTab extends DefaultClientTab {
 	}
 
 	@Override
-	public DefaultRenderer getActualRenderer() {
+	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
 

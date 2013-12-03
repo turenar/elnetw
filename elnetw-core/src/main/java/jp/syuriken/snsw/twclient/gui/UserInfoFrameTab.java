@@ -34,10 +34,9 @@ import javax.swing.text.html.HTMLEditorKit;
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.StatusData;
-import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
+import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -74,23 +73,21 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public class UserInfoTweetsRenderer extends DefaultRenderer {
+	public class UserInfoTweetsRenderer extends DelegateRenderer {
 
 		@Override
 		public void onStatus(Status originalStatus) {
-			if (originalStatus.getUser().getId() == user.getId()) {
-				addStatus(originalStatus);
-			}
+			actualRenderer.onStatus(originalStatus);
 		}
 	}
 
 	private static final String TAB_ID = "userinfo";
 	private static final Logger logger = LoggerFactory.getLogger(UserInfoFrameTab.class);
-	private final Font operationFont = frameApi.getUiFont().deriveFont(frameApi.getUiFont().getSize() - 1);
+	private final Font operationFont = frameApi.getUiFont().deriveFont(Font.PLAIN, frameApi.getUiFont().getSize() - 1);
 	/** 指定されたユーザー */
 	protected User user;
 	/** レンダラ */
-	protected TabRenderer renderer = new UserInfoTweetsRenderer();
+	protected DelegateRenderer renderer = new UserInfoTweetsRenderer();
 	private JScrollPane componentBio;
 	private JLabel componentLocation;
 	private JPanel componentOperationsPanel;
@@ -164,7 +161,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	}
 
 	@Override
-	public StatusPanel addStatus(StatusData statusData) {
+	public void addStatus(RenderObject renderObject) {
+		super.addStatus(renderObject);
 		if (!(focusGained || isDirty)) {
 			isDirty = true;
 			EventQueue.invokeLater(new Runnable() {
@@ -174,7 +172,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				}
 			});
 		}
-		return super.addStatus(statusData);
 	}
 
 	@Override
@@ -191,7 +188,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	}
 
 	@Override
-	public TabRenderer getActualRenderer() {
+	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
 
@@ -367,7 +364,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	private Component getComponentTwitterLogo() {
 		if (componentTwitterLogo == null) {
-			Image scaledInstance = IMG_TWITTER_LOGO.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+			Image scaledInstance = ImageResource.getImgTwitterLogo().getImage().getScaledInstance(16, 16,
+					Image.SCALE_SMOOTH);
 			componentTwitterLogo = new JLabel(new ImageIcon(scaledInstance));
 			componentTwitterLogo.setMaximumSize(new Dimension(16, 16));
 		}

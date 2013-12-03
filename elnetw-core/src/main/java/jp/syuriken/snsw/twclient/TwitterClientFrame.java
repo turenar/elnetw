@@ -99,7 +99,7 @@ import static java.lang.Math.max;
 			 if (selectingPost == null) {
 			statusData = null;
 			} else {
-			statusData = statusMap.get(selectingPost.getStatusData().id);
+			statusData = statusMap.get(selectingPost.getRenderObject().id);
 			} */
 			configuration.handleAction(Utility.getIntentArguments(e.getActionCommand()));
 		}
@@ -1176,19 +1176,6 @@ import static java.lang.Math.max;
 			});
 		}
 		return viewTab;
-	}
-
-	@Deprecated
-	@Override
-	public void handleAction(String name, StatusData statusData) {
-		IntentArguments intentArguments = new IntentArguments(name);
-		ActionHandler actionHandler = configuration.getActionHandler(intentArguments);
-		if (actionHandler == null) {
-			logger.warn("ActionHandler {} is not found.", name);
-		} else {
-			logger.trace("ActionHandler {} called.", name);
-			actionHandler.handleAction(intentArguments);
-		}
 	}
 
 	/**

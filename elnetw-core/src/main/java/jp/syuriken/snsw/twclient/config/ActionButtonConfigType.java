@@ -6,7 +6,9 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 
 /**
  * アクションコマンドを指定したコンフィグタイプ
@@ -22,7 +24,7 @@ public class ActionButtonConfigType implements ConfigType {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			frameApi.handleAction(actionCommand, null);
+			ClientConfiguration.getInstance().handleAction(new IntentArguments(actionCommand));
 		}
 	};
 

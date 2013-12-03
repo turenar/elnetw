@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import twitter4j.Status;
 
+import static jp.syuriken.snsw.twclient.filter.UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY;
 import static org.junit.Assert.*;
 
 /**
@@ -39,17 +40,17 @@ public class UserFilterTest {
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "1 2 3");
 		properties.setProperty("core.filter.queries", "");
 		configuration.setConfigProperties(properties);
-		userFilter = new UserFilter(configuration);
+		userFilter = new UserFilter(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 	}
 
 	/** 正しくないフィルタIDを指定した時のテスト・メソッド */
 	@Test
 	public void testIllegalFilterIds() {
-		UserFilter userFilter = new UserFilter(configuration);
+		UserFilter userFilter = new UserFilter(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
 
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "a 1");
-		userFilter = new UserFilter(configuration);
+		userFilter = new UserFilter(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
 		assertNull(userFilter.onStatus(new TestStatus(1, null, -1)));
 	}
@@ -137,7 +138,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onStatus(twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnStatus() {
-		UserFilter userFilter = new UserFilter(configuration);
+		UserFilter userFilter = new UserFilter(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, -1)));
 		assertNotNull(userFilter.onStatus(new TestStatus(0, new TestStatus(0, null, -1), -1)));
 		assertNotNull(userFilter.onStatus(new TestStatus(0, null, 0)));

@@ -21,23 +21,21 @@ import twitter4j.UserMentionEntity;
  */
 public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 
-	private static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
-	private static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
+	public static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
+	public static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 	private final ClientConfiguration configuration;
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
+	private final String filterPropertyName;
 	private TreeSet<Long> filterIds;
 	private FilterDispatcherBase query;
 
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
-	 */
-	public UserFilter(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	/** インスタンスを生成する。 */
+	public UserFilter(String filterPropertyName) {
+		this.filterPropertyName = filterPropertyName;
+		this.configuration = ClientConfiguration.getInstance();
 		configuration.getConfigProperties().addPropertyChangedListener(this);
-		filterIds = new TreeSet<Long>();
+		filterIds = new TreeSet<>();
 		initFilterIds();
 		initFilterQueries();
 	}
@@ -75,7 +73,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	}
 
 	private void initFilterQueries() {
-		String query = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
+		String query = configuration.getConfigProperties().getProperty(filterPropertyName);
 		if (query == null || query.trim().isEmpty()) {
 			this.query = NullFilter.getInstance();
 		} else {
@@ -108,18 +106,18 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	}
 
 	@Override
-	public StatusDeletionNotice onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		return filterUser(statusDeletionNotice.getUserId()) ? null : statusDeletionNotice;
+	public boolean onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		return filterUser(statusDeletionNotice.getUserId());
 	}
 
 	@Override
 	public DirectMessage onDirectMessage(DirectMessage message) {
 		boolean filtered;
 		filtered = filterUser(message.getSenderId());
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(message.getRecipientId());
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = query.filter(message);
 		}
 		return filtered ? null : message;
@@ -134,10 +132,10 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onFavorite(User source, User target, Status favoritedStatus) {
 		boolean filtered;
 		filtered = filterUser(source);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(target);
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = onStatus(favoritedStatus) == null;
 		}
 		return filtered;
@@ -147,7 +145,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onFollow(User source, User followedUser) {
 		boolean filtered;
 		filtered = filterUser(source);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(followedUser);
 		}
 		return filtered;
@@ -157,13 +155,13 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onRetweet(User source, User target, Status retweetedStatus) {
 		boolean filtered;
 		filtered = filterUser(source);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(target);
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = onStatus(retweetedStatus) == null;
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = query.filter(retweetedStatus);
 		}
 		return filtered;
@@ -178,20 +176,20 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public Status onStatus(Status status) {
 		boolean filtered;
 		filtered = filterUser(status);
-		if (filtered == false && status.isRetweet()) {
+		if (!filtered && status.isRetweet()) {
 			filtered = onStatus(status.getRetweetedStatus()) == null;
 		}
-		if (filtered == false && status.getInReplyToUserId() != -1) {
+		if (!filtered && status.getInReplyToUserId() != -1) {
 			filtered = filterUser(status.getInReplyToUserId());
 		}
 		UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-		if (filtered == false && userMentionEntities != null) {
+		if (!filtered && userMentionEntities != null) {
 			final int length = userMentionEntities.length;
-			for (int i = 0; filtered == false && i < length; i++) {
+			for (int i = 0; !filtered && i < length; i++) {
 				filtered = filterUser(userMentionEntities[i].getId());
 			}
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = query.filter(status);
 		}
 		return filtered ? null : status;
@@ -201,7 +199,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUnblock(User source, User unblockedUser) {
 		boolean filtered;
 		filtered = filterUser(source);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(unblockedUser);
 		}
 		return filtered;
@@ -211,10 +209,10 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		boolean filtered;
 		filtered = filterUser(source);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(target);
 		}
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = onStatus(unfavoritedStatus) == null;
 		}
 		return filtered;
@@ -234,7 +232,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		boolean filtered;
 		filtered = filterUser(addedMember);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(listOwner);
 		}
 		return filtered;
@@ -244,7 +242,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		boolean filtered;
 		filtered = filterUser(deletedMember);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(listOwner);
 		}
 		return filtered;
@@ -254,7 +252,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		boolean filtered;
 		filtered = filterUser(subscriber);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(listOwner);
 		}
 		return filtered;
@@ -264,7 +262,7 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	public boolean onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		boolean filtered;
 		filtered = filterUser(subscriber);
-		if (filtered == false) {
+		if (!filtered) {
 			filtered = filterUser(listOwner);
 		}
 		return filtered;

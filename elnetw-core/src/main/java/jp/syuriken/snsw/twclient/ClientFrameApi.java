@@ -167,16 +167,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	Utility getUtility();
 
 	/**
-	 * アクションコマンド名を使用してアクションハンドラを呼び出す。
-	 *
-	 * @param name       アクションコマンド名
-	 * @param statusData データ
-	 * @deprecated use {@link ClientConfiguration#handleAction(IntentArguments)}
-	 */
-	@Deprecated
-	void handleAction(String name, StatusData statusData);
-
-	/**
 	 * 例外を処理する。
 	 *
 	 * @param ex 例外

@@ -9,4 +9,5 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
  */
 public interface TabRenderer extends ClientMessageListener {
 
+	void onInitTimeline();
 }
