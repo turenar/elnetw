@@ -185,8 +185,13 @@ public class JobQueueTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testIllegalPriority() {
+	public void testIllegalPriority0() {
 		new JobQueue().addJob((byte) -1, new TestRunnable(0));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalPriority1() {
+		new JobQueue().addJob((byte) 127, new TestRunnable(0));
 	}
 
 	@Test

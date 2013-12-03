@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,6 +29,21 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ImageCacher {
+
+	protected class ErrorImage extends ImageEntry {
+
+		public final int responseCode;
+
+		/**
+		 * インスタンスを生成する。
+		 *
+		 * @param url URL
+		 */
+		public ErrorImage(URL url, HttpURLConnection connection) throws IOException {
+			super(url);
+			responseCode = connection.getResponseCode();
+		}
+	}
 
 	/**
 	 * 画像情報を保存するエントリ。
@@ -114,8 +130,11 @@ public class ImageCacher {
 			final ImageEntry entry = this.entry;
 			if (cachedImages.containsKey(entry.imageKey)) {
 				synchronized (entry) {
-					label.setIcon(getImageIcon(cachedImages.get(entry.imageKey).image));
-					incrementAppearCount(entry);
+					Image image = cachedImages.get(entry.imageKey).image;
+					if (image != null) {
+						label.setIcon(getImageIcon(image));
+						incrementAppearCount(entry);
+					}
 				}
 				return;
 			}
@@ -127,8 +146,10 @@ public class ImageCacher {
 				return;
 			}
 			if (label != null) {
-				label.setIcon(getImageIcon(entry.image));
-				incrementAppearCount(entry);
+				if (entry.image != null) {
+					label.setIcon(getImageIcon(entry.image));
+					incrementAppearCount(entry);
+				}
 			}
 		}
 	}
@@ -211,13 +232,10 @@ public class ImageCacher {
 			}
 
 			long lastModified = file.lastModified();
-			if (lastModified == 0) {
-				continue;
-			} else if (lastModified + cacheExpire < System.currentTimeMillis()) {
+			if (lastModified + cacheExpire < System.currentTimeMillis()) {
 				if (file.delete()) {
 					logger.debug("clean expired cache: {} (lastModified:{})", Utility.protectPrivacy(file.getPath()),
 							lastModified);
-					continue;
 				} else {
 					logger.warn("Failed cleaning cache: {}", Utility.protectPrivacy(file.getPath()));
 				}
@@ -232,11 +250,12 @@ public class ImageCacher {
 	 */
 	protected void fetchImage(ImageEntry entry) throws InterruptedException {
 		URL url = entry.url;
-		if (cachedImages.containsKey(entry.imageKey)) {
-			return;
-		}
 
 		synchronized (entry) {
+			if (cachedImages.containsKey(entry.imageKey)) {
+				return;
+			}
+
 			if (entry.cacheFile != null && entry.cacheFile.exists()) {
 				try {
 					File cacheFile = entry.cacheFile;
@@ -249,7 +268,7 @@ public class ImageCacher {
 				}
 			}
 
-			URLConnection connection;
+			URLConnection connection = null;
 			try {
 				connection = url.openConnection();
 				int contentLength = connection.getContentLength();
@@ -289,7 +308,24 @@ public class ImageCacher {
 				entry.image = image;
 				cachedImages.put(entry.imageKey, entry);
 			} catch (IOException e) {
-				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+				if (connection instanceof HttpURLConnection) {
+					int responseCode;
+					try {
+						responseCode = ((HttpURLConnection) connection).getResponseCode();
+						if (responseCode >= 400 && responseCode < 500) {
+							cachedImages.put(entry.imageKey, new ErrorImage(url, (HttpURLConnection) connection));
+							if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+								logger.warn("not found: url={}", url);
+							} else {
+								logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
+							}
+						}
+					} catch (IOException responseCodeException) {
+						logger.warn("Cannot retrieve http status code", responseCodeException);
+					}
+				} else {
+					logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+				}
 			}
 		}
 	}
@@ -502,7 +538,7 @@ public class ImageCacher {
 	 *
 	 * @param label JLabelインスタンス
 	 * @param user  Twitterユーザー
-	 * @return キャッシュヒットしたかどうか
+	 * @return キャッシュヒットしたかどうか。エラーキャッシュされている時もtrueを返しますが、画像は設定されません
 	 */
 	public boolean setImageIcon(JLabel label, User user) {
 		String imageKey = getImageKey(user);
@@ -518,8 +554,11 @@ public class ImageCacher {
 			configuration.addJob(new ImageFetcher(entry, label));
 			return false;
 		} else {
-			label.setIcon(getImageIcon(entry.image));
-			incrementAppearCount(entry);
+			Image image = entry.image;
+			if (image != null) {
+				label.setIcon(getImageIcon(image));
+				incrementAppearCount(entry);
+			}
 			return true;
 		}
 	}
