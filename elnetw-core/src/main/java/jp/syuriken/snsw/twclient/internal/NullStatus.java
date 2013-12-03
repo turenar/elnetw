@@ -22,10 +22,8 @@ import twitter4j.UserMentionEntity;
 public class NullStatus implements Status {
 
 	private static final long serialVersionUID = -5283262110868599454L;
-
 	/** 使いまわし用のインスタンス */
 	public static final NullStatus INSTANCE = new NullStatus();
-
 
 	@Override
 	public int compareTo(Status o) {
@@ -54,6 +52,11 @@ public class NullStatus implements Status {
 
 	@Override
 	public long getCurrentUserRetweetId() {
+		return 0;
+	}
+
+	@Override
+	public int getFavoriteCount() {
 		return 0;
 	}
 
@@ -88,13 +91,13 @@ public class NullStatus implements Status {
 	}
 
 	@Override
-	public MediaEntity[] getMediaEntities() {
+	public String getIsoLanguageCode() {
 		return null;
 	}
 
 	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return new SymbolEntity[0];
+	public MediaEntity[] getMediaEntities() {
+		return null;
 	}
 
 	@Override
@@ -108,7 +111,7 @@ public class NullStatus implements Status {
 	}
 
 	@Override
-	public long getRetweetCount() {
+	public int getRetweetCount() {
 		return -1;
 	}
 
@@ -120,6 +123,11 @@ public class NullStatus implements Status {
 	@Override
 	public String getSource() {
 		return null;
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return new SymbolEntity[0];
 	}
 
 	@Override
@@ -153,27 +161,17 @@ public class NullStatus implements Status {
 	}
 
 	@Override
-	public boolean isRetweeted() {
-		return false;
-	}
-
-	@Override
-	public long getFavoriteCount() {
-		return 0;
-	}
-
-	@Override
 	public boolean isPossiblySensitive() {
 		return false;
 	}
 
 	@Override
-	public String getIsoLanguageCode() {
-		return null;
+	public boolean isRetweet() {
+		return false;
 	}
 
 	@Override
-	public boolean isRetweet() {
+	public boolean isRetweeted() {
 		return false;
 	}
 

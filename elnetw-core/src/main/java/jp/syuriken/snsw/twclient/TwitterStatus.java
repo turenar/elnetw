@@ -25,45 +25,8 @@ import twitter4j.json.DataObjectFactory;
  */
 public class TwitterStatus implements Status, TwitterExtendedObject {
 
-	private static final long serialVersionUID = -1594365283342840124L;
-
+	private static final long serialVersionUID = -188757917578787367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
-
-	/**
-	 * Entityのindice startを取得する
-	 *
-	 * @param entity エンティティ
-	 * @return indice start
-	 */
-	public static final int getEntityEnd(Object entity) {
-		if (entity instanceof URLEntity) {
-			return ((URLEntity) entity).getEnd();
-		} else if (entity instanceof HashtagEntity) {
-			return ((HashtagEntity) entity).getEnd();
-		} else if (entity instanceof UserMentionEntity) {
-			return ((UserMentionEntity) entity).getEnd();
-		} else {
-			throw new IllegalArgumentException("entity is not instanceof *Entity");
-		}
-	}
-
-	/**
-	 * Entityのindice endを取得する
-	 *
-	 * @param entity エンティティ
-	 * @return indice end
-	 */
-	public static final int getEntityStart(Object entity) {
-		if (entity instanceof URLEntity) {
-			return ((URLEntity) entity).getStart();
-		} else if (entity instanceof HashtagEntity) {
-			return ((HashtagEntity) entity).getStart();
-		} else if (entity instanceof UserMentionEntity) {
-			return ((UserMentionEntity) entity).getStart();
-		} else {
-			throw new IllegalArgumentException("entity is not instanceof *Entity");
-		}
-	}
 
 	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
@@ -81,54 +44,31 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	private final long[] contributors;
-
 	private final Date createdAt;
-
 	private final long id;
-
 	private final long inReplyToStatusId;
-
 	private final long inReplyToUserId;
-
 	private final boolean isTruncated;
-
 	private final TwitterStatus retweetedStatus;
-
 	private final User user;
-
 	//	private final String json;
-
 	private/*final*/ GeoLocation geoLocation;
-
 	private/*final*/ HashtagEntity[] hashtagEntities;
-
 	private/*final*/ String inReplyToScreenName;
-
 	private boolean loadedInitialization;
-
 	private/*final*/ MediaEntity[] mediaEntities;
-
 	private/*final*/ Place place;
-
 	private/*final*/ String source;
-
 	private/*final*/ String text;
-
 	private/*final*/ URLEntity[] urlEntities;
-
 	private/*final*/ UserMentionEntity[] userMentionEntities;
-
 	private volatile boolean favorited;
-
-	private volatile long retweetCount;
-
+	private volatile int retweetCount;
 	private volatile boolean retweetedByMe;
-
 	private boolean possiblySensitive;
-
 	private long currentUserRetweetId;
 	private boolean retweeted;
-	private long favoriteCount;
+	private int favoriteCount;
 	private String isoLanguageCode;
 	private SymbolEntity[] symbolEntities;
 
@@ -265,6 +205,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
+	public int getFavoriteCount() {
+		return favoriteCount;
+	}
+
+	@Override
 	public GeoLocation getGeoLocation() {
 		return geoLocation;
 	}
@@ -290,11 +235,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return inReplyToStatusId;
 	}
 
-	@Override
-	public long getInReplyToUserId() {
-		return inReplyToUserId;
-	}
-
 	/*
 	@Override
 	public String getJson() {
@@ -302,15 +242,20 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 	*/
 
+	@Override
+	public long getInReplyToUserId() {
+		return inReplyToUserId;
+	}
+
+	@Override
+	public String getIsoLanguageCode() {
+		return isoLanguageCode;
+	}
+
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
 	@Override
 	public MediaEntity[] getMediaEntities() {
 		return mediaEntities;
-	}
-
-	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return symbolEntities;
 	}
 
 	@Override
@@ -325,7 +270,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
-	public long getRetweetCount() {
+	public int getRetweetCount() {
 		return retweetCount;
 	}
 
@@ -337,6 +282,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public String getSource() {
 		return source;
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return symbolEntities;
 	}
 
 	@Override
@@ -371,16 +321,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return favorited;
 	}
 
-	@Override
-	public boolean isRetweeted() {
-		return retweeted;
-	}
-
-	@Override
-	public long getFavoriteCount() {
-		return favoriteCount;
-	}
-
 	/**
 	 * このステータスが起動時に読み込まれたものかどうかを調べる
 	 *
@@ -396,13 +336,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
-	public String getIsoLanguageCode() {
-		return isoLanguageCode;
+	public boolean isRetweet() {
+		return retweetedStatus != null;
 	}
 
 	@Override
-	public boolean isRetweet() {
-		return retweetedStatus != null;
+	public boolean isRetweeted() {
+		return retweeted;
 	}
 
 	@Override

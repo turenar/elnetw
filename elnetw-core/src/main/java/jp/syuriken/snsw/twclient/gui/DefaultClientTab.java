@@ -78,6 +78,7 @@ import twitter4j.MediaEntity;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TweetEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -425,13 +426,13 @@ public abstract class DefaultClientTab implements ClientTab {
 	}
 
 	/** Entityの開始位置を比較する */
-	private static final class EntityComparator implements Comparator<Object>, Serializable {
+	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
 
 		private static final long serialVersionUID = 8166780199866981253L;
 
 		@Override
-		public int compare(Object o1, Object o2) {
-			return TwitterStatus.getEntityStart(o1) - TwitterStatus.getEntityStart(o2);
+		public int compare(TweetEntity o1, TweetEntity o2) {
+			return o1.getStart() - o2.getStart();
 		}
 	}
 
@@ -965,7 +966,7 @@ public abstract class DefaultClientTab implements ClientTab {
 			entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
 			UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
 			entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
-			Object[] entities = new Object[entitiesLen];
+			TweetEntity[] entities = new TweetEntity[entitiesLen];
 
 			if (entitiesLen != 0) {
 				int copyOffset = 0;
@@ -994,8 +995,8 @@ public abstract class DefaultClientTab implements ClientTab {
 				String url;
 				if (entity instanceof HashtagEntity) {
 					HashtagEntity hashtagEntity = (HashtagEntity) entity;
-					start = TwitterStatus.getEntityStart(hashtagEntity);
-					end = TwitterStatus.getEntityEnd(hashtagEntity);
+					start = hashtagEntity.getStart();
+					end = hashtagEntity.getEnd();
 					replaceText = null;
 					url = "http://command/hashtag!name=" + hashtagEntity.getText();
 				} else if (entity instanceof URLEntity) {
@@ -1006,13 +1007,13 @@ public abstract class DefaultClientTab implements ClientTab {
 					} else {
 						url = urlEntity.getURL();
 					}
-					start = TwitterStatus.getEntityStart(urlEntity);
-					end = TwitterStatus.getEntityEnd(urlEntity);
+					start = urlEntity.getStart();
+					end = urlEntity.getEnd();
 					replaceText = urlEntity.getDisplayURL();
 				} else if (entity instanceof UserMentionEntity) {
 					UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-					start = TwitterStatus.getEntityStart(mentionEntity);
-					end = TwitterStatus.getEntityEnd(mentionEntity);
+					start = mentionEntity.getStart();
+					end = mentionEntity.getEnd();
 					replaceText = null;
 					url = "http://command/userinfo!screenName=" + mentionEntity.getScreenName();
 				} else {

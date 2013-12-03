@@ -18,11 +18,8 @@ import twitter4j.UserMentionEntity;
 /*package*/class TestStatus implements Status {
 
 	private final TestUser user;
-
 	private final Status retweetedStatus;
-
 	private final long inReplyToUserId;
-
 	private final long id;
 
 
@@ -66,6 +63,11 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
+	public int getFavoriteCount() {
+		return 0;
+	}
+
+	@Override
 	public GeoLocation getGeoLocation() {
 		return null;
 	}
@@ -96,13 +98,13 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
-	public MediaEntity[] getMediaEntities() {
+	public String getIsoLanguageCode() {
 		return null;
 	}
 
 	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return new SymbolEntity[0];
+	public MediaEntity[] getMediaEntities() {
+		return null;
 	}
 
 	@Override
@@ -116,7 +118,7 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
-	public long getRetweetCount() {
+	public int getRetweetCount() {
 		return 0;
 	}
 
@@ -128,6 +130,11 @@ import twitter4j.UserMentionEntity;
 	@Override
 	public String getSource() {
 		return null;
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return new SymbolEntity[0];
 	}
 
 	@Override
@@ -156,28 +163,18 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
-	public boolean isRetweeted() {
-		return false;
-	}
-
-	@Override
-	public long getFavoriteCount() {
-		return 0;
-	}
-
-	@Override
 	public boolean isPossiblySensitive() {
 		return false;
 	}
 
 	@Override
-	public String getIsoLanguageCode() {
-		return null;
+	public boolean isRetweet() {
+		return retweetedStatus != null;
 	}
 
 	@Override
-	public boolean isRetweet() {
-		return retweetedStatus != null;
+	public boolean isRetweeted() {
+		return false;
 	}
 
 	@Override
