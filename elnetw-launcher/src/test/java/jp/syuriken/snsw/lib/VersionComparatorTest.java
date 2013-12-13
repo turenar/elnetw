@@ -2,7 +2,9 @@ package jp.syuriken.snsw.lib;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 
 /** Test for {@link jp.syuriken.snsw.lib.VersionComparator} */
@@ -46,6 +48,7 @@ public class VersionComparatorTest {
 	public void testCompareVersion2Snapshot() throws Exception {
 		assertEqualsVersion("0-SNAPSHOT", "0-SNAPSHOT");
 		assertLessVersion("0-SNAPSHOT", "0");
+		assertGreaterVersion("0", "0-SNAPSHOT");
 		assertGreaterVersion("1-SNAPSHOT", "0");
 	}
 
@@ -53,6 +56,7 @@ public class VersionComparatorTest {
 	public void testCompareVersion3Standard() throws Exception {
 		assertEqualsVersion("0.0.1", "0.0.1");
 		assertLessVersion("0", "0.0");
+		assertGreaterVersion("0.1.1", "0.1");
 		assertLessVersion("0.0", "0.0.1");
 		assertLessVersion("0.0.1", "0.0.2");
 		assertGreaterVersion("0.1", "0.0.2");
@@ -82,5 +86,6 @@ public class VersionComparatorTest {
 	public void testCompareVersion5Illegal() {
 		assertThrownError("0..1", "0.1");
 		assertThrownError("0.", "0.1");
+		assertThrownError("0", "0.1..0");
 	}
 }

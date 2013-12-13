@@ -1,3 +1,7 @@
+/*
+ * This file don't have any license: This source is published under public domain.
+ */
+
 package jp.syuriken.snsw.lib;
 
 import java.util.regex.Matcher;
@@ -10,19 +14,19 @@ import java.util.regex.Pattern;
  */
 public class VersionComparator {
 	protected static enum VersionComponentType {
-		ALPHABETS, NUMERIC, OP;
+		ALPHABETS, NUMERIC, OP
 	}
 
 	private static final String OP_CHARS = "~\\-_\\.+";
 
 	/** Version Pattern */
 	public static final String VERSION_PATTERN_STRING =
-		/**/"\\G(?:" +
-		/**/  "([0-9]+)" + // numeric
-		/**/  "|([a-zA-Z]+)" + // alphabets
-		/**/  "|([" + OP_CHARS + "])(?![" + OP_CHARS + "]|\\z)" + // op (not followed by op or EndOfString)
-		/**/")" +
-		/**/"|\\G\\z"; // End Of String
+		/**/"\\G(?:"
+		/**/ + "(?:[0-9]+)"// numeric
+		/**/ + "|(?:[a-zA-Z]+)"// alphabets
+		/**/ + "|(?:[" + OP_CHARS + "])(?![" + OP_CHARS + "]|\\z)" + // op (not followed by op or EndOfString)
+		/**/")"
+		/**/ + "|\\G\\z"; // End Of String
 
 	private static final Pattern VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_STRING);
 
@@ -46,8 +50,8 @@ public class VersionComparator {
 	 * @param a one
 	 * @param b the other
 	 * @return if a is equal with b, return 0.
-	 *         if a is smaller than b, return negative integer.
-	 *         otherwise, return positive integer.
+	 * if a is smaller than b, return negative integer.
+	 * otherwise, return positive integer.
 	 */
 	public static int compareVersion(String a, String b) {
 		if (a.equals(b)) {
@@ -58,14 +62,12 @@ public class VersionComparator {
 		Matcher srcMatcher = VERSION_PATTERN.matcher(a.replace("-SNAPSHOT", "~snapshot"));
 		Matcher tgtMatcher = VERSION_PATTERN.matcher(b.replace("-SNAPSHOT", "~snapshot"));
 
-		boolean gotLastOp = false;
-		for (; gotLastOp == false; ) { // [:an:][~-_.+][:an:]!
+		while (true) { // [:an:][~-_.+][:an:]!
 			String srcGroup;
 			if (srcMatcher.find()) { // Is next region valid?
 				srcGroup = srcMatcher.group(); // get region
 				if (srcGroup.isEmpty()) { // check End Of String
 					srcGroup = "!"; // virtual op
-					gotLastOp = true;
 				}
 			} else {
 				throw new IllegalArgumentException("Illegal version string: " + a);
@@ -75,7 +77,6 @@ public class VersionComparator {
 				tgtGroup = tgtMatcher.group(); // get region
 				if (tgtGroup.isEmpty()) { // check End Of String
 					tgtGroup = "!"; // virtual op
-					gotLastOp = true;
 				}
 			} else {
 				throw new IllegalArgumentException("Illegal version string: " + b);
@@ -129,9 +130,6 @@ public class VersionComparator {
 					throw new AssertionError("Not implemented");
 			}
 		}
-
-		// exactly match?
-		throw new AssertionError();
 	}
 
 	private static int getPriorityOfOperator(String opChar) {
@@ -160,8 +158,8 @@ public class VersionComparator {
 	private static VersionComponentType getVersionComponentType(char srcFirstChar) {
 		if (srcFirstChar >= '0' && srcFirstChar <= '9') { // numeric
 			return VersionComponentType.NUMERIC;
-		} else if ((srcFirstChar >= 'a' && srcFirstChar <= 'z') ||
-				(srcFirstChar >= 'A' && srcFirstChar <= 'Z')) {
+		} else if ((srcFirstChar >= 'a' && srcFirstChar <= 'z')
+				|| (srcFirstChar >= 'A' && srcFirstChar <= 'Z')) {
 			return VersionComponentType.ALPHABETS;
 		} else {
 			return VersionComponentType.OP;
