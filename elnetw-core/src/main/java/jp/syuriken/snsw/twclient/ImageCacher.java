@@ -30,7 +30,7 @@ import twitter4j.User;
  */
 public class ImageCacher {
 
-	protected class ErrorImage extends ImageEntry {
+	protected class ErrorImageEntry extends ImageEntry {
 
 		public final int responseCode;
 
@@ -39,7 +39,7 @@ public class ImageCacher {
 		 *
 		 * @param url URL
 		 */
-		public ErrorImage(URL url, HttpURLConnection connection) throws IOException {
+		public ErrorImageEntry(URL url, HttpURLConnection connection) throws IOException {
 			super(url);
 			responseCode = connection.getResponseCode();
 		}
@@ -178,8 +178,7 @@ public class ImageCacher {
 		}
 	}
 
-	/** Buffer size */
-	private static final int BUFSIZE = 65536;
+	private static final int BUFFER_SIZE = 65536;
 	private final ClientConfiguration configuration;
 	/** キャッシュ出力先ディレクトリ */
 	public final File cacheDir;
@@ -256,78 +255,98 @@ public class ImageCacher {
 				return;
 			}
 
+			byte[] imageData = null;
 			if (entry.cacheFile != null && entry.cacheFile.exists()) {
 				try {
 					File cacheFile = entry.cacheFile;
 					logger.debug("loadCache: file={}", cacheFile.getPath());
-					entry.url = cacheFile.toURI().toURL();
-					entry.isWritten = true;
+					URL cacheUrl = cacheFile.toURI().toURL();
+					imageData = fetchContents(entry, cacheUrl);
+					if (imageData == null) {
+						entry.url = url;
+						entry.isWritten = true;
+					}
 				} catch (MalformedURLException e) {
 					// would never happen
 					throw new AssertionError(e);
 				}
 			}
+			if (imageData == null) {
+				imageData = fetchContents(entry, url);
+			}
+			entry.rawimage = imageData;
+			entry.image = Toolkit.getDefaultToolkit().createImage(entry.rawimage);
+			cachedImages.put(entry.imageKey, entry);
+		}
+	}
 
-			URLConnection connection = null;
-			try {
-				connection = url.openConnection();
-				int contentLength = connection.getContentLength();
-				InputStream stream = connection.getInputStream();
+	private byte[] fetchContents(ImageEntry entry, URL url) throws InterruptedException {
+		URLConnection connection = null;
+		try {
+			connection = url.openConnection();
+			int contentLength = connection.getContentLength();
+			InputStream stream = connection.getInputStream();
 
-				int bufLength = contentLength < 0 ? BUFSIZE : contentLength + 1;
-				byte[] data = new byte[bufLength];
-				int imageLen = 0;
-				int loadLen;
-				while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
-					imageLen += loadLen;
+			/*
+			Local File URL InputStream read(buf, start, 0) always returns 0
+			Http URL InputStream read(buf, start, 0) returns 0 or -1
+			Should InputStream have isEOF()?
 
-					if (bufLength == imageLen) {
-						bufLength = bufLength << 1;
-						if (bufLength < 0) {
-							bufLength = Integer.MAX_VALUE;
-						}
-						byte[] newData = new byte[bufLength];
-						System.arraycopy(data, 0, newData, 0, imageLen);
-						data = newData;
+			We have more cases to get image from http than from local cache,
+			 so I think we should optimize for http.
+			*/
+			int bufLength = contentLength < 0 ? BUFFER_SIZE : contentLength;
+			byte[] data = new byte[bufLength];
+			int imageLen = 0;
+			int loadLen;
+			while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
+				imageLen += loadLen;
+
+				if (loadLen == 0 && bufLength == imageLen) {
+					bufLength = bufLength << 1;
+					if (bufLength < 0) {
+						bufLength = Integer.MAX_VALUE;
 					}
-
-					logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
-
-					synchronized (this) {
-						try {
-							wait(1);
-						} catch (InterruptedException e) {
-							throw e;
-						}
-					}
+					byte[] newData = new byte[bufLength];
+					System.arraycopy(data, 0, newData, 0, imageLen);
+					data = newData;
 				}
-				stream.close(); // help keep-alive
 
-				entry.rawimage = Arrays.copyOfRange(data, 0, bufLength);
-				Image image = Toolkit.getDefaultToolkit().createImage(entry.rawimage);
-				entry.image = image;
-				cachedImages.put(entry.imageKey, entry);
-			} catch (IOException e) {
-				if (connection instanceof HttpURLConnection) {
-					int responseCode;
-					try {
-						responseCode = ((HttpURLConnection) connection).getResponseCode();
-						if (responseCode >= 400 && responseCode < 500) {
-							cachedImages.put(entry.imageKey, new ErrorImage(url, (HttpURLConnection) connection));
-							if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-								logger.warn("not found: url={}", url);
-							} else {
-								logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
-							}
-						}
-					} catch (IOException responseCodeException) {
-						logger.warn("Cannot retrieve http status code", responseCodeException);
-					}
-				} else {
-					logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+				logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
+
+				synchronized (this) {
+					wait(1);
 				}
 			}
+			stream.close(); // help keep-alive
+
+			return copyOfRange(data, imageLen);
+		} catch (IOException e) {
+			if (connection instanceof HttpURLConnection) {
+				int responseCode;
+				try {
+					responseCode = ((HttpURLConnection) connection).getResponseCode();
+					if (responseCode >= 400 && responseCode < 500) {
+						// url is not local cache
+						cachedImages.put(entry.imageKey, new ErrorImageEntry(url, (HttpURLConnection) connection));
+						if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+							logger.warn("not found: url={}", url);
+						} else {
+							logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
+						}
+					}
+				} catch (IOException responseCodeException) {
+					logger.warn("Cannot retrieve http status code", responseCodeException);
+				}
+			} else {
+				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+			}
+			return null;
 		}
+	}
+
+	private static byte[] copyOfRange(byte[] data, int imageLen) {
+		return data.length == imageLen ? data : Arrays.copyOfRange(data, 0, imageLen);
 	}
 
 	/**
@@ -357,9 +376,7 @@ public class ImageCacher {
 					logger.debug("Flushed: {}", Utility.protectPrivacy(entry.cacheFile.getPath()));
 					/*} catch (FileNotFoundException e) {*/
 				} catch (IOException e) {
-					StringBuilder stringBuilder = new StringBuilder("Failed flushing cache: ");
-					stringBuilder.append(Utility.protectPrivacy(entry.cacheFile.getPath()));
-					logger.warn(stringBuilder.toString(), e);
+					logger.warn("Failed flushing cache: " + Utility.protectPrivacy(entry.cacheFile.getPath()), e);
 					return false;
 				} finally {
 					try {
@@ -367,10 +384,7 @@ public class ImageCacher {
 							outputStream.close();
 						}
 					} catch (IOException e) {
-						StringBuilder stringBuilder = new StringBuilder("Failed close file: ");
-						stringBuilder.append(Utility.protectPrivacy(entry.cacheFile.getPath()));
-
-						logger.warn(stringBuilder.toString(), e);
+						logger.warn("Failed close file: " + Utility.protectPrivacy(entry.cacheFile.getPath()), e);
 					}
 				}
 			}
