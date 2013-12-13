@@ -3,6 +3,7 @@ package jp.syuriken.snsw.lib;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
@@ -21,7 +22,7 @@ public class VersionComparatorTest {
 		assertTrue(VersionComparator.compareVersion(a, b) < 0);
 	}
 
-	private void assertThrownError(String a, String b) {
+	private static void assertThrownError(String a, String b) {
 		try {
 			VersionComparator.compareVersion(a, b);
 			fail();
@@ -86,6 +87,16 @@ public class VersionComparatorTest {
 	public void testCompareVersion5Illegal() {
 		assertThrownError("0..1", "0.1");
 		assertThrownError("0.", "0.1");
-		assertThrownError("0", "0.1..0");
+		assertGreaterVersion("0.2.0", "0.1..0");
+		assertThrownError("0.1.0", "0.1..0");
+	}
+
+	@Test
+	public void testIsValidVersion() {
+		assertTrue(VersionComparator.isValidVersion("1.2.0.20091014-1~ppa1+ja1"));
+		assertFalse(VersionComparator.isValidVersion("0.1..0"));
+		assertTrue(VersionComparator.isValidVersion("20110227-0.1~ppa4"));
+		assertTrue(VersionComparator.isValidVersion("0-SNAPSHOT"));
+		assertFalse(VersionComparator.isValidVersion("0.0##illegal##"));
 	}
 }

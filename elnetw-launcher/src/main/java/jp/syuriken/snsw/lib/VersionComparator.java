@@ -22,13 +22,30 @@ public class VersionComparator {
 	/** Version Pattern */
 	public static final String VERSION_PATTERN_STRING =
 		/**/"\\G(?:"
-		/**/ + "(?:[0-9]+)"// numeric
-		/**/ + "|(?:[a-zA-Z]+)"// alphabets
-		/**/ + "|(?:[" + OP_CHARS + "])(?![" + OP_CHARS + "]|\\z)" + // op (not followed by op or EndOfString)
-		/**/")"
+		/*  */ + "(?:[0-9]+)"// numeric
+		/*  */ + "|(?:[a-zA-Z]+)"// alphabets
+		/*  */ + "|(?:[" + OP_CHARS + "])(?![" + OP_CHARS + "]|\\z)" // op (not followed by op or EndOfString)
+		/**/ + ")"
 		/**/ + "|\\G\\z"; // End Of String
 
 	private static final Pattern VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_STRING);
+
+	/**
+	 * check if version is valid.
+	 *
+	 * @param version version string
+	 * @return is valid version
+	 * @see #compareVersion(String, String)
+	 */
+	public static boolean isValidVersion(String version) {
+		Matcher srcMatcher = VERSION_PATTERN.matcher(version);
+		while (srcMatcher.find()) { // Is next region valid?
+			if (srcMatcher.group().isEmpty()) { // check End Of String
+				return true;
+			}
+		}
+		return false; // EndOfString returns true, but if illegal version returns false
+	}
 
 	/**
 	 * compare versions.
@@ -45,6 +62,11 @@ public class VersionComparator {
 	 * <p>
 	 * Numeric is compared as not string but integer. Alphabets is compared as string.
 	 * Op has priorities ('+' &lt; '.' &lt; (end of string) &lt; '_' &lt; '-' &lt; '~').
+	 * </p>
+	 * <p>
+	 * This method's strategy is first-match.
+	 * <code>compareVersion("0.1.0", "0.2...#illegal#...0")</code> returns -1.
+	 * If you check version is valid, you should use {@link #isValidVersion(String)}
 	 * </p>
 	 *
 	 * @param a one
