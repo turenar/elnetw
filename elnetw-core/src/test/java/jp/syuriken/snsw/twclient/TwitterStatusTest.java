@@ -47,9 +47,7 @@ public class TwitterStatusTest {
 	/*package*/static class TestObj {
 
 		/*package*/ String json;
-
 		/*package*/ List<String> entity = new ArrayList<String>();
-
 		public Object text;
 	}
 

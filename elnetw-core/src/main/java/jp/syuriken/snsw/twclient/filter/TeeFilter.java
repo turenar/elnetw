@@ -24,18 +24,13 @@ import twitter4j.UserList;
 public class TeeFilter implements TabRenderer, PropertyChangeListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
-
 	private final String filterPropertyName;
-
 	private final ClientProperties configProperties;
-
 	private final MessageFilter[] globalFilters;
-
 	private FilterDispatcherBase filterQuery;
-
 	private TabRenderer renderer;
-
 	private ClientConfiguration configuration;
+	private TreeSet<Long> statusSet = new TreeSet<>();
 
 	/**
 	 * インスタンスを生成する。グローバルフィルタを使用する。
@@ -365,8 +360,6 @@ public class TeeFilter implements TabRenderer, PropertyChangeListener {
 		}
 		renderer.onUserListUpdate(listOwner, list);
 	}
-
-	private TreeSet<Long> statusSet = new TreeSet<>();
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {

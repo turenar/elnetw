@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 public final class VersionInfo {
 
 	private static final Logger logger = LoggerFactory.getLogger(VersionInfo.class);
-
 	/** バージョン情報が格納されたファイルのResourceBundle */
 	public static final Properties VERSION_INFO_RESOURCE;
 
@@ -34,7 +33,6 @@ public final class VersionInfo {
 
 	/** 情報が取得できなかった時の文字列 */
 	public static final String UNKNOWN_STRING = "<unknown>";
-
 
 	/**
 	 * Artifact IDを返す

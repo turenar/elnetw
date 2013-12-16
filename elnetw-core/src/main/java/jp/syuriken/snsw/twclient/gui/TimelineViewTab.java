@@ -13,7 +13,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.StatusData;
 import jp.syuriken.snsw.twclient.StatusPanel;
 import jp.syuriken.snsw.twclient.TwitterStatus;
-import jp.syuriken.snsw.twclient.Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;

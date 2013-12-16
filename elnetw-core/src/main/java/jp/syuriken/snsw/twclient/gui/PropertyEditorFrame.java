@@ -46,7 +46,7 @@ public class PropertyEditorFrame extends JFrame {
 
 		private static final long serialVersionUID = 1L;
 
-		Class<?>[] types = new Class<?>[]{
+		Class<?>[] types = new Class<?>[] {
 				String.class,
 				String.class,
 		};
@@ -285,7 +285,7 @@ public class PropertyEditorFrame extends JFrame {
 		ClientProperties configProperties = configuration.getConfigProperties();
 		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements(); ) {
 			String key = (String) enumeration.nextElement();
-			tableModel.addRow(new Object[]{
+			tableModel.addRow(new Object[] {
 					key,
 					configProperties.getProperty(key)
 			});

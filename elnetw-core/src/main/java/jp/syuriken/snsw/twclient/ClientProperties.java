@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientProperties extends Properties {
 
-	private static final long serialVersionUID = 7476401456972225006L;
+	private static final long serialVersionUID = -9065135476197360347L;
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";

@@ -326,9 +326,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	/** バリューセット (キャッシュ) */
 	protected transient Values values;
 
-	/**
-	 * インスタンスを生成する。
-	 */
+	/** インスタンスを生成する。 */
 	public ConcurrentSoftHashMap() {
 		this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
 	}

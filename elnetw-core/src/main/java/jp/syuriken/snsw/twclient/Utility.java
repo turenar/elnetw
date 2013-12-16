@@ -300,7 +300,7 @@ public class Utility {
 	}
 
 	static {
-		privacyEntries = new KVEntry[]{
+		privacyEntries = new KVEntry[] {
 				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
 				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
@@ -425,7 +425,7 @@ public class Utility {
 
 		for (String browser : browsers) {
 			try {
-				if (Runtime.getRuntime().exec(new String[]{
+				if (Runtime.getRuntime().exec(new String[] {
 						"which",
 						browser
 				}).waitFor() == 0) {
@@ -485,15 +485,15 @@ public class Utility {
 	 *
 	 * @param url 開くURL
 	 * @return <dl>
-	 *         <dt>HeadlessException</dt><dd>GUIを使用できない</dd>
-	 *         <dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 *         <dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
-	 *         <dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
-	 *         <dt>IOException</dt><dd>IOエラーが発生</dd>
-	 *         <dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 *         <dt>SecurityException</dt><dd>セキュリティ例外</dd>
-	 *         <dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
-	 *         </dl>
+	 * <dt>HeadlessException</dt><dd>GUIを使用できない</dd>
+	 * <dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 * <dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
+	 * <dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
+	 * <dt>IOException</dt><dd>IOエラーが発生</dd>
+	 * <dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
+	 * <dt>SecurityException</dt><dd>セキュリティ例外</dd>
+	 * <dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
+	 * </dl>
 	 */
 	public Throwable openBrowser(String url) {
 		detectOS();
@@ -506,16 +506,16 @@ public class Utility {
 					Class<?> fileMgr = null;
 					fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class<?>[]{
+					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class<?>[] {
 							String.class
 					});
-					openURL.invoke(null, new Object[]{
+					openURL.invoke(null, new Object[] {
 							url.trim()
 					});
 					break;
 				case OTHER:
 					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[]{
+					Runtime.getRuntime().exec(new String[] {
 							browser,
 							url.trim()
 					});

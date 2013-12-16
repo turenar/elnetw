@@ -151,7 +151,7 @@ public class TwitterClientMain {
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
-		LongOpt[] longOpts = new LongOpt[]{
+		LongOpt[] longOpts = new LongOpt[] {
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
 		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
@@ -194,7 +194,7 @@ public class TwitterClientMain {
 		configuration.addActionHandler("list", new ListActionHandler());
 		configuration.addActionHandler("hashtag", new HashtagActionHandler());
 		configuration.addActionHandler("search", new SearchActionHandler());
-		configuration.addActionHandler("openimg",new OpenImageActionHandler());
+		configuration.addActionHandler("openimg", new OpenImageActionHandler());
 		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
 		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
@@ -557,7 +557,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
 	public void setFetcherFactory() {
-		fetchScheduler.addVirtualNotifier("my/timeline", new String[]{"stream/user", "statuses/timeline"});
+		fetchScheduler.addVirtualNotifier("my/timeline", new String[] {"stream/user", "statuses/timeline"});
 		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
 		fetchScheduler.addFetcherFactory("statuses/timeline", new TimelineFetcherFactory());
 		fetchScheduler.addFetcherFactory("statuses/mentions", new MentionsFetcherFactory());

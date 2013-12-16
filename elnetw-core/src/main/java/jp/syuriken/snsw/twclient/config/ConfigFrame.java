@@ -39,11 +39,8 @@ public class ConfigFrame extends JFrame {
 		}
 	}
 
-
 	/*package*/static ConfigFrame openingFrame;
-
 	private static Object staticHolder = new Object();
-
 
 	/**
 	 * 指定された設定の配列からフレームを生成する。すでにフレームが存在したときはそのフレームを返す。
@@ -126,7 +123,6 @@ public class ConfigFrame extends JFrame {
 		openingFrame.pack();
 		return openingFrame;
 	}
-
 
 	/*package*/final ClientProperties properties;
 

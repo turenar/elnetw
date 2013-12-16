@@ -17,7 +17,6 @@ public class InRetweetFilterFunction implements FilterFunction {
 
 	private static Constructor<InRetweetFilterFunction> constructor;
 
-
 	/**
 	 * ファクトリーメソッドを取得する。
 	 *
@@ -26,7 +25,6 @@ public class InRetweetFilterFunction implements FilterFunction {
 	public static Constructor<? extends FilterFunction> getFactory() {
 		return constructor;
 	}
-
 
 	private FilterDispatcherBase child;
 

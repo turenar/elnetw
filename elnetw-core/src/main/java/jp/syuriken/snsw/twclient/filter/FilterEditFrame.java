@@ -41,7 +41,6 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 
 		/** 関数の深さ */
 		protected transient int queryDepth;
-
 		/** 抽出設定かどうか */
 		protected boolean isExtract;
 
@@ -176,13 +175,9 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	}
 
 	private String propertyKey;
-
 	private ClientProperties properties;
-
 	private JTextArea filterEditTextArea;
-
 	private JRadioButton excludeOptionButton;
-
 	private JRadioButton extractOptionButton;
 
 	/**

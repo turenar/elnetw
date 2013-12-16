@@ -34,7 +34,6 @@ public class CacheManager {
 	protected class StatusFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		private final Logger logger = LoggerFactory.getLogger(StatusFetcher.class);
-
 		private long statusId;
 
 		/**
@@ -68,7 +67,6 @@ public class CacheManager {
 	private class UserFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		private final Logger logger = LoggerFactory.getLogger(UserFetcher.class);
-
 		private long[] userIds;
 
 		/**
@@ -100,28 +98,20 @@ public class CacheManager {
 
 	/** エラー時に格納するUser */
 	protected static final User ERROR_USER = new NullUser();
-
 	/** エラー時に格納するStatus */
 	protected static final Status ERROR_STATUS = new NullStatus();
-
 	/** リクエストごとの最大User要求数 */
 	protected static final int MAX_USERS_PER_LOOKUP_REQUEST = 100;
-
 	/** StatusをキャッシュするMap */
 	protected final ConcurrentSoftHashMap<Long, Status> statusCacheMap;
-
 	/** UserをキャッシュするMap */
 	protected final ConcurrentSoftHashMap<Long, User> userCacheMap;
-
 	/** Userのキャッシュ待ちキュー */
 	protected final ConcurrentLinkedQueue<Long> userCacheQueue;
-
 	/** Userのキャッシュ待ちキューの長さ */
 	protected final AtomicInteger userCacheQueueLength;
-
 	/** Twitterインスタンス */
 	protected final Twitter twitter;
-
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 

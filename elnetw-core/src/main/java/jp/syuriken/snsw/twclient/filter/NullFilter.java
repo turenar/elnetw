@@ -12,7 +12,6 @@ public class NullFilter implements FilterDispatcherBase {
 
 	private static final FilterDispatcherBase instance = new NullFilter();
 
-
 	/**
 	 * 唯一インスタンスを取得する。
 	 *

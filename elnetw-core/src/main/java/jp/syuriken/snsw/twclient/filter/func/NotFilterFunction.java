@@ -17,6 +17,15 @@ public class NotFilterFunction implements FilterFunction {
 
 	private static Constructor<NotFilterFunction> constructor;
 
+	/**
+	 * コンストラクタを取得する。
+	 *
+	 * @return コンストラクタ
+	 */
+	public static Constructor<NotFilterFunction> getFactory() {
+		return constructor;
+	}
+
 	private final FilterDispatcherBase child;
 
 	static {
@@ -25,16 +34,6 @@ public class NotFilterFunction implements FilterFunction {
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
-	}
-
-
-	/**
-	 * コンストラクタを取得する。
-	 *
-	 * @return コンストラクタ
-	 */
-	public static Constructor<NotFilterFunction> getFactory() {
-		return constructor;
 	}
 
 	/**

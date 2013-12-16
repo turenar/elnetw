@@ -162,6 +162,7 @@ public class MentionViewTab extends DefaultClientTab {
 			// do nothing
 		}
 	}
+
 	private static final String TAB_ID = "mention";
 	/** レンダラ */
 	protected TabRenderer renderer = new MentionRenderer();

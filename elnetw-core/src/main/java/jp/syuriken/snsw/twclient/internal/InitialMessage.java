@@ -19,7 +19,6 @@ import twitter4j.UserMentionEntity;
 public class InitialMessage implements DirectMessage {
 
 	private static final long serialVersionUID = -646279578339845549L;
-
 	private final DirectMessage originalMessage;
 
 
@@ -58,11 +57,6 @@ public class InitialMessage implements DirectMessage {
 	}
 
 	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return originalMessage.getSymbolEntities();
-	}
-
-	@Override
 	public RateLimitStatus getRateLimitStatus() {
 		return originalMessage.getRateLimitStatus();
 	}
@@ -95,6 +89,11 @@ public class InitialMessage implements DirectMessage {
 	@Override
 	public String getSenderScreenName() {
 		return originalMessage.getSenderScreenName();
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return originalMessage.getSymbolEntities();
 	}
 
 	@Override

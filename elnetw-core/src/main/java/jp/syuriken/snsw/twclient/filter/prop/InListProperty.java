@@ -41,7 +41,6 @@ public class InListProperty implements FilterProperty {
 
 		/** リストID */
 		protected int listId;
-
 		private Logger logger = LoggerFactory.getLogger(UserFollewedByListFetcher.class);
 
 
@@ -136,7 +135,6 @@ public class InListProperty implements FilterProperty {
 	}
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(InListProperty.class);
-
 	private static final Constructor<? extends FilterProperty> factory;
 
 	/**
@@ -150,15 +148,11 @@ public class InListProperty implements FilterProperty {
 
 	/** 設定 */
 	protected ClientConfiguration configuration;
-
 	private boolean isEqual;
-
 	/** (:&lt;listId&gt;|&lt;listName&gt;|@&lt;owner&gt;/&lt;listName&gt;) */
 	protected String listIdentifier;
-
 	/** リストでフォローされているユーザーIDの配列 (ソート済み) */
 	protected long[] userIdsFollowedByList;
-
 	/** リストフェッチャ */
 	protected UserFollewedByListFetcher listFetcher;
 

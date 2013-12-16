@@ -22,15 +22,10 @@ import twitter4j.UserMentionEntity;
 public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 
 	private static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
-
 	private static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
-
 	private final ClientConfiguration configuration;
-
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
-
 	private TreeSet<Long> filterIds;
-
 	private FilterDispatcherBase query;
 
 

@@ -18,7 +18,6 @@ public class VersionComparator {
 	}
 
 	private static final String OP_CHARS = "~\\-_\\.+";
-
 	/** Version Pattern */
 	public static final String VERSION_PATTERN_STRING =
 		/**/"\\G(?:"
@@ -27,25 +26,7 @@ public class VersionComparator {
 		/*  */ + "|(?:[" + OP_CHARS + "])(?![" + OP_CHARS + "]|\\z)" // op (not followed by op or EndOfString)
 		/**/ + ")"
 		/**/ + "|\\G\\z"; // End Of String
-
 	private static final Pattern VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_STRING);
-
-	/**
-	 * check if version is valid.
-	 *
-	 * @param version version string
-	 * @return is valid version
-	 * @see #compareVersion(String, String)
-	 */
-	public static boolean isValidVersion(String version) {
-		Matcher srcMatcher = VERSION_PATTERN.matcher(version);
-		while (srcMatcher.find()) { // Is next region valid?
-			if (srcMatcher.group().isEmpty()) { // check End Of String
-				return true;
-			}
-		}
-		return false; // EndOfString returns true, but if illegal version returns false
-	}
 
 	/**
 	 * compare versions.
@@ -186,6 +167,23 @@ public class VersionComparator {
 		} else {
 			return VersionComponentType.OP;
 		}
+	}
+
+	/**
+	 * check if version is valid.
+	 *
+	 * @param version version string
+	 * @return is valid version
+	 * @see #compareVersion(String, String)
+	 */
+	public static boolean isValidVersion(String version) {
+		Matcher srcMatcher = VERSION_PATTERN.matcher(version);
+		while (srcMatcher.find()) { // Is next region valid?
+			if (srcMatcher.group().isEmpty()) { // check End Of String
+				return true;
+			}
+		}
+		return false; // EndOfString returns true, but if illegal version returns false
 	}
 
 	private VersionComparator() {

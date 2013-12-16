@@ -50,7 +50,6 @@ public class HTMLFactoryDelegator extends HTMLFactory {
 		}
 	}
 
-
 	@Override
 	public View create(Element elem) {
 		View view = super.create(elem);

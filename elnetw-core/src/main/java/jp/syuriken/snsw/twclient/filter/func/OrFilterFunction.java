@@ -17,6 +17,15 @@ public class OrFilterFunction implements FilterFunction {
 
 	private static Constructor<OrFilterFunction> constructor;
 
+	/**
+	 * コンストラクタを取得する。
+	 *
+	 * @return コンストラクタ
+	 */
+	public static Constructor<OrFilterFunction> getFactory() {
+		return constructor;
+	}
+
 	private final FilterDispatcherBase[] child;
 
 	static {
@@ -25,16 +34,6 @@ public class OrFilterFunction implements FilterFunction {
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
-	}
-
-
-	/**
-	 * コンストラクタを取得する。
-	 *
-	 * @return コンストラクタ
-	 */
-	public static Constructor<OrFilterFunction> getFactory() {
-		return constructor;
 	}
 
 	/**

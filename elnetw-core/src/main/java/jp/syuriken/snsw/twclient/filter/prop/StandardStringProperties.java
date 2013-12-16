@@ -17,11 +17,8 @@ import twitter4j.Status;
 public class StandardStringProperties implements FilterProperty {
 
 	private static final byte PROPERTY_ID_USER = 1;
-
 	private static final byte PROPERTY_ID_TEXT = 2;
-
 	private static final byte PROPERTY_ID_CLIENT = 3;
-
 	private static Constructor<? extends FilterProperty> factory;
 
 	/**
@@ -34,9 +31,7 @@ public class StandardStringProperties implements FilterProperty {
 	}
 
 	private FilterOperator operatorType;
-
 	private Object value;
-
 	private byte propertyId;
 
 	static {
