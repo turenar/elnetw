@@ -42,7 +42,7 @@ public class ClasspathEntry {
 		int pos = 0;
 		String libraryName = null;
 		String version = null;
-		while ((pos = libraryIdentifier.indexOf('-', pos)) != -1) {
+		while ((pos = libraryIdentifier.indexOf('-', pos + 1)) != -1) {
 			// regex:"-(.)"
 			if (pos + 1 >= len) {
 				break; // libraryIdentifier does not have $1
