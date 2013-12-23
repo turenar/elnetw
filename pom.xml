@@ -158,6 +158,9 @@
 					<target>1.7</target>
 					<compilerVersion>1.7</compilerVersion>
 					<encoding>UTF-8</encoding>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>
