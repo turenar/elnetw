@@ -90,7 +90,7 @@ public class CacheManager {
 				cacheUser(user);
 			}
 			for (long userId : userIds) {
-				if (isCachedUser(userId) == false) {
+				if (!isCachedUser(userId)) {
 					logger.info("not found: userId={}", userId);
 					userCacheMap.put(userId, ERROR_USER);
 				}
@@ -137,13 +137,9 @@ public class CacheManager {
 		float loadFactor = properties.getFloat("core.cache.data.load_factor");
 		int initialCapacity = properties.getInteger("core.cache.data.initial_capacity");
 
-		statusCacheMap =
-				new ConcurrentSoftHashMap<Long, Status>(configuration, concurrency,
-						loadFactor, initialCapacity);
-		userCacheMap =
-				new ConcurrentSoftHashMap<Long, User>(configuration, concurrency, loadFactor,
-						initialCapacity);
-		userCacheQueue = new ConcurrentLinkedQueue<Long>();
+		statusCacheMap = new ConcurrentSoftHashMap<>(concurrency, loadFactor, initialCapacity);
+		userCacheMap = new ConcurrentSoftHashMap<>(concurrency, loadFactor, initialCapacity);
+		userCacheQueue = new ConcurrentLinkedQueue<>();
 		userCacheQueueLength = new AtomicInteger();
 		twitter = configuration.getTwitterForRead();
 	}
@@ -381,7 +377,7 @@ public class CacheManager {
 		if (newLength < 0) {
 			newLength = 0;
 		}
-		if (userCacheQueueLength.compareAndSet(expectedLength, newLength) == false) {
+		if (!userCacheQueueLength.compareAndSet(expectedLength, newLength)) {
 			return false;
 		}
 
