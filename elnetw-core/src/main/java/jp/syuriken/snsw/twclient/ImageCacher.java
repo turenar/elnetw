@@ -5,13 +5,11 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.Icon;
@@ -19,6 +17,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
+import jp.syuriken.snsw.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.User;
@@ -29,7 +29,6 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ImageCacher {
-
 	protected static class ErrorImageEntry extends ImageEntry {
 
 		public final int responseCode;
@@ -99,6 +98,48 @@ public class ImageCacher {
 					"],isWritten=")
 					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
 			return stringBuilder.toString();
+		}
+	}
+
+	private class FetchEventHandlerImpl implements FetchEventHandler {
+		private final Logger logger = LoggerFactory.getLogger(FetchEventHandlerImpl.class);
+		private ImageEntry entry;
+		private URL url;
+
+		public FetchEventHandlerImpl(ImageEntry entry, URL url) {
+			this.entry = entry;
+			this.url = url;
+		}
+
+		@Override
+		public void onContentLength(int contentLength) throws InterruptedException {
+		}
+
+		@Override
+		public void onException(URLConnection connection, IOException e) {
+			if (connection instanceof HttpURLConnection) {
+				int responseCode;
+				try {
+					responseCode = ((HttpURLConnection) connection).getResponseCode();
+					if (responseCode >= 400 && responseCode < 500) {
+						// url is not local cache
+						cachedImages.put(entry.imageKey, new ErrorImageEntry(url, (HttpURLConnection) connection));
+						if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+							logger.warn("not found: url={}", url);
+						} else {
+							logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
+						}
+					}
+				} catch (IOException responseCodeException) {
+					logger.warn("Cannot retrieve http status code", responseCodeException);
+				}
+			} else {
+				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+			}
+		}
+
+		@Override
+		public void onLoaded(int imageLen) throws InterruptedException {
 		}
 	}
 
@@ -178,12 +219,6 @@ public class ImageCacher {
 		}
 	}
 
-	private static final int BUFFER_SIZE = 65536;
-
-	private static byte[] copyOfRange(byte[] data, int imageLen) {
-		return data.length == imageLen ? data : Arrays.copyOfRange(data, 0, imageLen);
-	}
-
 	private final ClientConfiguration configuration;
 	/** キャッシュ出力先ディレクトリ */
 	public final File cacheDir;
@@ -248,74 +283,7 @@ public class ImageCacher {
 	}
 
 	private byte[] fetchContents(ImageEntry entry, URL url) throws InterruptedException {
-		URLConnection connection = null;
-		try {
-			connection = url.openConnection();
-			int contentLength = connection.getContentLength();
-			InputStream stream = connection.getInputStream();
-
-			/*
-			Local File URL InputStream read(buf, start, 0) always returns 0
-			Http URL InputStream read(buf, start, 0) returns 0 or -1
-			Should InputStream have isEOF()?
-
-			We have more cases to get image from http than from local cache,
-			 so I think we should optimize for http.
-			*/
-			int bufLength = contentLength < 0 ? BUFFER_SIZE : contentLength;
-			byte[] data = new byte[bufLength];
-			int imageLen = 0;
-			int loadLen;
-			while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
-				imageLen += loadLen;
-
-				if (loadLen == 0 && bufLength == imageLen) {
-					int nextByte = stream.read();
-					if (nextByte == -1) {
-						break;
-					} else {
-						bufLength = bufLength << 1;
-						if (bufLength < 0) {
-							bufLength = Integer.MAX_VALUE;
-						}
-						byte[] newData = new byte[bufLength];
-						System.arraycopy(data, 0, newData, 0, imageLen);
-						newData[imageLen++] = (byte) nextByte;
-						data = newData;
-					}
-				}
-
-				logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
-
-				synchronized (this) {
-					wait(1);
-				}
-			}
-			stream.close(); // help keep-alive
-
-			return copyOfRange(data, imageLen);
-		} catch (IOException e) {
-			if (connection instanceof HttpURLConnection) {
-				int responseCode;
-				try {
-					responseCode = ((HttpURLConnection) connection).getResponseCode();
-					if (responseCode >= 400 && responseCode < 500) {
-						// url is not local cache
-						cachedImages.put(entry.imageKey, new ErrorImageEntry(url, (HttpURLConnection) connection));
-						if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-							logger.warn("not found: url={}", url);
-						} else {
-							logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
-						}
-					}
-				} catch (IOException responseCodeException) {
-					logger.warn("Cannot retrieve http status code", responseCodeException);
-				}
-			} else {
-				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
-			}
-			return null;
-		}
+		return NetworkSupport.fetchContents(url, new FetchEventHandlerImpl(entry, url));
 	}
 
 	/**

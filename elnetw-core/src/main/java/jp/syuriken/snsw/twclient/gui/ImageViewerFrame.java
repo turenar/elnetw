@@ -6,7 +6,6 @@ import java.awt.Toolkit;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
@@ -17,6 +16,8 @@ import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
+import jp.syuriken.snsw.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +29,12 @@ import static jp.syuriken.snsw.twclient.JobQueue.Priority;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ImageViewerFrame extends JFrame implements WindowListener {
-	protected class ImageFetcher implements ParallelRunnable {
+	protected class ImageFetcher implements ParallelRunnable, FetchEventHandler {
 		private final Logger logger = LoggerFactory.getLogger(ImageFetcher.class);
 		private final URL url;
 		/** フレームが閉じられた */
-		private boolean isInterrupted;
+		private volatile boolean isInterrupted;
+		private int contentLength;
 
 		public ImageFetcher(URL url) {
 			this.url = url;
@@ -44,73 +46,51 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 
 		@Override
+		public void onContentLength(int contentLength) throws InterruptedException {
+			this.contentLength = contentLength;
+			onLoaded(0);
+		}
+
+		@Override
+		public void onException(URLConnection connection, IOException e) {
+			logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+		}
+
+		@Override
+		public void onLoaded(int imageLen) throws InterruptedException {
+			if (isInterrupted) {
+				throw new InterruptedException();
+			} else if (contentLength == -1) {
+				updateImageLabel("読込中(" + imageLen + ")");
+			} else {
+				updateImageLabel("読込中(" + imageLen + "/" + contentLength + ")");
+			}
+		}
+
+		@Override
 		public void run() {
-			URLConnection connection;
+			byte[] contents;
 			try {
-				updateImageLabel("コネクションを開いています...");
-				connection = url.openConnection();
-
-				int contentLength = connection.getContentLength();
-				InputStream stream = connection.getInputStream();
-				int bufLength = contentLength < 0 ? BUFSIZE : contentLength + 1;
-				byte[] data = new byte[bufLength];
-				int imageLen = 0;
-				int loadLen;
-				while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
-					imageLen += loadLen;
-
-					if (contentLength == -1) {
-						updateImageLabel("読込中(" + imageLen + ")");
+				contents = NetworkSupport.fetchContents(url, this);
+				if (contents != null) {
+					final Image image = Toolkit.getDefaultToolkit().createImage(contents);
+					final ImageIcon imageIcon = new ImageIcon(image);
+					if (imageIcon.getIconHeight() < 0) {
+						updateImageLabel("画像のロードに失敗したもよう");
 					} else {
-						updateImageLabel("読込中(" + imageLen + "/" + contentLength + ")");
-					}
-
-					if (bufLength == imageLen) {
-						bufLength = bufLength << 1;
-						if (bufLength < 0) {
-							bufLength = Integer.MAX_VALUE;
-						}
-						byte[] newData = new byte[bufLength];
-						System.arraycopy(data, 0, newData, 0, imageLen);
-						data = newData;
-					}
-
-					logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
-
-					synchronized (this) {
-						try {
-							if (isInterrupted) {
-								logger.debug("Viewer frame closed: cancel fetch");
-								return;
-							} else {
-								wait(1);
+						EventQueue.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								getComponentImageLabel().setText(null);
+								getComponentImageLabel().setIcon(imageIcon);
+								pack();
+								setIconImage(image);
 							}
-						} catch (InterruptedException e) {
-							updateImageLabel("割り込まれました");
-							Thread.currentThread().interrupt();
-							stream.close(); // throw remain data away
-							return;
-						}
+						});
 					}
 				}
-				stream.close(); // help keep-alive
-				final Image image = Toolkit.getDefaultToolkit().createImage(data, 0, imageLen);
-				final ImageIcon imageIcon = new ImageIcon(image);
-				if (imageIcon.getIconHeight() < 0) {
-					updateImageLabel("画像のロードに失敗したもよう");
-				} else {
-					EventQueue.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							getComponentImageLabel().setText(null);
-							getComponentImageLabel().setIcon(imageIcon);
-							pack();
-							setIconImage(image);
-						}
-					});
-				}
-			} catch (IOException e) {
-				logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+			} catch (InterruptedException e) {
+				updateImageLabel("割り込まれました");
 			}
 		}
 
@@ -124,8 +104,6 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 	}
 
-	private static final int BUFSIZE = 65536;
-	private static Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
 	private final URL url;
 	private JLabel imageLabel;
 	private ImageViewerFrame.ImageFetcher imageFetcher;
