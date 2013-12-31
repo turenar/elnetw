@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -107,6 +108,26 @@ public class SortedPostListPanel extends JPanel {
 
 	private static final long serialVersionUID = -2699588004179912235L;
 	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
+
+	private static int binarySearch(JComponent panel, StatusPanel key, int start) {
+		int low = start;
+		int high = panel.getComponentCount() - 1;
+
+		while (low <= high) {
+			int mid = (low + high) >>> 1;
+			StatusPanel midVal = (StatusPanel) panel.getComponent(mid);
+			int cmp = midVal.compareTo(key);
+
+			if (cmp > 0) {
+				low = mid + 1;
+			} else if (cmp < 0) {
+				high = mid - 1;
+			} else {
+				throw new IllegalArgumentException("duplicate id"); // key found
+			}
+		}
+		return low;  // key not found
+	}
 
 	/**
 	 * {@link StatusPanel} を日時で比較する。
@@ -246,37 +267,36 @@ public class SortedPostListPanel extends JPanel {
 			ListIterator<JPanel> listIteratorOfBranches, boolean addAll) {
 		Component lastOfBranch = addAll ? null : branch.getComponent(branch.getComponentCount() - 1);
 		if (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
-			LinkedList<Component> newBranchItems = new LinkedList<>();
+			// binarySearch+insert is usually faster than mergeSort+clear
 			synchronized (branch.getTreeLock()) {
-				Collections.addAll(newBranchItems, branch.getComponents());
-			}
-
-			do {
-				StatusPanel panel = values.pollFirst();
-				int insertPos = Collections.binarySearch(newBranchItems, panel,
-						ComponentComparator.SINGLETON);
-				if (insertPos < 0) {
+				int insertPos = 0; // values is sorted, I skip before inserted element
+				do {
+					StatusPanel panel = values.pollFirst();
+					insertPos = binarySearch(branch, panel, insertPos);
 					// I already values.first should be added into branch
-					newBranchItems.add((-insertPos - 1), panel);
-				}
-				size++;
-			} while (!values.isEmpty() && compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0);
+					branch.add(panel, insertPos);
+					size++;
+				} while (!values.isEmpty() && compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0);
+				int componentCount = branch.getComponentCount();
 
-			ListIterator<Component> componentListIterator = newBranchItems.listIterator();
-			boolean panelAppendFlag = newBranchItems.size() > (leafSize << 1);
-			int max = panelAppendFlag ? (newBranchItems.size() >>> 1) : newBranchItems.size();
-			branch.removeAll();
-			for (int i = 0; i < max; i++) {
-				branch.add(componentListIterator.next());
-			}
-			if (panelAppendFlag) {
-				JPanel panel = createPanel();
-				for (; componentListIterator.hasNext(); ) {
-					panel.add(componentListIterator.next());
+				boolean panelAppendFlag = componentCount > (leafSize << 1);
+				if (panelAppendFlag) {
+					int min = componentCount >>> 1;
+					int len = componentCount - min;
+					Component[] array = new Component[len];
+					JPanel panel = createPanel();
+					for (int i = len - 1; i >= 0; i--) {
+						int j = min + i;
+						array[i] = branch.getComponent(j);
+						branch.remove(j);
+					}
+					for (int i = 0; i < len; i++) {
+						panel.add(array[i]);
+					}
+					int indexOfAddedPanel = listIteratorOfBranches.nextIndex();
+					listIteratorOfBranches.add(panel);
+					super.add(panel, indexOfAddedPanel);
 				}
-				int indexOfAddedPanel = listIteratorOfBranches.nextIndex();
-				listIteratorOfBranches.add(panel);
-				super.add(panel, indexOfAddedPanel);
 			}
 		}
 	}
