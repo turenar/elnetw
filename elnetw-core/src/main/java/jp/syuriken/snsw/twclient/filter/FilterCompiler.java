@@ -35,7 +35,6 @@ public class FilterCompiler implements FilterParserVisitor {
 
 		/** 演算子 */
 		protected String operator;
-
 		/** 値 */
 		protected Object value;
 	}
@@ -57,7 +56,6 @@ public class FilterCompiler implements FilterParserVisitor {
 	/** constructor ( FilterDispatcherBase ) */
 	protected static final HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories =
 			new HashMap<String, Constructor<? extends FilterFunction>>();
-
 	/** constructor ( String, String, String) */
 	protected static final HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories =
 			new HashMap<String, Constructor<? extends FilterProperty>>();

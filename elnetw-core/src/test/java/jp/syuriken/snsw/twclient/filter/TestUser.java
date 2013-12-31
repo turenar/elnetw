@@ -50,6 +50,11 @@ class TestUser implements User {
 	}
 
 	@Override
+	public URLEntity[] getDescriptionURLEntities() {
+		return new URLEntity[0];
+	}
+
+	@Override
 	public int getFavouritesCount() {
 		return 0;
 	}
@@ -114,15 +119,15 @@ class TestUser implements User {
 		return null;
 	}
 
+	@Override
+	public String getProfileBackgroundImageURL() {
+		return null;
+	}
+
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
 	public String getProfileBackgroundImageUrl() {
-		return null;
-	}
-
-	@Override
-	public String getProfileBackgroundImageURL() {
 		return null;
 	}
 
@@ -166,15 +171,15 @@ class TestUser implements User {
 		return null;
 	}
 
+	@Override
+	public String getProfileImageURLHttps() {
+		return null;
+	}
+
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override
 	public URL getProfileImageUrlHttps() {
-		return null;
-	}
-
-	@Override
-	public String getProfileImageURLHttps() {
 		return null;
 	}
 
@@ -229,6 +234,11 @@ class TestUser implements User {
 	}
 
 	@Override
+	public URLEntity getURLEntity() {
+		return null;
+	}
+
+	@Override
 	public int getUtcOffset() {
 		return 0;
 	}
@@ -241,16 +251,6 @@ class TestUser implements User {
 	@Override
 	public boolean isFollowRequestSent() {
 		return false;
-	}
-
-	@Override
-	public URLEntity[] getDescriptionURLEntities() {
-		return new URLEntity[0];
-	}
-
-	@Override
-	public URLEntity getURLEntity() {
-		return null;
 	}
 
 	@Override

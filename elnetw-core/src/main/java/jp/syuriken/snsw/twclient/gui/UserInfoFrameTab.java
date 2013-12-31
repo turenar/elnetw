@@ -145,10 +145,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param jsonString シリアル化されたデータ
-	 * @throws twitter4j.internal.org.json.JSONException
-	 *          JSON例外
-	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException
-	 *          クエリエラー
+	 * @throws twitter4j.internal.org.json.JSONException               JSON例外
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException クエリエラー
 	 */
 	public UserInfoFrameTab(String jsonString) throws JSONException,
 			IllegalSyntaxException {

@@ -35,17 +35,11 @@ public class ScrollUtility {
 	}
 
 	private static final int MAX_SPEED = 100;
-
 	private final JScrollPane scrollPane;
-
 	private final BoundsTranslator translator;
-
 	/*package*/ int deltaY;
-
 	/*package*/ Timer scrollTimer;
-
 	/*package*/ JComponent target;
-
 	private boolean momemtumEnabled;
 
 	/**

@@ -32,7 +32,6 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 
 		/** 表示名 */
 		protected String displayString;
-
 		/** プロパティキー */
 		protected String propertyKey;
 
@@ -54,11 +53,8 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 		}
 	}
 
-
 	private JComboBox<KVItem> filterChooser;
-
 	private ClientConfiguration configuration;
-
 	private JButton editButton;
 
 

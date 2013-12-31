@@ -98,6 +98,17 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public abstract class DefaultClientTab implements ClientTab {
 
+	/** Entityの開始位置を比較する */
+	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
+
+		private static final long serialVersionUID = 8166780199866981253L;
+
+		@Override
+		public int compare(TweetEntity o1, TweetEntity o2) {
+			return o1.getStart() - o2.getStart();
+		}
+	}
+
 	/**
 	 * レンダラ。このクラスをextendすることによりリスト移動やステータスの受信はできるようになるかも。
 	 *
@@ -422,17 +433,6 @@ public abstract class DefaultClientTab implements ClientTab {
 
 		@Override
 		public void onUserProfileUpdate(User updatedUser) {
-		}
-	}
-
-	/** Entityの開始位置を比較する */
-	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
-
-		private static final long serialVersionUID = 8166780199866981253L;
-
-		@Override
-		public int compare(TweetEntity o1, TweetEntity o2) {
-			return o1.getStart() - o2.getStart();
 		}
 	}
 

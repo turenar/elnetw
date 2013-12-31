@@ -17,17 +17,11 @@ import twitter4j.Status;
 public class StandardBooleanProperties implements FilterProperty {
 
 	private static final byte PROPERTY_ID_RETWEETED = 1;
-
 	private static final byte PROPERTY_ID_MINE = 2;
-
 	private static final byte PROPERTY_ID_PROTECTED = 3;
-
 	private static final byte PROPERTY_ID_VERIFIED = 4;
-
 	private static final byte PROPERTY_ID_DM = 5;
-
 	private static final byte PROPERTY_ID_STATUS = 6;
-
 	private static Constructor<? extends FilterProperty> factory;
 
 	/**
@@ -40,11 +34,8 @@ public class StandardBooleanProperties implements FilterProperty {
 	}
 
 	private final FilterOperator operatorType;
-
 	private final boolean value;
-
 	private final byte propertyId;
-
 	private final ClientConfiguration configuration;
 
 	static {

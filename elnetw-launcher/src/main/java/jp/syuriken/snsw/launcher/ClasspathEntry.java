@@ -15,9 +15,7 @@ public class ClasspathEntry {
 
 
 	private final String libraryName;
-
 	private String libraryVersion;
-
 	private URL libraryUrl;
 
 	/**

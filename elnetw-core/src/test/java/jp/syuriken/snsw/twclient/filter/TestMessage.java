@@ -16,7 +16,6 @@ import twitter4j.UserMentionEntity;
 class TestMessage implements DirectMessage {
 
 	private final long sender;
-
 	private final long recipient;
 
 
@@ -48,11 +47,6 @@ class TestMessage implements DirectMessage {
 	@Override
 	public MediaEntity[] getMediaEntities() {
 		return null;
-	}
-
-	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return new SymbolEntity[0];
 	}
 
 	@Override
@@ -88,6 +82,11 @@ class TestMessage implements DirectMessage {
 	@Override
 	public String getSenderScreenName() {
 		return null;
+	}
+
+	@Override
+	public SymbolEntity[] getSymbolEntities() {
+		return new SymbolEntity[0];
 	}
 
 	@Override

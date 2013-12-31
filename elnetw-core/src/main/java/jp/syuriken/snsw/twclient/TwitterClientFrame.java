@@ -564,7 +564,6 @@ import static java.lang.Math.max;
 		return configuration.addActionHandler(name, handler);
 	}
 
-
 	@Override
 	public void addShortcutKey(String keyString, String actionName) {
 		shortcutKeyMap.put(keyString, actionName);

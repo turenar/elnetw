@@ -19,7 +19,6 @@ import twitter4j.URLEntity;
 public class UrlActionHandler extends StatusActionHandlerBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(UrlActionHandler.class);
-
 	private final ClientConfiguration configuration;
 
 	public UrlActionHandler() {

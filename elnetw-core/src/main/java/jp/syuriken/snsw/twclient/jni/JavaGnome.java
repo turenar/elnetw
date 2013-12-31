@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
  */
 public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);
-
 	private static JavaGnome INSTANCE;
 
 	public static synchronized JavaGnome getInstance() {
@@ -24,7 +23,6 @@ public class JavaGnome {
 	}
 
 	private final ClassLoader extraClassLoader;
-
 	private final Class<?> versionClass;
 
 	public JavaGnome() {

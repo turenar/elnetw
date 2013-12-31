@@ -11,7 +11,7 @@ import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.TwitterAPIConfiguration;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * {@link QuoteTweetLengthCalculator}のためのテスト

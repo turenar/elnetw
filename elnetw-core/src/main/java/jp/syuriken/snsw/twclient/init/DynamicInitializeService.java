@@ -23,9 +23,7 @@ public class DynamicInitializeService extends InitializeService {
 	protected class InitConditionImpl implements InitCondition {
 
 		private final InitializerInfoImpl initializerInfo;
-
 		private final boolean initializingPhase;
-
 		private InitializeException failException;
 
 		protected InitConditionImpl(InitializerInfoImpl info, boolean isInitializingPhase) {
@@ -71,21 +69,13 @@ public class DynamicInitializeService extends InitializeService {
 	/** store initializer's information */
 	protected class InitializerInfoImpl implements InitializerInfo {
 		private final Method initializer;
-
 		private final Initializer annotation;
-
 		private final String phase;
-
 		private final Object instance;
-
 		private LinkedList<String> remainDependencies;
-
 		private int depCount;
-
 		private boolean isExecuted;
-
 		private boolean uninitable;
-
 		private boolean skip;
 
 		/**
@@ -298,22 +288,16 @@ public class DynamicInitializeService extends InitializeService {
 
 	/** configuration */
 	protected final ClientConfiguration configuration;
-
 	/** List of called initializer's name */
 	protected final HashSet<String> initializedSet;
-
 	/** Map of initializer */
 	protected HashMap<String, InitializerInfoImpl> initializerInfoMap;
-
 	/** K=name, V=List of depending on K */
 	protected HashMap<String, ArrayList<InitializerInfoImpl>> initializerDependencyMap;
-
 	/** Queue to invoke initializer */
 	protected LinkedList<InitializerInfoImpl> initQueue;
-
 	/** stack to invoke de-initializer */
 	protected Stack<InitializerInfoImpl> uninitStack;
-
 	private HashSet<String> phaseSet;
 
 	private DynamicInitializeService(ClientConfiguration configuration) {

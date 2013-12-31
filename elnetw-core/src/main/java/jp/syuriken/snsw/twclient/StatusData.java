@@ -15,40 +15,29 @@ import javax.swing.JPopupMenu;
  */
 public class StatusData {
 
+	private static AtomicLong uniqueLong = new AtomicLong(0xffffffff00000000L);
 	/** この情報が作られる要因となった元オブジェクト。nullの可能性があります。 */
 	public final Object tag;
-
-	/** イメージ部分用のコンポーネント */
-	public JComponent image;
-
-	/** 送信元表示用のコンポーネント */
-	public JComponent sentBy;
-
-	/** 実際のテキスト表示用のコンポーネント */
-	public JLabel data;
-
-	/** ポップアップメニュー */
-	public JPopupMenu popupMenu = null;
-
-	/** 背景色 */
-	public Color backgroundColor = Color.WHITE;
-
-	/** 前景色 */
-	public Color foregroundColor = Color.BLACK;
-
-	/** ツールチップ */
-	public String tooltip = null;
-
-	/** このクラスのインスタンスが作られる原因を作ったユーザー名 (Twitterユーザーじゃなくてもおk) */
-	public String user = null;
-
 	/** このクラスのインスタンスが作られる原因の発生日時 */
 	public final Date date;
-
 	/** ユニークなID */
 	public final long id;
-
-	private static AtomicLong uniqueLong = new AtomicLong(0xffffffff00000000L);
+	/** イメージ部分用のコンポーネント */
+	public JComponent image;
+	/** 送信元表示用のコンポーネント */
+	public JComponent sentBy;
+	/** 実際のテキスト表示用のコンポーネント */
+	public JLabel data;
+	/** ポップアップメニュー */
+	public JPopupMenu popupMenu = null;
+	/** 背景色 */
+	public Color backgroundColor = Color.WHITE;
+	/** 前景色 */
+	public Color foregroundColor = Color.BLACK;
+	/** ツールチップ */
+	public String tooltip = null;
+	/** このクラスのインスタンスが作られる原因を作ったユーザー名 (Twitterユーザーじゃなくてもおk) */
+	public String user = null;
 
 
 	/**

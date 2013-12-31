@@ -19,9 +19,7 @@ public class IntegerConfigType implements ConfigType {
 	private final class FocusAdapterExtension extends FocusAdapter {
 
 		private final String configKey;
-
 		private final JComponent component;
-
 		private final ConfigFrame listener;
 
 
@@ -37,11 +35,8 @@ public class IntegerConfigType implements ConfigType {
 		}
 	}
 
-
 	private final int minimum;
-
 	private final int maximum;
-
 	private final int multiplier;
 
 

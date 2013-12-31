@@ -9,7 +9,6 @@ import java.util.HashMap;
  */
 public class IntentArguments implements Cloneable {
 	private String intentName;
-
 	private HashMap<String, Object> extraArgs;
 
 	/**

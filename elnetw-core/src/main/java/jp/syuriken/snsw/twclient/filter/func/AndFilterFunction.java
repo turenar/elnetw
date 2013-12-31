@@ -15,8 +15,6 @@ import twitter4j.Status;
  */
 public class AndFilterFunction implements FilterFunction {
 
-	private FilterDispatcherBase[] child;
-
 	private static Constructor<AndFilterFunction> constructor;
 
 	static {
@@ -27,7 +25,6 @@ public class AndFilterFunction implements FilterFunction {
 		}
 	}
 
-
 	/**
 	 * コンストラクタを取得する。
 	 *
@@ -36,6 +33,8 @@ public class AndFilterFunction implements FilterFunction {
 	public static Constructor<AndFilterFunction> getFactory() {
 		return constructor;
 	}
+
+	private FilterDispatcherBase[] child;
 
 	/**
 	 * インスタンスを生成する。

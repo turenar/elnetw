@@ -16,7 +16,6 @@ import twitter4j.Status;
 public class ReplyActionHandler extends StatusActionHandlerBase {
 
 	private final ClientConfiguration configuration;
-
 	private final ClientFrameApi frameApi;
 
 	public ReplyActionHandler() {

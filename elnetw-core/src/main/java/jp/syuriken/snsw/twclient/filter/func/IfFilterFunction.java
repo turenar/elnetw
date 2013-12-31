@@ -23,9 +23,7 @@ public class IfFilterFunction implements FilterFunction {
 	}
 
 	private final FilterDispatcherBase trueCond;
-
 	private final FilterDispatcherBase falseCond;
-
 	private FilterDispatcherBase expr;
 
 	static {
@@ -41,8 +39,7 @@ public class IfFilterFunction implements FilterFunction {
 	 *
 	 * @param name  関数名
 	 * @param child 子要素
-	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException
-	 *          エラー
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException エラー
 	 */
 	public IfFilterFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
 		int len = child.length;

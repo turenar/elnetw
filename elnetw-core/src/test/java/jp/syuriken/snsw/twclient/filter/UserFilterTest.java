@@ -79,7 +79,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onFavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnFavorite() {
-		Status[] succStatuses = new Status[]{
+		Status[] succStatuses = new Status[] {
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -88,7 +88,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onFavorite(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onFavorite(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[]{
+		Status[] failStatuses = new Status[] {
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -112,7 +112,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onRetweet(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnRetweet() {
-		Status[] succStatuses = new Status[]{
+		Status[] succStatuses = new Status[] {
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -121,7 +121,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onRetweet(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onRetweet(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[]{
+		Status[] failStatuses = new Status[] {
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -151,7 +151,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onUnfavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnUnfavorite() {
-		Status[] succStatuses = new Status[]{
+		Status[] succStatuses = new Status[] {
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -160,7 +160,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onUnfavorite(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onUnfavorite(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[]{
+		Status[] failStatuses = new Status[] {
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),

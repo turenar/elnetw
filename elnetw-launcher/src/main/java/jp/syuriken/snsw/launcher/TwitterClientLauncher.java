@@ -71,7 +71,6 @@ public class TwitterClientLauncher {
 	}
 
 	private final String[] args;
-
 	private ArrayList<String> classpath = new ArrayList<String>();
 
 	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")

@@ -9,7 +9,7 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.json.DataObjectFactory;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * フィルタ・テスト用の定数等を格納したクラス。
@@ -46,7 +46,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	public static final FilterDispatcherBase TRUE_DISPATCHER = new BooleanFilterDispatcher(true);
 
 	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
-	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[]{
+	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[] {
 			this
 	};
 

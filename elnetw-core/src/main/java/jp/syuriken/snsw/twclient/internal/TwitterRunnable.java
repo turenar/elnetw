@@ -11,9 +11,7 @@ import twitter4j.TwitterException;
 public abstract class TwitterRunnable implements Runnable {
 
 	private int life = 10;
-
 	private boolean intoQueue;
-
 	protected ClientConfiguration configuration;
 
 

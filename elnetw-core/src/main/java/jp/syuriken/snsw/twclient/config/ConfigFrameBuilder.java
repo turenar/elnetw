@@ -25,17 +25,11 @@ public class ConfigFrameBuilder {
 	public static class Config implements Comparable<Config> {
 
 		private final String group;
-
 		private final String subgroup;
-
 		private final String configKey;
-
 		private final String description;
-
 		private final String hint;
-
 		private final ConfigType type;
-
 		private final int priority;
 
 
@@ -270,7 +264,6 @@ public class ConfigFrameBuilder {
 	public final class ConfigSubgroup {
 
 		private final String subgroup;
-
 		private final ConfigGroup group;
 
 
@@ -341,10 +334,8 @@ public class ConfigFrameBuilder {
 		}
 	}
 
-
-	private ArrayList<Config> configsList = new ArrayList<Config>();
-
 	private final ClientConfiguration configuration;
+	private ArrayList<Config> configsList = new ArrayList<Config>();
 
 
 	/**

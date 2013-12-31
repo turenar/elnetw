@@ -16,11 +16,8 @@ import jp.syuriken.snsw.twclient.ClientFrameApi;
 public class ActionButtonConfigType implements ConfigType {
 
 	private final String buttonText;
-
 	/*package*/final String actionCommand;
-
 	/*package*/final ClientFrameApi frameApi;
-
 	private final ActionListener ACTION_LISTENER = new ActionListener() {
 
 		@Override
