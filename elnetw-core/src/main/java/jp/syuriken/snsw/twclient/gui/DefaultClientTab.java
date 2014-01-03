@@ -515,23 +515,24 @@ public abstract class DefaultClientTab implements ClientTab {
 				@Override
 				public void run() {
 					LinkedList<StatusPanel> postListAddQueue = this$dct.postListAddQueue;
+					int size;
 					synchronized (postListAddQueue) {
-						int size = postListAddQueue.size();
-						JScrollPane postListScrollPane = this$dct.postListScrollPane;
-
-						postListScrollPane.invalidate();
-						Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-						if (viewPosition.y < this$dct.fontHeight) {
-							postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
-						} else {
-							postListScrollPane.getViewport().setViewPosition(
-									new Point(viewPosition.x, viewPosition.y
-											+ (this$dct.iconSize.height + PADDING_OF_POSTLIST) * size));
-						}
-						this$dct.getSortedPostListPanel().add(postListAddQueue);
-						postListScrollPane.validate();
+						size = this$dct.getSortedPostListPanel().add(postListAddQueue);
 					}
+					JScrollPane postListScrollPane = this$dct.postListScrollPane;
+
+					postListScrollPane.invalidate();
+					Point viewPosition = postListScrollPane.getViewport().getViewPosition();
+					if (viewPosition.y < this$dct.fontHeight) {
+						postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
+					} else {
+						postListScrollPane.getViewport().setViewPosition(
+								new Point(viewPosition.x, viewPosition.y
+										+ (this$dct.iconSize.height + PADDING_OF_POSTLIST) * size));
+					}
+					postListScrollPane.validate();
 				}
+
 			});
 		}
 	}

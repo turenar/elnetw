@@ -3,8 +3,7 @@ package jp.syuriken.snsw.twclient.internal;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.io.Serializable;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -81,15 +80,52 @@ import org.slf4j.LoggerFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class SortedPostListPanel extends JPanel {
+	private static class Bucket {
+		public static Bucket make(LinkedList<StatusPanel> list) {
+			int index = 0;
+			int size = list.size() < 64 ? list.size() : 64;
+			StatusPanel[] array = new StatusPanel[size];
+			while (!list.isEmpty()) {
+				array[index++] = list.pollFirst();
+				if (index >= size) {
+					break;
+				}
+			}
+			Arrays.sort(array, ComponentComparator.SINGLETON);
+			return new Bucket(array);
+		}
+
+		private final StatusPanel[] bucket;
+		private int nextIndex;
+
+		public Bucket(StatusPanel[] bucket) {
+			this.bucket = bucket;
+		}
+
+		public boolean isEmpty() {
+			return nextIndex >= bucket.length;
+		}
+
+		public StatusPanel peek() {
+			return isEmpty() ? null : bucket[nextIndex];
+		}
+
+		public StatusPanel poll() {
+			return isEmpty() ? null : bucket[nextIndex++];
+		}
+
+		public int size() {
+			return bucket.length;
+		}
+	}
 
 	/**
 	 * コンポーネントを比較する
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public static final class ComponentComparator implements Comparator<Component>, Serializable {
+	protected static final class ComponentComparator implements Comparator<StatusPanel> {
 
-		private static final long serialVersionUID = 815936876127042870L;
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
 
@@ -97,12 +133,8 @@ public class SortedPostListPanel extends JPanel {
 		}
 
 		@Override
-		public int compare(Component o1, Component o2) {
-			if (o1 instanceof StatusPanel && o2 instanceof StatusPanel) {
-				return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
-			} else {
-				throw new IllegalArgumentException("SortedPostListPanelに追加できるコンポーネントはStatusPanelだけです。");
-			}
+		public int compare(StatusPanel o1, StatusPanel o2) {
+			return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
 		}
 	}
 
@@ -210,21 +242,25 @@ public class SortedPostListPanel extends JPanel {
 	 *
 	 * @param values StatusPanelのLinkedList
 	 */
-	public synchronized void add(LinkedList<StatusPanel> values) {
+	public synchronized int add(LinkedList<StatusPanel> values) {
 		if (values.size() == 0) {
-			return;
+			return 0;
 		}
 
-		Collections.sort(values, ComponentComparator.SINGLETON);
+		Bucket bucket;
+		synchronized (values) {
+			bucket = Bucket.make(values);
+		}
+		long t = System.currentTimeMillis();
 
 		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
-			if (values.isEmpty()) {
+			if (bucket.isEmpty()) {
 				break;
 			}
 			JPanel branch = listIterator.next();
-			addPanelIntoBranch(values, branch, listIterator, false);
+			addPanelIntoBranch(bucket, branch, listIterator, false);
 		}
-		if (!values.isEmpty()) { // all are added into last
+		if (!bucket.isEmpty()) { // all are added into last
 			JPanel branch;
 			if (branches.isEmpty()) { // first branch
 				branch = createPanel();
@@ -233,17 +269,18 @@ public class SortedPostListPanel extends JPanel {
 			} else {
 				branch = branches.getLast();
 			}
-			addPanelIntoBranch(values, branch, branches.listIterator(branches.size()), true);
+			addPanelIntoBranch(bucket, branch, branches.listIterator(branches.size()), true);
 		}
-		if (values.size() != 0) {
+		if (!bucket.isEmpty()) {
 			throw new AssertionError();
 		}
 
 		tryRelease();
 		if (logger.isTraceEnabled()) {
-			logger.trace("{}", this);
+			logger.trace("add {}items: {}ms", bucket.size(), System.currentTimeMillis() - t);
 			assertSequence();
 		}
+		return bucket.size();
 	}
 
 	/**
@@ -263,20 +300,20 @@ public class SortedPostListPanel extends JPanel {
 		return this.add(comp);
 	}
 
-	private void addPanelIntoBranch(LinkedList<StatusPanel> values, JPanel branch,
+	private void addPanelIntoBranch(Bucket values, JPanel branch,
 			ListIterator<JPanel> listIteratorOfBranches, boolean addAll) {
 		Component lastOfBranch = addAll ? null : branch.getComponent(branch.getComponentCount() - 1);
-		if (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
+		if (compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0) {
 			// binarySearch+insert is usually faster than mergeSort+clear
 			synchronized (branch.getTreeLock()) {
 				int insertPos = 0; // values is sorted, I skip before inserted element
 				do {
-					StatusPanel panel = values.pollFirst();
+					StatusPanel panel = values.poll();
 					insertPos = binarySearch(branch, panel, insertPos);
 					// I already values.first should be added into branch
 					branch.add(panel, insertPos);
 					size++;
-				} while (!values.isEmpty() && compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0);
+				} while (!values.isEmpty() && compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0);
 				int componentCount = branch.getComponentCount();
 
 				boolean panelAppendFlag = componentCount > (leafSize << 1);
