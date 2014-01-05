@@ -81,29 +81,55 @@ import org.slf4j.LoggerFactory;
  */
 public class SortedPostListPanel extends JPanel {
 	private static class Bucket {
-		public static Bucket make(LinkedList<StatusPanel> list) {
-			int index = 0;
-			int size = list.size() < 64 ? list.size() : 64;
-			StatusPanel[] array = new StatusPanel[size];
-			while (!list.isEmpty()) {
-				array[index++] = list.pollFirst();
-				if (index >= size) {
-					break;
-				}
-			}
-			Arrays.sort(array, ComponentComparator.SINGLETON);
-			return new Bucket(array);
-		}
-
-		private final StatusPanel[] bucket;
+		private static final Logger logger = LoggerFactory.getLogger(Bucket.class);
+		private StatusPanel[] bucket;
+		private int startIndex;
 		private int nextIndex;
+		private int len;
 
-		public Bucket(StatusPanel[] bucket) {
-			this.bucket = bucket;
+		public Bucket(int maxSize) {
+			this.bucket = new StatusPanel[maxSize];
 		}
 
 		public boolean isEmpty() {
-			return nextIndex >= bucket.length;
+			return nextIndex >= len;
+		}
+
+		public void make(LinkedList<StatusPanel> list, int maxSize) {
+			int remainedSize = len - nextIndex;
+			if (remainedSize > (maxSize >>> 1)) {
+				logger.trace("skip make bucket: {}", remainedSize);
+				startIndex = nextIndex;
+				return;
+			}
+
+			int newSize;
+			synchronized (list) {
+				newSize = remainedSize + list.size();
+				// In this case, remainedSize must be smaller than (new) maxSize
+				if (newSize > maxSize) {
+					newSize = maxSize;
+				}
+				if (newSize > bucket.length) {
+					StatusPanel[] newBucket = new StatusPanel[maxSize];
+					System.arraycopy(bucket, nextIndex, newBucket, 0, remainedSize);
+					bucket = newBucket;
+				} else if (remainedSize > 0) {
+					System.arraycopy(bucket, nextIndex, bucket, 0, remainedSize);
+				}
+
+				int index = remainedSize;
+				while (!list.isEmpty()) {
+					bucket[index++] = list.pollFirst();
+					if (index >= newSize) {
+						break;
+					}
+				}
+				logger.trace("{}+{}/{}", remainedSize, newSize - remainedSize, bucket.length);
+			}
+			Arrays.sort(bucket, 0, newSize, ComponentComparator.SINGLETON);
+			startIndex = nextIndex = 0;
+			len = newSize;
 		}
 
 		public StatusPanel peek() {
@@ -114,8 +140,12 @@ public class SortedPostListPanel extends JPanel {
 			return isEmpty() ? null : bucket[nextIndex++];
 		}
 
+		public int processedSize() {
+			return nextIndex - startIndex;
+		}
+
 		public int size() {
-			return bucket.length;
+			return len - startIndex;
 		}
 	}
 
@@ -134,7 +164,7 @@ public class SortedPostListPanel extends JPanel {
 
 		@Override
 		public int compare(StatusPanel o1, StatusPanel o2) {
-			return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
+			return -compareDate(o1, o2);
 		}
 	}
 
@@ -161,6 +191,10 @@ public class SortedPostListPanel extends JPanel {
 		return low;  // key not found
 	}
 
+	private static boolean checkOverTime(long limitTime) {
+		return System.currentTimeMillis() > limitTime;
+	}
+
 	/**
 	 * {@link StatusPanel} を日時で比較する。
 	 *
@@ -184,6 +218,8 @@ public class SortedPostListPanel extends JPanel {
 	private final int maxContainSize;
 	private LinkedList<JPanel> branches;
 	private int size;
+	private long limitElapsedTime = 50;
+	private Bucket bucket = new Bucket(256);
 
 	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
@@ -247,20 +283,18 @@ public class SortedPostListPanel extends JPanel {
 			return 0;
 		}
 
-		Bucket bucket;
-		synchronized (values) {
-			bucket = Bucket.make(values);
-		}
-		long t = System.currentTimeMillis();
+		Bucket bucket = this.bucket;
+		long limitTime = System.currentTimeMillis() + limitElapsedTime;
+		bucket.make(values, 256);
 
 		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
-			if (bucket.isEmpty()) {
+			JPanel branch = listIterator.next();
+			addPanelIntoBranch(bucket, branch, listIterator, limitTime, false);
+			if (bucket.isEmpty() || checkOverTime(limitTime)) {
 				break;
 			}
-			JPanel branch = listIterator.next();
-			addPanelIntoBranch(bucket, branch, listIterator, false);
 		}
-		if (!bucket.isEmpty()) { // all are added into last
+		if (!(bucket.isEmpty() || checkOverTime(limitTime))) { // all are added into last
 			JPanel branch;
 			if (branches.isEmpty()) { // first branch
 				branch = createPanel();
@@ -269,18 +303,15 @@ public class SortedPostListPanel extends JPanel {
 			} else {
 				branch = branches.getLast();
 			}
-			addPanelIntoBranch(bucket, branch, branches.listIterator(branches.size()), true);
-		}
-		if (!bucket.isEmpty()) {
-			throw new AssertionError();
+			addPanelIntoBranch(bucket, branch, branches.listIterator(branches.size()), limitTime, true);
 		}
 
 		tryRelease();
 		if (logger.isTraceEnabled()) {
-			logger.trace("add {}items: {}ms", bucket.size(), System.currentTimeMillis() - t);
+			logger.trace("took {}ms: {}/{}", System.currentTimeMillis() + limitElapsedTime - limitTime, bucket.processedSize(), bucket.size());
 			assertSequence();
 		}
-		return bucket.size();
+		return bucket.processedSize();
 	}
 
 	/**
@@ -300,10 +331,10 @@ public class SortedPostListPanel extends JPanel {
 		return this.add(comp);
 	}
 
-	private void addPanelIntoBranch(Bucket values, JPanel branch,
-			ListIterator<JPanel> listIteratorOfBranches, boolean addAll) {
-		Component lastOfBranch = addAll ? null : branch.getComponent(branch.getComponentCount() - 1);
-		if (compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0) {
+	private void addPanelIntoBranch(Bucket values, JPanel branch, ListIterator<JPanel> listIteratorOfBranches,
+			long limitTime, boolean addAll) {
+		StatusPanel lastOfBranch = addAll ? null : (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
+		if (compareDate(values.peek(), lastOfBranch) >= 0) {
 			// binarySearch+insert is usually faster than mergeSort+clear
 			synchronized (branch.getTreeLock()) {
 				int insertPos = 0; // values is sorted, I skip before inserted element
@@ -313,7 +344,8 @@ public class SortedPostListPanel extends JPanel {
 					// I already values.first should be added into branch
 					branch.add(panel, insertPos);
 					size++;
-				} while (!values.isEmpty() && compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0);
+				} while (!(values.isEmpty() || checkOverTime(limitTime)) &&
+						compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0);
 				int componentCount = branch.getComponentCount();
 
 				boolean panelAppendFlag = componentCount > (leafSize << 1);
