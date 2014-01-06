@@ -3,6 +3,8 @@ package jp.syuriken.snsw.twclient.internal;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -79,7 +81,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SortedPostListPanel extends JPanel {
+public class SortedPostListPanel extends JPanel implements PropertyChangeListener {
 	private static class Bucket {
 		private static final Logger logger = LoggerFactory.getLogger(Bucket.class);
 		private StatusPanel[] bucket;
@@ -168,8 +170,12 @@ public class SortedPostListPanel extends JPanel {
 		}
 	}
 
-	private static final long serialVersionUID = -2699588004179912235L;
+	private static final long serialVersionUID = -6160168801034111076L;
 	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
+	private static final String PROPERTY_LEAF_SIZE = "gui.splp.leaf_size";
+	private static final String PROPERTY_MAX_SIZE = "gui.splp.max_size";
+	private static final String PROPERTY_LIMIT_ELAPSED_TIME = "gui.splp.limit_elapsed_time";
+	private static final String PROPERTY_BUCKET_SIZE = "gui.splp.bucket_size";
 
 	private static int binarySearch(JComponent panel, StatusPanel key, int start) {
 		int low = start;
@@ -214,16 +220,17 @@ public class SortedPostListPanel extends JPanel {
 		return ClientConfiguration.getInstance().getConfigProperties().getInteger(key);
 	}
 
-	private final int leafSize;
-	private final int maxContainSize;
+	private int leafSize;
+	private int maxContainSize;
 	private LinkedList<JPanel> branches;
 	private int size;
-	private long limitElapsedTime = 50;
-	private Bucket bucket = new Bucket(256);
+	private long limitElapsedTime;
+	private Bucket bucket;
+	private int bucketMaxSize;
 
 	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
-		this(getProperty("gui.postlist.leaf_size"), getProperty("gui.postlist.max_size"));
+		this(getProperty(PROPERTY_LEAF_SIZE), getProperty(PROPERTY_MAX_SIZE));
 	}
 
 	/**
@@ -237,6 +244,10 @@ public class SortedPostListPanel extends JPanel {
 		this.leafSize = leafSize;
 		maxContainSize = maxSize;
 		branches = new LinkedList<>();
+		ClientConfiguration.getInstance().getConfigProperties().addPropertyChangedListener(this);
+		limitElapsedTime = getProperty(PROPERTY_LIMIT_ELAPSED_TIME);
+		bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
+		bucket = new Bucket(bucketMaxSize);
 	}
 
 	@Deprecated
@@ -285,7 +296,7 @@ public class SortedPostListPanel extends JPanel {
 
 		Bucket bucket = this.bucket;
 		long limitTime = System.currentTimeMillis() + limitElapsedTime;
-		bucket.make(values, 256);
+		bucket.make(values, bucketMaxSize);
 
 		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
 			JPanel branch = listIterator.next();
@@ -326,6 +337,7 @@ public class SortedPostListPanel extends JPanel {
 	}
 
 	@Override
+	@Deprecated
 	@SuppressWarnings("deprecated")
 	public Component add(String name, Component comp) {
 		return this.add(comp);
@@ -345,7 +357,7 @@ public class SortedPostListPanel extends JPanel {
 					branch.add(panel, insertPos);
 					size++;
 				} while (!(values.isEmpty() || checkOverTime(limitTime)) &&
-						compareDate(values.peek(), (StatusPanel) lastOfBranch) >= 0);
+						compareDate(values.peek(), lastOfBranch) >= 0);
 				int componentCount = branch.getComponentCount();
 
 				boolean panelAppendFlag = componentCount > (leafSize << 1);
@@ -418,6 +430,24 @@ public class SortedPostListPanel extends JPanel {
 		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
 		Point bounds = componentAt.getLocation();
 		return (StatusPanel) componentAt.getComponentAt(x - bounds.x, y - bounds.y);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+			case PROPERTY_BUCKET_SIZE:
+				bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
+				break;
+			case PROPERTY_LEAF_SIZE:
+				leafSize = getProperty(PROPERTY_LEAF_SIZE);
+				break;
+			case PROPERTY_LIMIT_ELAPSED_TIME:
+				limitElapsedTime = getProperty(PROPERTY_LIMIT_ELAPSED_TIME);
+				break;
+			case PROPERTY_MAX_SIZE:
+				maxContainSize = getProperty(PROPERTY_MAX_SIZE);
+				break;
+		}
 	}
 
 	/**
