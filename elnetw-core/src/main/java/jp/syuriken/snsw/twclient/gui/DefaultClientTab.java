@@ -515,22 +515,26 @@ public abstract class DefaultClientTab implements ClientTab {
 				@Override
 				public void run() {
 					LinkedList<StatusPanel> postListAddQueue = this$dct.postListAddQueue;
-					int size;
-					synchronized (postListAddQueue) {
-						size = this$dct.getSortedPostListPanel().add(postListAddQueue);
-					}
+					SortedPostListPanel sortedPostListPanel = this$dct.getSortedPostListPanel();
 					JScrollPane postListScrollPane = this$dct.postListScrollPane;
+					Point oldViewPosition = postListScrollPane.getViewport().getViewPosition();
+					StatusPanel firstComponent = sortedPostListPanel.getComponentAt(oldViewPosition);
+					Rectangle oldBounds = firstComponent == null ? null
+							: sortedPostListPanel.getBoundsOf(firstComponent);
 
-					postListScrollPane.invalidate();
-					Point viewPosition = postListScrollPane.getViewport().getViewPosition();
-					if (viewPosition.y < this$dct.fontHeight) {
-						postListScrollPane.getViewport().setViewPosition(new Point(viewPosition.x, 0));
-					} else {
-						postListScrollPane.getViewport().setViewPosition(
-								new Point(viewPosition.x, viewPosition.y
-										+ (this$dct.iconSize.height + PADDING_OF_POSTLIST) * size));
+					synchronized (postListAddQueue) {
+						sortedPostListPanel.add(postListAddQueue);
 					}
-					postListScrollPane.validate();
+
+					Point newViewPosition;
+					if (firstComponent == null || oldViewPosition.y < this$dct.fontHeight) {
+						newViewPosition = new Point(oldViewPosition.x, 0);
+					} else {
+						Rectangle newBounds = sortedPostListPanel.getBoundsOf(firstComponent);
+						int y = newBounds.y - oldBounds.y + oldViewPosition.y;
+						newViewPosition = new Point(oldViewPosition.x, y);
+					}
+					postListScrollPane.getViewport().setViewPosition(newViewPosition);
 				}
 
 			});

@@ -46,8 +46,7 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * です。すると、
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-15:00</ins>, <ins>&lt;-14:00</ins>]
- * branches -&gt; []
+ * branches -&gt; [[<ins>&lt;-15:00</ins>, <ins>&lt;-14:00</ins>]]
  * </pre>
  * のように処理されます。そのうえでもう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -55,13 +54,11 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-18:00</ins>, 15:00, <ins>&lt;-14:30</ins>, 14:00, <ins>&lt;-12:00</ins>]
- * branches -&gt; []
+ * branches -&gt; [[<ins>&lt;-18:00</ins>, 15:00, <ins>&lt;-14:30</ins>, 14:00, <ins>&lt;-12:00</ins>]]
  * </pre>
  * となりますが、sizeがleafSize * 2 (ここでは4)を超えるため、firstBranchが分割されます。
  * <pre>
- * firstBranch -&gt; [18:00, 15:00, 14:30, <del>14:00, 12:00</del>]
- * branches -&gt; [ <ins>[14:00, 12:00]</ins> ]
+ * branches -&gt; [[18:00, 15:00, 14:30, <del>14:00, 12:00</del>] <ins>[14:00, 12:00]</ins>]
  * </pre>
  * このようになります。そして、もう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -69,13 +66,11 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、分割後が
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-19:00</ins>, 18:00, <del>15:00, 14:30</del>]
- * branches -&gt; [ <ins>[15:00, 14:30]</ins> [14:00, 12:00] ]
+ * branches -&gt; [[<ins>&lt;-19:00</ins>, 18:00, <del>15:00, 14:30</del>] <ins>[15:00, 14:30]</ins> [14:00, 12:00]]
  * </pre>
  * となります。ここで、sizeがleafSize * 2 + maxSize (ここでは6)を超えるため、branchesからいくつかの要素が削除されます。
  * <pre>
- * firstBranch -&gt; [19:00, 18:00, 15:00, 14:30]
- * branches -&gt; [ [15:00, 14:30] <del>[14:00, 12:00]</del> ]
+ * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30] <del>[14:00, 12:00]</del>]
  * </pre>
  * </p>
  *
@@ -319,9 +314,11 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 
 		tryRelease();
 		if (logger.isTraceEnabled()) {
-			logger.trace("took {}ms: {}/{}", System.currentTimeMillis() + limitElapsedTime - limitTime, bucket.processedSize(), bucket.size());
+			logger.trace("took {}ms: {}/{}", System.currentTimeMillis() + limitElapsedTime - limitTime,
+					bucket.processedSize(), bucket.size());
 			assertSequence();
 		}
+		validate();
 		return bucket.processedSize();
 	}
 
@@ -411,6 +408,10 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @return 絶対位置情報
 	 */
 	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
+		if (panel == null) {
+			throw new NullPointerException();
+		}
+
 		Rectangle bounds = panel.getBounds();
 		for (JPanel branch : branches) {
 			int componentCount = branch.getComponentCount();
@@ -426,10 +427,25 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	@Override
+	public StatusPanel getComponentAt(Point p) {
+		return getComponentAt(p.x, p.y);
+	}
+
+	@Override
 	public StatusPanel getComponentAt(int x, int y) {
-		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
-		Point bounds = componentAt.getLocation();
-		return (StatusPanel) componentAt.getComponentAt(x - bounds.x, y - bounds.y);
+		JPanel parentPanel = (JPanel) super.getComponentAt(x, y);
+		if (parentPanel == this) {
+			parentPanel = branches.peekFirst();
+			if (parentPanel == null) {
+				return null;
+			}
+		}
+		Point bounds = parentPanel.getLocation();
+		Component componentAt = parentPanel.getComponentAt(x - bounds.x, y - bounds.y);
+		if (!(componentAt instanceof StatusPanel)) {
+			componentAt = parentPanel.getComponent(0);
+		}
+		return (StatusPanel) componentAt;
 	}
 
 	@Override
