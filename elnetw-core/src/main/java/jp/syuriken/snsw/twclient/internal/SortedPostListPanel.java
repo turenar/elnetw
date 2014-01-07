@@ -93,6 +93,10 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		}
 
 		public void make(LinkedList<StatusPanel> list, int maxSize) {
+			if (list.isEmpty()) {
+				startIndex = nextIndex;
+				return;
+			}
 			int remainedSize = len - nextIndex;
 			if (remainedSize > (maxSize >>> 1)) {
 				logger.trace("skip make bucket: {}", remainedSize);
@@ -285,13 +289,12 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @param values StatusPanelのLinkedList
 	 */
 	public synchronized int add(LinkedList<StatusPanel> values) {
-		if (values.size() == 0) {
-			return 0;
-		}
-
 		Bucket bucket = this.bucket;
 		long limitTime = System.currentTimeMillis() + limitElapsedTime;
 		bucket.make(values, bucketMaxSize);
+		if (bucket.size() == 0) {
+			return 0;
+		}
 
 		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
 			JPanel branch = listIterator.next();
