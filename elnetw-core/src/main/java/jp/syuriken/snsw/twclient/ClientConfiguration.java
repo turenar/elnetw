@@ -69,7 +69,6 @@ public class ClientConfiguration {
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
-	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
 	private static ClientConfiguration INSTANCE;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
@@ -354,7 +353,7 @@ public class ClientConfiguration {
 	 * @return 設定を格納するディレクトリ
 	 */
 	public String getConfigRootDir() {
-		return portabledConfiguration ? "." : HOME_BASE_DIR;
+		return portabledConfiguration ? "." : System.getProperty("elnetw.home");
 	}
 
 	private String[] getConsumerPair() {

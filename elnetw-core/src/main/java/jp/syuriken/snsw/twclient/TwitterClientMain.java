@@ -14,6 +14,10 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -151,7 +155,7 @@ public class TwitterClientMain {
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
-		LongOpt[] longOpts = new LongOpt[] {
+		LongOpt[] longOpts = new LongOpt[]{
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
 		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
@@ -415,8 +419,9 @@ public class TwitterClientMain {
 					break;
 			}
 		}
-
+		setHomeProperty();
 		setDebugLogger();
+		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
 		initializeService
@@ -493,14 +498,12 @@ public class TwitterClientMain {
 		}
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
 	public void setConfigRootDirPermission(File configRootDir) {
-		configRootDir.setReadable(false, false);
-		configRootDir.setWritable(false, false);
-		configRootDir.setExecutable(false, false);
-		configRootDir.setReadable(true, true);
-		configRootDir.setWritable(true, true);
-		configRootDir.setExecutable(true, true);
+		try {
+			Files.setPosixFilePermissions(configRootDir.toPath(), PosixFilePermissions.fromString("rwx------"));
+		} catch (IOException e) {
+			logger.warn("Failed setting configRoot permission", e);
+		}
 	}
 
 	private void setDebugLogger() {
@@ -557,11 +560,39 @@ public class TwitterClientMain {
 
 	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
 	public void setFetcherFactory() {
-		fetchScheduler.addVirtualNotifier("my/timeline", new String[] {"stream/user", "statuses/timeline"});
+		fetchScheduler.addVirtualNotifier("my/timeline", new String[]{"stream/user", "statuses/timeline"});
 		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
 		fetchScheduler.addFetcherFactory("statuses/timeline", new TimelineFetcherFactory());
 		fetchScheduler.addFetcherFactory("statuses/mentions", new MentionsFetcherFactory());
 		fetchScheduler.addFetcherFactory("direct_messages", new DirectMessageFetcherFactory());
+	}
+
+	private void setHomeProperty() {
+		String cacheDir;
+		String appHomeDir;
+		switch (Utility.getOstype()) {
+			case WINDOWS:
+				appHomeDir = System.getenv("APPDATA");
+				cacheDir = System.getProperty("java.io.tmpdir") + "/elnetw/cache";
+				break;
+			default:
+				appHomeDir = System.getProperty("user.home") + "/.elnetw";
+				cacheDir = System.getProperty("user.home") + "/.cache/elnetw";
+				Path cacheDirPath = new File(cacheDir).toPath();
+				Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
+				if (!Files.exists(cacheLinkPath, LinkOption.NOFOLLOW_LINKS)) {
+					try {
+						Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
+					} catch (IOException e) {
+						logger.warn("Failed create symlink for cache dir", e);
+					}
+				}
+				break;
+		}
+		tryMkdir(appHomeDir);
+		tryMkdir(cacheDir);
+		System.setProperty("elnetw.home", appHomeDir);
+		System.setProperty("elnetw.cache.dir", cacheDir);
 	}
 
 	@Initializer(name = "finish-initPhase", phase = "start")
@@ -734,7 +765,25 @@ public class TwitterClientMain {
 		configProperties.setProperty("twitter.oauth.access_token.default", userId);
 		configuration.storeAccessToken(accessToken);
 		configProperties.store();
-		return;
+	}
+
+	private void tryMkdir(String dir) {
+		Path dirPath = new File(dir).toPath();
+		if (!Files.isDirectory(dirPath)) {
+			try {
+				Files.createDirectories(dirPath);
+			} catch (IOException e) {
+				logger.warn("Failed mkdir", e);
+			}
+			try {
+				Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwx------"));
+			} catch (UnsupportedOperationException e) {
+				// ignore
+			} catch (IOException e) {
+				logger.warn("Failed setting posix permission", e);
+			}
+
+		}
 	}
 
 	@Initializer(name = "config-v1", dependencies = "config-v0", phase = "earlyinit")

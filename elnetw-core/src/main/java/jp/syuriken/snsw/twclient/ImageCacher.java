@@ -220,8 +220,6 @@ public class ImageCacher {
 	}
 
 	private final ClientConfiguration configuration;
-	/** キャッシュ出力先ディレクトリ */
-	public final File cacheDir;
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File userIconCacheDir;
 	private final Logger logger = LoggerFactory.getLogger(ImageCacher.class);
@@ -242,15 +240,7 @@ public class ImageCacher {
 		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
 		flushResetInterval = configuration.getConfigProperties().getInteger("core.cache.icon.flush_reset_interval");
 
-		switch (Utility.getOstype()) {
-			case WINDOWS:
-				cacheDir = new File(System.getProperty("java.io.tmpdir") + "/elnetw/cache");
-				break;
-			default:
-				cacheDir = new File(System.getProperty("user.home") + "/.cache/elnetw");
-				break;
-		}
-		userIconCacheDir = new File(cacheDir, "user");
+		userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user");
 
 		cleanOldUserIconCache(userIconCacheDir);
 	}
