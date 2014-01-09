@@ -498,14 +498,6 @@ public class TwitterClientMain {
 		}
 	}
 
-	public void setConfigRootDirPermission(File configRootDir) {
-		try {
-			Files.setPosixFilePermissions(configRootDir.toPath(), PosixFilePermissions.fromString("rwx------"));
-		} catch (IOException e) {
-			logger.warn("Failed setting configRoot permission", e);
-		}
-	}
-
 	private void setDebugLogger() {
 		if (debugMode) {
 			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
@@ -612,15 +604,6 @@ public class TwitterClientMain {
 	@Initializer(name = "internal-portableConfig", phase = "earlyinit")
 	public void setPortabledConfigDir() {
 		configuration.setPortabledConfiguration(portable);
-
-		File configRootDir = new File(configuration.getConfigRootDir());
-		if (portable == false && configRootDir.exists() == false) {
-			if (configRootDir.mkdirs()) {
-				setConfigRootDirPermission(configRootDir);
-			} else {
-				logger.warn("ディレクトリの作成ができませんでした: {}", configRootDir.getPath());
-			}
-		}
 	}
 
 	@Initializer(name = "timer", phase = "earlyinit")
