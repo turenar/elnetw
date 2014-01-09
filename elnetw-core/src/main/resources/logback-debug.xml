@@ -1,6 +1,8 @@
 <configuration>
+	<timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
+
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>elnetw.log</file>
+		<file>${elnetw.home}/log/elnetw-${bySecond}.log</file>
 		<encoder>
 			<Pattern>
 				%d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n
@@ -15,6 +17,10 @@
 			</Pattern>
 		</encoder>
 	</appender>
+	<appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="FILE" />
+		<discardingThreshold>0</discardingThreshold>
+	</appender>
 
 	<logger name="jp.syuriken.snsw">
 		<level value="TRACE" />
@@ -23,6 +29,6 @@
 	<root>
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE" />
+		<appender-ref ref="ASYNC_FILE" />
 	</root>
 </configuration>

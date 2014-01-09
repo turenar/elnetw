@@ -132,11 +132,11 @@ public class TwitterClientMain {
 	protected final ClientConfiguration configuration;
 	/** for interruption */
 	private final Thread MAIN_THREAD;
+	/** スレッドホルダ */
+	protected final Object threadHolder = new Object();
 	/** 設定データ */
 	protected ClientProperties configProperties;
-	/** スレッドホルダ */
-	protected Object threadHolder = new Object();
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger logger;
 	protected Getopt getopt;
 	protected JobWorkerThread jobWorkerThread;
 	protected boolean debugMode;
@@ -523,6 +523,7 @@ public class TwitterClientMain {
 				}
 			}
 		}
+		logger = LoggerFactory.getLogger(getClass());
 	}
 
 	@Initializer(name = "default-config", dependencies = "internal-portableConfig", phase = "earlyinit")
