@@ -167,7 +167,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "internal-addClientTabConstructor", phase = "init")
+	@Initializer(name = "gui/tab/init-factory", phase = "init")
 	public void addClientTabConstructor() {
 		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
 		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
@@ -175,7 +175,7 @@ public class TwitterClientMain {
 		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
 	}
 
-	@Initializer(name = "internal-addConfigurator-filter", dependencies = {"init-gui", "configBuilder"}, phase = "init")
+	@Initializer(name = "gui/config/filter", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
 				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
@@ -207,17 +207,17 @@ public class TwitterClientMain {
 		configuration.addActionHandler("menu_config", new MenuConfiguratorActionHandler());
 	}
 
-	@Initializer(name = "cacheManager", dependencies = {"config", "twitterAccountId"}, phase = "init")
+	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
 	public void initCacheManager() {
 		configuration.setCacheManager(new CacheManager(configuration));
 	}
 
-	@Initializer(name = "configBuilder", phase = "preinit")
+	@Initializer(name = "gui/config/builder", phase = "preinit")
 	public void initConfigBuilder() {
 		configuration.setConfigBuilder(new ConfigFrameBuilder(configuration));
 	}
 
-	@Initializer(name = "configurator", dependencies = {"init-gui", "configBuilder"}, phase = "init")
+	@Initializer(name = "gui/config/core", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
 		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
@@ -247,7 +247,7 @@ public class TwitterClientMain {
 				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
 	}
 
-	@Initializer(name = "filter-functions", phase = "preinit")
+	@Initializer(name = "filter/func", phase = "preinit")
 	public void initFilterFunctions() {
 		FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
 		FilterCompiler.putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
@@ -258,7 +258,7 @@ public class TwitterClientMain {
 		FilterCompiler.putFilterFunction("if", IfFilterFunction.getFactory());
 	}
 
-	@Initializer(name = "filter-properties", phase = "preinit")
+	@Initializer(name = "filter/prop", phase = "preinit")
 	public void initFilterProperties() {
 		Constructor<? extends FilterProperty> properties;
 		properties = StandardIntProperties.getFactory();
@@ -281,18 +281,18 @@ public class TwitterClientMain {
 		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
 	}
 
-	@Initializer(name = "init-gui", dependencies = {"cacheManager", "twitterAccountId"}, phase = "init")
+	@Initializer(name = "gui/main", dependencies = {"cache", "accountId"}, phase = "init")
 	public void initFrame() {
 		frame = new TwitterClientFrame(configuration);
 	}
 
-	@Initializer(name = "imageCacher", dependencies = "config", phase = "init")
+	@Initializer(name = "cache/image", dependencies = "config", phase = "init")
 	public void initImageCacher() {
 		configuration.setImageCacher(new ImageCacher(configuration));
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */
-	@Initializer(name = "shortcutKey", dependencies = "init-gui", phase = "init")
+	@Initializer(name = "gui/shortcutKey", dependencies = "gui/main", phase = "init")
 	public void initShortcutKey() {
 		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
 		Properties shortcutkeyProperties = new Properties();
@@ -349,12 +349,12 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "internal-init-fetchSched", dependencies = "recover-clientTabs", phase = "prestart")
+	@Initializer(name = "fetch/start", dependencies = "gui/tab/restore", phase = "prestart")
 	public void realConnectFetchSched() {
 		fetchScheduler.onInitialized();
 	}
 
-	@Initializer(name = "recover-clientTabs", phase = "prestart")
+	@Initializer(name = "gui/tab/restore", dependencies = {"config", "fetch/init", "filter/global", "gui/tab/init-factory"}, phase = "prestart")
 	public void recoverClientTabs() {
 		String tabsList = configProperties.getProperty("gui.tabs.list");
 		if (tabsList == null) {
@@ -367,13 +367,13 @@ public class TwitterClientMain {
 			}
 		} else {
 			String[] tabs = tabsList.split(" ");
-			for (String tabIndetifier : tabs) {
-				if (tabIndetifier.isEmpty()) {
+			for (String tabIdentifier : tabs) {
+				if (tabIdentifier.isEmpty()) {
 					continue;
 				}
-				int separatorPosition = tabIndetifier.indexOf(':');
-				String tabId = tabIndetifier.substring(0, separatorPosition);
-				String uniqId = tabIndetifier.substring(separatorPosition + 1);
+				int separatorPosition = tabIdentifier.indexOf(':');
+				String tabId = tabIdentifier.substring(0, separatorPosition);
+				String uniqId = tabIdentifier.substring(separatorPosition + 1);
 				Constructor<? extends ClientTab> tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
 				if (tabConstructor == null) {
 					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
@@ -467,14 +467,14 @@ public class TwitterClientMain {
 		return 0;
 	}
 
-	@Initializer(name = "twitterAccountId", dependencies = "config", phase = "earlyinit")
+	@Initializer(name = "accountId", dependencies = "config", phase = "earlyinit")
 	public void setAccountId() {
 		String defaultAccountId = configuration.getDefaultAccountId();
 		configuration.setAccountIdForRead(defaultAccountId);
 		configuration.setAccountIdForWrite(defaultAccountId);
 	}
 
-	@Initializer(name = "config", dependencies = "default-config", phase = "earlyinit")
+	@Initializer(name = "config", dependencies = "config/default", phase = "earlyinit")
 	public void setConfigProperties(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
@@ -492,7 +492,7 @@ public class TwitterClientMain {
 			configuration.setConfigProperties(configProperties);
 
 			String configVersion = configProperties.getProperty("cfg.version", "0");
-			InitializeService.getService().provideInitializer("config-v" + configVersion, true);
+			InitializeService.getService().provideInitializer("config/update/v" + configVersion, true);
 		} else {
 			configProperties.store();
 		}
@@ -518,7 +518,7 @@ public class TwitterClientMain {
 		logger = LoggerFactory.getLogger(getClass());
 	}
 
-	@Initializer(name = "default-config", dependencies = "internal-portableConfig", phase = "earlyinit")
+	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")
 	public void setDefaultConfigProperties() {
 		ClientProperties defaultConfig = new ClientProperties();
 		try {
@@ -535,13 +535,12 @@ public class TwitterClientMain {
 		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
-	@Initializer(name = "set-globalfilter",
-			dependencies = {"config", "filter-functions", "filter-properties"}, phase = "init")
+	@Initializer(name = "filter/global", dependencies = "config", phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(configuration));
 	}
 
-	@Initializer(name = "fetch-sched", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
+	@Initializer(name = "fetch/init", dependencies = {"cache", "config"}, phase = "init")
 	public void setFetchScheduler(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			fetchScheduler = new TwitterDataFetchScheduler();
@@ -551,7 +550,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
+	@Initializer(name = "fetch/factory", dependencies = "fetch/init", phase = "init")
 	public void setFetcherFactory() {
 		fetchScheduler.addVirtualNotifier("my/timeline", new String[]{"stream/user", "statuses/timeline"});
 		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
@@ -588,20 +587,20 @@ public class TwitterClientMain {
 		System.setProperty("elnetw.cache.dir", cacheDir);
 	}
 
-	@Initializer(name = "finish-initPhase", phase = "start")
+	@Initializer(name = "internal/finish-initPhase", dependencies = "gui/main/show", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
 		fetchScheduler.onInitialized();
 	}
 
-	@Initializer(name = "internal-messageNotifiers", phase = "prestart")
+	@Initializer(name = "internal/notifier", phase = "prestart")
 	public void setMessageNotifiersCandidate() {
 		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
 		Utility.addMessageNotifier(1000, NotifySendMessageNotifier.class);
 		Utility.addMessageNotifier(0, TrayIconMessageNotifier.class);
 	}
 
-	@Initializer(name = "internal-portableConfig", phase = "earlyinit")
+	@Initializer(name = "internal/portableConfig", phase = "earlyinit")
 	public void setPortabledConfigDir() {
 		configuration.setPortabledConfiguration(portable);
 	}
@@ -624,7 +623,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "show-trayicon", phase = "start")
+	@Initializer(name = "gui/tray/show", dependencies = "gui/tray", phase = "start")
 	public void setTrayIcon(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			if (SystemTray.isSupported()) {
@@ -641,7 +640,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "tray", phase = "prestart")
+	@Initializer(name = "gui/tray", phase = "prestart")
 	public void setTrayIcon() {
 		try {
 			configuration.setTrayIcon(new TrayIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream(
@@ -651,7 +650,7 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "show-gui", phase = "start")
+	@Initializer(name = "gui/main/show", dependencies = {"gui/main", "gui/tab/restore"}, phase = "start")
 	public void showFrame(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			java.awt.EventQueue.invokeLater(new Runnable() {
@@ -770,13 +769,13 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "config-v1", dependencies = "config-v0", phase = "earlyinit")
+	@Initializer(name = "config/update/v1", dependencies = "config/update/v0", phase = "earlyinit")
 	public void updateConfigToV1() {
 		logger.info("Updating config to v1");
 		configProperties.setProperty("cfg.version", "1");
 	}
 
-	@Initializer(name = "config-v2", dependencies = "config-v1", phase = "earlyinit")
+	@Initializer(name = "config/update/v2", dependencies = "config/update/v1", phase = "earlyinit")
 	public void updateConfigToV2() {
 		logger.info("Updating config to v2");
 		if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
