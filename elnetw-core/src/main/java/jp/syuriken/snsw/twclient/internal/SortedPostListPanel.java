@@ -3,13 +3,15 @@ package jp.syuriken.snsw.twclient.internal;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.io.Serializable;
-import java.util.Collections;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -44,8 +46,7 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * です。すると、
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-15:00</ins>, <ins>&lt;-14:00</ins>]
- * branches -&gt; []
+ * branches -&gt; [[<ins>&lt;-15:00</ins>, <ins>&lt;-14:00</ins>]]
  * </pre>
  * のように処理されます。そのうえでもう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -53,13 +54,11 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-18:00</ins>, 15:00, <ins>&lt;-14:30</ins>, 14:00, <ins>&lt;-12:00</ins>]
- * branches -&gt; []
+ * branches -&gt; [[<ins>&lt;-18:00</ins>, 15:00, <ins>&lt;-14:30</ins>, 14:00, <ins>&lt;-12:00</ins>]]
  * </pre>
  * となりますが、sizeがleafSize * 2 (ここでは4)を超えるため、firstBranchが分割されます。
  * <pre>
- * firstBranch -&gt; [18:00, 15:00, 14:30, <del>14:00, 12:00</del>]
- * branches -&gt; [ <ins>[14:00, 12:00]</ins> ]
+ * branches -&gt; [[18:00, 15:00, 14:30, <del>14:00, 12:00</del>] <ins>[14:00, 12:00]</ins>]
  * </pre>
  * このようになります。そして、もう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -67,28 +66,97 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、分割後が
  * <pre>
- * firstBranch -&gt; [<ins>&lt;-19:00</ins>, 18:00, <del>15:00, 14:30</del>]
- * branches -&gt; [ <ins>[15:00, 14:30]</ins> [14:00, 12:00] ]
+ * branches -&gt; [[<ins>&lt;-19:00</ins>, 18:00, <del>15:00, 14:30</del>] <ins>[15:00, 14:30]</ins> [14:00, 12:00]]
  * </pre>
  * となります。ここで、sizeがleafSize * 2 + maxSize (ここでは6)を超えるため、branchesからいくつかの要素が削除されます。
  * <pre>
- * firstBranch -&gt; [19:00, 18:00, 15:00, 14:30]
- * branches -&gt; [ [15:00, 14:30] <del>[14:00, 12:00]</del> ]
+ * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30] <del>[14:00, 12:00]</del>]
  * </pre>
  * </p>
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SortedPostListPanel extends JPanel {
+public class SortedPostListPanel extends JPanel implements PropertyChangeListener {
+	private static class Bucket {
+		private static final Logger logger = LoggerFactory.getLogger(Bucket.class);
+		private StatusPanel[] bucket;
+		private int startIndex;
+		private int nextIndex;
+		private int len;
+
+		public Bucket(int maxSize) {
+			this.bucket = new StatusPanel[maxSize];
+		}
+
+		public boolean isEmpty() {
+			return nextIndex >= len;
+		}
+
+		public void make(LinkedList<StatusPanel> list, int maxSize) {
+			if (list.isEmpty()) {
+				startIndex = nextIndex;
+				return;
+			}
+			int remainedSize = len - nextIndex;
+			if (remainedSize > (maxSize >>> 1)) {
+				logger.trace("skip make bucket: {}", remainedSize);
+				startIndex = nextIndex;
+				return;
+			}
+
+			int newSize;
+			synchronized (list) {
+				newSize = remainedSize + list.size();
+				// In this case, remainedSize must be smaller than (new) maxSize
+				if (newSize > maxSize) {
+					newSize = maxSize;
+				}
+				if (newSize > bucket.length) {
+					StatusPanel[] newBucket = new StatusPanel[maxSize];
+					System.arraycopy(bucket, nextIndex, newBucket, 0, remainedSize);
+					bucket = newBucket;
+				} else if (remainedSize > 0) {
+					System.arraycopy(bucket, nextIndex, bucket, 0, remainedSize);
+				}
+
+				int index = remainedSize;
+				while (!list.isEmpty()) {
+					bucket[index++] = list.pollFirst();
+					if (index >= newSize) {
+						break;
+					}
+				}
+				logger.trace("{}+{}/{}", remainedSize, newSize - remainedSize, bucket.length);
+			}
+			Arrays.sort(bucket, 0, newSize, ComponentComparator.SINGLETON);
+			startIndex = nextIndex = 0;
+			len = newSize;
+		}
+
+		public StatusPanel peek() {
+			return isEmpty() ? null : bucket[nextIndex];
+		}
+
+		public StatusPanel poll() {
+			return isEmpty() ? null : bucket[nextIndex++];
+		}
+
+		public int processedSize() {
+			return nextIndex - startIndex;
+		}
+
+		public int size() {
+			return len - startIndex;
+		}
+	}
 
 	/**
 	 * コンポーネントを比較する
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public static final class ComponentComparator implements Comparator<Component>, Serializable {
+	protected static final class ComponentComparator implements Comparator<StatusPanel> {
 
-		private static final long serialVersionUID = 815936876127042870L;
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();
 
@@ -96,17 +164,41 @@ public class SortedPostListPanel extends JPanel {
 		}
 
 		@Override
-		public int compare(Component o1, Component o2) {
-			if (o1 instanceof StatusPanel && o2 instanceof StatusPanel) {
-				return -(compareDate((StatusPanel) o1, (StatusPanel) o2));
-			} else {
-				throw new IllegalArgumentException("SortedPostListPanelに追加できるコンポーネントはStatusPanelだけです。");
-			}
+		public int compare(StatusPanel o1, StatusPanel o2) {
+			return -compareDate(o1, o2);
 		}
 	}
 
-	private static final long serialVersionUID = -2699588004179912235L;
+	private static final long serialVersionUID = -6160168801034111076L;
 	private static final Logger logger = LoggerFactory.getLogger(SortedPostListPanel.class);
+	private static final String PROPERTY_LEAF_SIZE = "gui.splp.leaf_size";
+	private static final String PROPERTY_MAX_SIZE = "gui.splp.max_size";
+	private static final String PROPERTY_LIMIT_ELAPSED_TIME = "gui.splp.limit_elapsed_time";
+	private static final String PROPERTY_BUCKET_SIZE = "gui.splp.bucket_size";
+
+	private static int binarySearch(JComponent panel, StatusPanel key, int start) {
+		int low = start;
+		int high = panel.getComponentCount() - 1;
+
+		while (low <= high) {
+			int mid = (low + high) >>> 1;
+			StatusPanel midVal = (StatusPanel) panel.getComponent(mid);
+			int cmp = midVal.compareTo(key);
+
+			if (cmp > 0) {
+				low = mid + 1;
+			} else if (cmp < 0) {
+				high = mid - 1;
+			} else {
+				throw new IllegalArgumentException("duplicate id"); // key found
+			}
+		}
+		return low;  // key not found
+	}
+
+	private static boolean checkOverTime(long limitTime) {
+		return System.currentTimeMillis() > limitTime;
+	}
 
 	/**
 	 * {@link StatusPanel} を日時で比較する。
@@ -127,14 +219,17 @@ public class SortedPostListPanel extends JPanel {
 		return ClientConfiguration.getInstance().getConfigProperties().getInteger(key);
 	}
 
-	private final int leafSize;
-	private final int maxContainSize;
+	private int leafSize;
+	private int maxContainSize;
 	private LinkedList<JPanel> branches;
 	private int size;
+	private long limitElapsedTime;
+	private Bucket bucket;
+	private int bucketMaxSize;
 
 	/** インスタンスを生成する。 */
 	public SortedPostListPanel() {
-		this(getProperty("gui.postlist.leaf_size"), getProperty("gui.postlist.max_size"));
+		this(getProperty(PROPERTY_LEAF_SIZE), getProperty(PROPERTY_MAX_SIZE));
 	}
 
 	/**
@@ -148,6 +243,10 @@ public class SortedPostListPanel extends JPanel {
 		this.leafSize = leafSize;
 		maxContainSize = maxSize;
 		branches = new LinkedList<>();
+		ClientConfiguration.getInstance().getConfigProperties().addPropertyChangedListener(this);
+		limitElapsedTime = getProperty(PROPERTY_LIMIT_ELAPSED_TIME);
+		bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
+		bucket = new Bucket(bucketMaxSize);
 	}
 
 	@Deprecated
@@ -189,21 +288,22 @@ public class SortedPostListPanel extends JPanel {
 	 *
 	 * @param values StatusPanelのLinkedList
 	 */
-	public synchronized void add(LinkedList<StatusPanel> values) {
-		if (values.size() == 0) {
-			return;
+	public synchronized int add(LinkedList<StatusPanel> values) {
+		Bucket bucket = this.bucket;
+		long limitTime = System.currentTimeMillis() + limitElapsedTime;
+		bucket.make(values, bucketMaxSize);
+		if (bucket.size() == 0) {
+			return 0;
 		}
-
-		Collections.sort(values, ComponentComparator.SINGLETON);
 
 		for (ListIterator<JPanel> listIterator = branches.listIterator(); listIterator.hasNext(); ) {
-			if (values.isEmpty()) {
+			JPanel branch = listIterator.next();
+			addPanelIntoBranch(bucket, branch, listIterator, limitTime, false);
+			if (bucket.isEmpty() || checkOverTime(limitTime)) {
 				break;
 			}
-			JPanel branch = listIterator.next();
-			addPanelIntoBranch(values, branch, listIterator, false);
 		}
-		if (!values.isEmpty()) { // all are added into last
+		if (!(bucket.isEmpty() || checkOverTime(limitTime))) { // all are added into last
 			JPanel branch;
 			if (branches.isEmpty()) { // first branch
 				branch = createPanel();
@@ -212,17 +312,17 @@ public class SortedPostListPanel extends JPanel {
 			} else {
 				branch = branches.getLast();
 			}
-			addPanelIntoBranch(values, branch, branches.listIterator(branches.size()), true);
-		}
-		if (values.size() != 0) {
-			throw new AssertionError();
+			addPanelIntoBranch(bucket, branch, branches.listIterator(branches.size()), limitTime, true);
 		}
 
 		tryRelease();
 		if (logger.isTraceEnabled()) {
-			logger.trace("{}", this);
+			logger.trace("took {}ms: {}/{}", System.currentTimeMillis() + limitElapsedTime - limitTime,
+					bucket.processedSize(), bucket.size());
 			assertSequence();
 		}
+		validate();
+		return bucket.processedSize();
 	}
 
 	/**
@@ -237,46 +337,47 @@ public class SortedPostListPanel extends JPanel {
 	}
 
 	@Override
+	@Deprecated
 	@SuppressWarnings("deprecated")
 	public Component add(String name, Component comp) {
 		return this.add(comp);
 	}
 
-	private void addPanelIntoBranch(LinkedList<StatusPanel> values, JPanel branch,
-			ListIterator<JPanel> listIteratorOfBranches, boolean addAll) {
-		Component lastOfBranch = addAll ? null : branch.getComponent(branch.getComponentCount() - 1);
-		if (compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0) {
-			LinkedList<Component> newBranchItems = new LinkedList<>();
+	private void addPanelIntoBranch(Bucket values, JPanel branch, ListIterator<JPanel> listIteratorOfBranches,
+			long limitTime, boolean addAll) {
+		StatusPanel lastOfBranch = addAll ? null : (StatusPanel) branch.getComponent(branch.getComponentCount() - 1);
+		if (compareDate(values.peek(), lastOfBranch) >= 0) {
+			// binarySearch+insert is usually faster than mergeSort+clear
 			synchronized (branch.getTreeLock()) {
-				Collections.addAll(newBranchItems, branch.getComponents());
-			}
-
-			do {
-				StatusPanel panel = values.pollFirst();
-				int insertPos = Collections.binarySearch(newBranchItems, panel,
-						ComponentComparator.SINGLETON);
-				if (insertPos < 0) {
+				int insertPos = 0; // values is sorted, I skip before inserted element
+				do {
+					StatusPanel panel = values.poll();
+					insertPos = binarySearch(branch, panel, insertPos);
 					// I already values.first should be added into branch
-					newBranchItems.add((-insertPos - 1), panel);
-				}
-				size++;
-			} while (!values.isEmpty() && compareDate(values.peekFirst(), (StatusPanel) lastOfBranch) >= 0);
+					branch.add(panel, insertPos);
+					size++;
+				} while (!(values.isEmpty() || checkOverTime(limitTime)) &&
+						compareDate(values.peek(), lastOfBranch) >= 0);
+				int componentCount = branch.getComponentCount();
 
-			ListIterator<Component> componentListIterator = newBranchItems.listIterator();
-			boolean panelAppendFlag = newBranchItems.size() > (leafSize << 1);
-			int max = panelAppendFlag ? (newBranchItems.size() >>> 1) : newBranchItems.size();
-			branch.removeAll();
-			for (int i = 0; i < max; i++) {
-				branch.add(componentListIterator.next());
-			}
-			if (panelAppendFlag) {
-				JPanel panel = createPanel();
-				for (; componentListIterator.hasNext(); ) {
-					panel.add(componentListIterator.next());
+				boolean panelAppendFlag = componentCount > (leafSize << 1);
+				if (panelAppendFlag) {
+					int min = componentCount >>> 1;
+					int len = componentCount - min;
+					Component[] array = new Component[len];
+					JPanel panel = createPanel();
+					for (int i = len - 1; i >= 0; i--) {
+						int j = min + i;
+						array[i] = branch.getComponent(j);
+						branch.remove(j);
+					}
+					for (int i = 0; i < len; i++) {
+						panel.add(array[i]);
+					}
+					int indexOfAddedPanel = listIteratorOfBranches.nextIndex();
+					listIteratorOfBranches.add(panel);
+					super.add(panel, indexOfAddedPanel);
 				}
-				int indexOfAddedPanel = listIteratorOfBranches.nextIndex();
-				listIteratorOfBranches.add(panel);
-				super.add(panel, indexOfAddedPanel);
 			}
 		}
 	}
@@ -310,6 +411,10 @@ public class SortedPostListPanel extends JPanel {
 	 * @return 絶対位置情報
 	 */
 	public synchronized Rectangle getBoundsOf(StatusPanel panel) {
+		if (panel == null) {
+			throw new NullPointerException();
+		}
+
 		Rectangle bounds = panel.getBounds();
 		for (JPanel branch : branches) {
 			int componentCount = branch.getComponentCount();
@@ -325,10 +430,43 @@ public class SortedPostListPanel extends JPanel {
 	}
 
 	@Override
+	public StatusPanel getComponentAt(Point p) {
+		return getComponentAt(p.x, p.y);
+	}
+
+	@Override
 	public StatusPanel getComponentAt(int x, int y) {
-		JPanel componentAt = (JPanel) super.getComponentAt(x, y);
-		Point bounds = componentAt.getLocation();
-		return (StatusPanel) componentAt.getComponentAt(x - bounds.x, y - bounds.y);
+		JPanel parentPanel = (JPanel) super.getComponentAt(x, y);
+		if (parentPanel == this) {
+			parentPanel = branches.peekFirst();
+			if (parentPanel == null) {
+				return null;
+			}
+		}
+		Point bounds = parentPanel.getLocation();
+		Component componentAt = parentPanel.getComponentAt(x - bounds.x, y - bounds.y);
+		if (!(componentAt instanceof StatusPanel)) {
+			componentAt = parentPanel.getComponent(0);
+		}
+		return (StatusPanel) componentAt;
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+			case PROPERTY_BUCKET_SIZE:
+				bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
+				break;
+			case PROPERTY_LEAF_SIZE:
+				leafSize = getProperty(PROPERTY_LEAF_SIZE);
+				break;
+			case PROPERTY_LIMIT_ELAPSED_TIME:
+				limitElapsedTime = getProperty(PROPERTY_LIMIT_ELAPSED_TIME);
+				break;
+			case PROPERTY_MAX_SIZE:
+				maxContainSize = getProperty(PROPERTY_MAX_SIZE);
+				break;
+		}
 	}
 
 	/**
