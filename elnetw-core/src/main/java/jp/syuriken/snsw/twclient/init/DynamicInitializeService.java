@@ -93,12 +93,12 @@ public class DynamicInitializeService extends InitializeService {
 			if (!phaseSet.contains(phase)) {
 				logger.warn("QA: {} has unknown phase: {}", toString(), phase);
 			}
-			LinkedList<String> remainDependencies = new LinkedList<String>();
+			LinkedList<String> remainDependencies = new LinkedList<>();
 			this.remainDependencies = remainDependencies;
 
 			String[] dependencies = annotation.dependencies();
 			for (String dependency : dependencies) {
-				if (initializedSet.contains(dependency) == false) {
+				if (!initializedSet.contains(dependency)) {
 					remainDependencies.add(dependency);
 				}
 			}
@@ -113,7 +113,7 @@ public class DynamicInitializeService extends InitializeService {
 					ArrayList<InitializerInfoImpl> initializerInfos = initializerDependencyMap.get(dependency);
 					if (initializerInfos == null) {
 						// initializer is hardly depended by over 10 initializers
-						initializerInfos = new ArrayList<InitializerInfoImpl>(1);
+						initializerInfos = new ArrayList<>(1);
 						initializerDependencyMap.put(dependency, initializerInfos);
 					}
 					initializerInfos.add(this);
@@ -300,7 +300,7 @@ public class DynamicInitializeService extends InitializeService {
 	protected Stack<InitializerInfoImpl> uninitStack;
 	private HashSet<String> phaseSet;
 
-	private DynamicInitializeService(ClientConfiguration configuration) {
+	protected DynamicInitializeService(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initializerInfoMap = new HashMap<>();
 		initializerDependencyMap = new HashMap<>();
@@ -427,7 +427,7 @@ public class DynamicInitializeService extends InitializeService {
 		return this;
 	}
 
-	private void resolve(String name) {
+	public void resolve(String name) {
 		if (initializedSet.contains(name)) {
 			return;
 		}
@@ -447,14 +447,16 @@ public class DynamicInitializeService extends InitializeService {
 		}
 	}
 
-	private void runResolvedInitializer() throws InitializeException {
-		while (initQueue.isEmpty() == false) {
+	protected void runResolvedInitializer() throws InitializeException {
+		while (!initQueue.isEmpty()) {
 			InitializerInfoImpl info = initQueue.poll();
 			if (logger.isTraceEnabled()) {
 				logger.trace(" {}{}:{}", (info.isSkip() ? "(skip)" : ""), info.getPhase(), info);
 			}
 			info.run(true);
-			uninitStack.push(info);
+			if (info.isUninitable()) {
+				uninitStack.push(info);
+			}
 			resolve(info.getName());
 		}
 	}
@@ -466,9 +468,8 @@ public class DynamicInitializeService extends InitializeService {
 		}
 
 		logger.info("Starting uninitializing");
-		while (uninitStack.isEmpty() == false) {
+		while (!uninitStack.isEmpty()) {
 			InitializerInfoImpl info = uninitStack.pop();
-			info.isUninitable();
 			info.run(false);
 		}
 		uninitStack = null;
