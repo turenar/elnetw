@@ -7,6 +7,10 @@
 
 elnetw.cfg
 
+# tools/
+/tools/log
+/tools/.classpath.cache
+
 # For Maven
 /elnetw-*/target
 /target
