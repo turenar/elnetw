@@ -45,15 +45,20 @@ public class ClientPropertiesTest {
 
 	/*package*/static final class PropertyChangeListenerTestImpl implements PropertyChangeListener {
 
+		private PropertyChangeEvent evt;
+
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			assertEquals("test", evt.getPropertyName());
-			assertEquals(null, evt.getOldValue());
-			assertEquals("aaa", evt.getNewValue());
+			this.evt = evt;
+		}
+
+		public void test(String property, String oldValue, String newValue) {
+			assertEquals(property, evt.getPropertyName());
+			assertEquals(oldValue, evt.getOldValue());
+			assertEquals(newValue, evt.getNewValue());
 		}
 	}
 
-	private static final int BENCH_COUNT = 100000;
 
 	/**
 	 * obfuscate string
@@ -76,29 +81,16 @@ public class ClientPropertiesTest {
 		System.out.println(configProperties.getProperty(key));
 	}
 
-	/* **********************
-	 *== bench report: BENCH_COUNT=10^7
-	 * == No cache result ===
-	 *  getBoolean: 1451ms
-	 *  getColor: 14640ms
-	 *  getDimension: 10878ms
-	 *  getInteger: 2196ms
-	 *  getLong: 3388ms
-	 * == cached result ===
-	 *  getBoolean: 1318ms
-	 *  getColor: 1327ms
-	 *  getDimension: 1135ms
-	 *  getInteger: 625ms
-	 *  getLong: 627ms
-	 * ***********************/
-	private long timerDate;
-
 	/** {@link ClientProperties#addPropertyChangedListener(PropertyChangeListener)} のためのテスト・メソッド。 */
 	@Test
 	public void testAddPropertyChangedListener() {
 		ClientProperties clientProperties = new ClientProperties();
-		clientProperties.addPropertyChangedListener(new PropertyChangeListenerTestImpl());
+		PropertyChangeListenerTestImpl listener = new PropertyChangeListenerTestImpl();
+		clientProperties.addPropertyChangedListener(listener);
 		clientProperties.setProperty("test", "aaa");
+		listener.test("test", null, clientProperties.getProperty("test"));
+		clientProperties.setProperty("test", "bbb");
+		listener.test("test", "aaa", "bbb");
 	}
 
 	/** {@link ClientProperties#getBoolean(String)} のためのテスト・メソッド。 */
@@ -108,11 +100,6 @@ public class ClientPropertiesTest {
 		clientProperties.setBoolean("aaa", true);
 		clientProperties.setBoolean("bbb", false);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getBoolean("aaa");
-		}
-		timerStop("getBoolean");
 		assertTrue(clientProperties.getBoolean("aaa"));
 		assertFalse(clientProperties.getBoolean("bbb"));
 	}
@@ -124,11 +111,6 @@ public class ClientPropertiesTest {
 		clientProperties.setColor("aaa", Color.black);
 		clientProperties.setColor("bbb", Color.white);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getColor("aaa");
-		}
-		timerStop("getColor");
 		assertEquals(Color.black, clientProperties.getColor("aaa"));
 		assertEquals(Color.white, clientProperties.getColor("bbb"));
 	}
@@ -140,11 +122,6 @@ public class ClientPropertiesTest {
 		clientProperties.setDimension("aaa", new Dimension(100, 100));
 		clientProperties.setDimension("bbb", new Dimension(0, 0));
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getDimension("aaa");
-		}
-		timerStop("getDimension");
 		assertEquals(new Dimension(100, 100), clientProperties.getDimension("aaa"));
 		assertEquals(new Dimension(0, 0), clientProperties.getDimension("bbb"));
 	}
@@ -160,11 +137,6 @@ public class ClientPropertiesTest {
 		clientProperties.setDouble("eee", Double.NEGATIVE_INFINITY);
 		clientProperties.setDouble("fff", Double.POSITIVE_INFINITY);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getDouble("aaa");
-		}
-		timerStop("getDouble");
 		assertEquals(Double.MAX_VALUE, clientProperties.getDouble("aaa"), 0.0001);
 		assertEquals(Double.MIN_NORMAL, clientProperties.getDouble("bbb"), 0.0001);
 		assertEquals(Double.MIN_VALUE, clientProperties.getDouble("ccc"), 0.0001);
@@ -184,11 +156,6 @@ public class ClientPropertiesTest {
 		clientProperties.setFloat("eee", Float.NEGATIVE_INFINITY);
 		clientProperties.setFloat("fff", Float.POSITIVE_INFINITY);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getFloat("aaa");
-		}
-		timerStop("getFloat");
 		assertEquals(Float.MAX_VALUE, clientProperties.getFloat("aaa"), 0.0001);
 		assertEquals(Float.MIN_NORMAL, clientProperties.getFloat("bbb"), 0.0001);
 		assertEquals(Float.MIN_VALUE, clientProperties.getFloat("ccc"), 0.0001);
@@ -210,12 +177,6 @@ public class ClientPropertiesTest {
 		clientProperties.setProperty("fff", "Monospaced,12,italic");
 		clientProperties.setProperty("ggg", "Monospaced,13,italic|bold");
 		clientProperties.setProperty("hhh", "Monospaced,14");
-
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getFont("aaa");
-		}
-		timerStop("getFont");
 
 		assertEquals(fontA, clientProperties.getFont("aaa"));
 		assertEquals(fontB, clientProperties.getFont("bbb"));
@@ -246,11 +207,6 @@ public class ClientPropertiesTest {
 		clientProperties.setInteger("aaa", Integer.MAX_VALUE);
 		clientProperties.setInteger("bbb", Integer.MIN_VALUE);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getInteger("aaa");
-		}
-		timerStop("getInteger");
 		assertEquals(Integer.MAX_VALUE, clientProperties.getInteger("aaa"));
 		assertEquals(Integer.MIN_VALUE, clientProperties.getInteger("bbb"));
 	}
@@ -262,11 +218,6 @@ public class ClientPropertiesTest {
 		clientProperties.setLong("aaa", Long.MAX_VALUE);
 		clientProperties.setLong("bbb", Long.MIN_VALUE);
 
-		timerStart();
-		for (int i = 0; i < BENCH_COUNT; i++) {
-			clientProperties.getLong("aaa");
-		}
-		timerStop("getLong");
 		assertEquals(Long.MAX_VALUE, clientProperties.getLong("aaa"));
 		assertEquals(Long.MIN_VALUE, clientProperties.getLong("bbb"));
 	}
@@ -280,19 +231,7 @@ public class ClientPropertiesTest {
 		clientProperties.setPrivateString("ccc", "opqrstu", ClientProperties.makeKey("cipher"));
 		clientProperties.setProperty("fff", "vwxyz");
 
-		int benchCount = BENCH_COUNT / 100;
-		timerStart();
-		for (int i = 0; i < benchCount; i++) {
-			clientProperties.getPrivateString("aaa", "0xcafebabe");
-		}
-		timerStop("getPrivateString (without Key)", 100);
-
 		Key keyCafebabe = ClientProperties.makeKey("0xcafebabe");
-		timerStart();
-		for (int i = 0; i < benchCount; i++) {
-			clientProperties.getPrivateString("aaa", keyCafebabe);
-		}
-		timerStop("getPrivateString (with Key)", 100);
 
 		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", "0xcafebabe"));
 		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", keyCafebabe));
@@ -303,13 +242,17 @@ public class ClientPropertiesTest {
 		assertEquals("terminal", clientProperties.getPrivateString("ddd", "terminal", "test"));
 		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "kill me baby"));
 		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "$priv$0", "kill me baby"));
+	}
 
-		try { // illegal key
-			clientProperties.getPrivateString("aaa", "Oxcafebaby");
-			fail("InvalidKey");
+	@Test(expected = InvalidKeyException.class)
+	public void testIllegalKey() throws InvalidKeyException {
+		ClientProperties clientProperties = new ClientProperties();
+		try {
+			clientProperties.setPrivateString("aaa", "abcdefg", "0xcafebabe");
 		} catch (InvalidKeyException e) {
-			// success
+			throw new AssertionError(e);
 		}
+		clientProperties.getPrivateString("aaa", "Oxcafebaby");
 	}
 
 	@Test
@@ -363,19 +306,5 @@ public class ClientPropertiesTest {
 		assertEquals("4h", clientProperties.getProperty("hr"));
 		assertEquals("5d", clientProperties.getProperty("day"));
 		assertEquals("7d", clientProperties.getProperty("extra"));
-
-	}
-
-	private void timerStart() {
-		timerDate = System.currentTimeMillis();
-	}
-
-	private void timerStop(String messagePrefix, int scaler) {
-		long processTime = (System.currentTimeMillis() - timerDate) * scaler;
-		System.out.println(messagePrefix + ": " + processTime + "ms");
-	}
-
-	private void timerStop(String messagePrefix) {
-		timerStop(messagePrefix, 1);
 	}
 }

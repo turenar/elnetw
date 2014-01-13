@@ -39,7 +39,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -135,7 +134,6 @@ public class ClientProperties extends Properties {
 	protected transient ArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
 	protected File storeFile;
-	private transient Hashtable<String, Object> cacheTable;
 
 	/** インスタンスを生成する。 */
 	public ClientProperties() {
@@ -150,7 +148,6 @@ public class ClientProperties extends Properties {
 	public ClientProperties(Properties defaults) {
 		super(defaults);
 		listeners = new ArrayList<>();
-		cacheTable = new Hashtable<>();
 	}
 
 	/**
@@ -163,26 +160,6 @@ public class ClientProperties extends Properties {
 			throw new IllegalArgumentException("listenerはnullであってはいけません。");
 		}
 		listeners.add(listener);
-	}
-
-	/**
-	 * 変換済みの値をキャッシュする。
-	 *
-	 * @param key   キー
-	 * @param value 値
-	 */
-	protected synchronized void cacheValue(String key, Object value) {
-		cacheTable.put(key, value);
-	}
-
-	/**
-	 * キャッシュ済みの値を削除する。
-	 *
-	 * @param key キー
-	 * @return キャッシュされていた変換済みの値。キャッシュされていなかった場合null
-	 */
-	protected synchronized Object clearCachedValue(String key) {
-		return cacheTable.remove(key);
 	}
 
 	@Override
@@ -243,33 +220,8 @@ public class ClientProperties extends Properties {
 	 * @return boolean値
 	 */
 	public synchronized boolean getBoolean(String key) {
-		Boolean boolean1 = getCachedValue(key, Boolean.class);
-		if (boolean1 != null) {
-			return boolean1;
-		}
-
 		String value = getProperty(key);
-		boolean1 = Boolean.parseBoolean(value);
-		cacheValue(key, boolean1);
-		return boolean1;
-	}
-
-	/**
-	 * キャッシュされた値を取得する。
-	 *
-	 * @param key           キー
-	 * @param expectedClass 期待するClass
-	 * @return キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
-	 * それ以外はキャッシュされた値
-	 */
-	@SuppressWarnings("unchecked")
-	protected synchronized <T> T getCachedValue(String key, Class<T> expectedClass) {
-		Object cachedValue = cacheTable.get(key);
-		if (cachedValue == null || !expectedClass.isInstance(cachedValue)) {
-			return null;
-		} else {
-			return (T) cachedValue;
-		}
+		return Boolean.parseBoolean(value);
 	}
 
 	/**
@@ -283,27 +235,19 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException    数値に変換できない値です
 	 */
 	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
-		Color color = getCachedValue(key, Color.class);
-		if (color != null) {
-			return color;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
 		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 4) {
-			color =
-					new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
-							Integer.parseInt(rgba[3]));
+			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
+					Integer.parseInt(rgba[3]));
 		} else if (rgba.length == 3) {
-			color = new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
+			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はColorに使用できる値ではありません: {1}", key, value));
 		}
-		cacheValue(key, color);
-		return color;
 	}
 
 	/**
@@ -316,23 +260,16 @@ public class ClientProperties extends Properties {
 	 * @throws IllegalArgumentException 正しくない設定値
 	 */
 	public synchronized Dimension getDimension(String key) throws IllegalArgumentException {
-		Dimension dimension = getCachedValue(key, Dimension.class);
-		if (dimension != null) {
-			return dimension;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
 		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 2) {
-			dimension = new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
+			return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はDimensionに使用できる値ではありません: {1}", key, value));
 		}
-		cacheValue(key, dimension);
-		return dimension;
 	}
 
 	/**
@@ -344,15 +281,7 @@ public class ClientProperties extends Properties {
 	 * @return keyに関連付けられたdouble
 	 */
 	public synchronized double getDouble(String key) {
-		Double double1 = getCachedValue(key, Double.class);
-		if (double1 != null) {
-			return double1;
-		}
-
-		String value = getProperty(key);
-		double1 = Double.valueOf(value);
-		cacheValue(key, double1);
-		return double1;
+		return Double.valueOf(getProperty(key));
 	}
 
 	/**
@@ -364,15 +293,8 @@ public class ClientProperties extends Properties {
 	 * @return keyに関連付けられたfloat
 	 */
 	public synchronized float getFloat(String key) {
-		Float float1 = getCachedValue(key, Float.class);
-		if (float1 != null) {
-			return float1;
-		}
-
 		String value = getProperty(key);
-		float1 = Float.valueOf(value);
-		cacheValue(key, float1);
-		return float1;
+		return Float.valueOf(value);
 	}
 
 	/**
@@ -392,11 +314,6 @@ public class ClientProperties extends Properties {
 	 *                                  正しいint値が指定されていない。
 	 */
 	public synchronized Font getFont(String key) throws IllegalArgumentException {
-		Font font = getCachedValue(key, Font.class);
-		if (font != null) {
-			return font;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -439,9 +356,7 @@ public class ClientProperties extends Properties {
 		}
 		int fontSize = Integer.parseInt(fontSizeString.trim());
 
-		font = new Font(fontName, fontStyle, fontSize);
-		cacheValue(key, font);
-		return font;
+		return new Font(fontName, fontStyle, fontSize);
 	}
 
 	/**
@@ -454,15 +369,8 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException 数値として認識できない値
 	 */
 	public synchronized int getInteger(String key) throws NumberFormatException {
-		Integer integer = getCachedValue(key, Integer.class);
-		if (integer != null) {
-			return integer;
-		}
-
 		String value = getProperty(key);
-		integer = Integer.valueOf(value);
-		cacheValue(key, integer);
-		return integer;
+		return Integer.valueOf(value);
 	}
 
 	/**
@@ -493,15 +401,8 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException 数値として認識できない値
 	 */
 	public synchronized long getLong(String key) throws NumberFormatException {
-		Long long1 = getCachedValue(key, Long.class);
-		if (long1 != null) {
-			return long1;
-		}
-
 		String value = getProperty(key);
-		long1 = Long.valueOf(value);
-		cacheValue(key, long1);
-		return long1;
+		return Long.valueOf(value);
 	}
 
 	/**
@@ -661,7 +562,6 @@ public class ClientProperties extends Properties {
 	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		listeners = new ArrayList<>();
-		cacheTable = new Hashtable<>();
 	}
 
 	@Override
@@ -687,7 +587,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setBoolean(String key, boolean value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -698,7 +597,6 @@ public class ClientProperties extends Properties {
 	 * @param color Colorインスタンス。null不可。
 	 */
 	public synchronized void setColor(String key, Color color) {
-		clearCachedValue(key);
 		setProperty(
 				key,
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
@@ -712,7 +610,6 @@ public class ClientProperties extends Properties {
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
 	public synchronized void setDimension(String key, Dimension dimension) {
-		clearCachedValue(key);
 		setProperty(key, dimension.width + "," + dimension.height);
 	}
 
@@ -723,7 +620,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setDouble(String key, double value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -734,7 +630,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setFloat(String key, float value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -745,7 +640,6 @@ public class ClientProperties extends Properties {
 	 * @param font フォントインスタンス
 	 */
 	public synchronized void setFont(String key, Font font) throws IllegalArgumentException {
-		clearCachedValue(key);
 		setProperty(key, font.getName() + ',' + font.getSize() + ',' + font.getStyle());
 	}
 
@@ -756,7 +650,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setInteger(String key, int value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -767,7 +660,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setLong(String key, long value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
