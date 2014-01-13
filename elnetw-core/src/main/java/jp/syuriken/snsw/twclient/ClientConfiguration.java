@@ -307,8 +307,7 @@ public class ClientConfiguration {
 	 * @return アクションハンドラ
 	 */
 	public ActionHandler getActionHandler(IntentArguments intent) {
-		ActionHandler actionHandler = actionHandlerTable.get(intent.getIntentName());
-		return actionHandler;
+		return actionHandlerTable.get(intent.getIntentName());
 	}
 
 	/**
@@ -399,7 +398,7 @@ public class ClientConfiguration {
 	}
 
 	public MessageFilter[] getFilters() {
-		return messageFilters.toArray(new MessageFilter[0]);
+		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
 
 	/**
@@ -696,12 +695,16 @@ public class ClientConfiguration {
 	 */
 	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
 		String userId;
-		if (accountId.equals(TwitterDataFetchScheduler.READER_ACCOUNT_ID)) {
-			userId = getAccountIdForRead();
-		} else if (accountId.equals(TwitterDataFetchScheduler.WRITER_ACCOUNT_ID)) {
-			userId = getAccountIdForWrite();
-		} else {
-			userId = accountId;
+		switch (accountId) {
+			case TwitterDataFetchScheduler.READER_ACCOUNT_ID:
+				userId = getAccountIdForRead();
+				break;
+			case TwitterDataFetchScheduler.WRITER_ACCOUNT_ID:
+				userId = getAccountIdForWrite();
+				break;
+			default:
+				userId = accountId;
+				break;
 		}
 		return isMentioned(Long.parseLong(userId), userMentionEntities);
 	}

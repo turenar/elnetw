@@ -58,7 +58,7 @@ public class Utility {
 		/** MacOS環境 */
 		MAC,
 		/** その他 (*nixなど) */
-		OTHER;
+		OTHER
 	}
 
 	/** 秒→ミリセカンド */
@@ -112,7 +112,7 @@ public class Utility {
 					MessageNotifierEntry entry = listIterator.next();
 					int entryPriority = entry.priority;
 					// First element is the highest priority MessageNotifier.
-					// If MessageNotifier which has same priority is already regeistered,
+					// If MessageNotifier which has same priority is already registered,
 					//  <messageNotifier> will be put after it.
 					if (entryPriority < priority) {
 						listIterator.previous();
@@ -142,8 +142,7 @@ public class Utility {
 		int newr = (int) ((target.getRed() * (1.0 - alpha)) + (source.getRed() * alpha));
 		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
 		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
-		Color color = new Color(newr, newg, newb, target.getAlpha());
-		return color;
+		return new Color(newr, newg, newb, target.getAlpha());
 	}
 
 	/** OSを確定する */
@@ -300,7 +299,7 @@ public class Utility {
 	}
 
 	static {
-		privacyEntries = new KVEntry[] {
+		privacyEntries = new KVEntry[]{
 				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
 				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
@@ -425,7 +424,7 @@ public class Utility {
 
 		for (String browser : browsers) {
 			try {
-				if (Runtime.getRuntime().exec(new String[] {
+				if (Runtime.getRuntime().exec(new String[]{
 						"which",
 						browser
 				}).waitFor() == 0) {
@@ -463,16 +462,11 @@ public class Utility {
 							);
 							MessageNotifier messageNotifier = constructor.newInstance(configuration);
 							notifySender = messageNotifier;
-							logger.info("use {} as MessageNotifier", notifySender);
+							logger.info("use {} as MessageNotifier", messageNotifier);
 							break;
 						}
-					} catch (NoSuchMethodException e) {
-						logger.warn("#detectNotifier", e);
-					} catch (InvocationTargetException e) {
-						logger.warn("#detectNotifier", e);
-					} catch (IllegalAccessException e) {
-						logger.warn("#detectNotifier", e);
-					} catch (InstantiationException e) {
+					} catch (NoSuchMethodException | InvocationTargetException
+							| IllegalAccessException | InstantiationException e) {
 						logger.warn("#detectNotifier", e);
 					}
 				}
@@ -503,19 +497,14 @@ public class Utility {
 					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
 					break;
 				case MAC:
-					Class<?> fileMgr = null;
-					fileMgr = Class.forName("com.apple.eio.FileManager");
+					Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class<?>[] {
-							String.class
-					});
-					openURL.invoke(null, new Object[] {
-							url.trim()
-					});
+					Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
+					openURL.invoke(null, url.trim());
 					break;
 				case OTHER:
 					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[] {
+					Runtime.getRuntime().exec(new String[]{
 							browser,
 							url.trim()
 					});

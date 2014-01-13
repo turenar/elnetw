@@ -91,13 +91,12 @@ public class ImageCacher {
 
 		@Override
 		public String toString() {
-			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
-					.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
-					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append(
-					"],isWritten=")
-					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
-			return stringBuilder.toString();
+			return "ImageEntry{imageKey=" + imageKey
+					+ ",url=" + url.toString()
+					+ ",cacheFile=" + (cacheFile == null ? "null" : cacheFile.getPath())
+					+ ",rawimage=byte[" + (rawimage == null ? "null" : rawimage.length)
+					+ "],isWritten=" + isWritten
+					+ ",appearCount=" + appearCount + "}";
 		}
 	}
 
@@ -472,8 +471,7 @@ public class ImageCacher {
 	 */
 	protected String getProfileImageName(User user) {
 		String url = user.getProfileImageURL();
-		String fileName = url.substring(url.lastIndexOf('/') + 1);
-		return fileName;
+		return url.substring(url.lastIndexOf('/') + 1);
 	}
 
 	protected void incrementAppearCount(ImageEntry entry) {

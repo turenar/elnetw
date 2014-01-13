@@ -19,10 +19,12 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -297,7 +299,7 @@ public class TwitterClientMain {
 	public void initShortcutKey() {
 		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
 		Properties shortcutkeyProperties = new Properties();
-		if (parentConfigName.trim().isEmpty() == false) {
+		if (!parentConfigName.trim().isEmpty()) {
 			InputStream stream = null;
 			try {
 				stream = TwitterClientMain.class.getResourceAsStream(
@@ -383,9 +385,7 @@ public class TwitterClientMain {
 						ClientTab tab = tabConstructor.newInstance(
 								configProperties.getProperty("gui.tabs.data." + uniqId));
 						configuration.addFrameTab(tab);
-					} catch (IllegalArgumentException e) {
-						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
-					} catch (InstantiationException e) {
+					} catch (IllegalArgumentException | InstantiationException e) {
 						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
 					} catch (IllegalAccessException e) {
 						logger.error("タブが復元できません: 正しくないアクセス指定子です。tabId=" + tabId, e);
@@ -611,7 +611,12 @@ public class TwitterClientMain {
 	@Initializer(name = "timer", phase = "earlyinit")
 	public void setTimer(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			configuration.setTimer(Executors.newSingleThreadScheduledExecutor());
+			configuration.setTimer(new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+				@Override
+				public Thread newThread(@Nonnull Runnable r) {
+					return new Thread(r, "timer");
+				}
+			}));
 		} else {
 			ScheduledExecutorService timer = configuration.getTimer();
 			timer.shutdown();
@@ -699,7 +704,7 @@ public class TwitterClientMain {
 						break;
 					}
 				} catch (InterruptedException e) {
-					continue;
+					// continue;
 				}
 			}
 		}
@@ -708,7 +713,7 @@ public class TwitterClientMain {
 	/** OAuthアクセストークンの取得を試す */
 	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
 	public void tryGetOAuthAccessToken(InitCondition cond) {
-		if (cond.isInitializingPhase() == false) {
+		if (!cond.isInitializingPhase()) {
 			return;
 		}
 
