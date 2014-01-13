@@ -89,6 +89,8 @@ public class Utility {
 	public static final long HOUR2MS = MINUTE2MS * 60;
 	/** 日→ミリセカンド */
 	public static final long DAY2MS = HOUR2MS * 24;
+
+
 	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<>();
 	public static final String[] BROWSER_CANDIDATES = new String[]{

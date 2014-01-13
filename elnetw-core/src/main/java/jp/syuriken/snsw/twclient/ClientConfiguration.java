@@ -171,15 +171,15 @@ public class ClientConfiguration {
 		INSTANCE = conf;
 	}
 
-	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
+	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	private final transient JobQueue jobQueue = new JobQueue();
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
+	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
 	/*package*/ ClientProperties configProperties;
 	/*package*/ ClientProperties configDefaultProperties;
-	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<>();
 	private volatile TrayIcon trayIcon;
 	private TwitterClientFrame frameApi;
 	private volatile boolean isInitializing = true;

@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -309,6 +310,60 @@ public class ClientPropertiesTest {
 		} catch (InvalidKeyException e) {
 			// success
 		}
+	}
+
+	@Test
+	public void testGetTime() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		clientProperties.setTime("ms", 1, TimeUnit.MILLISECONDS);
+		clientProperties.setTime("sec", 2, TimeUnit.SECONDS);
+		clientProperties.setTime("min", 3, TimeUnit.MINUTES);
+		clientProperties.setTime("hr", 4, TimeUnit.HOURS);
+		clientProperties.setTime("day", 5, TimeUnit.DAYS);
+		clientProperties.setTime("extra", 1000 * 60 * 60 * 24 * 7, TimeUnit.MILLISECONDS);
+		assertEquals(1, clientProperties.getTime("ms", TimeUnit.MILLISECONDS));
+		assertEquals(1, clientProperties.getTime("ms"));
+		assertEquals(TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS),
+				clientProperties.getTime("sec", TimeUnit.MILLISECONDS));
+		assertEquals(2, clientProperties.getTime("sec", TimeUnit.SECONDS));
+		assertEquals(TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES),
+				clientProperties.getTime("min", TimeUnit.MILLISECONDS));
+		assertEquals(3, clientProperties.getTime("min", TimeUnit.MINUTES));
+		assertEquals(TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS),
+				clientProperties.getTime("hr", TimeUnit.MILLISECONDS));
+		assertEquals(4, clientProperties.getTime("hr", TimeUnit.HOURS));
+		assertEquals(TimeUnit.MILLISECONDS.convert(5, TimeUnit.DAYS),
+				clientProperties.getTime("day", TimeUnit.MILLISECONDS));
+		assertEquals(5, clientProperties.getTime("day", TimeUnit.DAYS));
+		assertEquals(7, clientProperties.getTime("extra", TimeUnit.DAYS));
+		assertEquals(TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS),
+				clientProperties.getTime("extra", TimeUnit.MILLISECONDS));
+		assertEquals(TimeUnit.SECONDS.convert(7, TimeUnit.DAYS),
+				clientProperties.getTime("extra", TimeUnit.SECONDS));
+		assertEquals(TimeUnit.MINUTES.convert(7, TimeUnit.DAYS),
+				clientProperties.getTime("extra", TimeUnit.MINUTES));
+		assertEquals(TimeUnit.HOURS.convert(7, TimeUnit.DAYS),
+				clientProperties.getTime("extra", TimeUnit.HOURS));
+	}
+
+	@Test
+	public void testSetTime() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		clientProperties.setTime("ms_no_unit", 1);
+		clientProperties.setTime("ms", 1, TimeUnit.MILLISECONDS);
+		clientProperties.setTime("sec", 2, TimeUnit.SECONDS);
+		clientProperties.setTime("min", 3, TimeUnit.MINUTES);
+		clientProperties.setTime("hr", 4, TimeUnit.HOURS);
+		clientProperties.setTime("day", 5, TimeUnit.DAYS);
+		clientProperties.setTime("extra", 1000 * 60 * 60 * 24 * 7, TimeUnit.MILLISECONDS);
+		assertEquals("1", clientProperties.getProperty("ms_no_unit"));
+		assertEquals("1", clientProperties.getProperty("ms"));
+		assertEquals("2s", clientProperties.getProperty("sec"));
+		assertEquals("3m", clientProperties.getProperty("min"));
+		assertEquals("4h", clientProperties.getProperty("hr"));
+		assertEquals("5d", clientProperties.getProperty("day"));
+		assertEquals("7d", clientProperties.getProperty("extra"));
+
 	}
 
 	private void timerStart() {
