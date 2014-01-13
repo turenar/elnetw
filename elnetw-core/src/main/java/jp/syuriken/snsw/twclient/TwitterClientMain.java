@@ -128,12 +128,14 @@ public class TwitterClientMain {
 		SINGLETON.MAIN_THREAD.interrupt();
 	}
 
-	/** 設定 */
-	protected final ClientConfiguration configuration;
+	private final ClassLoader classLoader;
 	/** for interruption */
 	private final Thread MAIN_THREAD;
 	/** スレッドホルダ */
 	protected final Object threadHolder = new Object();
+	private String[] args;
+	/** 設定 */
+	protected ClientConfiguration configuration;
 	/** 設定データ */
 	protected ClientProperties configProperties;
 	private Logger logger;
@@ -151,10 +153,9 @@ public class TwitterClientMain {
 	 * @param args コマンドラインオプション
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
+		this.args = args;
+		this.classLoader = classLoader;
 		MAIN_THREAD = Thread.currentThread();
-		configuration = ClientConfiguration.getInstance();
-		configuration.setExtraClassLoader(classLoader);
-		configuration.setOpts(args);
 		LongOpt[] longOpts = new LongOpt[]{
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
@@ -421,6 +422,10 @@ public class TwitterClientMain {
 		}
 		setHomeProperty();
 		setDebugLogger();
+		configuration = ClientConfiguration.getInstance();
+		configuration.setExtraClassLoader(classLoader);
+		configuration.setOpts(args);
+
 		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
@@ -562,24 +567,22 @@ public class TwitterClientMain {
 	private void setHomeProperty() {
 		String cacheDir;
 		String appHomeDir;
-		switch (Utility.getOstype()) {
-			case WINDOWS:
-				appHomeDir = System.getenv("APPDATA");
-				cacheDir = System.getProperty("java.io.tmpdir") + "/elnetw/cache";
-				break;
-			default:
-				appHomeDir = System.getProperty("user.home") + "/.elnetw";
-				cacheDir = System.getProperty("user.home") + "/.cache/elnetw";
-				Path cacheDirPath = new File(cacheDir).toPath();
-				Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
-				if (!Files.exists(cacheLinkPath, LinkOption.NOFOLLOW_LINKS)) {
-					try {
-						Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
-					} catch (IOException e) {
-						logger.warn("Failed create symlink for cache dir", e);
-					}
+		// do not use Utility: it initializes logger!
+		if (System.getProperty("os.name").equals("Windows")) {
+			appHomeDir = System.getenv("APPDATA");
+			cacheDir = System.getProperty("java.io.tmpdir") + "/elnetw/cache";
+		} else {
+			appHomeDir = System.getProperty("user.home") + "/.elnetw";
+			cacheDir = System.getProperty("user.home") + "/.cache/elnetw";
+			Path cacheDirPath = new File(cacheDir).toPath();
+			Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
+			if (!Files.exists(cacheLinkPath, LinkOption.NOFOLLOW_LINKS)) {
+				try {
+					Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
+				} catch (IOException e) {
+					logger.warn("Failed create symlink for cache dir", e);
 				}
-				break;
+			}
 		}
 		tryMkdir(appHomeDir);
 		tryMkdir(cacheDir);
