@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
 import twitter4j.Twitter;
@@ -11,11 +12,11 @@ import twitter4j.Twitter;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientConfigurationTestImpl extends ClientConfiguration {
-	private static final ReentrantLock reentrantLock = new ReentrantLock();
+	private static final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
 
 	public void clearGlobalInstance() {
 		ClientConfiguration.setInstance(null);
-		reentrantLock.unlock();
+		reentrantLock.readLock().unlock();
 	}
 
 	@Override
@@ -30,7 +31,23 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 	}
 
 	public void setGlobalInstance() {
-		reentrantLock.lock();
-		ClientConfiguration.setInstance(this);
+		while (true) {
+			reentrantLock.readLock().lock();
+			if (ClientConfiguration.getInstance() == this) {
+				break;
+			} else {
+				reentrantLock.readLock().unlock();
+				try {
+					if (reentrantLock.writeLock().tryLock(1, TimeUnit.MILLISECONDS)) {
+						ClientConfiguration.setInstance(this);
+						reentrantLock.readLock().lock();
+						reentrantLock.writeLock().unlock();
+						break;
+					}
+				} catch (InterruptedException e) {
+					//do nothing
+				}
+			}
+		}
 	}
 }

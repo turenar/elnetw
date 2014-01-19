@@ -43,19 +43,17 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	protected static class SoftReferenceUtil<K, V> extends SoftReference<V> {
-
 		private final int hashCode;
-
 		/** キー */
-		protected final K key;
+		private final K key;
 
 		/**
 		 * インスタンスを生成する。
 		 *
-		 * @param referent リファレントオブジェクト
 		 * @param key      キー
+		 * @param referent リファレントオブジェクト
 		 */
-		public SoftReferenceUtil(V referent, K key) {
+		public SoftReferenceUtil(K key, V referent) {
 			super(referent);
 			this.key = key;
 			hashCode = referent.hashCode();
@@ -64,11 +62,11 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		/**
 		 * インスタンスを生成する。
 		 *
+		 * @param key            キー
 		 * @param referent       リファレントオブジェクト
 		 * @param referenceQueue キュー
-		 * @param key            キー
 		 */
-		public SoftReferenceUtil(V referent, ReferenceQueue<V> referenceQueue, K key) {
+		public SoftReferenceUtil(K key, V referent, ReferenceQueue<V> referenceQueue) {
 			super(referent, referenceQueue);
 			this.key = key;
 			hashCode = referent.hashCode();
@@ -78,10 +76,19 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		public boolean equals(Object obj) {
 			if (obj instanceof SoftReferenceUtil) {
 				SoftReferenceUtil<?, ?> reference = (SoftReferenceUtil<?, ?>) obj;
-				return hashCode == reference.hashCode && key.equals(reference.key);
+				Object referent = get();
+				Object anotherReferent = reference.get();
+				// if referent == null, always return true
+				// because null should be replaced or deleted
+				return referent == null || anotherReferent == null
+						|| referent.equals(anotherReferent);
 			} else {
 				return false;
 			}
+		}
+
+		public K getKey() {
+			return key;
 		}
 
 		@Override
@@ -178,13 +185,16 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 			}
 		}
 
+		/**
+		 * Runnable from multi thread because ReferenceQueue is thread-safe.
+		 */
 		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
 			Reference<? extends V> ref;
 			while ((ref = referenceQueue.poll()) != null) {
 				if (ref instanceof SoftReferenceUtil) {
-					if (hashMap.remove(((SoftReferenceUtil<K, V>) ref).key, ref)) {
+					if (hashMap.remove(((SoftReferenceUtil<K, V>) ref).getKey(), ref)) {
 						logger.trace("remove {}", ref);
 					}
 				} else {
@@ -369,6 +379,15 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		referenceQueue = new ReferenceQueue<>();
 	}
 
+	/**
+	 * clean finalized references
+	 *
+	 * It'll be automatically done, so you don't have to invoke this method.
+	 */
+	public void cleanFinalizedReference() {
+		referenceCleaner.run();
+	}
+
 	@Override
 	public void clear() {
 		hashMap.clear();
@@ -405,7 +424,7 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	 * @param reference リファレンス
 	 * @return 値
 	 */
-	protected V expandReference(SoftReferenceUtil<K, V> reference) {
+	private V expandReference(SoftReferenceUtil<K, V> reference) {
 		if (reference == null) {
 			return null;
 		}
@@ -447,8 +466,14 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 		}
 	}
 
+	/**
+	 * This operation cost is a bit large because we must clean finalized references.
+	 *
+	 * {@inheritDoc}
+	 */
 	@Override
 	public V putIfAbsent(@Nonnull K key, V value) {
+		referenceCleaner.run();
 		return expandReference(hashMap.putIfAbsent(key, wrapReference(key, value)));
 	}
 
@@ -497,6 +522,6 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 	}
 
 	private SoftReferenceUtil<K, V> wrapReference(K key, V obj) {
-		return new SoftReferenceUtil<>(obj, referenceQueue, key);
+		return new SoftReferenceUtil<>(key, obj, referenceQueue);
 	}
 }
