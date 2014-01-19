@@ -475,16 +475,18 @@ public class ImageCacher {
 	}
 
 	protected void incrementAppearCount(ImageEntry entry) {
-		if (entry.isWritten) {
-			return;
-		}
-		if (entry.countEndTime < System.currentTimeMillis()) { // reset
-			entry.countEndTime = System.currentTimeMillis() + flushResetInterval;
-			entry.appearCount = 0;
-		}
-		int appearCount = ++entry.appearCount;
-		if (appearCount > flushThreshold) {
-			configuration.addJob(Priority.LOW, new ImageFlusher(entry));
+		synchronized (entry) {
+			if (entry.isWritten) {
+				return;
+			}
+			if (entry.countEndTime < System.currentTimeMillis()) { // reset
+				entry.countEndTime = System.currentTimeMillis() + flushResetInterval;
+				entry.appearCount = 0;
+			}
+			int appearCount = ++entry.appearCount;
+			if (appearCount > flushThreshold) {
+				configuration.addJob(Priority.LOW, new ImageFlusher(entry));
+			}
 		}
 	}
 
