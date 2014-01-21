@@ -69,6 +69,7 @@ public class TwitterDataFetchScheduler {
 	/*package*/ ClientProperties configProperties;
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
 	private volatile boolean isInitialized;
+	private volatile int modifiedCount;
 
 	/** インスタンスを生成する。 */
 	public TwitterDataFetchScheduler() {
@@ -154,6 +155,7 @@ public class TwitterDataFetchScheduler {
 				if (isInitialized) {
 					dataFetcher.realConnect();
 				}
+				modifiedCount++;
 			}
 		}
 		return true;
@@ -217,6 +219,10 @@ public class TwitterDataFetchScheduler {
 	 */
 	public ClientMessageListener getListeners(String accountId, boolean recursive, String... notifierName) {
 		return new VirtualMultipleMessageDispatcher(this, recursive, accountId, notifierName);
+	}
+
+	public int getModifiedCount() {
+		return modifiedCount;
 	}
 
 	/**

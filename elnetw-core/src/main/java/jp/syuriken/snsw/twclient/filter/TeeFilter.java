@@ -139,6 +139,7 @@ public class TeeFilter implements TabRenderer {
 				return;
 			}
 		}
+		renderer.onDirectMessage(directMessage);
 	}
 
 	@Override
@@ -168,6 +169,7 @@ public class TeeFilter implements TabRenderer {
 				return;
 			}
 		}
+		renderer.onFavorite(source, target, favoritedStatus);
 	}
 
 	@Override

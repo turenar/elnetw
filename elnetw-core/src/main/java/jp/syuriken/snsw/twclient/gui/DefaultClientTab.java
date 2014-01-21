@@ -708,7 +708,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 
 			@Override
 			public Rectangle translate(JComponent component) {
-				if (component instanceof RenderPanel == false) {
+				if (!(component instanceof RenderPanel)) {
 					throw new AssertionError();
 				}
 				return sortedPostListPanel.getBoundsOf((RenderPanel) component);

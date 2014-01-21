@@ -1,5 +1,6 @@
 package jp.syuriken.snsw.twclient.net;
 
+import java.util.HashSet;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
@@ -17,11 +18,14 @@ import twitter4j.UserList;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/class VirtualMultipleMessageDispatcher implements ClientMessageListener {
+/*package*/
+class VirtualMultipleMessageDispatcher implements ClientMessageListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(VirtualMultipleMessageDispatcher.class);
 	private final String[] paths;
-	private TwitterDataFetchScheduler scheduler;
+	private final TwitterDataFetchScheduler scheduler;
+	private volatile int modifiedCount;
+	private volatile ClientMessageListener[] cachedListeners;
 
 	public VirtualMultipleMessageDispatcher(TwitterDataFetchScheduler scheduler, boolean recursive, String accountId,
 			String[] notifierNames) {
@@ -38,353 +42,348 @@ import twitter4j.UserList;
 		this.paths = paths.toArray(new String[paths.size()]);
 	}
 
+	private ClientMessageListener[] getListeners() {
+		ClientMessageListener[] listeners = cachedListeners;
+		if (modifiedCount != scheduler.getModifiedCount()) {
+			synchronized (this) {
+				int newModifiedCount = scheduler.getModifiedCount();
+				if (modifiedCount != newModifiedCount) {
+					logger.debug("Update notifier cache");
+					HashSet<ClientMessageListener> listenersSet = new HashSet<>();
+					for (String path : paths) {
+						for (ClientMessageListener listener : scheduler.getInternalListeners(path)) {
+							listenersSet.add(listener);
+						}
+					}
+					listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
+					cachedListeners = listeners;
+					modifiedCount = newModifiedCount;
+				}
+			}
+		}
+		return listeners;
+	}
+
 	@Override
 	public void onBlock(User source, User blockedUser) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onBlock(source, blockedUser);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onBlock(source, blockedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onChangeAccount(boolean forWrite) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onChangeAccount(forWrite);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onChangeAccount(forWrite);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onCleanUp() {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onCleanUp();
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onCleanUp();
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onClientMessage(String mesName, Object arg) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onClientMessage(mesName, arg);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onClientMessage(mesName, arg);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onConnect() {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onConnect();
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onConnect();
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onDeletionNotice(long directMessageId, long userId) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onDeletionNotice(directMessageId, userId);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onDeletionNotice(directMessageId, userId);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onDeletionNotice(statusDeletionNotice);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onDeletionNotice(statusDeletionNotice);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onDirectMessage(DirectMessage directMessage) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onDirectMessage(directMessage);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onDirectMessage(directMessage);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onDisconnect() {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onDisconnect();
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onDisconnect();
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onException(Exception ex) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onException(ex);
-				} catch (RuntimeException re) {
-					logger.warn("uncaught exception", re);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onException(ex);
+			} catch (RuntimeException re) {
+				logger.warn("uncaught exception", re);
 			}
 		}
 	}
 
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onFavorite(source, target, favoritedStatus);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onFavorite(source, target, favoritedStatus);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onFollow(User source, User followedUser) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onFollow(source, followedUser);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onFollow(source, followedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onFriendList(long[] friendIds) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onFriendList(friendIds);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onFriendList(friendIds);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onScrubGeo(userId, upToStatusId);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onScrubGeo(userId, upToStatusId);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onStallWarning(StallWarning warning) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onStallWarning(warning);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onStallWarning(warning);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onStatus(Status status) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onStatus(status);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onStatus(status);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onTrackLimitationNotice(numberOfLimitedStatuses);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onTrackLimitationNotice(numberOfLimitedStatuses);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUnblock(User source, User unblockedUser) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUnblock(source, unblockedUser);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUnblock(source, unblockedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUnfavorite(source, target, unfavoritedStatus);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUnfavorite(source, target, unfavoritedStatus);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListCreation(listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListCreation(listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListDeletion(User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListDeletion(listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListDeletion(listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListMemberAddition(addedMember, listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListMemberAddition(addedMember, listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListMemberDeletion(deletedMember, listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListMemberDeletion(deletedMember, listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListSubscription(subscriber, listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListSubscription(subscriber, listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListUnsubscription(subscriber, listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListUnsubscription(subscriber, listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserListUpdate(User listOwner, UserList list) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserListUpdate(listOwner, list);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserListUpdate(listOwner, list);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
-		for (String name : paths) {
-			for (ClientMessageListener listener : scheduler.getInternalListeners(name)) {
-				try {
-					listener.onUserProfileUpdate(updatedUser);
-				} catch (RuntimeException ex) {
-					logger.warn("uncaught exception", ex);
-				}
+		ClientMessageListener[] listeners = getListeners();
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserProfileUpdate(updatedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
 			}
 		}
 	}

@@ -94,11 +94,6 @@ public class DirectMessageViewTab extends DefaultClientTab implements RenderTarg
 			});
 		}
 	}
-
-	@Override
-	public void focusGained(FocusEvent e) {
-	}
-
 	@Override
 	public void focusGained() {
 		focusGained = true;
