@@ -14,10 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Stack;
@@ -30,6 +28,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
@@ -52,7 +51,6 @@ import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
-import twitter4j.TweetEntity;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.org.json.JSONArray;
@@ -130,6 +128,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 					break;
 				case REQUEST_FOCUS_FIRST_COMPONENT:
 					getSortedPostListPanel().requestFocusFirstComponent();
+					shouldBeScrollToPost = true;
+					break;
+				case REQUEST_FOCUS_LAST_COMPONENT:
+					getSortedPostListPanel().requestFocusLastComponent();
+					shouldBeScrollToPost = true;
 					break;
 				case REQUEST_FOCUS_WINDOW_FIRST_COMPONENT:
 					getSortedPostListPanel().getComponentAt(0, getScrollPane().getViewport().getViewPosition().y)
@@ -284,8 +287,9 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 					}
 					break;
 				default:
-					if(selectingPost!=null)
-						selectingPost.onEvent(name,arg);
+					if (selectingPost != null) {
+						selectingPost.onEvent(name, arg);
+					}
 			}
 		}
 
@@ -411,6 +415,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	public final Font DEFAULT_FONT;
 	/** UIフォント */
 	public final Font UI_FONT;
+	/** UI更新キュー */
+	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<RenderPanel> inReplyToStack = new Stack<>();
 	/** 現在選択しているポスト */
@@ -429,8 +435,6 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected TreeMap<String, RenderPanel> statusMap = new TreeMap<>();
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
-	/** UI更新キュー */
-	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
 	/** 慣性スクローラー */
 	protected ScrollUtility scroller;
 	/** {@link ClientConfiguration#getUtility()} */
@@ -499,21 +503,23 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		this(new JSONObject(serializedJson));
 	}
 
-	protected void runInDispatcherThread(Runnable runnable) {
-		if (EventQueue.isDispatchThread()) {
-			runnable.run();
-		} else {
-			try {
-				EventQueue.invokeAndWait(runnable);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			} catch (InvocationTargetException e) {
-				logger.warn("EventQueue.invokeAndWait failed", e);
-			}
+	@Override
+	public void addStatus(RenderObject renderObject) {
+		synchronized (postListAddQueue) {
+			RenderPanel component = renderObject.getComponent();
+			postListAddQueue.add(component);
 		}
 	}
 
+	protected boolean shouldBeScrollToPost;
+
+	@Override
 	public void focusGained(FocusEvent e) {
+		selectingPost = (RenderPanel) e.getComponent();
+		if (shouldBeScrollToPost) {
+			shouldBeScrollToPost = false;
+			scrollToSelectingPost();
+		}
 	}
 
 	@Override
@@ -643,14 +649,6 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 */
 	protected abstract Object getSerializedExtendedData() throws JSONException;
 
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		synchronized (postListAddQueue) {
-			RenderPanel component = renderObject.getComponent();
-			postListAddQueue.add(component);
-		}
-	}
-
 	/**
 	 * SortedPostListPanelを取得する(レンダラ用)
 	 *
@@ -768,5 +766,37 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 				removeStatus(renderObject);
 			}
 		}, delay, TimeUnit.MILLISECONDS);
+	}
+
+	protected void runInDispatcherThread(Runnable runnable) {
+		if (EventQueue.isDispatchThread()) {
+			runnable.run();
+		} else {
+			try {
+				EventQueue.invokeAndWait(runnable);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			} catch (InvocationTargetException e) {
+				logger.warn("EventQueue.invokeAndWait failed", e);
+			}
+		}
+	}
+
+	protected void scrollToSelectingPost() {
+		if (selectingPost == null) {
+			return;
+		}
+		JViewport viewport = getScrollPane().getViewport();
+		Rectangle viewRect = viewport.getViewRect();
+		Rectangle compRectLocal = selectingPost.getBounds();
+		Rectangle compRect = SwingUtilities.convertRectangle(selectingPost, compRectLocal, sortedPostListPanel);
+		if (viewRect.y < compRect.y) {
+			viewRect.y = compRect.y;
+		} else if (viewRect.y + viewRect.height > compRect.y + compRect.height) {
+			// viewRect.y + viewRect.height = compRect.y + compRect.height
+			viewRect.y = compRect.y + compRect.height - viewRect.height;
+		}
+		viewport.setViewPosition(new Point(viewRect.x, viewRect.y));
+		viewport.validate();
 	}
 }

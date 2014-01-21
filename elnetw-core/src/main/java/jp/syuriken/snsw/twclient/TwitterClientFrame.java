@@ -407,7 +407,7 @@ import static java.lang.Math.max;
 	 */
 	/*package*/final class UserInfoFetcher implements Runnable {
 
-		public final String[] accountList = configuration.getAccountList();
+		public final String[] accountList = ClientConfiguration.getInstance().getAccountList();
 		final UserInfoFetcher this$uif = UserInfoFetcher.this;
 		public int offset = 0;
 		public JMenuItem[] readTimelineMenuItems;
@@ -486,13 +486,7 @@ import static java.lang.Math.max;
 		}
 	}
 
-	/**
-	 * アプリケーション名
-	 *
-	 * @deprecated use {@link ClientConfiguration#APPLICATION_NAME}
-	 */
-	@Deprecated
-	public static final String APPLICATION_NAME = "elnetw";
+
 	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
 	/** デフォルトフォント */
 	public final Font DEFAULT_FONT;

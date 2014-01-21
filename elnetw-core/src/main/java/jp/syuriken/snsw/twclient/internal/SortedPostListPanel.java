@@ -493,9 +493,17 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
 	 */
 	public synchronized boolean requestFocusFirstComponent() {
-		Component panel;
-		panel = branches.getFirst().getComponent(0);
+		Component panel = branches.getFirst().getComponent(0);
 		return panel != null && panel.requestFocusInWindow();
+	}
+
+	public boolean requestFocusLastComponent() {
+		JPanel lastBranch = branches.getLast();
+		if (lastBranch != null) {
+			Component panel = lastBranch.getComponent(lastBranch.getComponentCount() - 1);
+			return panel != null && panel.requestFocusInWindow();
+		}
+		return false;
 	}
 
 	/**
