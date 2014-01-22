@@ -16,9 +16,7 @@ import twitter4j.DirectMessage;
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/09/21
- * Time: 18:21
+ * Render object for direct messages
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
@@ -28,8 +26,8 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 	public DirectMessageRenderObject(SimpleRenderer simpleRenderer, DirectMessage directMessage) {
 		super(simpleRenderer);
 		this.directMessage = directMessage;
-		foregroundColor = Color.LIGHT_GRAY;
-		backgroundColor = Color.CYAN;
+		foregroundColor = Color.CYAN;
+		backgroundColor = Color.LIGHT_GRAY;
 	}
 
 	@Override

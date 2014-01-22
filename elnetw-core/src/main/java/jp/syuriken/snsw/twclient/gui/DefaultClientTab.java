@@ -14,7 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
@@ -162,10 +161,10 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						RenderObject renderObject = selectingPost.getRenderObject();
 						if (renderObject.getBasedObject() instanceof Status) {
 							Status tag = (Status) renderObject.getBasedObject();
-							inReplyToStack.push(selectingPost);
-							RenderPanel RenderPanel = statusMap.get(tag.getInReplyToStatusId());
-							if (RenderPanel != null) {
-								RenderPanel.requestFocusInWindow();
+							RenderPanel renderPanel = statusMap.get(RendererManager.getStatusUniqId(tag.getId()));
+							if (renderPanel != null) {
+								inReplyToStack.push(selectingPost);
+								renderPanel.requestFocusInWindow();
 							}
 						}
 					}
@@ -294,8 +293,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		}
 
 		@Override
-		public void onInitTimeline() {
-			actualRenderer.onInitTimeline();
+		public void onDisplayRequirement() {
+			actualRenderer.onDisplayRequirement();
 		}
 	}
 
@@ -392,8 +391,6 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
-	/** ポストリストの間のパディング */
-	/*package*/static final int PADDING_OF_POSTLIST = 1;
 	/** {@link jp.syuriken.snsw.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
 	/** SortedPostListPanelインスタンス */
@@ -453,6 +450,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected TabRenderer teeFilter;
 	protected TweetPopupMenuListener tweetPopupMenuListener;
 	protected TabRenderer actualRenderer;
+	protected boolean shouldBeScrollToPost;
 
 	/** インスタンスを生成する。 */
 	protected DefaultClientTab() {
@@ -505,13 +503,19 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 
 	@Override
 	public void addStatus(RenderObject renderObject) {
+		synchronized (this) {
+			if (statusMap.containsKey(renderObject.getUniqId())) {
+				logger.debug("{} is already registered", renderObject.getUniqId());
+				return; // already added
+			} else {
+				statusMap.put(renderObject.getUniqId(), renderObject.getComponent());
+			}
+		}
 		synchronized (postListAddQueue) {
 			RenderPanel component = renderObject.getComponent();
 			postListAddQueue.add(component);
 		}
 	}
-
-	protected boolean shouldBeScrollToPost;
 
 	@Override
 	public void focusGained(FocusEvent e) {
@@ -665,7 +669,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * @return ステータスデータ
 	 */
 	public RenderObject getStatus(long statusId) {
-		RenderPanel RenderPanel = statusMap.get(String.valueOf(statusId));
+		RenderPanel RenderPanel = statusMap.get(RendererManager.getStatusUniqId(statusId));
 		return RenderPanel == null ? null : RenderPanel.getRenderObject();
 	}
 
@@ -727,7 +731,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 */
 	@Override
 	public void initTimeline() {
-		getActualRenderer().onInitTimeline();
+		getActualRenderer().onDisplayRequirement();
 	}
 
 	/**
@@ -772,13 +776,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		if (EventQueue.isDispatchThread()) {
 			runnable.run();
 		} else {
-			try {
-				EventQueue.invokeAndWait(runnable);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			} catch (InvocationTargetException e) {
-				logger.warn("EventQueue.invokeAndWait failed", e);
-			}
+			EventQueue.invokeLater(runnable);
 		}
 	}
 

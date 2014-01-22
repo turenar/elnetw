@@ -19,6 +19,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ImageCacher;
 import jp.syuriken.snsw.twclient.TwitterStatus;
+import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
@@ -252,10 +253,6 @@ public class SimpleRenderer implements TabRenderer {
 	}
 
 	@Override
-	public void onInitTimeline() {
-	}
-
-	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 	}
 
@@ -266,6 +263,23 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onStatus(Status status) {
 		renderTarget.addStatus(new StatusRenderObject(actualUserId, status, this));
+	}
+
+	@Override
+	public void onDisplayRequirement() {
+		if (configProperties.getBoolean("core.elnetw.danger_zone") &&
+				configProperties.getBoolean("gui.danger.displayReq.disable")) {
+			return;
+		}
+
+		renderTarget.addStatus(new MiscRenderObject(this, "DisplayRequirements")
+				.setBackgroundColor(Color.DARK_GRAY)
+				.setForegroundColor(Color.WHITE)
+				.setCreatedBy("elnetw")
+				.setText("All data is from twitter")
+				.setIcon(ImageResource.getImgTwitterLogo())
+				.setUniqId("misc/displayRequirements")
+				.setDate(0x7fffffff_ffffffffL));
 	}
 
 	@Override

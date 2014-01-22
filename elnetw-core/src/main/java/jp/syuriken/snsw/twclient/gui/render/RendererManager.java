@@ -30,4 +30,8 @@ public class RendererManager {
 	public static TabRenderer get(String accountId, RenderTarget target, ActionListener tweetPopupMenuListener) {
 		return new SimpleRenderer(accountId, target, tweetPopupMenuListener);
 	}
+
+	public static String getStatusUniqId(long status) {
+		return "status/" + status;
+	}
 }

@@ -13,7 +13,6 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class ClientMessageAdapter implements ClientMessageListener {
-
 	@Override
 	public void onBlock(User source, User blockedUser) {
 	}

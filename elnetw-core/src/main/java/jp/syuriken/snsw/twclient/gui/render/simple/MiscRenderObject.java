@@ -4,14 +4,13 @@ import java.awt.Color;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import twitter4j.User;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/09/12
- * Time: 15:19
+ * Render object for misc events
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
@@ -27,7 +26,6 @@ public class MiscRenderObject extends AbstractRenderObject {
 	public MiscRenderObject(SimpleRenderer renderer, Object base) {
 		super(renderer);
 		this.base = base;
-		getComponent(); // initComponent
 		date = System.currentTimeMillis();
 		uniqId = "!stub/" + date + "/" + ThreadLocalRandom.current().nextInt();
 	}
@@ -102,6 +100,11 @@ public class MiscRenderObject extends AbstractRenderObject {
 
 	public MiscRenderObject setIcon(User user) {
 		renderer.getImageCacher().setImageIcon(componentUserIcon, user);
+		return this;
+	}
+
+	public MiscRenderObject setIcon(ImageIcon icon) {
+		componentUserIcon.setIcon(icon);
 		return this;
 	}
 

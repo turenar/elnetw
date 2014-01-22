@@ -438,7 +438,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	@Override
 	public RenderPanel getComponentAt(int x, int y) {
 		JPanel parentPanel = (JPanel) super.getComponentAt(x, y);
-		if (parentPanel == this) {
+		if (parentPanel == this || parentPanel == null) {
 			parentPanel = branches.peekFirst();
 			if (parentPanel == null) {
 				return null;

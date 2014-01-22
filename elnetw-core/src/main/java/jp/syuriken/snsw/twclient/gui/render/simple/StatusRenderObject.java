@@ -26,6 +26,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
+import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.HashtagEntity;
@@ -74,7 +75,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 		super(renderer);
 		this.userId = userId;
 		this.status = status;
-		uniqId = "status/" + status.getId();
+		uniqId = RendererManager.getStatusUniqId(status.getId());
 	}
 
 	/**

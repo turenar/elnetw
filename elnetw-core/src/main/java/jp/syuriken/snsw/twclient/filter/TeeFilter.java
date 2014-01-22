@@ -20,6 +20,10 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TeeFilter implements TabRenderer {
+	@Override
+	public void onDisplayRequirement() {
+		renderer.onDisplayRequirement();
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 	private final String filterPropertyName;
@@ -57,7 +61,7 @@ public class TeeFilter implements TabRenderer {
 			globalFilters[globalFilters.length - 1] = userFilter;
 			filters = globalFilters;
 		} else {
-			filters = new MessageFilter[] {userFilter};
+			filters = new MessageFilter[]{userFilter};
 		}
 	}
 
@@ -190,11 +194,6 @@ public class TeeFilter implements TabRenderer {
 			}
 		}
 		renderer.onFriendList(friendIds);
-	}
-
-	@Override
-	public void onInitTimeline() {
-		renderer.onInitTimeline();
 	}
 
 	@Override

@@ -8,6 +8,5 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface TabRenderer extends ClientMessageListener {
-
-	void onInitTimeline();
+	void onDisplayRequirement();
 }
