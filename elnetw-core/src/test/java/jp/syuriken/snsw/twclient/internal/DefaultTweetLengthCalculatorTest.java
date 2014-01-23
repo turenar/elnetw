@@ -1,7 +1,7 @@
 package jp.syuriken.snsw.twclient.internal;
 
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
-import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH;
@@ -38,7 +38,7 @@ public class DefaultTweetLengthCalculatorTest {
 		configuration = new ClientConfigurationTestImpl();
 		configuration.setGlobalInstance();
 		try {
-			configuration.setFetchScheduler(new TwitterDataFetchScheduler() {
+			configuration.setMessageBus(new MessageBus() {
 				@Override
 				public void init() {
 				}

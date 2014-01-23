@@ -73,7 +73,7 @@ public class SimpleRenderer implements TabRenderer {
 	public SimpleRenderer(String userId, RenderTarget target, ActionListener actionListener) {
 		this.userId = userId;
 		configuration = ClientConfiguration.getInstance();
-		this.actualUserId = configuration.getFetchScheduler().getActualUser(userId);
+		this.actualUserId = configuration.getMessageBus().getActualUser(userId);
 		this.renderTarget = target;
 		configProperties = configuration.getConfigProperties();
 		this.popupMenu = generatePopupMenu(actionListener);

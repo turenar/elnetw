@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 import java.util.HashSet;
 import java.util.TreeSet;
@@ -19,24 +19,24 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 /*package*/
-class VirtualMultipleMessageDispatcher implements ClientMessageListener {
+class VirtualMessagePublisher implements ClientMessageListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(VirtualMultipleMessageDispatcher.class);
+	private static final Logger logger = LoggerFactory.getLogger(VirtualMessagePublisher.class);
 	private final String[] paths;
-	private final TwitterDataFetchScheduler scheduler;
+	private final MessageBus messageBus;
 	private volatile int modifiedCount;
 	private volatile ClientMessageListener[] cachedListeners;
 
-	public VirtualMultipleMessageDispatcher(TwitterDataFetchScheduler scheduler, boolean recursive, String accountId,
+	public VirtualMessagePublisher(MessageBus messageBus, boolean recursive, String accountId,
 			String[] notifierNames) {
-		this.scheduler = scheduler;
+		this.messageBus = messageBus;
 		// 重複をなくすためArrayListではない。が、TreeSetのほうが結果的に重いかも
 		TreeSet<String> paths = new TreeSet<>();
 		for (String notifierName : notifierNames) {
 			if (recursive) {
-				scheduler.getRecursivePaths(paths, accountId, notifierName);
+				messageBus.getRecursivePaths(paths, accountId, notifierName);
 			} else {
-				paths.add(scheduler.getPath(accountId, notifierName));
+				paths.add(messageBus.getPath(accountId, notifierName));
 			}
 		}
 		this.paths = paths.toArray(new String[paths.size()]);
@@ -44,14 +44,14 @@ class VirtualMultipleMessageDispatcher implements ClientMessageListener {
 
 	private ClientMessageListener[] getListeners() {
 		ClientMessageListener[] listeners = cachedListeners;
-		if (modifiedCount != scheduler.getModifiedCount()) {
+		if (modifiedCount != messageBus.getModifiedCount()) {
 			synchronized (this) {
-				int newModifiedCount = scheduler.getModifiedCount();
+				int newModifiedCount = messageBus.getModifiedCount();
 				if (modifiedCount != newModifiedCount) {
 					logger.debug("Update notifier cache");
 					HashSet<ClientMessageListener> listenersSet = new HashSet<>();
 					for (String path : paths) {
-						for (ClientMessageListener listener : scheduler.getInternalListeners(path)) {
+						for (ClientMessageListener listener : messageBus.getInternalListeners(path)) {
 							listenersSet.add(listener);
 						}
 					}

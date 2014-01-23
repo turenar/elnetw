@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient.gui;
 
-import java.awt.event.FocusEvent;
-
 import javax.swing.Icon;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -63,8 +61,8 @@ public class DirectMessageViewTab extends DefaultClientTab implements RenderTarg
 	 */
 	public DirectMessageViewTab() throws IllegalSyntaxException {
 		super();
-		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
-		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
+		configuration.getMessageBus().establish("$reader", "direct_messages", getRenderer());
+		configuration.getMessageBus().establish("$reader", "stream/user", getRenderer());
 	}
 
 	/**
@@ -77,8 +75,8 @@ public class DirectMessageViewTab extends DefaultClientTab implements RenderTarg
 	public DirectMessageViewTab(String data) throws JSONException,
 			IllegalSyntaxException {
 		super(data);
-		configuration.getFetchScheduler().establish("$reader", "direct_messages", getRenderer());
-		configuration.getFetchScheduler().establish("$reader", "stream/user", getRenderer());
+		configuration.getMessageBus().establish("$reader", "direct_messages", getRenderer());
+		configuration.getMessageBus().establish("$reader", "stream/user", getRenderer());
 	}
 
 	@Override

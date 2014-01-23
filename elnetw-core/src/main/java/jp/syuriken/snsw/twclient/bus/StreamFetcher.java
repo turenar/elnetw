@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import twitter4j.TwitterStream;
@@ -9,23 +9,23 @@ import twitter4j.TwitterStreamFactory;
  *
  * @Author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StreamFetcher implements DataFetcher {
+public class StreamFetcher implements MessageChannel {
 	private final String accountId;
 	private final ClientMessageListener listener;
-	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final MessageBus messageBus;
 	private volatile TwitterStream stream;
 
-	public StreamFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
-		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
+	public StreamFetcher(MessageBus messageBus, String accountId) {
+		this.messageBus = messageBus;
 		this.accountId = accountId;
-		listener = twitterDataFetchScheduler.getListeners(accountId, "stream/user");
+		listener = messageBus.getListeners(accountId, "stream/user");
 	}
 
 	@Override
 	public synchronized void connect() {
 		if (stream == null) {
 			stream = new TwitterStreamFactory(
-					twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+					messageBus.getTwitterConfiguration(accountId)).getInstance();
 			stream.addConnectionLifeCycleListener(listener);
 			stream.addListener(listener);
 			stream.user();

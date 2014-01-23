@@ -5,8 +5,6 @@ import java.awt.EventQueue;
 import javax.swing.Icon;
 
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
-import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
-import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +75,7 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 	/** インスタンスを生成する。 */
 	public TimelineViewTab() {
 		super();
-		configuration.getFetchScheduler().establish(accountId, "my/timeline", getRenderer());
+		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 	}
 
 	/**
@@ -88,7 +86,7 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 	 */
 	public TimelineViewTab(String data) throws JSONException {
 		super(data);
-		configuration.getFetchScheduler().establish(accountId, "my/timeline", getRenderer());
+		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 	}
 
 	@Override

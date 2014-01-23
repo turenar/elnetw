@@ -1,11 +1,11 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 /**
  * Twitterからデータを取得して他のハンドラに渡すためのインターフェース
  *
  * @Author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface DataFetcher {
+public interface MessageChannel {
 	/**
 	 * このDataFetcherが使用されるため、コネクションの準備をしてください。
 	 *
@@ -22,7 +22,7 @@ public interface DataFetcher {
 	 * このDataFetcherが使用されなくなったので、もう通知する必要がなくなった。
 	 * <p>
 	 * accountIdが
-	 * {@link TwitterDataFetchScheduler#READER_ACCOUNT_ID} {@link TwitterDataFetchScheduler#WRITER_ACCOUNT_ID}で、
+	 * {@link MessageBus#READER_ACCOUNT_ID} {@link MessageBus#WRITER_ACCOUNT_ID}で、
 	 * 読み込み用/書き込み用アカウントが変更された時もこのメソッドが呼び出されます。
 	 * この場合は続いて {@link #connect()} {@link #realConnect()}(アプリケーションの初期化が完了しているのみ)が呼び出されますが、
 	 * 呼ばれた理由がアカウント変更であるかを取得できるメソッドは現在のところありません。

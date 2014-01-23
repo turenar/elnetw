@@ -2,7 +2,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import twitter4j.Twitter;
 
 /**
@@ -25,8 +25,8 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 
 	// proxy
 	@Override
-	public void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
-		super.setFetchScheduler(fetchScheduler);
+	public void setMessageBus(MessageBus messageBus) {
+		super.setMessageBus(messageBus);
 	}
 
 	public void setGlobalInstance() {

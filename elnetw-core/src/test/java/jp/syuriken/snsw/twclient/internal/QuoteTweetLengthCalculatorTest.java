@@ -5,7 +5,7 @@ import java.util.Map;
 
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.TweetLengthCalculator;
-import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.junit.Test;
 import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
@@ -99,7 +99,7 @@ public class QuoteTweetLengthCalculatorTest {
 		configuration = new ClientConfigurationTestImpl();
 		configuration.setGlobalInstance();
 		try {
-			configuration.setFetchScheduler(new TwitterDataFetchScheduler() {
+			configuration.setMessageBus(new MessageBus() {
 				@Override
 				public void init() {
 				}

@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,11 +13,11 @@ import twitter4j.conf.Configuration;
 import static org.junit.Assert.*;
 
 /**
- * Test for TwitterDataFetchScheduler
+ * Test for MessageBus
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterDataFetchSchedulerTest {
+public class MessageBusTest {
 
 	private static class GetInternalListenersMessageListener extends MessageAdapter {
 		@Override
@@ -29,15 +29,15 @@ public class TwitterDataFetchSchedulerTest {
 	private static class GetListeners extends TestFetcherAdapter {
 
 		private static GetListeners INSTANCE;
-		private final TwitterDataFetchScheduler scheduler;
+		private final MessageBus messageBus;
 
-		public GetListeners(TwitterDataFetchScheduler scheduler) {
-			this.scheduler = scheduler;
+		public GetListeners(MessageBus messageBus) {
+			this.messageBus = messageBus;
 			INSTANCE = this;
 		}
 
 		public ClientMessageListener getListeners(String path, boolean recursive) {
-			return scheduler.getListeners("account", recursive, path);
+			return messageBus.getListeners("account", recursive, path);
 		}
 	}
 
@@ -57,7 +57,7 @@ public class TwitterDataFetchSchedulerTest {
 		}
 	}
 
-	private static class MyTwitterDataFetchScheduler extends TwitterDataFetchScheduler {
+	private static class MyMessageBus extends MessageBus {
 		@Override
 		protected void init() {
 		}
@@ -100,7 +100,7 @@ public class TwitterDataFetchSchedulerTest {
 		}
 	}
 
-	private static abstract class TestFetcherAdapter implements DataFetcher {
+	private static abstract class TestFetcherAdapter implements MessageChannel {
 		@Override
 		public void connect() {
 		}
@@ -114,16 +114,16 @@ public class TwitterDataFetchSchedulerTest {
 		}
 	}
 
-	private static class TestFetcherFactory implements DataFetcherFactory {
+	private static class TestFetcherFactory implements MessageChannelFactory {
 		@Override
-		public TestFetcherAdapter getInstance(TwitterDataFetchScheduler scheduler, String accountId, String path) {
+		public TestFetcherAdapter getInstance(MessageBus messageBus, String accountId, String path) {
 			switch (path) {
 				case "OnInitializedTest":
 					return new OnInitializedTestFetcher();
 				case "OnCleanUpTest":
 					return new OnCleanUpTestFetcher();
 				case "GetListeners":
-					return new GetListeners(scheduler);
+					return new GetListeners(messageBus);
 				case "OnChangeAccount":
 					return new OnChangeAccountTestFetcher();
 			}
@@ -151,31 +151,31 @@ public class TwitterDataFetchSchedulerTest {
 		assertTrue(actual.isEmpty());
 	}
 
-	private void assertConf(TwitterDataFetchScheduler fetchScheduler, String accountId, String expected) {
-		TwitterConfigurationImpl configuration = (TwitterConfigurationImpl) fetchScheduler.getTwitterConfiguration(
+	private void assertConf(MessageBus messageBus, String accountId, String expected) {
+		TwitterConfigurationImpl configuration = (TwitterConfigurationImpl) messageBus.getTwitterConfiguration(
 				accountId);
 		assertEquals(expected, configuration.getName());
 	}
 
 	@Test
 	public void testCleanUp() throws Exception {
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		fetchScheduler.addFetcherFactory("OnCleanUpTest", new TestFetcherFactory());
-		fetchScheduler.establish("test", "OnCleanUpTest", new MessageAdapter());
-		fetchScheduler.cleanUp();
+		MessageBus messageBus = new MyMessageBus();
+		messageBus.addChannelFactory("OnCleanUpTest", new TestFetcherFactory());
+		messageBus.establish("test", "OnCleanUpTest", new MessageAdapter());
+		messageBus.cleanUp();
 		assertTrue(OnCleanUpTestFetcher.isDisconnected);
 	}
 
 	@Test
 	public void testGetListeners() throws Exception {
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		fetchScheduler.addFetcherFactory("GetListeners", new TestFetcherFactory());
+		MessageBus messageBus = new MyMessageBus();
+		messageBus.addChannelFactory("GetListeners", new TestFetcherFactory());
 
 		MessageAdapter allListener = new GetInternalListenersMessageListener();
-		fetchScheduler.establish("account", "all", allListener);
+		messageBus.establish("account", "all", allListener);
 
 		MessageAdapter singleListener = new GetInternalListenersMessageListener();
-		fetchScheduler.establish("account", "GetListeners", singleListener);
+		messageBus.establish("account", "GetListeners", singleListener);
 
 		ClientMessageListener singleDispatcher = GetListeners.INSTANCE.getListeners("GetListeners", false);
 		ClientMessageListener recursiveDispatcher = GetListeners.INSTANCE.getListeners("GetListeners", true);
@@ -191,20 +191,20 @@ public class TwitterDataFetchSchedulerTest {
 
 	@Test
 	public void testGetPath() throws Exception {
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		assertEquals("a:b", fetchScheduler.getPath("a", "b"));
+		MessageBus messageBus = new MyMessageBus();
+		assertEquals("a:b", messageBus.getPath("a", "b"));
 	}
 
 	@Test
 	public void testGetRecursivePaths() throws Exception {
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		assertArrayItemsEquals(fetchScheduler.getRecursivePaths("a", "b"), "a:b", "a:all");
-		assertArrayItemsEquals(fetchScheduler.getRecursivePaths("a", "b/c"), "a:b/c", "a:b/all", "a:all");
-		assertArrayItemsEquals(fetchScheduler.getRecursivePaths("a", "b/c/d"),
+		MessageBus messageBus = new MyMessageBus();
+		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b"), "a:b", "a:all");
+		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c"), "a:b/c", "a:b/all", "a:all");
+		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c/d"),
 				"a:b/c/d", "a:b/c/all", "a:b/all", "a:all");
 
 		TreeSet<String> treeSet = new TreeSet<>();
-		fetchScheduler.getRecursivePaths(treeSet, "a", "b/c/d/e");
+		messageBus.getRecursivePaths(treeSet, "a", "b/c/d/e");
 		assertArrayItemsEquals(treeSet,
 				"a:b/c/d/e", "a:b/c/d/all", "a:b/c/all", "a:b/all", "a:all");
 	}
@@ -229,11 +229,11 @@ public class TwitterDataFetchSchedulerTest {
 		};
 		configuration.setGlobalInstance();
 		try {
-			TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-			assertConf(fetchScheduler, TwitterDataFetchScheduler.READER_ACCOUNT_ID, READER_ACCOUNT);
-			assertConf(fetchScheduler, TwitterDataFetchScheduler.WRITER_ACCOUNT_ID, WRITER_ACCOUNT);
-			assertConf(fetchScheduler, "aiueo", "aiueo");
-			assertConf(fetchScheduler, "twitter", "twitter");
+			MessageBus messageBus = new MyMessageBus();
+			assertConf(messageBus, MessageBus.READER_ACCOUNT_ID, READER_ACCOUNT);
+			assertConf(messageBus, MessageBus.WRITER_ACCOUNT_ID, WRITER_ACCOUNT);
+			assertConf(messageBus, "aiueo", "aiueo");
+			assertConf(messageBus, "twitter", "twitter");
 		} finally {
 			configuration.clearGlobalInstance();
 		}
@@ -242,25 +242,25 @@ public class TwitterDataFetchSchedulerTest {
 	@Test
 	public void testOnChangeAccount() throws Exception {
 		assertEquals(0, OnChangeAccountTestFetcher.connectionCalledCount);
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		fetchScheduler.addFetcherFactory("OnChangeAccount", new TestFetcherFactory());
-		fetchScheduler.establish(TwitterDataFetchScheduler.READER_ACCOUNT_ID,
+		MessageBus messageBus = new MyMessageBus();
+		messageBus.addChannelFactory("OnChangeAccount", new TestFetcherFactory());
+		messageBus.establish(MessageBus.READER_ACCOUNT_ID,
 				"OnChangeAccount", new MessageAdapter());
 		assertEquals(1, OnChangeAccountTestFetcher.connectionCalledCount);
-		fetchScheduler.onChangeAccount(false);
+		messageBus.onChangeAccount(false);
 		assertEquals(3, OnChangeAccountTestFetcher.connectionCalledCount);
-		fetchScheduler.onInitialized();
+		messageBus.onInitialized();
 		assertEquals(4, OnChangeAccountTestFetcher.connectionCalledCount);
-		fetchScheduler.onChangeAccount(false);
+		messageBus.onChangeAccount(false);
 		assertEquals(7, OnChangeAccountTestFetcher.connectionCalledCount);
 	}
 
 	@Test
 	public void testOnInitialized() throws Exception {
-		TwitterDataFetchScheduler fetchScheduler = new MyTwitterDataFetchScheduler();
-		fetchScheduler.addFetcherFactory("OnInitializedTest", new TestFetcherFactory());
-		fetchScheduler.establish("test", "OnInitializedTest", new MessageAdapter());
-		fetchScheduler.onInitialized();
+		MessageBus messageBus = new MyMessageBus();
+		messageBus.addChannelFactory("OnInitializedTest", new TestFetcherFactory());
+		messageBus.establish("test", "OnInitializedTest", new MessageAdapter());
+		messageBus.onInitialized();
 		assertTrue(OnInitializedTestFetcher.isRealConnected);
 	}
 }

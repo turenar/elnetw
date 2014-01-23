@@ -509,7 +509,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	/*package*/ void setUser(final User user) {
 		this.user = user;
-		configuration.getFetchScheduler().establish(accountId, "all", getRenderer());
+		configuration.getMessageBus().establish(accountId, "all", getRenderer());
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {

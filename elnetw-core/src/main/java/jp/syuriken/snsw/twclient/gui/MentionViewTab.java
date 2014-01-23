@@ -83,8 +83,8 @@ public class MentionViewTab extends DefaultClientTab implements RenderTarget {
 	}
 
 	private void establishTweetPipe() {
-		configuration.getFetchScheduler().establish(accountId, "statuses/mentions", getRenderer());
-		configuration.getFetchScheduler().establish(accountId, "stream/user", getRenderer());
+		configuration.getMessageBus().establish(accountId, "statuses/mentions", getRenderer());
+		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
 
 	@Override

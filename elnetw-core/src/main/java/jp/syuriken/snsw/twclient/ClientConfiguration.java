@@ -21,7 +21,7 @@ import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -166,7 +166,7 @@ public class ClientConfiguration {
 	private volatile ImageCacher imageCacher;
 	private volatile String accountIdForRead;
 	private volatile String accountIdForWrite;
-	private volatile TwitterDataFetchScheduler fetchScheduler;
+	private volatile MessageBus messageBus;
 	private boolean portabledConfiguration;
 	private volatile CacheManager cacheManager;
 	private List<String> args;
@@ -400,8 +400,8 @@ public class ClientConfiguration {
 	 *
 	 * @return スケジューラ
 	 */
-	public synchronized TwitterDataFetchScheduler getFetchScheduler() {
-		return fetchScheduler;
+	public synchronized MessageBus getMessageBus() {
+		return messageBus;
 	}
 
 	public MessageFilter[] getFilters() {
@@ -702,9 +702,9 @@ public class ClientConfiguration {
 	 */
 	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
 		String userId;
-		if (accountId.equals(TwitterDataFetchScheduler.READER_ACCOUNT_ID)) {
+		if (accountId.equals(MessageBus.READER_ACCOUNT_ID)) {
 			userId = getAccountIdForRead();
-		} else if (accountId.equals(TwitterDataFetchScheduler.WRITER_ACCOUNT_ID)) {
+		} else if (accountId.equals(MessageBus.WRITER_ACCOUNT_ID)) {
 			userId = getAccountIdForWrite();
 		} else {
 			userId = accountId;
@@ -797,8 +797,8 @@ public class ClientConfiguration {
 		String old = accountIdForRead;
 		if (old == null || !old.equals(accountId)) {
 			accountIdForRead = accountId;
-			if (fetchScheduler != null) {
-				fetchScheduler.onChangeAccount(false);
+			if (messageBus != null) {
+				messageBus.onChangeAccount(false);
 			}
 		}
 		return old;
@@ -817,8 +817,8 @@ public class ClientConfiguration {
 		String old = accountIdForWrite;
 		if (old == null || !old.equals(accountId)) {
 			accountIdForWrite = accountId;
-			if (fetchScheduler != null) {
-				fetchScheduler.onChangeAccount(true);
+			if (messageBus != null) {
+				messageBus.onChangeAccount(true);
 			}
 		}
 		return old;
@@ -858,8 +858,8 @@ public class ClientConfiguration {
 	}
 
 	/*package*/
-	synchronized void setFetchScheduler(TwitterDataFetchScheduler fetchScheduler) {
-		this.fetchScheduler = fetchScheduler;
+	synchronized void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
 	}
 
 	/**

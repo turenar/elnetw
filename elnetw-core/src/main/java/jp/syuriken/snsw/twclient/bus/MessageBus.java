@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -21,11 +21,11 @@ import twitter4j.TwitterException;
 import twitter4j.conf.Configuration;
 
 /**
- * Twitterからの情報を取得するためのスケジューラ
+ * Message Bus
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterDataFetchScheduler {
+public class MessageBus {
 	private static class NullIterable implements Iterable<ClientMessageListener> {
 		@Override
 		public Iterator<ClientMessageListener> iterator() {
@@ -41,7 +41,7 @@ public class TwitterDataFetchScheduler {
 		}
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(TwitterDataFetchScheduler.class);
+	private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
 	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = Collections.emptyIterator();
 	/*package*/ static final Iterable<ClientMessageListener> NULL_LISTENERS = new NullIterable();
 	public static final String READER_ACCOUNT_ID = "$reader";
@@ -57,14 +57,14 @@ public class TwitterDataFetchScheduler {
 	/*package*/final ClientConfiguration configuration;
 	/** {String=path, String[]=paths} */
 	protected HashMap<String, String[]> virtualPathMap = new HashMap<>();
-	/** {String=notifierName, DataFetcherFactory=fetcherFactory} */
-	protected HashMap<String, DataFetcherFactory> fetcherMap = new HashMap<>();
-	/** {String=path, DataFetcher=fetcher} */
-	protected LinkedHashMap<String, DataFetcher> pathMap = new LinkedHashMap<>();
+	/** {String=notifierName, MessageChannelFactory=channelFactory} */
+	protected HashMap<String, MessageChannelFactory> channelMap = new HashMap<>();
+	/** {String=path, MessageChannel=channel} */
+	protected LinkedHashMap<String, MessageChannel> pathMap = new LinkedHashMap<>();
 	/** {K=path, V=listeners} */
 	protected HashMap<String, CopyOnWriteArrayList<ClientMessageListener>> pathListenerMap = new HashMap<>();
-	/** {K=accountId, V=DataFetchers} */
-	protected HashMap<String, CopyOnWriteArrayList<DataFetcher>> userListenerMap = new HashMap<>();
+	/** {K=accountId, V=MessageChannels} */
+	protected HashMap<String, CopyOnWriteArrayList<MessageChannel>> userListenerMap = new HashMap<>();
 	/*package*/ Twitter twitterForRead;
 	/*package*/ ClientProperties configProperties;
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
@@ -72,21 +72,21 @@ public class TwitterDataFetchScheduler {
 	private volatile int modifiedCount;
 
 	/** インスタンスを生成する。 */
-	public TwitterDataFetchScheduler() {
+	public MessageBus() {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		init(); // for tests
 	}
 
 	/**
-	 * add fetcher factory
+	 * add channel factory
 	 *
 	 * @param notifierName notifier name
-	 * @param factory      fetcher factory
-	 * @return old fetcher factory
+	 * @param factory      channel factory
+	 * @return old channel factory
 	 */
-	public synchronized DataFetcherFactory addFetcherFactory(String notifierName, DataFetcherFactory factory) {
-		return fetcherMap.put(notifierName, factory);
+	public synchronized MessageChannelFactory addChannelFactory(String notifierName, MessageChannelFactory factory) {
+		return channelMap.put(notifierName, factory);
 	}
 
 	/**
@@ -96,14 +96,14 @@ public class TwitterDataFetchScheduler {
 	 * @param notifiers   child notifiers (like &quot;stream/user&quot;, &quot;rest/timeline&quot;)
 	 * @return old virtual notifiers
 	 */
-	public synchronized String[] addVirtualNotifier(String virtualPath, String[] notifiers) {
+	public synchronized String[] addVirtualChannel(String virtualPath, String[] notifiers) {
 		return virtualPathMap.put(virtualPath, notifiers);
 	}
 
 	/** お掃除する */
 	public synchronized void cleanUp() {
-		Collection<DataFetcher> entries = pathMap.values();
-		for (DataFetcher entry : entries) {
+		Collection<MessageChannel> entries = pathMap.values();
+		for (MessageChannel entry : entries) {
 			entry.disconnect();
 		}
 	}
@@ -132,28 +132,28 @@ public class TwitterDataFetchScheduler {
 				establish(accountId, virtualPath, listener);
 			}
 		} else {
-			DataFetcher dataFetcher = pathMap.get(path);
-			if (dataFetcher == null) {
-				DataFetcherFactory factory = fetcherMap.get(notifierName);
+			MessageChannel messageChannel = pathMap.get(path);
+			if (messageChannel == null) {
+				MessageChannelFactory factory = channelMap.get(notifierName);
 				if (factory == null) {
 					if (!notifierName.endsWith("all")) {
-						logger.warn("DataFetcher `{}' is not found.", notifierName);
+						logger.warn("MessageChannel `{}' is not found.", notifierName);
 					}
 					return false;
 				}
-				dataFetcher = factory.getInstance(this, accountId, notifierName);
-				pathMap.put(path, dataFetcher);
+				messageChannel = factory.getInstance(this, accountId, notifierName);
+				pathMap.put(path, messageChannel);
 
-				CopyOnWriteArrayList<DataFetcher> userListeners = userListenerMap.get(accountId);
+				CopyOnWriteArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
 				if (userListeners == null) {
 					userListeners = new CopyOnWriteArrayList<>();
 					userListenerMap.put(accountId, userListeners);
 				}
-				userListeners.add(dataFetcher);
+				userListeners.add(messageChannel);
 
-				dataFetcher.connect();
+				messageChannel.connect();
 				if (isInitialized) {
-					dataFetcher.realConnect();
+					messageChannel.realConnect();
 				}
 				modifiedCount++;
 			}
@@ -218,7 +218,7 @@ public class TwitterDataFetchScheduler {
 	 * @return peerに通知するためのリスナ。キャッシュされるべき。
 	 */
 	public ClientMessageListener getListeners(String accountId, boolean recursive, String... notifierName) {
-		return new VirtualMultipleMessageDispatcher(this, recursive, accountId, notifierName);
+		return new VirtualMessagePublisher(this, recursive, accountId, notifierName);
 	}
 
 	public int getModifiedCount() {
@@ -290,22 +290,23 @@ public class TwitterDataFetchScheduler {
 	/** ClientTabの復元が完了し、DataFetcherの通知を受け取れるようになった */
 	public synchronized void onInitialized() {
 		isInitialized = true;
-		for (DataFetcher fetcher : pathMap.values()) {
-			fetcher.realConnect();
+		for (MessageChannel channel : pathMap.values()) {
+			channel.realConnect();
 		}
 	}
 
 	private synchronized void relogin(String accountId) {
-		CopyOnWriteArrayList<DataFetcher> clientMessageListeners = userListenerMap.get(accountId);
+		modifiedCount++;
+		CopyOnWriteArrayList<MessageChannel> clientMessageListeners = userListenerMap.get(accountId);
 		if (clientMessageListeners == null) {
 			return;
 		}
 
-		for (DataFetcher fetcher : clientMessageListeners) {
-			fetcher.disconnect();
-			fetcher.connect();
+		for (MessageChannel channel : clientMessageListeners) {
+			channel.disconnect();
+			channel.connect();
 			if (isInitialized) {
-				fetcher.realConnect();
+				channel.realConnect();
 			}
 		}
 	}

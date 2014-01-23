@@ -1,4 +1,4 @@
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -22,22 +22,22 @@ import twitter4j.TwitterFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher {
+public class DirectMessageFetcher extends TwitterRunnable implements MessageChannel {
 
 	private static final Logger logger = LoggerFactory.getLogger(TimelineFetcher.class);
 	private final ClientConfiguration configuration;
 	private final int intervalOfDirectMessage;
 	private final ClientProperties configProperties;
 	private final ClientMessageListener listeners;
-	private final TwitterDataFetchScheduler twitterDataFetchScheduler;
+	private final MessageBus messageBus;
 	private final String accountId;
 	private volatile ScheduledFuture<?> scheduledFuture;
 	private volatile Twitter twitter;
 
-	public DirectMessageFetcher(TwitterDataFetchScheduler twitterDataFetchScheduler, String accountId) {
-		this.twitterDataFetchScheduler = twitterDataFetchScheduler;
+	public DirectMessageFetcher(MessageBus messageBus, String accountId) {
+		this.messageBus = messageBus;
 		this.accountId = accountId;
-		listeners = twitterDataFetchScheduler.getListeners(accountId, "direct_messages");
+		listeners = messageBus.getListeners(accountId, "direct_messages");
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -75,7 +75,7 @@ public class DirectMessageFetcher extends TwitterRunnable implements DataFetcher
 	public synchronized void realConnect() {
 		if (scheduledFuture == null) {
 			twitter = new TwitterFactory(
-					twitterDataFetchScheduler.getTwitterConfiguration(accountId)).getInstance();
+					messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 

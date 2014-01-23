@@ -141,7 +141,7 @@ public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 
 	private void initUrlLength() {
 		if (apiConfiguration == null) {
-			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
+			apiConfiguration = ClientConfiguration.getInstance().getMessageBus().getApiConfiguration();
 			if (apiConfiguration != null) {
 				shortURLLength = apiConfiguration.getShortURLLength();
 				shortURLLengthHttps = apiConfiguration.getShortURLLengthHttps();

@@ -37,7 +37,7 @@ public class DefaultTweetLengthCalculator implements TweetLengthCalculator {
 	 */
 	public static int getTweetLength(String original) {
 		if (apiConfiguration == null) {
-			apiConfiguration = ClientConfiguration.getInstance().getFetchScheduler().getApiConfiguration();
+			apiConfiguration = ClientConfiguration.getInstance().getMessageBus().getApiConfiguration();
 		}
 
 		final int shortURLLength = apiConfiguration == null ? DEFAULT_SHORT_URL_LENGTH

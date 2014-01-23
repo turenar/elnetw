@@ -86,11 +86,11 @@ import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import jp.syuriken.snsw.twclient.media.NullMediaProvider;
 import jp.syuriken.snsw.twclient.media.RegexpMediaProvider;
 import jp.syuriken.snsw.twclient.media.UrlProvider;
-import jp.syuriken.snsw.twclient.net.DirectMessageFetcherFactory;
-import jp.syuriken.snsw.twclient.net.MentionsFetcherFactory;
-import jp.syuriken.snsw.twclient.net.StreamFetcherFactory;
-import jp.syuriken.snsw.twclient.net.TimelineFetcherFactory;
-import jp.syuriken.snsw.twclient.net.TwitterDataFetchScheduler;
+import jp.syuriken.snsw.twclient.bus.DirectMessageFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.MentionsFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.StreamFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.TimelineFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -140,7 +140,7 @@ public class TwitterClientMain {
 	protected JobWorkerThread jobWorkerThread;
 	protected boolean debugMode;
 	protected boolean portable;
-	protected TwitterDataFetchScheduler fetchScheduler;
+	protected MessageBus messageBus;
 	protected TwitterClientFrame frame;
 	private boolean isInterrupted;
 
@@ -356,9 +356,9 @@ public class TwitterClientMain {
 				new RegexpMediaProvider("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
 	}
 
-	@Initializer(name = "internal-init-fetchSched", dependencies = "recover-clientTabs", phase = "prestart")
-	public void realConnectFetchSched() {
-		fetchScheduler.onInitialized();
+	@Initializer(name = "internal-init-messagebus", dependencies = "recover-clientTabs", phase = "prestart")
+	public void realConnectMessageBus() {
+		messageBus.onInitialized();
 	}
 
 	@Initializer(name = "recover-clientTabs", phase = "prestart")
@@ -556,29 +556,29 @@ public class TwitterClientMain {
 		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
-	@Initializer(name = "fetch-sched", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
-	public void setFetchScheduler(InitCondition cond) {
+	@Initializer(name = "messagebus", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
+	public void setMessageBus(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			fetchScheduler = new TwitterDataFetchScheduler();
-			configuration.setFetchScheduler(fetchScheduler);
+			messageBus = new MessageBus();
+			configuration.setMessageBus(messageBus);
 		} else {
-			fetchScheduler.cleanUp();
+			messageBus.cleanUp();
 		}
 	}
 
-	@Initializer(name = "set-fetchsched-notifier", dependencies = "fetch-sched", phase = "init")
-	public void setFetcherFactory() {
-		fetchScheduler.addVirtualNotifier("my/timeline", new String[] {"stream/user", "statuses/timeline"});
-		fetchScheduler.addFetcherFactory("stream/user", new StreamFetcherFactory());
-		fetchScheduler.addFetcherFactory("statuses/timeline", new TimelineFetcherFactory());
-		fetchScheduler.addFetcherFactory("statuses/mentions", new MentionsFetcherFactory());
-		fetchScheduler.addFetcherFactory("direct_messages", new DirectMessageFetcherFactory());
+	@Initializer(name = "set-messagebus-notifier", dependencies = "messagebus", phase = "init")
+	public void setMessageChannelFactory() {
+		messageBus.addVirtualChannel("my/timeline", new String[]{"stream/user", "statuses/timeline"});
+		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
+		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
+		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
+		messageBus.addChannelFactory("direct_messages", new DirectMessageFetcherFactory());
 	}
 
 	@Initializer(name = "finish-initPhase", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
-		fetchScheduler.onInitialized();
+		messageBus.onInitialized();
 	}
 
 	@Initializer(name = "internal-messageNotifiers", phase = "prestart")
