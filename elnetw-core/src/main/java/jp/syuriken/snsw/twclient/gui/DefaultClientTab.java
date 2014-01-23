@@ -14,11 +14,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Stack;
-import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
@@ -68,6 +68,20 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public abstract class DelegateRenderer extends ClientMessageAdapter implements TabRenderer {
+		private void focusUserNearestEntry(boolean prev) {
+			if (selectingPost == null) {
+				getSortedPostListPanel().requestFocusInWindow();
+			} else {
+				TreeSet<RenderPanel> usersPanels = getPanelsFromCreatedBy(selectingPost.getRenderObject().getCreatedBy(), false);
+				if (usersPanels != null) {
+					RenderPanel focusTo = prev ? usersPanels.lower(selectingPost) : usersPanels.higher(selectingPost);
+					if (focusTo != null) {
+						focusAndScroll(focusTo);
+					}
+				}
+			}
+		}
+
 		/**
 		 * この時間ぐらい情報を置いておけばいいんじゃないですか的な秒数を取得する
 		 *
@@ -92,6 +106,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						getSortedPostListPanel().requestFocusInWindow();
 					} else {
 						getSortedPostListPanel().requestFocusNextOf(selectingPost);
+						shouldBeScrollToPost = true;
 					}
 					break;
 				case REQUEST_FOCUS_PREV_COMPONENT:
@@ -99,31 +114,14 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						getSortedPostListPanel().requestFocusInWindow();
 					} else {
 						getSortedPostListPanel().requestFocusPreviousOf(selectingPost);
+						shouldBeScrollToPost = true;
 					}
 					break;
 				case REQUEST_FOCUS_USER_PREV_COMPONENT:
-					if (selectingPost == null) {
-						getSortedPostListPanel().requestFocusInWindow();
-					} else {
-						ArrayList<RenderPanel> arrayList = listItems.get(
-								selectingPost.getRenderObject().getCreatedBy());
-						int indexOf = arrayList.indexOf(selectingPost);
-						if (indexOf >= 0 && indexOf < arrayList.size() - 1) {
-							arrayList.get(indexOf + 1).requestFocusInWindow();
-						}
-					}
+					focusUserNearestEntry(true);
 					break;
 				case REQUEST_FOCUS_USER_NEXT_COMPONENT:
-					if (selectingPost == null) {
-						getSortedPostListPanel().requestFocusInWindow();
-					} else {
-						ArrayList<RenderPanel> arrayList = listItems.get(
-								selectingPost.getRenderObject().getCreatedBy());
-						int indexOf = arrayList.indexOf(selectingPost);
-						if (indexOf > 0) {
-							arrayList.get(indexOf - 1).requestFocusInWindow();
-						}
-					}
+					focusUserNearestEntry(false);
 					break;
 				case REQUEST_FOCUS_FIRST_COMPONENT:
 					getSortedPostListPanel().requestFocusFirstComponent();
@@ -161,10 +159,10 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						RenderObject renderObject = selectingPost.getRenderObject();
 						if (renderObject.getBasedObject() instanceof Status) {
 							Status tag = (Status) renderObject.getBasedObject();
-							RenderPanel renderPanel = statusMap.get(RendererManager.getStatusUniqId(tag.getId()));
+							RenderPanel renderPanel = statusMap.get(RendererManager.getStatusUniqId(tag.getInReplyToStatusId()));
 							if (renderPanel != null) {
 								inReplyToStack.push(selectingPost);
-								renderPanel.requestFocusInWindow();
+								focusAndScroll(renderPanel);
 							}
 						}
 					}
@@ -174,7 +172,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						getSortedPostListPanel().requestFocusInWindow();
 					} else {
 						if (!inReplyToStack.isEmpty()) {
-							inReplyToStack.pop().requestFocusInWindow();
+							focusAndScroll(inReplyToStack.pop());
 						}
 					}
 					break;
@@ -296,6 +294,15 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		public void onDisplayRequirement() {
 			actualRenderer.onDisplayRequirement();
 		}
+	}
+
+	/**
+	 * focus and set flag to scroll (not immediately scrolling)
+	 * @param focusTo component to be focused
+	 */
+	protected void focusAndScroll(RenderPanel focusTo) {
+		focusTo.requestFocusInWindow();
+		shouldBeScrollToPost = true;
 	}
 
 	/**
@@ -427,9 +434,9 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	/** アイコンを表示するときのサイズ */
 	protected Dimension iconSize;
 	/** [K=ユーザーID, V=ユーザーのツイートなど] */
-	protected TreeMap<String, ArrayList<RenderPanel>> listItems = new TreeMap<>();
+	protected HashMap<String, TreeSet<RenderPanel>> listItems = new HashMap<>();
 	/** [K=ステータスID, V=ツイートなど] */
-	protected TreeMap<String, RenderPanel> statusMap = new TreeMap<>();
+	protected HashMap<String, RenderPanel> statusMap = new HashMap<>();
 	/** スクロールペーン */
 	protected JScrollPane postListScrollPane;
 	/** 慣性スクローラー */
@@ -510,6 +517,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 			} else {
 				statusMap.put(renderObject.getUniqId(), renderObject.getComponent());
 			}
+			getPanelsFromCreatedBy(renderObject.getCreatedBy(), true).add(renderObject.getComponent());
 		}
 		synchronized (postListAddQueue) {
 			RenderPanel component = renderObject.getComponent();
@@ -568,6 +576,17 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 					selectingPost.getRenderObject());
 		}
 		return intentArguments;
+	}
+
+	private TreeSet<RenderPanel> getPanelsFromCreatedBy(String createdBy, boolean createFlag) {
+		synchronized (listItems) {
+			TreeSet<RenderPanel> panels = listItems.get(createdBy);
+			if (createFlag && panels == null) {
+				panels = new TreeSet<>(SortedPostListPanel.ComponentComparator.SINGLETON);
+				listItems.put(createdBy, panels);
+			}
+			return panels;
+		}
 	}
 
 	/**
@@ -749,27 +768,12 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 *
 	 * @param renderObject ステータスデータ
 	 */
+	@Override
 	public void removeStatus(RenderObject renderObject) {
-		RenderPanel panel = statusMap.get(renderObject.getUniqId());
+		RenderPanel panel = statusMap.remove(renderObject.getUniqId());
 		if (panel != null) {
 			getSortedPostListPanel().remove(panel);
 		}
-	}
-
-	/**
-	 * ステータスを削除する
-	 *
-	 * @param renderObject ステータスデータ
-	 * @param delay        遅延ミリ秒
-	 */
-	public void removeStatus(final RenderObject renderObject, int delay) {
-		configuration.getTimer().schedule(new Runnable() {
-
-			@Override
-			public void run() {
-				removeStatus(renderObject);
-			}
-		}, delay, TimeUnit.MILLISECONDS);
 	}
 
 	protected void runInDispatcherThread(Runnable runnable) {
@@ -787,10 +791,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		JViewport viewport = getScrollPane().getViewport();
 		Rectangle viewRect = viewport.getViewRect();
 		Rectangle compRectLocal = selectingPost.getBounds();
-		Rectangle compRect = SwingUtilities.convertRectangle(selectingPost, compRectLocal, sortedPostListPanel);
-		if (viewRect.y < compRect.y) {
+		Rectangle compRect = SwingUtilities.convertRectangle(selectingPost.getParent(),
+				compRectLocal, sortedPostListPanel);
+		if (viewRect.y > compRect.y) {
 			viewRect.y = compRect.y;
-		} else if (viewRect.y + viewRect.height > compRect.y + compRect.height) {
+		} else if (viewRect.y + viewRect.height < compRect.y + compRect.height) {
 			// viewRect.y + viewRect.height = compRect.y + compRect.height
 			viewRect.y = compRect.y + compRect.height - viewRect.height;
 		}

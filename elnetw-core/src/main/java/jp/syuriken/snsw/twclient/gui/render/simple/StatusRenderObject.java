@@ -185,7 +185,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 
 	@Override
 	public Object getBasedObject() {
-		return null;
+		return status;
 	}
 
 	@Override

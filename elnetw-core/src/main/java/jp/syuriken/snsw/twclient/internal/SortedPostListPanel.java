@@ -155,7 +155,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	protected static final class ComponentComparator implements Comparator<RenderPanel> {
+	public static final class ComponentComparator implements Comparator<RenderPanel> {
 
 		/** ユニークインスタンス */
 		public static final ComponentComparator SINGLETON = new ComponentComparator();

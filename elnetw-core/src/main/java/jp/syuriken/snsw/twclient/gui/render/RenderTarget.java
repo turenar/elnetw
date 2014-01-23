@@ -13,4 +13,6 @@ public interface RenderTarget {
 	void addStatus(RenderObject renderObject);
 
 	void focusGained(FocusEvent e);
+
+	void removeStatus(RenderObject renderObject);
 }
