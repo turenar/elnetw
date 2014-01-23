@@ -15,7 +15,6 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MiscRenderObject extends AbstractRenderObject {
-	public static final int TEXT_MAX_LEN = 255;
 	private final Object base;
 	private String createdBy;
 	private String longCreatedBy;
@@ -62,10 +61,6 @@ public class MiscRenderObject extends AbstractRenderObject {
 	protected void initComponents() {
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
 		componentSentBy.setFont(renderer.getDefaultFont());
-	}
-
-	@Override
-	public void requestCopyToClipboard() {
 	}
 
 	public MiscRenderObject setBackgroundColor(Color backgroundColor) {

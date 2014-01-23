@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -50,7 +49,6 @@ import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
-import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
@@ -176,113 +174,6 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						}
 					}
 					break;
-				case REQUEST_COPY:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						renderObject.requestCopyToClipboard();
-					}
-					break;
-				case REQUEST_COPY_URL:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							status = status.isRetweet() ? status.getRetweetedStatus() : status;
-							String url =
-									"http://twitter.com/" + status.getUser().getScreenName() + "/status/" +
-											status.getId();
-						/* TODO: StringSelection is not copied into gnome-terminal */
-							StringSelection stringSelection = new StringSelection(url);
-							clipboard.setContents(stringSelection, stringSelection);
-						}
-					}
-					break;
-				case REQUEST_COPY_USERID:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-					/* TODO: StringSelection is not copied into gnome-terminal */
-							String screenName = ((Status) renderObject.getBasedObject()).getUser().getScreenName();
-							StringSelection stringSelection = new StringSelection(screenName);
-							clipboard.setContents(stringSelection, stringSelection);
-						}
-					}
-					break;
-				case REQUEST_BROWSER_USER_HOME:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							status = status.isRetweet() ? status.getRetweetedStatus() : status;
-							String url = "http://twitter.com/" + status.getUser().getScreenName();
-							utility.openBrowser(url);
-						}
-					}
-					break;
-				case REQUEST_BROWSER_STATUS:
-				case REQUEST_BROWSER_PERMALINK:
-				case EVENT_CLICKED_CREATED_AT:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							status = status.isRetweet() ? status.getRetweetedStatus() : status;
-							String url =
-									"http://twitter.com/" + status.getUser().getScreenName() + "/status/" +
-											status.getId();
-							utility.openBrowser(url);
-						}
-					}
-					break;
-				case REQUEST_BROWSER_IN_REPLY_TO:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							if (status.getInReplyToStatusId() != -1) {
-								String url =
-										"http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
-												+ status.getInReplyToStatusId();
-								utility.openBrowser(url);
-							}
-						}
-					}
-					break;
-				case REQUEST_BROWSER_OPENURLS:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							URLEntity[] urlEntities = status.getURLEntities();
-							for (URLEntity urlEntity : urlEntities) {
-								utility.openBrowser(urlEntity.getURL());
-							}
-						}
-					}
-					break;
-				case EVENT_CLICKED_CREATED_BY:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							if (status.isRetweet()) {
-								status = status.getRetweetedStatus();
-							}
-							handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
-						}
-					}
-					break;
-				case EVENT_CLICKED_OVERLAY_LABEL:
-					if (selectingPost != null) {
-						RenderObject renderObject = selectingPost.getRenderObject();
-						if (renderObject.getBasedObject() instanceof Status) {
-							Status status = (Status) renderObject.getBasedObject();
-							if (status.isRetweet()) {
-								handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
-							}
-						}
-					}
-					break;
 				default:
 					if (selectingPost != null) {
 						selectingPost.onEvent(name, arg);
@@ -298,6 +189,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 
 	/**
 	 * focus and set flag to scroll (not immediately scrolling)
+	 *
 	 * @param focusTo component to be focused
 	 */
 	protected void focusAndScroll(RenderPanel focusTo) {

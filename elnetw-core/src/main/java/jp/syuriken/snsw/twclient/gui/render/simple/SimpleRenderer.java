@@ -58,6 +58,18 @@ public class SimpleRenderer implements TabRenderer {
 	private final ClientProperties configProperties;
 	private final String userId;
 
+	public String getUserId() {
+		return userId;
+	}
+
+	public ClientConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public ClientProperties getConfigProperties() {
+		return configProperties;
+	}
+
 	public SimpleRenderer(String userId, RenderTarget target, ActionListener actionListener) {
 		this.userId = userId;
 		configuration = ClientConfiguration.getInstance();
@@ -218,7 +230,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"fav", source, target, favoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"fav", source, target, favoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setCreatedBy(source.getScreenName())
@@ -238,7 +250,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFollow(User source, User followedUser) {
 		if (followedUser.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"follow", source, followedUser})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"follow", source, followedUser})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setIcon(source)
@@ -296,7 +308,7 @@ public class SimpleRenderer implements TabRenderer {
 			logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}", source, target, unfavoritedStatus);
 		}
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"unfav", source, target, unfavoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"unfav", source, target, unfavoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.LIGHT_GRAY)
 					.setIcon(source)

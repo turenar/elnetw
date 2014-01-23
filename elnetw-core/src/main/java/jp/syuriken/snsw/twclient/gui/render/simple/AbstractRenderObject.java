@@ -21,6 +21,7 @@ import javax.swing.JPopupMenu;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ImageCacher;
@@ -31,17 +32,21 @@ import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import twitter4j.Status;
 
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+
 /**
  * Template for Simple Renderer
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public abstract class AbstractRenderObject implements RenderObject, KeyListener, FocusListener, MouseListener {
+public abstract class AbstractRenderObject implements RenderObject, KeyListener,
+		FocusListener, MouseListener, ClientEventConstants {
 	/** ポストリストの間のパディング */
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	public static final int CREATED_BY_MAX_LEN = 11;
+	public static final int TEXT_MAX_LEN = 255;
 
 	/**
 	 * HTMLEntityたちを表示できる文字 (&nbsp;等) に置き換える
@@ -53,9 +58,16 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return escapeHTML(text, new StringBuilder(text.length() * 2));
 	}
 
+	public ClientConfiguration getConfiguration() {
+		return renderer.getConfiguration();
+	}
+
+	public ClientProperties getConfigProperties() {
+		return renderer.getConfigProperties();
+	}
+
 	@Override
 	public void onEvent(String name, Object arg) {
-		// stub
 	}
 
 	/**
@@ -125,11 +137,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	protected final SimpleRenderer renderer;
 	protected final JPopupMenu popupMenu;
-	protected final ClientConfiguration configuration;
-	protected final ClientProperties configProperties;
-	protected final ImageCacher imageCacher;
 	protected final RenderTarget target;
-	protected final ClientFrameApi frameApi;
 	protected RenderPanel linePanel;
 	protected JLabel componentUserIcon = new JLabel();
 	protected JLabel componentSentBy = new JLabel();
@@ -137,19 +145,25 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	protected Color foregroundColor = Color.BLACK;
 	protected Color backgroundColor = Color.WHITE;
 
+	public ClientFrameApi getFrameApi() {
+		return renderer.getConfiguration().getFrameApi();
+	}
+
 	public AbstractRenderObject(SimpleRenderer renderer) {
 		popupMenu = renderer.getPopupMenu();
 		this.target = renderer.getTarget();
-		configuration = ClientConfiguration.getInstance();
-		configProperties = configuration.getConfigProperties();
-		imageCacher = configuration.getImageCacher();
 		this.renderer = renderer;
-		frameApi = configuration.getFrameApi();
 	}
 
 	@Override
 	public void focusGained(FocusEvent e) {
 		renderer.fireFocusEvent(e, this);
+		getFrameApi().clearTweetView();
+		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(componentSentBy.getIcon(), getCreatedBy(), null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewText(componentStatusText.getText(), null, DO_NOTHING_WHEN_POINTED);
 	}
 
 	@Override
@@ -233,6 +247,10 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return string;
 	}
 
+	protected ImageCacher getImageCacher() {
+		return renderer.getImageCacher();
+	}
+
 	@Override
 	public abstract String getUniqId();
 
@@ -270,7 +288,4 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
-
-	@Override
-	public abstract void requestCopyToClipboard();
 }

@@ -20,11 +20,6 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TeeFilter implements TabRenderer {
-	@Override
-	public void onDisplayRequirement() {
-		renderer.onDisplayRequirement();
-	}
-
 	private static final Logger logger = LoggerFactory.getLogger(TeeFilter.class);
 	private final String filterPropertyName;
 	private final MessageFilter[] filters;
@@ -41,7 +36,6 @@ public class TeeFilter implements TabRenderer {
 	public TeeFilter(String uniqId, TabRenderer tabRenderer) {
 		this(uniqId, tabRenderer, true);
 	}
-
 
 	/**
 	 * インスタンスを生成する。
@@ -154,6 +148,11 @@ public class TeeFilter implements TabRenderer {
 			}
 		}
 		renderer.onDisconnect();
+	}
+
+	@Override
+	public void onDisplayRequirement() {
+		renderer.onDisplayRequirement();
 	}
 
 	@Override

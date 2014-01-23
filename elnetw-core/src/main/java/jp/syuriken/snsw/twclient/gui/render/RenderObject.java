@@ -21,6 +21,4 @@ public interface RenderObject {
 	Object getBasedObject();
 
 	void onEvent(String name, Object arg);
-
-	void requestCopyToClipboard();
 }

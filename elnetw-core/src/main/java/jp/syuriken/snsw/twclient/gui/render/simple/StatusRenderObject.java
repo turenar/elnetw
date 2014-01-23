@@ -22,11 +22,13 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
+import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.HashtagEntity;
@@ -41,16 +43,13 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE
 import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/08/31
- * Time: 18:55
+ * Render object for status
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StatusRenderObject extends AbstractRenderObject {
 	/** Entityの開始位置を比較する */
 	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
-
 		private static final long serialVersionUID = -3995117038146393663L;
 
 		@Override
@@ -78,6 +77,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		uniqId = RendererManager.getStatusUniqId(status.getId());
 	}
 
+	private void copyToClipboard(String str) {
+		StringSelection stringSelection = new StringSelection(str);
+		clipboard.setContents(stringSelection, stringSelection);
+	}
+
 	/**
 	 * ポストパネルがフォーカスを得た時のハンドラ
 	 *
@@ -87,7 +91,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 	 */
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException {
 		linePanel.setBackground(Utility.blendColor(backgroundColor,
-				configProperties.getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
+				getConfigProperties().getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
 
 		Status originalStatus = status;
 		Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
@@ -160,22 +164,19 @@ public class StatusRenderObject extends AbstractRenderObject {
 			getTweetViewFavoriteButton().setIcon(ImageResource.getImgFavOff());
 		}
 		Icon userProfileIcon = componentUserIcon.getIcon();
-		frameApi.clearTweetView();
-		frameApi.setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
-		frameApi.setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
-		frameApi.setTweetViewText(tweetText, overlayString, UNDERLINE);
-		frameApi.setTweetViewOperationPanel(getTweetViewOperationPanel());
+		getFrameApi().clearTweetView();
+		getFrameApi().setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+		getFrameApi().setTweetViewText(tweetText, overlayString, UNDERLINE);
+		getFrameApi().setTweetViewOperationPanel(getTweetViewOperationPanel());
 	}
 
 	@Override
 	public void focusGained(FocusEvent e) {
+		super.focusGained(e);
 		// should scroll? if focus-window changed, i skip scrolling
 		//boolean scroll = (e.getOppositeComponent() == null && selectingPost != null);
 		focusGainOfLinePanel(e);
-			/*if (scroll == false) {
-				scroller.scrollTo(selectingPost);
-			}*/
-		super.focusGained(e);
 	}
 
 	@Override
@@ -236,7 +237,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					updateFavIcon();
-					configuration.handleAction(getIntentArguments("fav"));
+					getConfiguration().handleAction(getIntentArguments("fav"));
 				}
 
 				@Override
@@ -309,7 +310,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					configuration.handleAction(getIntentArguments("userinfo"));
+					getConfiguration().handleAction(getIntentArguments("userinfo"));
 				}
 			});
 		}
@@ -333,7 +334,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					configuration.handleAction(getIntentArguments("reply"));
+					getConfiguration().handleAction(getIntentArguments("reply"));
 				}
 			});
 		}
@@ -357,7 +358,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					configuration.handleAction(getIntentArguments("rt"));
+					getConfiguration().handleAction(getIntentArguments("rt"));
 				}
 			});
 		}
@@ -367,6 +368,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 	@Override
 	public String getUniqId() {
 		return uniqId;
+	}
+
+	private void handleAction(IntentArguments intentArguments) {
+		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
+		getConfiguration().handleAction(intentArguments);
 	}
 
 	protected void initComponents() {
@@ -381,12 +387,12 @@ public class StatusRenderObject extends AbstractRenderObject {
 		}
 		User user = status.getUser();
 
-		if (configuration.isMyAccount(user.getId())) {
+		if (getConfiguration().isMyAccount(user.getId())) {
 			foregroundColor = Color.BLUE;
 		}
 
 		componentUserIcon = new JLabel();
-		imageCacher.setImageIcon(componentUserIcon, status.getUser());
+		getImageCacher().setImageIcon(componentUserIcon, status.getUser());
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
 
 		String screenName = user.getScreenName();
@@ -404,7 +410,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 			foregroundColor = Color.GREEN;
 		} else {
 			UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-			if (configuration.isMentioned(userId, userMentionEntities)) {
+			if (getConfiguration().isMentioned(userId, userMentionEntities)) {
 				foregroundColor = Color.RED;
 			}
 		}
@@ -413,12 +419,12 @@ public class StatusRenderObject extends AbstractRenderObject {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		logger.trace("{}", e);
-		frameApi.handleShortcutKey("list", e);
+		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		frameApi.handleShortcutKey("list", e);
+		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override
@@ -428,15 +434,69 @@ public class StatusRenderObject extends AbstractRenderObject {
 				selectingPost = (RenderPanel) e.getComponent();
 			} */
 		if (e.getClickCount() == 2) {
-			configuration.handleAction(getIntentArguments("reply"));
+			getConfiguration().handleAction(getIntentArguments("reply"));
 		}
 	}
 
 	@Override
-	public void requestCopyToClipboard() {
-		/* TODO: StringSelection is not copied into gnome-terminal */
-		StringSelection stringSelection = new StringSelection(status.getText());
-		clipboard.setContents(stringSelection, stringSelection);
+	public void onEvent(String name, Object arg) {
+		switch (name) {
+			case REQUEST_COPY:
+				copyToClipboard("@" + status.getUser().getScreenName() + ": " + status.getText());
+				break;
+			case REQUEST_COPY_URL: {
+				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
+				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/" +
+						status.getId();
+				copyToClipboard(url);
+			}
+			break;
+			case REQUEST_COPY_USERID:
+				copyToClipboard(status.getUser().getScreenName());
+				break;
+			case REQUEST_BROWSER_USER_HOME: {
+				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
+				String url = "https://twitter.com/" + status.getUser().getScreenName();
+				copyToClipboard(url);
+			}
+			break;
+			case REQUEST_BROWSER_STATUS:
+			case REQUEST_BROWSER_PERMALINK:
+			case EVENT_CLICKED_CREATED_AT: {
+				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
+				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/" +
+						status.getId();
+				ClientConfiguration.getInstance().getUtility().openBrowser(url);
+			}
+			break;
+			case REQUEST_BROWSER_IN_REPLY_TO:
+				if (status.getInReplyToStatusId() != -1) {
+					String url = "http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
+							+ status.getInReplyToStatusId();
+					ClientConfiguration.getInstance().getUtility().openBrowser(url);
+				}
+				break;
+			case REQUEST_BROWSER_OPENURLS: {
+				URLEntity[] urlEntities = status.getURLEntities();
+				for (URLEntity urlEntity : urlEntities) {
+					ClientConfiguration.getInstance().getUtility().openBrowser(urlEntity.getURL());
+				}
+			}
+			break;
+			case EVENT_CLICKED_CREATED_BY: {
+				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
+				if (status.isRetweet()) {
+					status = status.getRetweetedStatus();
+				}
+				handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
+			}
+			break;
+			case EVENT_CLICKED_OVERLAY_LABEL:
+				if (status.isRetweet()) {
+					handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
+				}
+				break;
+		}
 	}
 
 	private TweetEntity[] sortEntities(Status status) {

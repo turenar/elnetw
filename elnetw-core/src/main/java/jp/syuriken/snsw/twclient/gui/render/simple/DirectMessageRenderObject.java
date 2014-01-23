@@ -33,7 +33,7 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 	@Override
 	public void focusGained(FocusEvent e) {
 		linePanel.setBackground(Utility.blendColor(backgroundColor,
-				configProperties.getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
+				getConfigProperties().getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
 
 		String text = directMessage.getText();
 		StringBuffer oldBuffer = new StringBuffer();
@@ -95,10 +95,10 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 						directMessage.getRecipient().getName());
 		String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
 
-		frameApi.clearTweetView();
-		frameApi.setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
-		frameApi.setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
-		frameApi.setTweetViewCreatedBy(componentUserIcon.getIcon(), createdBy, null,
+		getFrameApi().clearTweetView();
+		getFrameApi().setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), createdBy, null,
 				DO_NOTHING_WHEN_POINTED);
 
 		super.focusGained(e);
@@ -140,9 +140,5 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 		componentSentBy.setFont(renderer.getDefaultFont());
 
 		componentStatusText = new JLabel(directMessage.getText());
-	}
-
-	@Override
-	public void requestCopyToClipboard() {
 	}
 }
