@@ -155,7 +155,7 @@ public class TwitterClientMain {
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setOpts(args);
-		LongOpt[] longOpts = new LongOpt[] {
+		LongOpt[] longOpts = new LongOpt[]{
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
 		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
@@ -557,7 +557,7 @@ public class TwitterClientMain {
 		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
-	@Initializer(name = "messagebus", dependencies = {"set-globalfilter", "cacheManager"}, phase = "init")
+	@Initializer(name = "messagebus", dependencies = {"jobqueue", "config"}, phase = "preinit")
 	public void setMessageBus(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
 			messageBus = new MessageBus();
@@ -574,6 +574,7 @@ public class TwitterClientMain {
 		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageFetcherFactory());
+		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 	}
 
 	@Initializer(name = "finish-initPhase", phase = "start")

@@ -11,6 +11,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,8 +196,10 @@ public class MessageBus {
 		HashSet<ClientMessageListener> listenersSet = new HashSet<>();
 		for (String path : paths) {
 			ArrayList<ClientMessageListener> list = pathListenerMap.get(path);
-			for (ClientMessageListener listener : list) {
-				listenersSet.add(listener);
+			if (list != null) {
+				for (ClientMessageListener listener : list) {
+					listenersSet.add(listener);
+				}
 			}
 		}
 		listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
@@ -287,11 +290,7 @@ public class MessageBus {
 	 * @param forWrite 書き込み用アカウントが変更されたかどうか。
 	 */
 	public void onChangeAccount(boolean forWrite) {
-		if (forWrite) {
-			relogin(WRITER_ACCOUNT_ID);
-		} else {
-			relogin(READER_ACCOUNT_ID);
-		}
+		relogin(forWrite ? WRITER_ACCOUNT_ID : READER_ACCOUNT_ID, forWrite);
 	}
 
 	/** ClientTabの復元が完了し、DataFetcherの通知を受け取れるようになった */
@@ -302,7 +301,7 @@ public class MessageBus {
 		}
 	}
 
-	private synchronized void relogin(String accountId) {
+	private synchronized void relogin(String accountId, boolean forWrite) {
 		modifiedCount++;
 		ArrayList<MessageChannel> clientMessageListeners = userListenerMap.get(accountId);
 		if (clientMessageListeners == null) {
@@ -316,6 +315,9 @@ public class MessageBus {
 				channel.realConnect();
 			}
 		}
+		getListeners(accountId, "core").onClientMessage(
+				forWrite ? TabRenderer.WRITER_ACCOUNT_CHANGED : TabRenderer.READER_ACCOUNT_CHANGED,
+				accountId);
 	}
 
 	private void scheduleGettingTwitterApiConfiguration() {

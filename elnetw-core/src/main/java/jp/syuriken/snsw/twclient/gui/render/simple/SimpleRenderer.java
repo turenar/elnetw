@@ -43,7 +43,6 @@ import twitter4j.UserList;
  */
 public class SimpleRenderer implements TabRenderer {
 	private static final Logger logger = LoggerFactory.getLogger(SimpleRenderer.class);
-	private final long actualUserId;
 	private final RenderTarget renderTarget;
 	private final JPopupMenu popupMenu;
 	private final Font uiFont;
@@ -57,26 +56,16 @@ public class SimpleRenderer implements TabRenderer {
 	private final ClientConfiguration configuration;
 	private final ClientProperties configProperties;
 	private final String userId;
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public ClientConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	public ClientProperties getConfigProperties() {
-		return configProperties;
-	}
+	private volatile long actualUserId;
 
 	public SimpleRenderer(String userId, RenderTarget target, ActionListener actionListener) {
 		this.userId = userId;
 		configuration = ClientConfiguration.getInstance();
-		this.actualUserId = configuration.getMessageBus().getActualUser(userId);
+		getActualUserId();
 		this.renderTarget = target;
 		configProperties = configuration.getConfigProperties();
 		this.popupMenu = generatePopupMenu(actionListener);
+		configuration.getMessageBus().establish(userId, "core", this);
 
 		cacheManager = configuration.getCacheManager();
 		imageCacher = configuration.getImageCacher();
@@ -126,6 +115,19 @@ public class SimpleRenderer implements TabRenderer {
 		return popupMenu;
 	}
 
+	private long getActualUserId() {
+		actualUserId = configuration.getMessageBus().getActualUser(userId);
+		return actualUserId;
+	}
+
+	public ClientProperties getConfigProperties() {
+		return configProperties;
+	}
+
+	public ClientConfiguration getConfiguration() {
+		return configuration;
+	}
+
 	protected Font getDefaultFont() {
 		return defaultFont;
 	}
@@ -162,6 +164,10 @@ public class SimpleRenderer implements TabRenderer {
 		return uiFont;
 	}
 
+	public String getUserId() {
+		return userId;
+	}
+
 	@Override
 	public void onBlock(User source, User blockedUser) {
 
@@ -184,6 +190,13 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onClientMessage(String name, Object arg) {
+		switch (name) {
+			case TabRenderer.READER_ACCOUNT_CHANGED:
+			case TabRenderer.WRITER_ACCOUNT_CHANGED:
+				getActualUserId();
+				break;
+		}
+
 	}
 
 	@Override
@@ -220,6 +233,23 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onDisconnect() {
+	}
+
+	@Override
+	public void onDisplayRequirement() {
+		if (configProperties.getBoolean("core.elnetw.danger_zone") &&
+				configProperties.getBoolean("gui.danger.displayReq.disable")) {
+			return;
+		}
+
+		renderTarget.addStatus(new MiscRenderObject(this, "DisplayRequirements")
+				.setBackgroundColor(Color.DARK_GRAY)
+				.setForegroundColor(Color.WHITE)
+				.setCreatedBy("elnetw")
+				.setText("All data is from twitter")
+				.setIcon(ImageResource.getImgTwitterLogo())
+				.setUniqId("misc/displayRequirements")
+				.setDate(0x7fffffff_ffffffffL));
 	}
 
 	@Override
@@ -275,23 +305,6 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onStatus(Status status) {
 		renderTarget.addStatus(new StatusRenderObject(actualUserId, status, this));
-	}
-
-	@Override
-	public void onDisplayRequirement() {
-		if (configProperties.getBoolean("core.elnetw.danger_zone") &&
-				configProperties.getBoolean("gui.danger.displayReq.disable")) {
-			return;
-		}
-
-		renderTarget.addStatus(new MiscRenderObject(this, "DisplayRequirements")
-				.setBackgroundColor(Color.DARK_GRAY)
-				.setForegroundColor(Color.WHITE)
-				.setCreatedBy("elnetw")
-				.setText("All data is from twitter")
-				.setIcon(ImageResource.getImgTwitterLogo())
-				.setUniqId("misc/displayRequirements")
-				.setDate(0x7fffffff_ffffffffL));
 	}
 
 	@Override
