@@ -1,6 +1,5 @@
 package jp.syuriken.snsw.twclient.bus;
 
-import java.util.HashSet;
 import java.util.TreeSet;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
@@ -49,20 +48,14 @@ class VirtualMessagePublisher implements ClientMessageListener {
 				int newModifiedCount = messageBus.getModifiedCount();
 				if (modifiedCount != newModifiedCount) {
 					logger.debug("Update notifier cache");
-					HashSet<ClientMessageListener> listenersSet = new HashSet<>();
-					for (String path : paths) {
-						for (ClientMessageListener listener : messageBus.getInternalListeners(path)) {
-							listenersSet.add(listener);
-						}
-					}
-					listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
-					cachedListeners = listeners;
+					cachedListeners = listeners = messageBus.getEndpoints(paths);
 					modifiedCount = newModifiedCount;
 				}
 			}
 		}
 		return listeners;
 	}
+
 
 	@Override
 	public void onBlock(User source, User blockedUser) {

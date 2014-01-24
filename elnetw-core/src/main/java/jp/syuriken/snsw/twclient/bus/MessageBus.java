@@ -1,12 +1,11 @@
 package jp.syuriken.snsw.twclient.bus;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
@@ -26,13 +25,6 @@ import twitter4j.conf.Configuration;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MessageBus {
-	private static class NullIterable implements Iterable<ClientMessageListener> {
-		@Override
-		public Iterator<ClientMessageListener> iterator() {
-			return NULL_ITERATOR;
-		}
-	}
-
 	private final class ApiConfigurationFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		@Override
@@ -42,8 +34,6 @@ public class MessageBus {
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
-	/*package*/ static final Iterator<ClientMessageListener> NULL_ITERATOR = Collections.emptyIterator();
-	/*package*/ static final Iterable<ClientMessageListener> NULL_LISTENERS = new NullIterable();
 	public static final String READER_ACCOUNT_ID = "$reader";
 	public static final String WRITER_ACCOUNT_ID = "$writer";
 
@@ -62,9 +52,9 @@ public class MessageBus {
 	/** {String=path, MessageChannel=channel} */
 	protected LinkedHashMap<String, MessageChannel> pathMap = new LinkedHashMap<>();
 	/** {K=path, V=listeners} */
-	protected HashMap<String, CopyOnWriteArrayList<ClientMessageListener>> pathListenerMap = new HashMap<>();
+	protected HashMap<String, ArrayList<ClientMessageListener>> pathListenerMap = new HashMap<>();
 	/** {K=accountId, V=MessageChannels} */
-	protected HashMap<String, CopyOnWriteArrayList<MessageChannel>> userListenerMap = new HashMap<>();
+	protected HashMap<String, ArrayList<MessageChannel>> userListenerMap = new HashMap<>();
 	/*package*/ Twitter twitterForRead;
 	/*package*/ ClientProperties configProperties;
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
@@ -119,9 +109,9 @@ public class MessageBus {
 	public synchronized boolean establish(String accountId, String notifierName, ClientMessageListener listener) {
 		String path = getPath(accountId, notifierName);
 
-		CopyOnWriteArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
+		ArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
 		if (messageListeners == null) {
-			messageListeners = new CopyOnWriteArrayList<>();
+			messageListeners = new ArrayList<>();
 			pathListenerMap.put(path, messageListeners);
 		}
 		messageListeners.add(listener);
@@ -144,9 +134,9 @@ public class MessageBus {
 				messageChannel = factory.getInstance(this, accountId, notifierName);
 				pathMap.put(path, messageChannel);
 
-				CopyOnWriteArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
+				ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
 				if (userListeners == null) {
-					userListeners = new CopyOnWriteArrayList<>();
+					userListeners = new ArrayList<>();
 					userListenerMap.put(accountId, userListeners);
 				}
 				userListeners.add(messageChannel);
@@ -191,9 +181,26 @@ public class MessageBus {
 		return apiConfiguration;
 	}
 
-	/*package*/ Iterable<ClientMessageListener> getInternalListeners(String path) {
-		CopyOnWriteArrayList<ClientMessageListener> listeners = pathListenerMap.get(path);
-		return listeners == null ? NULL_LISTENERS : listeners;
+	/**
+	 * get target endpoints
+	 *
+	 * you should use {@link #getListeners(String, String...)} or {@link #getListeners(String, boolean, String...)}
+	 * because <code>getListeners</code> catch any Exceptions.
+	 *
+	 * @param paths endpoint path array
+	 * @return actual listerners
+	 */
+	public synchronized ClientMessageListener[] getEndpoints(String[] paths) {
+		ClientMessageListener[] listeners;
+		HashSet<ClientMessageListener> listenersSet = new HashSet<>();
+		for (String path : paths) {
+			ArrayList<ClientMessageListener> list = pathListenerMap.get(path);
+			for (ClientMessageListener listener : list) {
+				listenersSet.add(listener);
+			}
+		}
+		listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
+		return listeners;
 	}
 
 	/**
@@ -297,7 +304,7 @@ public class MessageBus {
 
 	private synchronized void relogin(String accountId) {
 		modifiedCount++;
-		CopyOnWriteArrayList<MessageChannel> clientMessageListeners = userListenerMap.get(accountId);
+		ArrayList<MessageChannel> clientMessageListeners = userListenerMap.get(accountId);
 		if (clientMessageListeners == null) {
 			return;
 		}

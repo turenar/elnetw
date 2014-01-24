@@ -1,6 +1,7 @@
 package jp.syuriken.snsw.twclient.bus;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.TreeSet;
 
@@ -136,9 +137,7 @@ public class MessageBusTest {
 
 	private void assertArrayItemsEquals(String[] actual, String... expected) {
 		HashSet<String> hashSet = new HashSet<>();
-		for (String item : actual) {
-			hashSet.add(item);
-		}
+		Collections.addAll(hashSet, actual);
 		assertArrayItemsEquals(hashSet, expected);
 	}
 
