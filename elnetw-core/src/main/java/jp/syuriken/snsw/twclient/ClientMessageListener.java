@@ -1,7 +1,5 @@
 package jp.syuriken.snsw.twclient;
 
-import java.awt.event.MouseEvent;
-
 import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.UserStreamListener;
 

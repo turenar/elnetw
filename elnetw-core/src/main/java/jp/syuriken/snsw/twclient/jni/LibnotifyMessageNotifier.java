@@ -36,7 +36,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 				Boolean isGtkInitialized = (Boolean) gtkClass.getMethod("isInitialized").invoke(null);
 				if (!isGtkInitialized) { // if(!Gtk.isInitialized){
 					// Gtk.init(new String[]{});
-					gtkClass.getMethod("init", String[].class).invoke(null, (Object) new String[] {});
+					gtkClass.getMethod("init", String[].class).invoke(null, (Object) new String[]{});
 				}
 				Class<?> notifyClass = Class.forName("org.gnome.notify.Notify", true, extraClassLoader);
 				Boolean isNotifyInitialized = (Boolean) notifyClass.getMethod("isInitialized").invoke(null);

@@ -38,7 +38,7 @@ public class MentionsFetcher extends TwitterRunnable implements MessageChannel {
 	 * インスタンスを生成する
 	 *
 	 * @param messageBus スケジューラー
-	 * @param accountId                 アカウントID (long)
+	 * @param accountId  アカウントID (long)
 	 */
 	public MentionsFetcher(MessageBus messageBus, String accountId) {
 		this.messageBus = messageBus;

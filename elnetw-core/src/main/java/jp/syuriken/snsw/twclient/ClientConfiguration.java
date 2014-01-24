@@ -148,7 +148,6 @@ public class ClientConfiguration {
 	static void setInstance(ClientConfiguration conf) {
 		INSTANCE = conf;
 	}
-
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();

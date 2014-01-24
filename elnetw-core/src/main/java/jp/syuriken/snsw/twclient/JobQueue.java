@@ -193,7 +193,7 @@ public class JobQueue {
 	 * ジョブを取得する。
 	 *
 	 * @return ジョブ。必ずしも優先度が一番高いものというわけではなく、
-	 *         たまに優先度が低いものが返って来る時があります。
+	 * たまに優先度が低いものが返って来る時があります。
 	 */
 	public Runnable getJob() {
 		if (size.get() == 0) {

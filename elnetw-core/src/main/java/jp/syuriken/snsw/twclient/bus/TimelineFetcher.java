@@ -34,7 +34,7 @@ public class TimelineFetcher extends TwitterRunnable implements MessageChannel {
 	 * インスタンスを生成する
 	 *
 	 * @param messageBus スケジューラー
-	 * @param accountId                 アカウントID (long)
+	 * @param accountId  アカウントID (long)
 	 */
 	public TimelineFetcher(MessageBus messageBus, String accountId) {
 		this.messageBus = messageBus;

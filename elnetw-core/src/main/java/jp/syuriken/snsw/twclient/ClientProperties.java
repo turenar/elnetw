@@ -255,7 +255,7 @@ public class ClientProperties extends Properties {
 	 * @param key           キー
 	 * @param expectedClass 期待するClass
 	 * @return キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
-	 *         それ以外はキャッシュされた値
+	 * それ以外はキャッシュされた値
 	 */
 	@SuppressWarnings("unchecked")
 	protected synchronized <T> T getCachedValue(String key, Class<T> expectedClass) {

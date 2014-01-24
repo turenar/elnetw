@@ -72,7 +72,7 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) {
 		synchronized (queue) {
-			queue.add(new Object[] {
+			queue.add(new Object[]{
 					summary,
 					text
 			/*,imageFile*/});

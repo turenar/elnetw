@@ -8,7 +8,6 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.gui.ClientTab;
-import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -268,11 +267,11 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @param icon             アイコン
 	 * @param operationPanel   操作用パネル
 	 * @deprecated use
-	 *             {@link #clearTweetView()}
-	 *             {@link #setTweetViewCreatedAt(String, String, int)}
-	 *             {@link #setTweetViewCreatedBy(Icon, String, String, int)}
-	 *             {@link #setTweetViewOperationPanel(JPanel)}
-	 *             {@link #setTweetViewText(String, String, int)}
+	 * {@link #clearTweetView()}
+	 * {@link #setTweetViewCreatedAt(String, String, int)}
+	 * {@link #setTweetViewCreatedBy(Icon, String, String, int)}
+	 * {@link #setTweetViewOperationPanel(JPanel)}
+	 * {@link #setTweetViewText(String, String, int)}
 	 */
 	@Deprecated
 	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,

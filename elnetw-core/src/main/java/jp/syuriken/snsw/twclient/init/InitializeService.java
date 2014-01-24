@@ -50,7 +50,7 @@ public abstract class InitializeService {
 	 *
 	 * @param name initializer's name
 	 * @return if initializer which has specified name is registered, return {@link InitializerInfo} of that.
-	 *         otherwise, return null
+	 * otherwise, return null
 	 */
 	public abstract InitializerInfo getInfo(String name);
 
@@ -63,7 +63,7 @@ public abstract class InitializeService {
 	 *
 	 * @param name initializer's name
 	 * @return if initializer which has specified name is initialized, return true.
-	 *         otherwise, return false.
+	 * otherwise, return false.
 	 */
 	public abstract boolean isInitialized(String name);
 

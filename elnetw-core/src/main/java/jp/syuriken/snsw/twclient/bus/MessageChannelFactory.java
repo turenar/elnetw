@@ -10,8 +10,8 @@ public interface MessageChannelFactory {
 	 * インスタンスを生成する
 	 *
 	 * @param messageBus スケジューラー
-	 * @param accountId アカウントID (long)
-	 * @param path      "my/timeline"など
+	 * @param accountId  アカウントID (long)
+	 * @param path       "my/timeline"など
 	 * @return DataFetcherインスタンス。nullを投げるくらいなら例外をくれ
 	 */
 	MessageChannel getInstance(MessageBus messageBus, String accountId, String path);
