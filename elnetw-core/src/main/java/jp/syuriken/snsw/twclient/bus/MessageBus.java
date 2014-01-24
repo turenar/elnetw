@@ -37,6 +37,7 @@ public class MessageBus {
 	private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
 	public static final String READER_ACCOUNT_ID = "$reader";
 	public static final String WRITER_ACCOUNT_ID = "$writer";
+	public static final String ALL_ACCOUNT_ID = "$all";
 
 	private static String getAppended(StringBuilder builder, String appendedString) {
 		int oldLength = builder.length();
@@ -124,7 +125,8 @@ public class MessageBus {
 			}
 		} else {
 			MessageChannel messageChannel = pathMap.get(path);
-			if (messageChannel == null) {
+			// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
+			if (!accountId.equals(ALL_ACCOUNT_ID) || (messageChannel == null)) {
 				MessageChannelFactory factory = channelMap.get(notifierName);
 				if (factory == null) {
 					if (!notifierName.endsWith("all")) {
@@ -168,6 +170,8 @@ public class MessageBus {
 				return configuration.getAccountIdForRead();
 			case WRITER_ACCOUNT_ID:
 				return configuration.getAccountIdForWrite();
+			case ALL_ACCOUNT_ID:
+				throw new IllegalArgumentException(ALL_ACCOUNT_ID + " is not valid id");
 			default:
 				return accountId;
 		}
@@ -267,6 +271,8 @@ public class MessageBus {
 			paths.add(getAppended(builder, "/all"));
 		}
 		paths.add(getPath(accountId, notifierName));
+		paths.add(getPath(ALL_ACCOUNT_ID, notifierName));
+		paths.add(getPath(ALL_ACCOUNT_ID, "all"));
 	}
 
 	/**
