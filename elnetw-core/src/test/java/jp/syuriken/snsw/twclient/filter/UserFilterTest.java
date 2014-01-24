@@ -1,7 +1,8 @@
 package jp.syuriken.snsw.twclient.filter;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import twitter4j.Status;
@@ -15,31 +16,25 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserFilterTest {
-
-	private static final class MyClientConfiguration extends ClientConfiguration {
-
-		/*package*/MyClientConfiguration() {
-			// protected access
-			super();
-		}
-	}
-
 	private static final String PROPERTY_FILTER_ID_NAME = "core.filter.user.ids";
-
-	private ClientConfiguration configuration;
-
+	private ClientConfigurationTestImpl configuration;
 	private UserFilter userFilter;
-
 	private ClientProperties properties;
+
+	@After
+	public void tearDown() throws Exception {
+		configuration.clearGlobalInstance();
+	}
 
 	/** テスト前の準備 */
 	@Before
 	public void tearUp() {
-		configuration = new MyClientConfiguration();
+		configuration = new ClientConfigurationTestImpl();
 		properties = new ClientProperties();
 		properties.setProperty(PROPERTY_FILTER_ID_NAME, "1 2 3");
 		properties.setProperty("core.filter.queries", "");
 		configuration.setConfigProperties(properties);
+		configuration.setGlobalInstance();
 		userFilter = new UserFilter(PROPERTY_KEY_FILTER_GLOBAL_QUERY);
 	}
 
@@ -65,8 +60,8 @@ public class UserFilterTest {
 	/** {@link UserFilter#onDeletionNotice(twitter4j.StatusDeletionNotice)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnDeletionNoticeStatusDeletionNotice() {
-		assertNotNull(userFilter.onDeletionNotice(new TestNotice(0)));
-		assertNull(userFilter.onDeletionNotice(new TestNotice(1)));
+		assertFalse(userFilter.onDeletionNotice(new TestNotice(0)));
+		assertTrue(userFilter.onDeletionNotice(new TestNotice(1)));
 	}
 
 	/** {@link UserFilter#onDirectMessage(twitter4j.DirectMessage)} のためのテスト・メソッド。 */
@@ -80,7 +75,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onFavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnFavorite() {
-		Status[] succStatuses = new Status[] {
+		Status[] succStatuses = new Status[]{
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -89,7 +84,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onFavorite(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onFavorite(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[] {
+		Status[] failStatuses = new Status[]{
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -113,7 +108,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onRetweet(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnRetweet() {
-		Status[] succStatuses = new Status[] {
+		Status[] succStatuses = new Status[]{
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -122,7 +117,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onRetweet(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onRetweet(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[] {
+		Status[] failStatuses = new Status[]{
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -152,7 +147,7 @@ public class UserFilterTest {
 	/** {@link UserFilter#onUnfavorite(twitter4j.User, twitter4j.User, twitter4j.Status)} のためのテスト・メソッド。 */
 	@Test
 	public void testOnUnfavorite() {
-		Status[] succStatuses = new Status[] {
+		Status[] succStatuses = new Status[]{
 				new TestStatus(0, null, -1),
 				new TestStatus(0, new TestStatus(0, null, -1), -1)
 		};
@@ -161,7 +156,7 @@ public class UserFilterTest {
 			assertTrue(userFilter.onUnfavorite(new TestUser(1), new TestUser(0), status));
 			assertTrue(userFilter.onUnfavorite(new TestUser(0), new TestUser(1), status));
 		}
-		Status[] failStatuses = new Status[] {
+		Status[] failStatuses = new Status[]{
 				new TestStatus(1, null, -1),
 				new TestStatus(0, null, 1),
 				new TestStatus(0, new TestStatus(1, null, -1), -1),
