@@ -135,19 +135,19 @@ public class MessageBus {
 				messageChannel = factory.getInstance(this, accountId, notifierName);
 				pathMap.put(path, messageChannel);
 
-				ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
-				if (userListeners == null) {
-					userListeners = new ArrayList<>();
-					userListenerMap.put(accountId, userListeners);
-				}
-				userListeners.add(messageChannel);
-
 				messageChannel.connect();
 				if (isInitialized) {
 					messageChannel.realConnect();
 				}
-				modifiedCount++;
 			}
+			ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
+			if (userListeners == null) {
+				userListeners = new ArrayList<>();
+				userListenerMap.put(accountId, userListeners);
+			}
+			userListeners.add(messageChannel);
+
+			modifiedCount++;
 		}
 		return true;
 	}
