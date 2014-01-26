@@ -9,7 +9,6 @@ import java.util.regex.Matcher;
 import javax.swing.JLabel;
 
 import com.twitter.Regex;
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
 import twitter4j.DirectMessage;
 
@@ -32,8 +31,7 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 
 	@Override
 	public void focusGained(FocusEvent e) {
-		linePanel.setBackground(Utility.blendColor(backgroundColor,
-				getConfigProperties().getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
+		super.focusGained(e);
 
 		String text = directMessage.getText();
 		StringBuffer oldBuffer = new StringBuffer();
@@ -100,14 +98,6 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), createdBy, null,
 				DO_NOTHING_WHEN_POINTED);
-
-		super.focusGained(e);
-	}
-
-	@Override
-	public void focusLost(FocusEvent e) {
-		super.focusLost(e);
-		linePanel.setBackground(backgroundColor);
 	}
 
 	@Override

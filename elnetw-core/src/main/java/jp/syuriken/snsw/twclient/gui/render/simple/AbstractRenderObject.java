@@ -32,8 +32,6 @@ import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import twitter4j.Status;
 
-import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
-
 /**
  * Template for Simple Renderer
  *
@@ -157,13 +155,14 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	@Override
 	public void focusGained(FocusEvent e) {
+		if (renderer.getFocusOwner() != null) {
+			AbstractRenderObject lostFocusObject = renderer.getFocusOwner();
+			lostFocusObject.linePanel.setBackground(lostFocusObject.backgroundColor);
+		}
+		renderer.setFocusOwner(this);
+		linePanel.setBackground(Utility.blendColor(backgroundColor,
+				getConfigProperties().getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
 		renderer.fireFocusEvent(e, this);
-		getFrameApi().clearTweetView();
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(componentSentBy.getIcon(), getCreatedBy(), null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewText(componentStatusText.getText(), null, DO_NOTHING_WHEN_POINTED);
 	}
 
 	@Override

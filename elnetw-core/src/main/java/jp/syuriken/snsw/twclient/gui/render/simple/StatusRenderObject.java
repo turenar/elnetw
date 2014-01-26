@@ -90,9 +90,6 @@ public class StatusRenderObject extends AbstractRenderObject {
 	 * @throws NumberFormatException    数値ではないプロパティ
 	 */
 	protected void focusGainOfLinePanel(FocusEvent e) throws IllegalArgumentException {
-		linePanel.setBackground(Utility.blendColor(backgroundColor,
-				getConfigProperties().getColor(ClientConfiguration.PROPERTY_COLOR_FOCUS_LIST)));
-
 		Status originalStatus = status;
 		Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 		String text = status.getText();
@@ -177,11 +174,6 @@ public class StatusRenderObject extends AbstractRenderObject {
 		// should scroll? if focus-window changed, i skip scrolling
 		//boolean scroll = (e.getOppositeComponent() == null && selectingPost != null);
 		focusGainOfLinePanel(e);
-	}
-
-	@Override
-	public void focusLost(FocusEvent e) {
-		linePanel.setBackground(backgroundColor);
 	}
 
 	@Override

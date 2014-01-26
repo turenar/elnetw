@@ -1,13 +1,17 @@
 package jp.syuriken.snsw.twclient.gui.render.simple;
 
 import java.awt.Color;
+import java.awt.event.FocusEvent;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.twclient.Utility;
 import twitter4j.User;
+
+import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 
 /**
  * Render object for misc events
@@ -44,6 +48,17 @@ public class MiscRenderObject extends AbstractRenderObject {
 	}
 
 	@Override
+	public void focusGained(FocusEvent e) {
+		super.focusGained(e);
+		getFrameApi().clearTweetView();
+		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewText(text, null, DO_NOTHING_WHEN_POINTED);
+	}
+
+	@Override
 	public Date getDate() {
 		return new Date(date);
 	}
@@ -70,12 +85,25 @@ public class MiscRenderObject extends AbstractRenderObject {
 
 	public MiscRenderObject setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
+		if (longCreatedBy == null) {
+			setCreatedByText(createdBy);
+		}
 		return this;
+	}
+
+	public MiscRenderObject setCreatedBy(User user) {
+		return setCreatedBy(user.getScreenName())
+				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
 	}
 
 	public MiscRenderObject setCreatedByText(String createdBy) {
 		return setCreatedByText(createdBy, createdBy);
 	}
+
+	private static String getUserCreatedByText(User user) {
+		return "@" + user.getScreenName() + " (" + user.getName() + ")";
+	}
+
 
 	public MiscRenderObject setCreatedByText(String createdBy, String longCreatedBy) {
 		this.longCreatedBy = longCreatedBy;

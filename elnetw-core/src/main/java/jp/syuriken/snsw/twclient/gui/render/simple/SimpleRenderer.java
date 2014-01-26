@@ -34,6 +34,8 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
 import twitter4j.UserList;
 
+import static jp.syuriken.snsw.twclient.ClientConfiguration.APPLICATION_NAME;
+
 /**
  * Created with IntelliJ IDEA.
  * Date: 13/08/31
@@ -57,6 +59,7 @@ public class SimpleRenderer implements TabRenderer {
 	private final ClientProperties configProperties;
 	private final String userId;
 	private volatile long actualUserId;
+	private AbstractRenderObject focusOwner;
 
 	public SimpleRenderer(String userId, RenderTarget target, ActionListener actionListener) {
 		this.userId = userId;
@@ -132,6 +135,10 @@ public class SimpleRenderer implements TabRenderer {
 		return defaultFont;
 	}
 
+	public AbstractRenderObject getFocusOwner() {
+		return focusOwner;
+	}
+
 	protected int getFontHeight() {
 		return fontHeight;
 	}
@@ -178,7 +185,7 @@ public class SimpleRenderer implements TabRenderer {
 		renderTarget.addStatus(new MiscRenderObject(this, null)
 				.setBackgroundColor(Color.LIGHT_GRAY)
 				.setForegroundColor(Color.BLACK)
-				.setCreatedByText(ClientConfiguration.APPLICATION_NAME)
+				.setCreatedByText(APPLICATION_NAME)
 				.setCreatedBy(
 						forWrite ? "!core.change.account!write" : "!core.change.account!read")
 				.setText(forWrite ? "書き込み用アカウントを変更しました。" : "読み込み用アカウントを変更しました。"));
@@ -219,8 +226,7 @@ public class SimpleRenderer implements TabRenderer {
 		renderTarget.addStatus(new MiscRenderObject(this, statusDeletionNotice)
 				.setBackgroundColor(Color.LIGHT_GRAY)
 				.setForegroundColor(Color.RED)
-				.setCreatedByText(user.getScreenName(), MiscRenderObject.getCreatedByLongText(cachedStatus))
-				.setCreatedBy(user.getScreenName())
+				.setCreatedBy(user)
 				.setUniqId("!twdel/" + statusDeletionNotice.getStatusId())
 				.setText("DELETED: " + cachedStatus.getText())
 				.setIcon(user));
@@ -245,7 +251,8 @@ public class SimpleRenderer implements TabRenderer {
 		renderTarget.addStatus(new MiscRenderObject(this, "DisplayRequirements")
 				.setBackgroundColor(Color.DARK_GRAY)
 				.setForegroundColor(Color.WHITE)
-				.setCreatedBy("elnetw")
+				.setCreatedBy("!display_reuirements")
+				.setCreatedByText("", APPLICATION_NAME)
 				.setText("All data is from twitter")
 				.setIcon(ImageResource.getImgTwitterLogo())
 				.setUniqId("misc/displayRequirements")
@@ -263,7 +270,7 @@ public class SimpleRenderer implements TabRenderer {
 			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"fav", source, target, favoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
-					.setCreatedBy(source.getScreenName())
+					.setCreatedBy(source)
 					.setIcon(source)
 					.setUniqId(
 							"!fav/" + source.getScreenName() + "/" + target.getScreenName() + "/" + favoritedStatus.getId())
@@ -284,7 +291,7 @@ public class SimpleRenderer implements TabRenderer {
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setIcon(source)
-					.setCreatedBy(source.getScreenName())
+					.setCreatedBy(source)
 					.setUniqId("!follow/" + source.getScreenName() + "/" + followedUser.getScreenName())
 					.setText("@" + followedUser.getScreenName() + " にフォローされました"));
 		}
@@ -324,6 +331,7 @@ public class SimpleRenderer implements TabRenderer {
 			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"unfav", source, target, unfavoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.LIGHT_GRAY)
+					.setCreatedBy(source)
 					.setIcon(source)
 					.setText("ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"")
 					.setUniqId(
@@ -366,5 +374,9 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
+	}
+
+	public void setFocusOwner(AbstractRenderObject focusOwner) {
+		this.focusOwner = focusOwner;
 	}
 }
