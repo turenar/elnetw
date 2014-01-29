@@ -126,7 +126,7 @@ public class MessageBus {
 		} else {
 			MessageChannel messageChannel = pathMap.get(path);
 			// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
-			if (!accountId.equals(ALL_ACCOUNT_ID) || (messageChannel == null)) {
+			if (!accountId.equals(ALL_ACCOUNT_ID) && (messageChannel == null)) {
 				MessageChannelFactory factory = channelMap.get(notifierName);
 				if (factory == null) {
 					if (!notifierName.endsWith("all")) {
