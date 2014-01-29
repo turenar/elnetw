@@ -35,7 +35,6 @@ import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
@@ -77,7 +76,9 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 		@Override
 		public void onStatus(Status originalStatus) {
-			actualRenderer.onStatus(originalStatus);
+			if (user.getId() == originalStatus.getUser().getId()) {
+				actualRenderer.onStatus(originalStatus);
+			}
 		}
 	}
 
@@ -185,11 +186,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	@Override
 	public void focusLost() {
 		focusGained = false;
-	}
-
-	@Override
-	public DelegateRenderer getDelegateRenderer() {
-		return renderer;
 	}
 
 	private String getBioHtml() {
@@ -433,6 +429,11 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	}
 
 	@Override
+	public DelegateRenderer getDelegateRenderer() {
+		return renderer;
+	}
+
+	@Override
 	public Icon getIcon() {
 		if (imageIcon != null) {
 			return imageIcon;
@@ -445,14 +446,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public TabRenderer getRenderer() {
-		if (teeFilter == null) {
-			teeFilter = new TeeFilter(uniqId, getActualRenderer(), false);
-		}
-		return teeFilter;
 	}
 
 	@Override
