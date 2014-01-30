@@ -361,8 +361,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		sortedPostListPanel = new SortedPostListPanel();
 		accountId = "$reader";
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
-		UI_FONT = configProperties.getFont("gui.font.ui");
-		DEFAULT_FONT = configProperties.getFont("gui.font.default");
+		UI_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
+		DEFAULT_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
 		init(configuration);
 	}
 
@@ -385,8 +385,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		}
 		this.accountId = accountId;
 		uniqId = serializedJson.getString("uniqId");
-		UI_FONT = configProperties.getFont("gui.font.ui");
-		DEFAULT_FONT = configProperties.getFont("gui.font.default");
+		UI_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
+		DEFAULT_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
 		init(configuration);
 	}
 

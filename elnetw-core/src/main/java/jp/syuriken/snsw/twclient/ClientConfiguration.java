@@ -74,6 +74,8 @@ public class ClientConfiguration {
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
+	public static final String PROPERTY_GUI_FONT_DEFAULT = "gui.font.default";
+	public static final String PROPERTY_GUI_FONT_UI = "gui.font.ui";
 	private static ClientConfiguration INSTANCE;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
@@ -148,6 +150,7 @@ public class ClientConfiguration {
 	static void setInstance(ClientConfiguration conf) {
 		INSTANCE = conf;
 	}
+
 	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
