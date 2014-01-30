@@ -111,6 +111,10 @@ import org.slf4j.LoggerFactory;
 				} else { // ただのRunnableは親で動かす
 					logger.trace("{}: Add to SerializeQueue: {}", getName(), job);
 					serializeQueue.add(job);
+					synchronized (threadHolder) {
+						threadHolder.notifyAll(); // which job worker is parent is unknown...
+						// interrupt() is no use: This may stop job!
+					}
 				}
 			}
 		} // end main loop
