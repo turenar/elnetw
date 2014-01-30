@@ -7,6 +7,7 @@ Version 0.1-alpha5
 	* In fetching image, buffer size depends on contentLength
 	* Avoid possible data corruption in ConcurrentSoftHashMap. [issue #21]
 		It is used in memory cache algorithm.
+	* Fix bug serialized-job don't work immediately
 
 Version 0.0.2-alpha4 (Sat May 25 19:15:42 2013 +0900)
 
