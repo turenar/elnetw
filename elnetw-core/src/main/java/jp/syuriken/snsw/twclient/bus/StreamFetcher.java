@@ -7,7 +7,7 @@ import twitter4j.TwitterStreamFactory;
 /**
  * ストリームからデータを取得するDataFetcher
  *
- * @Author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StreamFetcher implements MessageChannel {
 	private final String accountId;

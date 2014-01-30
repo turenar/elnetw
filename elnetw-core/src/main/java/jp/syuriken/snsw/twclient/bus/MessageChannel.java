@@ -3,7 +3,7 @@ package jp.syuriken.snsw.twclient.bus;
 /**
  * Twitterからデータを取得して他のハンドラに渡すためのインターフェース
  *
- * @Author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MessageChannel {
 	/**

@@ -46,7 +46,7 @@ public class DirectMessageFetcher extends TwitterRunnable implements MessageChan
 	}
 
 	@Override
-	protected synchronized void access() throws TwitterException {
+	protected void access() throws TwitterException {
 		ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES)));
 		for (DirectMessage dm : directMessages) {

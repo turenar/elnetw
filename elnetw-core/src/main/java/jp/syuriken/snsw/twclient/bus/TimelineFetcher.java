@@ -18,7 +18,7 @@ import twitter4j.TwitterFactory;
 /**
  * home_timelineを取得するDataFetcher
  *
- * @Author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TimelineFetcher extends TwitterRunnable implements MessageChannel {
 	private final ClientConfiguration configuration;
@@ -48,7 +48,7 @@ public class TimelineFetcher extends TwitterRunnable implements MessageChannel {
 	}
 
 	@Override
-	protected synchronized void access() throws TwitterException {
+	protected void access() throws TwitterException {
 		ResponseList<Status> timeline = twitter.getHomeTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_TIMELINE)));
 		for (Status status : timeline) {

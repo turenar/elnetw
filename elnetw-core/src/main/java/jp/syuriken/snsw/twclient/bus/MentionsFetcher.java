@@ -51,7 +51,7 @@ public class MentionsFetcher extends TwitterRunnable implements MessageChannel {
 	}
 
 	@Override
-	protected synchronized void access() throws TwitterException {
+	protected void access() throws TwitterException {
 		ResponseList<Status> mentions = twitter.getMentionsTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_MENTIONS)));
 		for (Status status : mentions) {
