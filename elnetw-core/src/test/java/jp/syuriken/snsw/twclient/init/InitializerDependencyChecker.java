@@ -45,7 +45,8 @@ public class InitializerDependencyChecker extends DynamicInitializeService {
 				.registerPhase("init")
 				.registerPhase("postinit")
 				.registerPhase("prestart")
-				.registerPhase("start");
+				.registerPhase("start")
+				.registerPhase("poststart");
 		for (String arg : args) {
 			initializer.register(Class.forName(arg));
 		}
@@ -54,7 +55,8 @@ public class InitializerDependencyChecker extends DynamicInitializeService {
 				.enterPhase("init")
 				.enterPhase("postinit")
 				.enterPhase("prestart")
-				.enterPhase("start");
+				.enterPhase("start")
+				.enterPhase("poststart");
 		for (String arg : args) {
 			Class<?> clazz = Class.forName(arg);
 			Method[] methods = clazz.getMethods();
