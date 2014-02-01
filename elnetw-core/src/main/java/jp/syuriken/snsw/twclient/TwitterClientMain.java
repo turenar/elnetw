@@ -581,7 +581,7 @@ public class TwitterClientMain {
 		String cacheDir;
 		String appHomeDir;
 		// do not use Utility: it initializes logger!
-		if (System.getProperty("os.name").equals("Windows")) {
+		if (System.getProperty("os.name").contains("Windows")) {
 			appHomeDir = System.getenv("APPDATA");
 			cacheDir = System.getProperty("java.io.tmpdir") + "/elnetw/cache";
 		} else {
@@ -593,7 +593,7 @@ public class TwitterClientMain {
 				try {
 					Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
 				} catch (IOException e) {
-					logger.warn("Failed create symlink for cache dir", e);
+					System.err.println("[core] failed symbolic link from '"+appHomeDir+"'/cache to '"+cacheDir+"'");
 				}
 			}
 		}
