@@ -10,7 +10,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.Serializable;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 
 import javax.swing.Box;
@@ -30,7 +33,13 @@ import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import twitter4j.EntitySupport;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
+import twitter4j.TweetEntity;
+import twitter4j.URLEntity;
+import twitter4j.UserMentionEntity;
 
 /**
  * Template for Simple Renderer
@@ -39,6 +48,16 @@ import twitter4j.Status;
  */
 public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		FocusListener, MouseListener, ClientEventConstants {
+	/** Entityの開始位置を比較する */
+	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
+		private static final long serialVersionUID = -3995117038146393663L;
+
+		@Override
+		public int compare(TweetEntity o1, TweetEntity o2) {
+			return o1.getStart() - o2.getStart();
+		}
+	}
+
 	/** ポストリストの間のパディング */
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
 	/** クリップボード */
@@ -54,6 +73,40 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	 */
 	protected static StringBuilder escapeHTML(CharSequence text) {
 		return escapeHTML(text, new StringBuilder(text.length() * 2));
+	}
+
+	static TweetEntity[] sortEntities(EntitySupport status) {
+		int entitiesLen;
+		HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+		entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
+		URLEntity[] urlEntities = status.getURLEntities();
+		entitiesLen += urlEntities == null ? 0 : urlEntities.length;
+		MediaEntity[] mediaEntities = status.getMediaEntities();
+		entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
+		UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+		entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
+		TweetEntity[] entities = new TweetEntity[entitiesLen];
+
+		if (entitiesLen != 0) {
+			int copyOffset = 0;
+			if (hashtagEntities != null) {
+				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
+				copyOffset += hashtagEntities.length;
+			}
+			if (urlEntities != null) {
+				System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
+				copyOffset += urlEntities.length;
+			}
+			if (mediaEntities != null) {
+				System.arraycopy(mediaEntities, 0, entities, copyOffset, mediaEntities.length);
+				copyOffset += mediaEntities.length;
+			}
+			if (mentionEntities != null) {
+				System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
+			}
+		}
+		Arrays.sort(entities, new EntityComparator());
+		return entities;
 	}
 
 	public ClientConfiguration getConfiguration() {

@@ -7,10 +7,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serializable;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 
 import javax.swing.GroupLayout;
@@ -48,15 +45,6 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StatusRenderObject extends AbstractRenderObject {
-	/** Entityの開始位置を比較する */
-	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
-		private static final long serialVersionUID = -3995117038146393663L;
-
-		@Override
-		public int compare(TweetEntity o1, TweetEntity o2) {
-			return o1.getStart() - o2.getStart();
-		}
-	}
 
 	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
@@ -489,39 +477,5 @@ public class StatusRenderObject extends AbstractRenderObject {
 				}
 				break;
 		}
-	}
-
-	private TweetEntity[] sortEntities(Status status) {
-		int entitiesLen;
-		HashtagEntity[] hashtagEntities = status.getHashtagEntities();
-		entitiesLen = hashtagEntities == null ? 0 : hashtagEntities.length;
-		URLEntity[] urlEntities = status.getURLEntities();
-		entitiesLen += urlEntities == null ? 0 : urlEntities.length;
-		MediaEntity[] mediaEntities = status.getMediaEntities();
-		entitiesLen += mediaEntities == null ? 0 : mediaEntities.length;
-		UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
-		entitiesLen += mentionEntities == null ? 0 : mentionEntities.length;
-		TweetEntity[] entities = new TweetEntity[entitiesLen];
-
-		if (entitiesLen != 0) {
-			int copyOffset = 0;
-			if (hashtagEntities != null) {
-				System.arraycopy(hashtagEntities, 0, entities, copyOffset, hashtagEntities.length);
-				copyOffset += hashtagEntities.length;
-			}
-			if (urlEntities != null) {
-				System.arraycopy(urlEntities, 0, entities, copyOffset, urlEntities.length);
-				copyOffset += urlEntities.length;
-			}
-			if (mediaEntities != null) {
-				System.arraycopy(mediaEntities, 0, entities, copyOffset, mediaEntities.length);
-				copyOffset += mediaEntities.length;
-			}
-			if (mentionEntities != null) {
-				System.arraycopy(mentionEntities, 0, entities, copyOffset, mentionEntities.length);
-			}
-		}
-		Arrays.sort(entities, new EntityComparator());
-		return entities;
 	}
 }

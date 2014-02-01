@@ -6,13 +6,22 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
 
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.gui.ImageResource;
 import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
+import twitter4j.TweetEntity;
+import twitter4j.URLEntity;
+import twitter4j.UserMentionEntity;
 
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 
 /**
  * Render object for direct messages
@@ -34,70 +43,62 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 		super.focusGained(e);
 
 		String text = directMessage.getText();
-		StringBuffer oldBuffer = new StringBuffer();
-		StringBuffer newBuffer = new StringBuffer(text.length());
+		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
 
-		{
-			Matcher urlMatcher = Regex.VALID_URL.matcher(text);
-			while (urlMatcher.find()) {
-				urlMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_URL_GROUP_BEFORE + "<a href='$"
-						+ Regex.VALID_URL_GROUP_URL + "'>$" + Regex.VALID_URL_GROUP_URL + "</a>");
-			}
-			urlMatcher.appendTail(newBuffer);
-		}
-		{
-			StringBuffer tempBuffer = oldBuffer;
-			oldBuffer = newBuffer;
-			newBuffer = tempBuffer;
-			newBuffer.setLength(0);
-			Matcher hashtagMatcher = Regex.VALID_HASHTAG.matcher(oldBuffer);
-			while (hashtagMatcher.find()) {
-				hashtagMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_HASHTAG_GROUP_BEFORE
-						+ "<a href='http://command/hashtag!name=$" + Regex.VALID_HASHTAG_GROUP_TAG + "'>$"
-						+ Regex.VALID_HASHTAG_GROUP_HASH + "$" + Regex.VALID_HASHTAG_GROUP_TAG + "</a>");
-			}
-			hashtagMatcher.appendTail(newBuffer);
-		}
-		{
-			StringBuffer tempBuffer = oldBuffer;
-			oldBuffer = newBuffer;
-			newBuffer = tempBuffer;
-			newBuffer.setLength(0);
-			Matcher userMatcher = Regex.VALID_MENTION_OR_LIST.matcher(oldBuffer);
-			while (userMatcher.find()) {
-				String list = userMatcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST);
-				if (list == null) {
-					userMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
-							+ "<a href='http://command/userinfo!screenName=$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "'>$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "</a>");
+		TweetEntity[] entities = sortEntities(directMessage);
+		int offset = 0;
+		for (Object entity : entities) {
+			int start;
+			int end;
+			String replaceText;
+			String url;
+			if (entity instanceof HashtagEntity) {
+				HashtagEntity hashtagEntity = (HashtagEntity) entity;
+				start = hashtagEntity.getStart();
+				end = hashtagEntity.getEnd();
+				replaceText = null;
+				url = "http://command/hashtag!name=" + hashtagEntity.getText();
+			} else if (entity instanceof URLEntity) {
+				URLEntity urlEntity = (URLEntity) entity;
+				if (urlEntity instanceof MediaEntity) {
+					MediaEntity mediaEntity = (MediaEntity) urlEntity;
+					url = "http://command/openimg!url=" + mediaEntity.getMediaURL();
 				} else {
-					userMatcher.appendReplacement(newBuffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
-							+ "<a href='http://command/list!user=$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME
-							+ ";listName=$" + Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "'>$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "$"
-							+ Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "</a>");
+					url = urlEntity.getURL();
 				}
+				start = urlEntity.getStart();
+				end = urlEntity.getEnd();
+				replaceText = urlEntity.getDisplayURL();
+			} else if (entity instanceof UserMentionEntity) {
+				UserMentionEntity mentionEntity = (UserMentionEntity) entity;
+				start = mentionEntity.getStart();
+				end = mentionEntity.getEnd();
+				replaceText = null;
+				url = "http://command/userinfo!screenName=" + mentionEntity.getScreenName();
+			} else {
+				throw new AssertionError();
 			}
-			userMatcher.appendTail(newBuffer);
+
+			String insertText = "<a href='" + url + "'>"
+					+ escapeHTML(replaceText == null ? text.substring(start, end) : replaceText)
+					+ "</a>";
+			stringBuilder.append(escapeHTML(text.substring(offset, start)));
+			stringBuilder.append(insertText);
+			offset = end;
 		}
-
-		nl2br(newBuffer);
-		String tweetText = newBuffer.toString();
-		String createdBy =
-				MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSender().getScreenName(),
-						directMessage.getSender().getName(), directMessage.getRecipient().getScreenName(),
-						directMessage.getRecipient().getName());
+		escapeHTML(text.substring(offset), stringBuilder);
+		String tweetText = stringBuilder.toString();
+		String createdBy;
+		createdBy = MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSender().getScreenName(),
+				directMessage.getSender().getName(), directMessage.getRecipient().getScreenName(),
+				directMessage.getRecipient().getName());
 		String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
-
+		Icon userProfileIcon = componentUserIcon.getIcon();
 		getFrameApi().clearTweetView();
-		getFrameApi().setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), createdBy, null,
-				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewOperationPanel(null);
 	}
 
 	@Override
