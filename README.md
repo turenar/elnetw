@@ -38,7 +38,6 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
     $ git clone https://github.com/turenar/elnetw.git
     $ cd elnetw
     $ mvn install
-    $ cd elnetw-launcher; mvn assembly:assembly; cd ..
 
 ### 実行
 
