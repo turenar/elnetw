@@ -127,18 +127,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/jar.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifest>
-							<mainClass>jp.syuriken.snsw.launcher.TwitterClientLauncher</mainClass>
-						</manifest>
-					</archive>
-					<finalName>elnetw-dist</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-				</configuration>
 				<executions>
 					<execution>
 						<id>create-dist</id>
@@ -153,6 +141,11 @@
 							</descriptors>
 							<finalName>elnetw-${build-version}</finalName>
 							<appendAssemblyId>true</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>jp.syuriken.snsw.launcher.TwitterClientLauncher</mainClass>
+								</manifest>
+							</archive>
 						</configuration>
 					</execution>
 				</executions>

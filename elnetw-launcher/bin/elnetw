@@ -82,9 +82,24 @@ cd "${WORKDIR}"
 # binディレクトリから直接起動させたときは上のディレクトリにする。
 if test "${BATCH_DIR}" = "${WORKDIR}"; then cd ..; fi
 
-# targetが存在するならポータブル設定
-if test -e "${BATCH_PARENT_DIR}/target/elnetw-dist.jar"; then
-  TTJAR="${BATCH_PARENT_DIR}/target/elnetw-dist.jar"
+# standalone jar が存在するならポータブル設定
+for i in "${BATCH_PARENT_DIR}"/target/elnetw-*-jar.jar; do
+  if test "$i" = "${BATCH_PARENT_DIR}/target/elnetw-*-jar.jar"; then
+    # standalone jar is not found
+    break
+  elif test -z "${_dist_jar}"; then
+    _dist_jar=$i
+  else
+    echo
+    echo "ERROR: multiple standalone jars"
+    echo "Please exec 'mvn clean install' in source directory."
+    echo
+    exit 1
+  fi
+done
+
+if test ! -z "${_dist_jar}"; then
+  TTJAR="${_dist_jar}"
   add_java_arg '-Dconfig.portable=true'
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
   TTJAR="${BATCH_PARENT_DIR}/bin/launcher.jar"
@@ -93,8 +108,8 @@ else
   echo
   echo "ERROR: Usable jar is not found."
   echo "Please re-install or,"
-  echo " if you compile from source, run 'mvn assembly:assembly'"
-  echo "  in elnetw-launcher directory."
+  echo " if you compile from source, run 'mvn install'"
+  echo "  in elnetw source directory."
   echo
   exit 1
 fi
