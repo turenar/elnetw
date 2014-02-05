@@ -67,10 +67,12 @@
 			<groupId>jp.syuriken.snsw</groupId>
 			<artifactId>elnetw-core</artifactId>
 		</dependency>
+		<!-- flag: ignore-packaging -->
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
 		</dependency>
+		<!-- flag: /ignore-packaging -->
 	</dependencies>
 
 	<organization>

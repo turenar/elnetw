@@ -98,10 +98,12 @@
 			<artifactId>twitter-text</artifactId>
 			<version>1.6.1</version>
 		</dependency>
+		<!-- flag: ignore-packaging -->
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
 		</dependency>
+		<!-- flag: /ignore-packaging -->
 		<dependency>
 			<groupId>jp.syuriken.snsw</groupId>
 			<artifactId>elnetw-filter-tokenizer</artifactId>
