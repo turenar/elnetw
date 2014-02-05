@@ -26,7 +26,7 @@ function do_package() {
 	test_bool $_opt_sandbox && enter_sandbox
 
 	_debug "> removing findbugs-annotations dependency..."
-	find -maxdepth 2 -name pom.xml | xargs sed -i -e 's@flag: ignore-packaging.\*@@' -e 's@.\*flag: /ignore-packaging@@'
+	find -maxdepth 2 -name pom.xml | xargs sed -i -e 's@flag: ignore-packaging.*@@' -e 's@.*flag: /ignore-packaging@@'
 
 	_debug "> removing findbugs annotations..."
 	find */src/*/java -type f | xargs sed -i -e '/@edu.umd.cs.findbugs.annotations/ d'
