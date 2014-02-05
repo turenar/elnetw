@@ -29,7 +29,7 @@ function do_package() {
 	find -maxdepth 2 -name pom.xml | xargs sed -i -e 's@flag: ignore-packaging.*@@' -e 's@.*flag: /ignore-packaging@@'
 
 	_debug "> removing findbugs annotations..."
-	find */src/*/java -type f | xargs sed -i -e '/@edu.umd.cs.findbugs.annotations/ d'
+	find */src/*/java -type f | xargs sed -i -e '/@edu.umd.cs.findbugs.annotations\|javax.annotation/ d' -e 's/@Nonnull\|@Nullable//g'
 
 	_mvn clean
 	_mvn package $(if_bool $_mode_sign -Psign)
@@ -85,7 +85,7 @@ function check_dirty_state() {
 	__uncommitted_files_count=$(git status --porcelain 2>/dev/null | egrep "^(M| M)" | wc -l)
 	if [ ${__uncommitted_files_count} -ne 0 ]; then
 		echo "project is dirty!" >&2
-		die "remains ${__uncommitted_files_count} uncommitted file(s)"
+		test_bool $_opt_force || die "remains ${__uncommitted_files_count} uncommitted file(s)"
 	fi
 }
 
@@ -161,6 +161,8 @@ function parse_args() {
 				_tag_key=$1;;
 			--verbose)
 				_opt_verbose=true;;
+			--force)
+				_opt_force=true;;
 			-*)
 				die "Unknown option: $1";;
 			*)
