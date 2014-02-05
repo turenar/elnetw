@@ -9,8 +9,8 @@ function main() {
 
 	check_dirty_state
 	test_bool $_mode_release && prepare_release
-	test_bool $_mode_package && do_package
 	test_bool $_mode_release && do_release
+	test_bool $_mode_package && do_package
 	test_bool $_mode_release && post_release
 }
 
