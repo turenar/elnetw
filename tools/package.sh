@@ -138,30 +138,30 @@ function parse_args() {
 	__default_args
 	while test -n "$1"; do
 		case "$1" in
-			--package)
+			-p|--package)
 				__mode_selected=true
 				_mode_package=true;;
-			--release)
+			-r|--release)
 				__mode_selected=true
 				_mode_release=true;;
-			--release-version)
+			-t|--release-version)
 				shift
 				_release_ver=$1;;
-			--new-version)
+			-N|--new-version)
 				shift
 				_release_newver=$1;;
-			--no-sandbox)
+			-S|--no-sandbox)
 				_opt_sandbox=false;;
 			--sandbox)
 				_opt_sandbox=true;;
-			--signature)
+			-s|--sign|--signature)
 				_mode_sign=true;;
-			--tag-key)
+			-k|--tag-key)
 				shift
 				_tag_key=$1;;
-			--verbose)
+			-v|--verbose)
 				_opt_verbose=true;;
-			--force)
+			-f|--force)
 				_opt_force=true;;
 			-*)
 				die "Unknown option: $1";;
