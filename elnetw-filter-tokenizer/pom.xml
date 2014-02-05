@@ -31,7 +31,6 @@
 		<url>https://github.com/turenar/elnetw</url>
 	</scm>
 
-	<!-- 開発者のリストを記述(省略可能) -->
 	<developers>
 		<developer>
 			<name>Turenai Project</name>
@@ -40,12 +39,6 @@
 	</developers>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-			<version>4.10</version>
-		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
