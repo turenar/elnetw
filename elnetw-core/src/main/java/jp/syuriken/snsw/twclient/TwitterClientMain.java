@@ -34,12 +34,19 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -220,6 +227,44 @@ public class TwitterClientMain {
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
 				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
+	}
+
+	@Initializer(name = "clean/log", phase = "poststart")
+	public void cleanLogFile() {
+		String appHome = System.getProperty("elnetw.home");
+		String logDir = appHome + "/log";
+		final TreeSet<Path> logFileSet = new TreeSet<>();
+		try {
+			Files.walkFileTree(new File(logDir).toPath(), new SimpleFileVisitor<Path>() {
+				private PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:elnetw-*.log");
+
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					if (matcher.matches(file.getFileName())) {
+						logFileSet.add(file);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			logger.warn("fail traversing dir", e);
+		}
+		Iterator<Path> pathIterator = logFileSet.descendingIterator();
+		for (int i = 0; i < 5; i++) {
+			if (pathIterator.hasNext()) {
+				pathIterator.next();
+			} else {
+				return;
+			}
+		}
+		for (; pathIterator.hasNext(); ) {
+			Path next = pathIterator.next();
+			try {
+				Files.delete(next);
+			} catch (IOException e) {
+				logger.warn("fail deleting file", e);
+			}
+		}
 	}
 
 	@Initializer(name = "actionHandler", phase = "init")
@@ -476,22 +521,24 @@ public class TwitterClientMain {
 
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
 		initializeService
-				.registerPhase("earlyinit") //
-				.registerPhase("preinit") //
-				.registerPhase("init") //
-				.registerPhase("postinit") //
-				.registerPhase("prestart") //
-				.registerPhase("start") //
+				.registerPhase("earlyinit")
+				.registerPhase("preinit")
+				.registerPhase("init")
+				.registerPhase("postinit")
+				.registerPhase("prestart")
+				.registerPhase("start")
+				.registerPhase("poststart")
 				.register(TwitterClientMain.class);
 
 		try {
 			initializeService
-					.enterPhase("earlyinit") //
-					.enterPhase("preinit") //
-					.enterPhase("init") //
-					.enterPhase("postinit") //
-					.enterPhase("prestart") //
-					.enterPhase("start");
+					.enterPhase("earlyinit")
+					.enterPhase("preinit")
+					.enterPhase("init")
+					.enterPhase("postinit")
+					.enterPhase("prestart")
+					.enterPhase("start")
+					.enterPhase("poststart");
 		} catch (InitializeException e) {
 			logger.error("failed initialization", e);
 			return getResultMap(e.getExitCode(), true);
