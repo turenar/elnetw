@@ -378,7 +378,7 @@ public class TwitterClientMain {
 				new RegexpMediaProvider("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
 	}
 
-	@Initializer(name = "bus/init", dependencies = "recover-clientTabs", phase = "prestart")
+	@Initializer(name = "bus/init", dependencies = "gui/tab/restore", phase = "prestart")
 	public void realConnectMessageBus() {
 		messageBus.onInitialized();
 	}
