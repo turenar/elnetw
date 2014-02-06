@@ -137,6 +137,7 @@ import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
 import jp.syuriken.snsw.twclient.notifier.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.notifier.TrayIconMessageNotifier;
+import jp.syuriken.snsw.twclient.plugins.benchmark.BenchmarkPlugin;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,6 +215,7 @@ public final class TwitterClientMain {
 	 * abi version for communicating between launcher and TwitterClient Main
 	 */
 	public static final int LAUNCHER_ABI_VERSION = 1;
+	public static final int ARG_BENCHMARK_FILE = 0xffff0000;
 	@InitializerInstance
 	private static volatile TwitterClientMain singleton;
 
@@ -273,6 +275,7 @@ public final class TwitterClientMain {
 	private DeadlockMonitor deadlockMonitor;
 	private CacheStorage cacheStorage;
 	private FileLock configFileLock;
+	private boolean benchmarkEnabled;
 
 	/**
 	 * インスタンスを生成する。
@@ -286,6 +289,7 @@ public final class TwitterClientMain {
 		parser.addLongOpt("--debug", OptionType.NO_ARGUMENT)
 				.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT)
 				.addLongOpt("--define", OptionType.REQUIRED_ARGUMENT)
+				.addLongOpt("--benchmark-file", OptionType.REQUIRED_ARGUMENT)
 				.addShortOpt("-d", "--debug")
 				.addShortOpt("-L", "--classpath")
 				.addShortOpt("-D", "--define");
@@ -707,6 +711,10 @@ public final class TwitterClientMain {
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
 		}
+		if (parsedArguments.hasOpt("--benchmark-file")) {
+			BenchmarkPlugin.setFilename(parsedArguments.getOptArg("--benchmark-file"));
+			benchmarkEnabled = true;
+		}
 
 		setHomeProperty();
 		LoggingConfigurator.configureLogger(parsedArguments);
@@ -733,6 +741,10 @@ public final class TwitterClientMain {
 				.registerPhase("start")
 				.registerPhase("poststart")
 				.register(TwitterClientMain.class);
+
+		if (benchmarkEnabled) {
+			initializeService.provideInitializer("virtual-benchmark-enabled");
+		}
 
 		try {
 			initializeService
@@ -771,6 +783,11 @@ public final class TwitterClientMain {
 		}
 
 		return getResultMap(0, false);
+	}
+
+	@Initializer(name = "plugin/benchmark", dependencies = "virtual-benchmark-enabled", phase = "start")
+	public void schedBenchmark() {
+		BenchmarkPlugin.start();
 	}
 
 	/**
