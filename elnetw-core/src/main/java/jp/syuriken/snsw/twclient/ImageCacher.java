@@ -91,13 +91,12 @@ public class ImageCacher {
 
 		@Override
 		public String toString() {
-			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("ImageEntry{imageKey=").append(imageKey).append(",url=").append(url.toString())
-					.append(",cacheFile=").append(cacheFile == null ? "null" : cacheFile.getPath())
-					.append(",rawimage=byte[").append(rawimage == null ? "null" : rawimage.length).append(
-					"],isWritten=")
-					.append(isWritten).append(",appearCount=").append(appearCount).append("}");
-			return stringBuilder.toString();
+			return "ImageEntry{imageKey=" + imageKey
+					+ ",url=" + url.toString()
+					+ ",cacheFile=" + (cacheFile == null ? "null" : cacheFile.getPath())
+					+ ",rawimage=byte[" + (rawimage == null ? "null" : rawimage.length)
+					+ "],isWritten=" + isWritten
+					+ ",appearCount=" + appearCount + "}";
 		}
 	}
 
@@ -220,8 +219,6 @@ public class ImageCacher {
 	}
 
 	private final ClientConfiguration configuration;
-	/** キャッシュ出力先ディレクトリ */
-	public final File cacheDir;
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File userIconCacheDir;
 	private final Logger logger = LoggerFactory.getLogger(ImageCacher.class);
@@ -242,15 +239,7 @@ public class ImageCacher {
 		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
 		flushResetInterval = configuration.getConfigProperties().getInteger("core.cache.icon.flush_reset_interval");
 
-		switch (Utility.getOstype()) {
-			case WINDOWS:
-				cacheDir = new File(System.getProperty("java.io.tmpdir") + "/elnetw/cache");
-				break;
-			default:
-				cacheDir = new File(System.getProperty("user.home") + "/.cache/elnetw");
-				break;
-		}
-		userIconCacheDir = new File(cacheDir, "user");
+		userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user");
 
 		cleanOldUserIconCache(userIconCacheDir);
 	}
@@ -482,21 +471,22 @@ public class ImageCacher {
 	 */
 	protected String getProfileImageName(User user) {
 		String url = user.getProfileImageURL();
-		String fileName = url.substring(url.lastIndexOf('/') + 1);
-		return fileName;
+		return url.substring(url.lastIndexOf('/') + 1);
 	}
 
 	protected void incrementAppearCount(ImageEntry entry) {
-		if (entry.isWritten) {
-			return;
-		}
-		if (entry.countEndTime < System.currentTimeMillis()) { // reset
-			entry.countEndTime = System.currentTimeMillis() + flushResetInterval;
-			entry.appearCount = 0;
-		}
-		int appearCount = ++entry.appearCount;
-		if (appearCount > flushThreshold) {
-			configuration.addJob(Priority.LOW, new ImageFlusher(entry));
+		synchronized (entry) {
+			if (entry.isWritten) {
+				return;
+			}
+			if (entry.countEndTime < System.currentTimeMillis()) { // reset
+				entry.countEndTime = System.currentTimeMillis() + flushResetInterval;
+				entry.appearCount = 0;
+			}
+			int appearCount = ++entry.appearCount;
+			if (appearCount > flushThreshold) {
+				configuration.addJob(Priority.LOW, new ImageFlusher(entry));
+			}
 		}
 	}
 

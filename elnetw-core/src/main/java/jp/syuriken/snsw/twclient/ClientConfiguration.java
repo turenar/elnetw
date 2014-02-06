@@ -74,7 +74,6 @@ public class ClientConfiguration {
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
-	private static final String HOME_BASE_DIR = System.getProperty("user.home") + "/.elnetw";
 	private static ClientConfiguration INSTANCE;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
@@ -313,8 +312,7 @@ public class ClientConfiguration {
 	 * @return アクションハンドラ
 	 */
 	public ActionHandler getActionHandler(IntentArguments intent) {
-		ActionHandler actionHandler = actionHandlerTable.get(intent.getIntentName());
-		return actionHandler;
+		return actionHandlerTable.get(intent.getIntentName());
 	}
 
 	/**
@@ -359,7 +357,7 @@ public class ClientConfiguration {
 	 * @return 設定を格納するディレクトリ
 	 */
 	public String getConfigRootDir() {
-		return portabledConfiguration ? "." : HOME_BASE_DIR;
+		return portabledConfiguration ? "." : System.getProperty("elnetw.home");
 	}
 
 	private String[] getConsumerPair() {
@@ -405,7 +403,7 @@ public class ClientConfiguration {
 	}
 
 	public MessageFilter[] getFilters() {
-		return messageFilters.toArray(new MessageFilter[0]);
+		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
 
 	/**
@@ -702,12 +700,16 @@ public class ClientConfiguration {
 	 */
 	public boolean isMentioned(String accountId, UserMentionEntity[] userMentionEntities) {
 		String userId;
-		if (accountId.equals(MessageBus.READER_ACCOUNT_ID)) {
-			userId = getAccountIdForRead();
-		} else if (accountId.equals(MessageBus.WRITER_ACCOUNT_ID)) {
-			userId = getAccountIdForWrite();
-		} else {
-			userId = accountId;
+		switch (accountId) {
+			case MessageBus.READER_ACCOUNT_ID:
+				userId = getAccountIdForRead();
+				break;
+			case MessageBus.WRITER_ACCOUNT_ID:
+				userId = getAccountIdForWrite();
+				break;
+			default:
+				userId = accountId;
+				break;
 		}
 		return isMentioned(Long.parseLong(userId), userMentionEntities);
 	}
