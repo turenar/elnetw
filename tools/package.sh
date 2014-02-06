@@ -15,8 +15,24 @@ function main() {
 }
 
 function prepare_release() {
+	local __ignore __version __date
+	_debug "> checking changelog..."
+	# check changelog
+	# Version <version> (<date>)
+	IFS=' ()' read __ignore __version __ignore __date < ChangeLog.txt
+	if [ "$__version" != "$_release_ver" ]; then
+		echo "ChangeLog.txt has ${__version}. please edit!"
+		die "Error: illegal changelog version: $__version"
+	elif [ -n "$__date" ]; then
+		echo "Changelog.txt has already released date"
+		die "Error: illegal changelog released date: $__date"
+	fi
+
+	_debug "> updating changelog..."
+	sed -i -e '1s/$/ ('"$(date)"')/' ChangeLog.txt
 	echo "preparing for release ${_release_ver}..."
 	rewrite_package_version ${_release_ver}
+
 	_mvn clean
 }
 
