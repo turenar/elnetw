@@ -1,13 +1,17 @@
 Version 0.1-alpha5
 
+	! sign elnetw jars
+	! log files are in ~/.elnetw/log or %appdata%/elnetw/log
 	+ Add image viewer [issue #9]
 	+ Add UserInfoTab shows user's icon
 	+ Limit gui operating time for new statuses by time or size [issue #23]
+	+ DM tab supports entity
 	* Fix showing dirty screean when new status arrived
 	* In fetching image, buffer size depends on contentLength
 	* Avoid possible data corruption in ConcurrentSoftHashMap. [issue #21]
 		It is used in memory cache algorithm.
 	* Fix bug serialized-job don't work immediately
+	* Remove findbugs-annotations in binary package with tools/package.sh
 
 Version 0.0.2-alpha4 (Sat May 25 19:15:42 2013 +0900)
 
