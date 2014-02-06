@@ -98,12 +98,12 @@ public class ClasspathEntry {
 	}
 
 	/**
-	 * Compare with another, and if another has larger version than this update version and url.
+	 * Compare with another, and if another has larger version than or equal to this update version and url.
 	 *
 	 * @param another another instance
 	 */
 	public void update(ClasspathEntry another) {
-		if (VersionComparator.compareVersion(libraryVersion, another.getLibraryVersion()) < 0) {
+		if (VersionComparator.compareVersion(libraryVersion, another.getLibraryVersion()) <= 0) {
 			libraryVersion = another.getLibraryVersion();
 			libraryUrl = another.getLibraryUrl();
 		}
