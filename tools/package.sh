@@ -12,6 +12,8 @@ function main() {
 	test_bool $_mode_release && do_release
 	test_bool $_mode_package && do_package
 	test_bool $_mode_release && post_release
+
+	echo "done."
 }
 
 function prepare_release() {
@@ -59,9 +61,10 @@ function do_package() {
 function do_release() {
 	local __git_opt
 	echo "releasing..."
+
 	_mvn test
 
-	_debug "> commit release..."
+	_debug "> committing release..."
 	git ci -a -m "[release.sh] release version ${_release_ver}" || exit 1
 
 	_debug "> tagging..."
@@ -73,6 +76,7 @@ function do_release() {
 function post_release() {
 	echo "cleaning up..."
 	rewrite_package_version ${_release_newver}
+	_debug "> committing for ${_release_newver}"
 	git ci -a -m "[release.sh] prepare for ${_release_newver}" || exit 1
 }
 
