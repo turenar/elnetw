@@ -18,6 +18,7 @@ function main() {
 
 function prepare_release() {
 	local __ignore __version __date
+	echo "preparing for release ${_release_ver}..."
 	_debug "> checking changelog..."
 	# check changelog
 	# Version <version> (<date>)
@@ -30,9 +31,14 @@ function prepare_release() {
 		die "Error: illegal changelog released date: $__date"
 	fi
 
+	_debug "> checking existing tag..."
+	if git show-ref --tags --quiet -- "v${_release_ver}"; then
+		echo "v${_release_ver} has already released. Check tags!"
+		die "Error: illegal release version"
+	fi
+
 	_debug "> updating changelog..."
 	sed -i -e '1s/$/ ('"$(date)"')/' ChangeLog.txt
-	echo "preparing for release ${_release_ver}..."
 	rewrite_package_version ${_release_ver}
 
 	_mvn clean
