@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.slf4j.Logger;
@@ -61,6 +62,8 @@ public class BenchmarkPlugin implements Runnable {
 	}
 
 	private class RestPublishingJob implements Runnable {
+		ClientMessageListener listerner = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
+						"statuses/timeline");
 		@Override
 		public void run() {
 			ArrayList<Status> list = new ArrayList<>();
@@ -84,8 +87,7 @@ public class BenchmarkPlugin implements Runnable {
 				}
 			}
 			for (Status status : list) {
-				configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
-						"statuses/timeline").onStatus(status);
+				listerner.onStatus(status);
 			}
 			configuration.addJob(JobQueue.PRIORITY_LOW, this);
 		}
@@ -96,16 +98,15 @@ public class BenchmarkPlugin implements Runnable {
 			super("benchmark-stream");
 			setDaemon(true);
 		}
-
+		ClientMessageListener listerner = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
+					"statuses/timeline");
 		@Override
 		public void run() {
 			Status status = getStatus();
 			if (status == null && finished.get()) {
 				return;
 			}
-			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
-					"statuses/timeline").onStatus(
-					status);
+			listerner.onStatus(status);
 		}
 	}
 
