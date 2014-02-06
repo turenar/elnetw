@@ -446,20 +446,20 @@ public class StatusRenderObject extends AbstractRenderObject {
 				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
 				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/" +
 						status.getId();
-				ClientConfiguration.getInstance().getUtility().openBrowser(url);
+				openBrowser(url);
 			}
 			break;
 			case REQUEST_BROWSER_IN_REPLY_TO:
 				if (status.getInReplyToStatusId() != -1) {
 					String url = "http://twitter.com/" + status.getInReplyToScreenName() + "/status/"
 							+ status.getInReplyToStatusId();
-					ClientConfiguration.getInstance().getUtility().openBrowser(url);
+					openBrowser(url);
 				}
 				break;
 			case REQUEST_BROWSER_OPENURLS: {
 				URLEntity[] urlEntities = status.getURLEntities();
 				for (URLEntity urlEntity : urlEntities) {
-					ClientConfiguration.getInstance().getUtility().openBrowser(urlEntity.getURL());
+					openBrowser(urlEntity.getURL());
 				}
 			}
 			break;
@@ -477,5 +477,9 @@ public class StatusRenderObject extends AbstractRenderObject {
 				}
 				break;
 		}
+	}
+
+	private boolean openBrowser(String url) {
+		return ClientConfiguration.getInstance().getUtility().openBrowser(url) == null;
 	}
 }

@@ -71,6 +71,17 @@ public class Utility {
 	public static final long DAY2MS = HOUR2MS * 24;
 	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<>();
+	public static final String[] BROWSER_CANDIDATES = new String[]{
+			"xdg-open",
+			"firefox",
+			"iron",
+			"chromium",
+			"chrome",
+			"opera",
+			"konqueror",
+			"epiphany",
+			"mozilla"
+	};
 	private static volatile OSType ostype;
 	private static KVEntry[] privacyEntries;
 	/** DateFormatを管理する */
@@ -300,6 +311,7 @@ public class Utility {
 
 	static {
 		privacyEntries = new KVEntry[]{
+				new KVEntry(System.getProperty("elnetw.home"), "{DATA}/"),
 				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
 				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
@@ -411,30 +423,22 @@ public class Utility {
 		if (detectedBrowser != null) {
 			return detectedBrowser;
 		}
-		String[] browsers = {
-				"xdg-open",
-				"firefox",
-				"chrome",
-				"opera",
-				"konqueror",
-				"epiphany",
-				"mozilla",
-		};
-		String detectedBrowser = null;
 
-		for (String browser : browsers) {
-			try {
-				if (Runtime.getRuntime().exec(new String[]{
-						"which",
-						browser
-				}).waitFor() == 0) {
-					detectedBrowser = browser;
-					break;
+		String detectedBrowser = configuration.getConfigProperties().getProperty("gui.browser.cmd");
+
+		if (detectedBrowser == null) {
+			for (String browser : BROWSER_CANDIDATES) {
+				try {
+					if (Runtime.getRuntime().exec(new String[]{
+							"which",
+							browser
+					}).waitFor() == 0) {
+						detectedBrowser = browser;
+						break;
+					}
+				} catch (InterruptedException | IOException e2) {
+					// do nothing
 				}
-			} catch (InterruptedException e2) {
-				// do nothing
-			} catch (IOException e) {
-				// do nothing
 			}
 		}
 
@@ -443,6 +447,7 @@ public class Utility {
 					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "elnetw",
 							JOptionPane.INFORMATION_MESSAGE);
 		}
+		this.detectedBrowser = detectedBrowser;
 		return detectedBrowser;
 	}
 
@@ -489,7 +494,7 @@ public class Utility {
 	 * <dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
 	 * </dl>
 	 */
-	public Throwable openBrowser(String url) {
+	public Exception openBrowser(String url) {
 		detectOS();
 		try {
 			switch (ostype) {
@@ -513,7 +518,7 @@ public class Utility {
 					break;
 			}
 			return null;
-		} catch (Throwable ex) {
+		} catch (Exception ex) {
 			logger.warn("Failed opening browser", ex);
 			return ex;
 		}
