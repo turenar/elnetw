@@ -58,8 +58,8 @@ function do_package() {
 	_mvn clean
 	_mvn package $(if_bool $_mode_sign -Psign)
 	
-	_debug "> save binary package"
-	test_bool $_sandbox_in && mv elnetw-launcher/target/elnetw-*-bin.tar.gz ${PROJECT_DIR}
+	_debug "> saving binary package..."
+	mv elnetw-launcher/target/elnetw-*-bin.tar.gz ${PROJECT_DIR}/elnetw-bin-$(git describe).tar.gz
 	
 	test_bool $_opt_sandbox && leave_sandbox
 }
