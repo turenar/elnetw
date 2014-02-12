@@ -18,11 +18,13 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 
 	private final Date date;
 	private final Exception ex;
+	private final String uniqId;
 
 	public ExceptionRenderObject(SimpleRenderer simpleRenderer, Exception ex) {
 		super(simpleRenderer);
 		this.ex = ex;
 		date = new Date();
+		uniqId = "!exception/" + ex.getClass().getName() + "/" + date;
 	}
 
 	@Override
@@ -42,7 +44,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 
 	@Override
 	public String getUniqId() {
-		return "!exception/" + ex.getClass().getName() + "/" + date;
+		return uniqId;
 	}
 
 	@Override

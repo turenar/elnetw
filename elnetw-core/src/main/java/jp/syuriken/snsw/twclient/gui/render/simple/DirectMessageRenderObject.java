@@ -30,12 +30,14 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public class DirectMessageRenderObject extends AbstractRenderObject {
 	private final DirectMessage directMessage;
+	private String uniqId;
 
 	public DirectMessageRenderObject(SimpleRenderer simpleRenderer, DirectMessage directMessage) {
 		super(simpleRenderer);
 		this.directMessage = directMessage;
 		foregroundColor = Color.CYAN;
 		backgroundColor = Color.LIGHT_GRAY;
+		uniqId = "dm/" + directMessage.getId();
 	}
 
 	@Override
@@ -118,7 +120,7 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 
 	@Override
 	public String getUniqId() {
-		return "dm/" + directMessage.getId();
+		return uniqId;
 	}
 
 	@Override
