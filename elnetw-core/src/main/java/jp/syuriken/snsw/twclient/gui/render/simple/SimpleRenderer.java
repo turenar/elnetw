@@ -37,9 +37,7 @@ import twitter4j.UserList;
 import static jp.syuriken.snsw.twclient.ClientConfiguration.APPLICATION_NAME;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/08/31
- * Time: 18:48
+ * default renderer. no skin, no decoration...
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

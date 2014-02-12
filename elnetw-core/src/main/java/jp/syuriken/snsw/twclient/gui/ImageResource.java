@@ -6,9 +6,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/09/07
- * Time: 18:09
+ * Public Image Resources Holder
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

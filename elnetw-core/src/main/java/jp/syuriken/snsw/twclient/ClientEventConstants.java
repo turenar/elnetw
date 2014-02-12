@@ -1,9 +1,7 @@
 package jp.syuriken.snsw.twclient;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/09/07
- * Time: 18:43
+ * onClientEvent name constants class
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

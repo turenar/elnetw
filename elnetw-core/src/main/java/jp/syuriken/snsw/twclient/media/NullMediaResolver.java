@@ -7,7 +7,7 @@ import java.io.IOException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullMediaProvider implements MediaUrlProvider {
+public class NullMediaResolver implements MediaUrlResolver {
 	@Override
 	public void async(String url, MediaUrlDispatcher dispatcher) {
 		dispatcher.gotMediaUrl(url, url);

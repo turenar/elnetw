@@ -4,14 +4,11 @@ import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.regex.Matcher;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
-import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.Utility;
-import jp.syuriken.snsw.twclient.gui.ImageResource;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -20,8 +17,6 @@ import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
-import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
-import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 
 /**
  * Render object for direct messages

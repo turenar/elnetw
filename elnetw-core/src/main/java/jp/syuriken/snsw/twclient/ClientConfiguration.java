@@ -17,11 +17,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;

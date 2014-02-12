@@ -96,9 +96,9 @@ import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
-import jp.syuriken.snsw.twclient.media.NullMediaProvider;
-import jp.syuriken.snsw.twclient.media.RegexpMediaProvider;
-import jp.syuriken.snsw.twclient.media.UrlProvider;
+import jp.syuriken.snsw.twclient.media.NullMediaResolver;
+import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
+import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -372,10 +372,10 @@ public class TwitterClientMain {
 
 	@Initializer(name = "urlProvider", phase = "init")
 	public void initUrlProviders() {
-		UrlProvider.addMediaProvider("\\.(jpe?g|png|gif)",
-				new NullMediaProvider());
-		UrlProvider.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
-				new RegexpMediaProvider("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
+		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)",
+				new NullMediaResolver());
+		UrlResolverManager.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
+				new RegexpMediaResolver("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
 	}
 
 	@Initializer(name = "bus/init", dependencies = "gui/tab/restore", phase = "prestart")
@@ -618,7 +618,7 @@ public class TwitterClientMain {
 				try {
 					Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
 				} catch (IOException e) {
-					System.err.println("[core] failed symbolic link from '"+appHomeDir+"'/cache to '"+cacheDir+"'");
+					System.err.println("[core] failed symbolic link from '" + appHomeDir + "'/cache to '" + cacheDir + "'");
 				}
 			}
 		}

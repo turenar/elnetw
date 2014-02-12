@@ -5,17 +5,15 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import static jp.syuriken.snsw.twclient.JobQueue.Priority;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 13/08/18
- * Time: 18:45
+ * template for UrlResolverManager
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public abstract class AbstractMediaUrlProviderImpl implements MediaUrlProvider {
+public abstract class AbstractMediaUrlResolver implements MediaUrlResolver {
 
 	protected final ClientConfiguration configuration;
 
-	protected AbstractMediaUrlProviderImpl() {
+	protected AbstractMediaUrlResolver() {
 		configuration = ClientConfiguration.getInstance();
 	}
 

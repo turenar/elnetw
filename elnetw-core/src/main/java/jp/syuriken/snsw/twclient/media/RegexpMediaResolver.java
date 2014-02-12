@@ -13,12 +13,12 @@ import java.util.regex.Pattern;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RegexpMediaProvider extends AbstractMediaUrlProviderImpl {
+public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 
 	private static final int BUFSIZE = 65536;
 	private final Pattern regexp;
 
-	public RegexpMediaProvider(String regexp) {
+	public RegexpMediaResolver(String regexp) {
 		this.regexp = Pattern.compile("<img[^>]+src=[\"']?(" + regexp + ")[\"']?");
 	}
 

@@ -7,7 +7,7 @@ import java.io.IOException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface MediaUrlProvider {
+public interface MediaUrlResolver {
 	void async(String url, MediaUrlDispatcher dispatcher);
 
 	void async(String url, MediaUrlDispatcher dispatcher, byte priority);
