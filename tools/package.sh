@@ -56,10 +56,22 @@ function do_package() {
 	find */src/*/java -type f | xargs sed -i -e '/@edu.umd.cs.findbugs.annotations\|javax.annotation/ d' -e 's/@Nonnull\|@Nullable//g'
 
 	_mvn clean
-	_mvn package $(if_bool $_mode_sign -Psign)
 	
+	_debug "> getting most closed tag name..."
+	local __tag_name __described
+	__tag_name="$(git describe --abbrev=0)"
+	if [ "${__tag_name}" == "$(git describe)" ]; then
+		__described="${__tag_name#v}"
+	else
+		local __commit_count __rev
+		__commit_count="$(git log --oneline ${__tag_name}..HEAD | wc -l)"
+		__rev="$(git rev-parse --short HEAD)"
+		__described="${__tag_name#v}+dev-${__commit_count}-g${__rev}"
+	fi
+
+	_mvn package $(if_bool $_mode_sign -Psign) -DdescribedVersion=${__described}
 	_debug "> saving binary package..."
-	mv elnetw-launcher/target/elnetw-*-bin.tar.gz ${PROJECT_DIR}/elnetw-bin-$(git describe).tar.gz
+	mv elnetw-launcher/target/elnetw-*-bin.tar.gz ${PROJECT_DIR}/elnetw-bin-${__described}.tar.gz
 	
 	test_bool $_opt_sandbox && leave_sandbox
 }

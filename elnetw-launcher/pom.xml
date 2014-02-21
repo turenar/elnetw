@@ -220,7 +220,7 @@
 										<descriptor>src/main/assembly/bin.xml</descriptor>
 										<descriptor>src/main/assembly/jar.xml</descriptor>
 									</descriptors>
-									<finalName>elnetw-${build-version}</finalName>
+									<finalName>elnetw-${describedVersion}</finalName>
 									<appendAssemblyId>true</appendAssemblyId>
 								</configuration>
 							</execution>
@@ -251,7 +251,7 @@
 										<descriptor>src/main/assembly/bin.xml</descriptor>
 										<descriptor>src/main/assembly/jar.xml</descriptor>
 									</descriptors>
-									<finalName>elnetw-${build-version}</finalName>
+									<finalName>elnetw-${describedVersion}</finalName>
 									<appendAssemblyId>true</appendAssemblyId>
 								</configuration>
 							</execution>
