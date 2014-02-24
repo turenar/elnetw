@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * TwitterClient のためのランチャ
  *
@@ -99,7 +101,7 @@ public class TwitterClientLauncher {
 	private final String[] args;
 	private ArrayList<String> classpath = new ArrayList<>();
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP2")
+	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	private TwitterClientLauncher(String[] args) {
 		for (String arg : args) {
 			if (arg.startsWith("-D")) {

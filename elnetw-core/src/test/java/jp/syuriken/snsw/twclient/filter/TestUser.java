@@ -23,12 +23,13 @@ package jp.syuriken.snsw.twclient.filter;
 import java.net.URL;
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings
+@SuppressFBWarnings
 @SuppressWarnings("serial")
 class TestUser implements User {
 

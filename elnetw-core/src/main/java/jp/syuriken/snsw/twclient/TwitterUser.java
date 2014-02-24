@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.RateLimitStatus;
@@ -304,13 +305,13 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBackgroundColor;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
+	@SuppressFBWarnings("NM_CONFUSING")
 	@Override
 	public String getProfileBackgroundImageURL() {
 		return profileBackgroundImageUrl;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("NM_CONFUSING")
+	@SuppressFBWarnings("NM_CONFUSING")
 	@SuppressWarnings("deprecation")
 	@Deprecated
 	@Override

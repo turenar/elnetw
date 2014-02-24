@@ -20,9 +20,10 @@
 
 package jp.syuriken.snsw.twclient.filter;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import twitter4j.StatusDeletionNotice;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("SE_NO_SERIALVERSIONID")
+@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 @SuppressWarnings("serial")
 class TestNotice implements StatusDeletionNotice {
 

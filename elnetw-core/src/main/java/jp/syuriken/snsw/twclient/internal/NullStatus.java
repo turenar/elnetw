@@ -22,6 +22,7 @@ package jp.syuriken.snsw.twclient.internal;
 
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -38,7 +39,7 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+@SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
 public class NullStatus implements Status {
 
 	private static final long serialVersionUID = -5283262110868599454L;

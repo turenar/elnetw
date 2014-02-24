@@ -53,7 +53,7 @@ function do_package() {
 	find -maxdepth 2 -name pom.xml | xargs sed -i -e 's@flag: ignore-packaging.*@@' -e 's@.*flag: /ignore-packaging@@'
 
 	_debug "> removing findbugs annotations..."
-	find */src/*/java -type f | xargs sed -i -e '/@edu.umd.cs.findbugs.annotations\|javax.annotation/ d' -e 's/@Nonnull\|@Nullable//g'
+	find */src/*/java -type f | xargs sed -i -e '/edu.umd.cs.findbugs.annotations\|javax.annotation/ d' -e 's/@Nonnull\|@Nullable\|@SuppressFBWarnings\((.*)\)\?//g'
 
 	_mvn clean
 	

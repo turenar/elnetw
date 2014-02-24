@@ -22,6 +22,7 @@ package jp.syuriken.snsw.twclient.filter;
 
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -33,7 +34,7 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings
+@SuppressFBWarnings
 @SuppressWarnings("serial")
 /*package*/class TestStatus implements Status {
 
