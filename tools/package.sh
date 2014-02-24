@@ -99,8 +99,8 @@ function post_release() {
 }
 
 function _mvn() {
-	_debug "> exec mvn $@"
-	mvn $@ >${PROJECT_DIR}/tmp.maven.log 2>&1
+	_debug "> exec mvn $@ ${_mvn_opts}"
+	mvn $@ ${_mvn_opts} >${PROJECT_DIR}/tmp.maven.log 2>&1
 	if [ $? -ne 0 ]; then
 		cat ${PROJECT_DIR}/tmp.maven.log
 		exit 1
@@ -201,6 +201,9 @@ function parse_args() {
 				_opt_verbose=true;;
 			-f|--force)
 				_opt_force=true;;
+			-M|--mvn-opts)
+				shift
+				_mvn_opts="${_mvn_opts} $1";;
 			-*)
 				die "Unknown option: $1";;
 			*)
