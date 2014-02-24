@@ -171,11 +171,40 @@ function __default_args() {
 	_opt_sandbox=true
 }
 
+function ensure_arg() {
+	test -n "$2" || die "argument required for '$1'"
+}
+
 function parse_args() {
-	local __mode_selected
+	local __mode_selected __opt __arg __saved_arg __arg_consumed __should_shift_arg
 	__default_args
-	while test -n "$1"; do
-		case "$1" in
+
+	while [ -n "$1" ]; do
+		__arg_consumed=''
+		__should_shift_arg='' # if true and __arg_consumed==true, shift argument
+		if [ -n "${__saved_arg}" ]; then # -abcdef...
+			__opt="-${__saved_arg:0:1}"
+			__arg="${__saved_arg:1}"
+			__saved_arg="$__arg"
+		elif [[ "$1" == --*=* ]]; then # --hoge=fuga
+			__opt=${1%%=*}
+			__arg="${1#*=}"
+		elif [[ "$1" == --* ]]; then # --hoge [fuga]
+			__opt="$1"
+			__arg="$2"
+			__should_shift_arg=true
+		elif [[ "$1" == -??* ]]; then # -abcdef...: first pass
+			__saved_arg="${1:1}"
+			continue
+		elif [[ "$1" == -? ]]; then # -a
+			__opt="$1"
+			__arg="$2"
+			__should_shift_arg=true
+		else
+			die "Unknown argument: $1"
+		fi
+		# echo -- ${__opt} ${__arg} >&2
+		case "${__opt}" in
 			-p|--package)
 				__mode_selected=true
 				_mode_package=true;;
@@ -183,11 +212,13 @@ function parse_args() {
 				__mode_selected=true
 				_mode_release=true;;
 			-t|--release-version)
-				shift
-				_release_ver=$1;;
+				ensure_arg ${__opt} ${__arg}
+				__arg_consumed=true
+				_release_ver=${__arg};;
 			-N|--new-version)
-				shift
-				_release_newver=$1;;
+				ensure_arg ${__opt} ${__arg}
+				__arg_consumed=true
+				_release_newver=${__arg};;
 			-S|--no-sandbox)
 				_opt_sandbox=false;;
 			--sandbox)
@@ -195,22 +226,34 @@ function parse_args() {
 			-s|--sign|--signature)
 				_mode_sign=true;;
 			-k|--tag-key)
-				shift
-				_tag_key=$1;;
+				ensure_arg ${__opt} ${__arg}
+				__arg_consumed=true
+				_tag_key=${__arg};;
 			-v|--verbose)
 				_opt_verbose=true;;
 			-f|--force)
 				_opt_force=true;;
 			-M|--mvn-opts)
-				shift
-				_mvn_opts="${_mvn_opts} $1";;
+				ensure_arg ${__opt} ${__arg}
+				__arg_consumed=true
+				_mvn_opts="${_mvn_opts} ${__arg}";;
 			-*)
-				die "Unknown option: $1";;
+				die "Unknown option: ${__opt}";;
 			*)
-				die "Unknown argument: $1";;
+				die # dead code
 		esac
 
-		shift
+		if [ -n "${__arg_consumed}" ]; then
+			# if arg is consumed and saved_arg is not null, saved_arg is arg
+			__saved_arg=''
+			if [ -n "$__should_shift_arg" ]; then
+				shift
+			fi
+		fi
+
+		if [ -z "$__saved_arg" ]; then
+			shift
+		fi
 	done
 
 	test_bool $__mode_selected || die "--package or --release is required"
@@ -222,4 +265,4 @@ function parse_args() {
 }
 
 
-main $@
+main "$@"
