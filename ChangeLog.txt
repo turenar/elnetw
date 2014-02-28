@@ -1,4 +1,4 @@
-Version 0.1-alpha5
+Version 0.1-alpha5 (Fri Feb 28 18:11:45 JST 2014)
 
 	! sign elnetw jars
 	! log files are in ~/.elnetw/log or %appdata%/elnetw/log
