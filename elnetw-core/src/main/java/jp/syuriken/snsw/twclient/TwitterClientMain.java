@@ -34,12 +34,20 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -134,6 +142,58 @@ import twitter4j.auth.AccessToken;
  */
 public class TwitterClientMain {
 
+	private static class LogFileVisitor extends SimpleFileVisitor<Path> {
+		private final TreeSet<Path> logFileSet;
+		private PathMatcher matcher;
+
+		public LogFileVisitor(TreeSet<Path> logFileSet) {
+			this.logFileSet = logFileSet;
+			matcher = FileSystems.getDefault().getPathMatcher("glob:elnetw-*.log");
+		}
+
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+			if (matcher.matches(file.getFileName())) {
+				logFileSet.add(file);
+			}
+			return FileVisitResult.CONTINUE;
+		}
+	}
+
+	private class CacheCleanerVisitor extends SimpleFileVisitor<Path> {
+		long cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
+
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+			long lastModified = attrs.lastModifiedTime().toMillis();
+			if (lastModified + cacheExpire < System.currentTimeMillis()) {
+				try {
+					Files.delete(file);
+					logger.debug("clean expired cache: {} (lastModified:{})",
+							Utility.protectPrivacy(file.toString()), lastModified);
+				} catch (IOException e) {
+					logger.warn("Failed cleaning cache: {}",
+							Utility.protectPrivacy(file.toString()), e);
+				}
+			}
+			return FileVisitResult.CONTINUE;
+		}
+
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+			try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
+				if (!directoryStream.iterator().hasNext()) {
+					// Directory is empty
+					Files.delete(dir);
+					logger.debug("Delete empty dir: {}", dir);
+				}
+			} catch (IOException e) {
+				logger.debug("Fail readdir: {}", dir, e);
+			}
+			return FileVisitResult.CONTINUE;
+		}
+	}
+
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
 	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
@@ -222,6 +282,48 @@ public class TwitterClientMain {
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
 				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
+	}
+
+	@Initializer(name = "clean/log", phase = "poststart")
+	public void cleanLogFile() {
+		String appHome = System.getProperty("elnetw.home");
+		String logDir = appHome + "/log";
+		final TreeSet<Path> logFileSet = new TreeSet<>();
+		try {
+			Files.walkFileTree(new File(logDir).toPath(), new LogFileVisitor(logFileSet));
+		} catch (IOException e) {
+			logger.warn("fail traversing dir", e);
+		}
+		Iterator<Path> pathIterator = logFileSet.descendingIterator();
+		for (int i = 0; i < 5; i++) {
+			if (pathIterator.hasNext()) {
+				pathIterator.next();
+			} else {
+				return;
+			}
+		}
+		for (; pathIterator.hasNext(); ) {
+			Path next = pathIterator.next();
+			try {
+				Files.delete(next);
+			} catch (IOException e) {
+				logger.warn("fail deleting file", e);
+			}
+		}
+	}
+
+
+	/**
+	 * ディスクキャッシュから期限切れのユーザーアイコンを削除する。
+	 */
+	@Initializer(name = "clean/iconcache", dependencies = {"cache/image", "config"}, phase = "poststart")
+	public void cleanOldUserIconCache() {
+		Path userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user").toPath();
+		try {
+			Files.walkFileTree(userIconCacheDir, new CacheCleanerVisitor());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Initializer(name = "actionHandler", phase = "init")
@@ -481,22 +583,24 @@ public class TwitterClientMain {
 
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
 		initializeService
-				.registerPhase("earlyinit") //
-				.registerPhase("preinit") //
-				.registerPhase("init") //
-				.registerPhase("postinit") //
-				.registerPhase("prestart") //
-				.registerPhase("start") //
+				.registerPhase("earlyinit")
+				.registerPhase("preinit")
+				.registerPhase("init")
+				.registerPhase("postinit")
+				.registerPhase("prestart")
+				.registerPhase("start")
+				.registerPhase("poststart")
 				.register(TwitterClientMain.class);
 
 		try {
 			initializeService
-					.enterPhase("earlyinit") //
-					.enterPhase("preinit") //
-					.enterPhase("init") //
-					.enterPhase("postinit") //
-					.enterPhase("prestart") //
-					.enterPhase("start");
+					.enterPhase("earlyinit")
+					.enterPhase("preinit")
+					.enterPhase("init")
+					.enterPhase("postinit")
+					.enterPhase("prestart")
+					.enterPhase("start")
+					.enterPhase("poststart");
 		} catch (InitializeException e) {
 			logger.error("failed initialization", e);
 			return getResultMap(e.getExitCode(), true);

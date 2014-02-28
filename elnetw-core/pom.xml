@@ -98,10 +98,12 @@
 			<artifactId>twitter-text</artifactId>
 			<version>1.6.1</version>
 		</dependency>
+		<!-- flag: ignore-packaging -->
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
 		</dependency>
+		<!-- flag: /ignore-packaging -->
 		<dependency>
 			<groupId>jp.syuriken.snsw</groupId>
 			<artifactId>elnetw-filter-tokenizer</artifactId>
@@ -215,6 +217,5 @@
 	</reporting>
 	<properties>
 		<twitter4j.version>3.0.5</twitter4j.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 </project>

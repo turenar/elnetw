@@ -242,8 +242,6 @@ public class ImageCacher {
 	/** ユーザーアイコンのキャッシュ出力先ディレクトリ */
 	public final File userIconCacheDir;
 	private final Logger logger = LoggerFactory.getLogger(ImageCacher.class);
-	/** キャッシュ有効時間 */
-	private final long cacheExpire;
 	private final int flushThreshold;
 	private final int flushResetInterval;
 	/*private*/ ConcurrentHashMap<String, ImageEntry> cachedImages = new ConcurrentHashMap<>();
@@ -255,41 +253,13 @@ public class ImageCacher {
 	 */
 	public ImageCacher(ClientConfiguration configuration) {
 		this.configuration = configuration;
-		cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
+
 		flushThreshold = configuration.getConfigProperties().getInteger("core.cache.icon.flush_threshold");
 		flushResetInterval = configuration.getConfigProperties().getInteger("core.cache.icon.flush_reset_interval");
 
 		userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user");
-
-		cleanOldUserIconCache(userIconCacheDir);
 	}
 
-	/**
-	 * ディスクキャッシュから期限切れのユーザーアイコンを削除する。
-	 *
-	 * @param directory 再起対象ディレクトリ
-	 */
-	private void cleanOldUserIconCache(File directory) {
-		File[] listFiles = directory.listFiles();
-		if (listFiles == null) {
-			return;
-		}
-		for (File file : listFiles) {
-			if (file.isDirectory()) {
-				cleanOldUserIconCache(file);
-			}
-
-			long lastModified = file.lastModified();
-			if (lastModified + cacheExpire < System.currentTimeMillis()) {
-				if (file.delete()) {
-					logger.debug("clean expired cache: {} (lastModified:{})", Utility.protectPrivacy(file.getPath()),
-							lastModified);
-				} else {
-					logger.warn("Failed cleaning cache: {}", Utility.protectPrivacy(file.getPath()));
-				}
-			}
-		}
-	}
 
 	private byte[] fetchContents(ImageEntry entry, URL url) throws InterruptedException {
 		return NetworkSupport.fetchContents(url, new FetchEventHandlerImpl(entry, url));

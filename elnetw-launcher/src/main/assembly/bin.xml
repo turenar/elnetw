@@ -22,7 +22,7 @@
 			<useProjectArtifact>true</useProjectArtifact>
 			<outputDirectory>lib</outputDirectory>
 			<outputFileNameMapping>
-				${artifact.artifactId}-${build-version}${dashClassifier?}.${artifact.extension}
+				${artifact.artifactId}-${describedVersion}${dashClassifier?}.${artifact.extension}
 			</outputFileNameMapping>
 			<includes>
 				<include>jp.syuriken.snsw:*</include>

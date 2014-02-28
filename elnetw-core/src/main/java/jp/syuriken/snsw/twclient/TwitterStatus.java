@@ -22,6 +22,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.GeoLocation;
@@ -208,7 +209,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return cachedUser;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public long[] getContributors() {
 		return contributors;
@@ -234,7 +235,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return geoLocation;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public HashtagEntity[] getHashtagEntities() {
 		return hashtagEntities;
@@ -272,7 +273,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return isoLanguageCode;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public MediaEntity[] getMediaEntities() {
 		return mediaEntities;
@@ -314,7 +315,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return text;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public URLEntity[] getURLEntities() {
 		return urlEntities;
@@ -325,7 +326,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return user;
 	}
 
-	@edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public UserMentionEntity[] getUserMentionEntities() {
 		return userMentionEntities;
