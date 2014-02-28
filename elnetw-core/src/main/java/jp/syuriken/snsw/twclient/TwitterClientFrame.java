@@ -152,8 +152,6 @@ import static java.lang.Math.max;
 			}
 
 			switch (actionName) {
-				case "submenu":
-					return;
 				case "version": {
 					VersionInfoFrame frame = new VersionInfoFrame();
 					frame.setVisible(true);
@@ -227,22 +225,6 @@ import static java.lang.Math.max;
 
 		@Override
 		public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-			if ("core!submenu".equals(menuItem.getActionCommand())) {
-				if (menuItem instanceof JMenu == false) {
-					logger.error("\"core!submenu\" argued menuItem not as JMenu");
-					throw new AssertionError();
-				}
-				Component[] subItems = ((JMenu) menuItem).getMenuComponents();
-				for (Component subItem : subItems) {
-					if (subItem instanceof JMenuItem) {
-						JMenuItem subMenuItem = (JMenuItem) subItem;
-						String actionCommand = subMenuItem.getActionCommand();
-						IntentArguments intentArguments = new IntentArguments(actionCommand);
-						configuration.getActionHandler(intentArguments).popupMenuWillBecomeVisible(subMenuItem,
-								intentArguments);
-					}
-				}
-			}
 		}
 	}
 

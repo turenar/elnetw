@@ -375,6 +375,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		getConfiguration().handleAction(intentArguments);
 	}
 
+	@Override
+	protected String getPopupMenuType() {
+		return "status";
+	}
+
 	protected void initComponents() {
 		Status twitterStatus = status instanceof TwitterStatus ? status
 				: new TwitterStatus(status);

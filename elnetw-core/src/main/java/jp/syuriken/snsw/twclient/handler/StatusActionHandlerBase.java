@@ -22,7 +22,7 @@ package jp.syuriken.snsw.twclient.handler;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
+import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import twitter4j.Status;
 
 public abstract class StatusActionHandlerBase implements ActionHandler {
@@ -38,14 +38,14 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 	}
 
 	protected Status getStatus(IntentArguments arguments) throws IllegalArgumentException {
-		RenderPanel renderPanel = arguments.getExtraObj(FavoriteActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA,
-				RenderPanel.class);
+		RenderObject renderObject = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA,
+				RenderObject.class);
 		Status status = null;
 
-		if (renderPanel == null) {
+		if (renderObject == null) {
 			status = arguments.getExtraObj("status", Status.class);
 		} else {
-			Object tag = renderPanel.getRenderObject().getBasedObject();
+			Object tag = renderObject.getBasedObject();
 			if (tag instanceof Status) {
 				status = (Status) tag;
 			}

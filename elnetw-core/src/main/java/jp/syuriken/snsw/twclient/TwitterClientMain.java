@@ -86,8 +86,10 @@ import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
 import jp.syuriken.snsw.twclient.gui.MentionViewTab;
 import jp.syuriken.snsw.twclient.gui.TimelineViewTab;
 import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
+import jp.syuriken.snsw.twclient.gui.render.simple.RenderObjectHandler;
 import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
+import jp.syuriken.snsw.twclient.handler.DoNothingActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
 import jp.syuriken.snsw.twclient.handler.HashtagActionHandler;
 import jp.syuriken.snsw.twclient.handler.ListActionHandler;
@@ -196,7 +198,7 @@ public class TwitterClientMain {
 		this.args = args;
 		this.classLoader = classLoader;
 		MAIN_THREAD = Thread.currentThread();
-		LongOpt[] longOpts = new LongOpt[]{
+		LongOpt[] longOpts = new LongOpt[] {
 				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
 		};
 		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
@@ -240,12 +242,14 @@ public class TwitterClientMain {
 		configuration.addActionHandler("hashtag", new HashtagActionHandler());
 		configuration.addActionHandler("search", new SearchActionHandler());
 		configuration.addActionHandler("openimg", new OpenImageActionHandler());
+		configuration.addActionHandler("blackhole", new DoNothingActionHandler());
 		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
 		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
 		configuration.addActionHandler("menu_login_read", new ReloginActionHandler(false));
 		configuration.addActionHandler("menu_login_write", new ReloginActionHandler(true));
 		configuration.addActionHandler("menu_config", new MenuConfiguratorActionHandler());
+		configuration.addActionHandler("<elnetw>.gui.render.simple.RenderObjectHandler", new RenderObjectHandler());
 	}
 
 	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
@@ -403,7 +407,8 @@ public class TwitterClientMain {
 		messageBus.onInitialized();
 	}
 
-	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"}, phase = "prestart")
+	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
+			phase = "prestart")
 	public void recoverClientTabs() {
 		String tabsList = configProperties.getProperty("gui.tabs.list");
 		if (tabsList == null) {
@@ -614,7 +619,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
 	public void setMessageChannelFactory() {
-		messageBus.addVirtualChannel("my/timeline", new String[]{"stream/user", "statuses/timeline"});
+		messageBus.addVirtualChannel("my/timeline", new String[] {"stream/user", "statuses/timeline"});
 		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
 		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
@@ -638,7 +643,8 @@ public class TwitterClientMain {
 				try {
 					Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
 				} catch (IOException e) {
-					System.err.println("[core] failed symbolic link from '" + appHomeDir + "'/cache to '" + cacheDir + "'");
+					System.err.println(
+							"[core] failed symbolic link from '" + appHomeDir + "'/cache to '" + cacheDir + "'");
 				}
 			}
 		}

@@ -21,19 +21,15 @@
 package jp.syuriken.snsw.twclient.gui.render.simple;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 
-import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
@@ -44,7 +40,6 @@ import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.gui.render.RendererFocusEvent;
-import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -61,10 +56,9 @@ import static jp.syuriken.snsw.twclient.ClientConfiguration.APPLICATION_NAME;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SimpleRenderer implements TabRenderer {
+public class SimpleRenderer implements TabRenderer, ActionListener {
 	private static final Logger logger = LoggerFactory.getLogger(SimpleRenderer.class);
 	private final RenderTarget renderTarget;
-	private final JPopupMenu popupMenu;
 	private final Font uiFont;
 	private final Font defaultFont;
 	private final FontMetrics fontMetrics;
@@ -79,13 +73,12 @@ public class SimpleRenderer implements TabRenderer {
 	private volatile long actualUserId;
 	private AbstractRenderObject focusOwner;
 
-	public SimpleRenderer(String userId, RenderTarget target, ActionListener actionListener) {
+	public SimpleRenderer(String userId, RenderTarget target) {
 		this.userId = userId;
 		configuration = ClientConfiguration.getInstance();
 		getActualUserId();
 		this.renderTarget = target;
 		configProperties = configuration.getConfigProperties();
-		this.popupMenu = generatePopupMenu(actionListener);
 		configuration.getMessageBus().establish(userId, "core", this);
 
 		cacheManager = configuration.getCacheManager();
@@ -100,40 +93,13 @@ public class SimpleRenderer implements TabRenderer {
 		iconSize = new Dimension(64, height);
 	}
 
-	public void fireFocusEvent(FocusEvent e, RenderObject renderObject) {
-		renderTarget.focusGained(new RendererFocusEvent(e, renderObject));
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String actionCommand = e.getActionCommand();
 	}
 
-	protected JPopupMenu generatePopupMenu(ActionListener actionListener) {
-		JPopupMenu popupMenu = new JPopupMenu();
-		Container nowProcessingMenu = popupMenu;
-		String[] popupMenus = configProperties.getProperty("gui.menu.popup").split(" ");
-
-		for (String actionCommand : popupMenus) {
-			if (actionCommand.trim().isEmpty()) {
-				continue;
-			} else if (actionCommand.startsWith("<") && actionCommand.endsWith(">")) {
-				JMenu jMenu = new JMenu(actionCommand.substring(1, actionCommand.length() - 1));
-				jMenu.setActionCommand("core!submenu");
-				nowProcessingMenu = jMenu;
-				popupMenu.add(nowProcessingMenu);
-				continue;
-			}
-			ActionHandler handler = configuration.getActionHandler(new IntentArguments(actionCommand));
-			if (handler == null) {
-				logger.warn("handler {} is not found.", actionCommand); //TODO
-			} else {
-				JMenuItem menuItem = handler.createJMenuItem(new IntentArguments(actionCommand));
-				menuItem.setActionCommand(actionCommand);
-				menuItem.addActionListener(actionListener);
-				if (nowProcessingMenu instanceof JPopupMenu) {
-					((JPopupMenu) nowProcessingMenu).add(menuItem);
-				} else {
-					((JMenu) nowProcessingMenu).add(menuItem);
-				}
-			}
-		}
-		return popupMenu;
+	public void fireFocusEvent(FocusEvent e, RenderObject renderObject) {
+		renderTarget.focusGained(new RendererFocusEvent(e, renderObject));
 	}
 
 	private long getActualUserId() {
@@ -177,9 +143,6 @@ public class SimpleRenderer implements TabRenderer {
 		return linePanelSizeOfSentBy;
 	}
 
-	protected JPopupMenu getPopupMenu() {
-		return popupMenu;
-	}
 
 	protected RenderTarget getTarget() {
 		return renderTarget;
@@ -285,7 +248,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"fav", source, target, favoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"fav", source, target, favoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setCreatedBy(source)
@@ -305,7 +268,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFollow(User source, User followedUser) {
 		if (followedUser.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"follow", source, followedUser})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"follow", source, followedUser})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setIcon(source)
@@ -346,7 +309,7 @@ public class SimpleRenderer implements TabRenderer {
 			logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}", source, target, unfavoritedStatus);
 		}
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"unfav", source, target, unfavoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"unfav", source, target, unfavoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.LIGHT_GRAY)
 					.setCreatedBy(source)

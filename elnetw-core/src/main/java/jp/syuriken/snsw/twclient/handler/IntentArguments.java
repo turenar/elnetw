@@ -104,6 +104,7 @@ public class IntentArguments implements Cloneable {
 	 * @return 引数として指定された値。指定されていなかった場合は defaultValue
 	 * @see #getExtraObj(String, Class)
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T getExtraObj(String name, Class<T> clazz, T defaultValue) {
 		if (extraArgs != null) {
 			Object v = extraArgs.get(name);

@@ -20,15 +20,13 @@
 
 package jp.syuriken.snsw.twclient.gui.render;
 
-import java.awt.event.ActionListener;
-
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.simple.SimpleRenderer;
 
 /** Renderer Manager */
 public class RendererManager {
-	public static TabRenderer get(String accountId, RenderTarget target, ActionListener tweetPopupMenuListener) {
-		return new SimpleRenderer(accountId, target, tweetPopupMenuListener);
+	public static TabRenderer get(String accountId, RenderTarget target) {
+		return new SimpleRenderer(accountId, target);
 	}
 
 	public static String getStatusUniqId(long status) {

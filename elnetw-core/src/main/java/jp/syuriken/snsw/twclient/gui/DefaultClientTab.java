@@ -90,7 +90,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 			if (selectingPost == null) {
 				getSortedPostListPanel().requestFocusInWindow();
 			} else {
-				TreeSet<RenderPanel> usersPanels = getPanelsFromCreatedBy(selectingPost.getRenderObject().getCreatedBy(), false);
+				TreeSet<RenderPanel> usersPanels = getPanelsFromCreatedBy(
+						selectingPost.getRenderObject().getCreatedBy(), false);
 				if (usersPanels != null) {
 					RenderPanel focusTo = prev ? usersPanels.lower(selectingPost) : usersPanels.higher(selectingPost);
 					if (focusTo != null) {
@@ -177,7 +178,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 						RenderObject renderObject = selectingPost.getRenderObject();
 						if (renderObject.getBasedObject() instanceof Status) {
 							Status tag = (Status) renderObject.getBasedObject();
-							RenderPanel renderPanel = statusMap.get(RendererManager.getStatusUniqId(tag.getInReplyToStatusId()));
+							RenderPanel renderPanel = statusMap.get(
+									RendererManager.getStatusUniqId(tag.getInReplyToStatusId()));
 							if (renderPanel != null) {
 								inReplyToStack.push(selectingPost);
 								focusAndScroll(renderPanel);
@@ -649,7 +651,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 				return sortedPostListPanel.getBoundsOf((RenderPanel) component);
 			}
 		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
-		actualRenderer = RendererManager.get(accountId, this, tweetPopupMenuListener);
+		actualRenderer = RendererManager.get(accountId, this);
 	}
 
 	/**
