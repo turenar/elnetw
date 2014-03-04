@@ -504,7 +504,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		}
 	}
 
-	private boolean openBrowser(String url) {
-		return ClientConfiguration.getInstance().getUtility().openBrowser(url) == null;
+	private void openBrowser(String url) {
+		try {
+			ClientConfiguration.getInstance().getUtility().openBrowser(url);
+		} catch (Exception e) {
+			renderer.onException(e);
+		}
 	}
 }

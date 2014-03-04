@@ -27,6 +27,7 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 
 /**
  * リストを閲覧するアクションハンドラ
@@ -69,6 +70,9 @@ public class ListActionHandler implements ActionHandler {
 					new URI("http", "twitter.com", userName + "/" + listName).toASCIIString());
 		} catch (URISyntaxException e) {
 			throw new AssertionError(e);
+		} catch (Exception e) {
+			ClientConfiguration.getInstance().getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID,
+					"error").onException(e);
 		}
 	}
 

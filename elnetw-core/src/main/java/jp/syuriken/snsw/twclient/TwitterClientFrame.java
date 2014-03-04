@@ -70,6 +70,7 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
@@ -894,7 +895,8 @@ import static java.lang.Math.max;
 							try {
 								configuration.getUtility().openBrowser(url);
 							} catch (Exception e1) {
-								e1.printStackTrace(); //TODO
+								configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID,
+										"error").onException(e1);
 							}
 						}
 					}
