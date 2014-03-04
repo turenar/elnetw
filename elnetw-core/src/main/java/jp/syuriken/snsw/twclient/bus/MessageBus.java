@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
@@ -81,7 +82,7 @@ public class MessageBus {
 	/*package*/ ClientProperties configProperties;
 	/*package*/ TwitterAPIConfiguration apiConfiguration;
 	private volatile boolean isInitialized;
-	private volatile int modifiedCount;
+	private AtomicInteger modifiedCount = new AtomicInteger();
 
 	/** インスタンスを生成する。 */
 	public MessageBus() {
@@ -169,7 +170,7 @@ public class MessageBus {
 			}
 			userListeners.add(messageChannel);
 
-			modifiedCount++;
+			modifiedCount.incrementAndGet();
 		}
 		return true;
 	}
@@ -256,7 +257,7 @@ public class MessageBus {
 	}
 
 	public int getModifiedCount() {
-		return modifiedCount;
+		return modifiedCount.get();
 	}
 
 	/**
@@ -328,7 +329,7 @@ public class MessageBus {
 	}
 
 	private synchronized void relogin(String accountId, boolean forWrite) {
-		modifiedCount++;
+		modifiedCount.incrementAndGet();
 		ArrayList<MessageChannel> clientMessageListeners = userListenerMap.get(accountId);
 		if (clientMessageListeners == null) {
 			return;

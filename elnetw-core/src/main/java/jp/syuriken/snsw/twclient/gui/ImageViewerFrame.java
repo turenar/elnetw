@@ -172,7 +172,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
 	private final URL url;
 	private int resizeScaleFactor;
-	private MouseListener zoomMouseListener = new MouseAdapter() {
+	private transient MouseListener zoomMouseListener = new MouseAdapter() {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (e.getComponent() == getComponentZoomIn()) {

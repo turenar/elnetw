@@ -21,6 +21,7 @@
 package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.Font;
+import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,11 +110,11 @@ public class VersionInfoFrame extends JFrame {
 			bufferedReader = new BufferedReader(new InputStreamReader(stream, ClientConfiguration.UTF8_CHARSET));
 			char[] buf = new char[0x10000];
 			int len;
-			StringBuffer stringBuffer = new StringBuffer();
+			StringBuilder stringBuilder = new StringBuilder();
 			while ((len = bufferedReader.read(buf)) != -1) {
-				stringBuffer.append(buf, 0, len);
+				stringBuilder.append(buf, 0, len);
 			}
-			return stringBuffer.toString();
+			return stringBuilder.toString();
 		} catch (IOException e) {
 			logger.error("Error reading resource", e);
 			return "Error reading resource";
@@ -128,7 +129,7 @@ public class VersionInfoFrame extends JFrame {
 		}
 	}
 
-	private List<LibraryInfo> libraryInfoList = new ArrayList<LibraryInfo>();
+	private List<LibraryInfo> libraryInfoList = new ArrayList<>();
 	private JSplitPane splitPane;
 	private JScrollPane libraryListScrollPane;
 	private JScrollPane infoTextScrollPane;
@@ -160,6 +161,7 @@ public class VersionInfoFrame extends JFrame {
 			infoTextPane.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
 			infoTextPane.setLineWrap(true);
 			infoTextPane.setWrapStyleWord(true);
+			infoTextPane.setText(libraryInfoList.get(0).getInfo());
 		}
 		return infoTextPane;
 	}
@@ -229,10 +231,10 @@ public class VersionInfoFrame extends JFrame {
 				.append(VersionInfo.getUniqueVersion())
 				.append("\nTwitter Client for hitobasira")
 				.append("\n\n開発元: Turenai Project (@ture7)")
-				.append("\n配布元: http://code.google.com/p/turetwcl")
+				.append("\n配布元: ").append(VersionInfo.getSupportUrl())
 				.append("\n\nThis software included library:\n - twitter4j (")
 				.append(twitter4j.Version.getVersion())
-				.append(")\n   - json\n - slf4j\n   - logback\n - twitter-text\n - java-gnome (optional");
+				.append(")\n   - json\n - logback\n   - slf4j\n - twitter-text\n - java-gnome (optional");
 
 		JavaGnome javaGnome = JavaGnome.getInstance();
 		if (javaGnome.isFound()) {
@@ -269,6 +271,8 @@ public class VersionInfoFrame extends JFrame {
 		for (LibraryInfo libraryInfo : libraryInfoList) {
 			if (libraryInfo.name.equals(selectedValue)) {
 				getInfoTextPane().setText(libraryInfo.getInfo());
+				getInfoTextScrollPane().getViewport().setViewPosition(new Point(0, 0));
+				getInfoTextScrollPane().getViewport().validate();
 				break;
 			}
 		}

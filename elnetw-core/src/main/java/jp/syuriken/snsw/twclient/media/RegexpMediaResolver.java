@@ -25,8 +25,13 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * twitpicのImage URLを取得するプロバイダー
@@ -36,6 +41,7 @@ import java.util.regex.Pattern;
 public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 
 	private static final int BUFSIZE = 65536;
+	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 	private final Pattern regexp;
 
 	public RegexpMediaResolver(String regexp) {
@@ -75,8 +81,16 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 			}
 		}
 		stream.close(); // help keep-alive
-
-		return new String(data, 0, imageLen);
+		Charset charset = Charset.forName("UTF-8");
+		try {
+			String encoding = connection.getContentEncoding();
+			if (encoding != null) {
+				charset = Charset.forName(encoding);
+			}
+		} catch (UnsupportedCharsetException e) {
+			logger.warn("Invalid Charset", e);
+		}
+		return new String(data, 0, imageLen, charset);
 	}
 
 	@Override

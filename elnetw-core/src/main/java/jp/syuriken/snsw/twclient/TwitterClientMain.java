@@ -72,6 +72,7 @@ import jp.syuriken.snsw.twclient.bus.TimelineFetcherFactory;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
@@ -164,6 +165,20 @@ public class TwitterClientMain {
 		long cacheExpire = configuration.getConfigProperties().getLong("core.cache.icon.survive_time");
 
 		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+			try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
+				if (!directoryStream.iterator().hasNext()) {
+					// Directory is empty
+					Files.delete(dir);
+					logger.debug("Delete empty dir: {}", dir);
+				}
+			} catch (IOException e) {
+				logger.debug("Fail readdir: {}", dir, e);
+			}
+			return FileVisitResult.CONTINUE;
+		}
+
+		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 			long lastModified = attrs.lastModifiedTime().toMillis();
 			if (lastModified + cacheExpire < System.currentTimeMillis()) {
@@ -175,20 +190,6 @@ public class TwitterClientMain {
 					logger.warn("Failed cleaning cache: {}",
 							Utility.protectPrivacy(file.toString()), e);
 				}
-			}
-			return FileVisitResult.CONTINUE;
-		}
-
-		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
-			try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
-				if (!directoryStream.iterator().hasNext()) {
-					// Directory is empty
-					Files.delete(dir);
-					logger.debug("Delete empty dir: {}", dir);
-				}
-			} catch (IOException e) {
-				logger.debug("Fail readdir: {}", dir, e);
 			}
 			return FileVisitResult.CONTINUE;
 		}
@@ -266,7 +267,7 @@ public class TwitterClientMain {
 		try {
 			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			logger.warn("LookAndFeelの設定に失敗", e);
+			e.printStackTrace(); // logger cannot use.
 		}
 	}
 
@@ -384,14 +385,15 @@ public class TwitterClientMain {
 		configBuilder.getGroup("UI")
 				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
 				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
-		configBuilder
-				.getGroup("core")
+		configBuilder.getGroup("core")
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
 						new IntegerConfigType(1, 60, 1000))
 				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
 						new BooleanConfigType());
-		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
-				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
+		configBuilder.getGroup("高度な設定")
+				.addConfig(null, "コンシューマーキーの設定", null, new ConsumerTokenConfigType())
+				.addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
+						new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
 	}
 
 	@Initializer(name = "filter/func", phase = "preinit")
@@ -711,36 +713,16 @@ public class TwitterClientMain {
 		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
-	@Initializer(name = "bus", dependencies = {"jobqueue", "config"}, phase = "preinit")
-	public void setMessageBus(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
-			messageBus = new MessageBus();
-			configuration.setMessageBus(messageBus);
-		} else {
-			messageBus.cleanUp();
-		}
-	}
-
-	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
-	public void setMessageChannelFactory() {
-		messageBus.addVirtualChannel("my/timeline", new String[] {"stream/user", "statuses/timeline"});
-		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
-		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
-		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
-		messageBus.addChannelFactory("direct_messages", new DirectMessageFetcherFactory());
-		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
-	}
-
 	private void setHomeProperty() {
-		String cacheDir;
-		String appHomeDir;
+		String appHomeDir = System.getProperty("elnetw.home");
+		String cacheDir = System.getProperty("elnetw.cache.dir");
 		// do not use Utility: it initializes logger!
 		if (System.getProperty("os.name").contains("Windows")) {
-			appHomeDir = System.getenv("APPDATA");
-			cacheDir = System.getProperty("java.io.tmpdir") + "/elnetw/cache";
+			appHomeDir = appHomeDir == null ? System.getenv("APPDATA") : appHomeDir;
+			cacheDir = ((cacheDir == null) ? (System.getProperty("java.io.tmpdir") + "/elnetw/cache") : cacheDir);
 		} else {
-			appHomeDir = System.getProperty("user.home") + "/.elnetw";
-			cacheDir = System.getProperty("user.home") + "/.cache/elnetw";
+			appHomeDir = ((appHomeDir == null) ? (System.getProperty("user.home") + "/.elnetw") : appHomeDir);
+			cacheDir = cacheDir == null ? System.getProperty("user.home") + "/.cache/elnetw" : cacheDir;
 			Path cacheDirPath = new File(cacheDir).toPath();
 			Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
 			if (!Files.exists(cacheLinkPath, LinkOption.NOFOLLOW_LINKS)) {
@@ -762,6 +744,26 @@ public class TwitterClientMain {
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
 		messageBus.onInitialized();
+	}
+
+	@Initializer(name = "bus", dependencies = {"jobqueue", "config"}, phase = "preinit")
+	public void setMessageBus(InitCondition cond) {
+		if (cond.isInitializingPhase()) {
+			messageBus = new MessageBus();
+			configuration.setMessageBus(messageBus);
+		} else {
+			messageBus.cleanUp();
+		}
+	}
+
+	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
+	public void setMessageChannelFactory() {
+		messageBus.addVirtualChannel("my/timeline", new String[] {"stream/user", "statuses/timeline"});
+		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
+		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
+		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
+		messageBus.addChannelFactory("direct_messages", new DirectMessageFetcherFactory());
+		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 	}
 
 	@Initializer(name = "internal/notifier", phase = "prestart")

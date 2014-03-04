@@ -179,9 +179,6 @@ public class CacheManager {
 		if (status == null) {
 			throw new NullPointerException();
 		}
-		if (status.isRetweeted()) {
-			statusCacheMap.putIfAbsent(status.getRetweetedStatus().getId(), status);
-		}
 		return statusCacheMap.putIfAbsent(status.getId(), status);
 	}
 

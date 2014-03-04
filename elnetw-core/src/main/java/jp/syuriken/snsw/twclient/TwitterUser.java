@@ -231,6 +231,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public URLEntity[] getDescriptionURLEntities() {
 		return descriptionURLEntities;
 	}

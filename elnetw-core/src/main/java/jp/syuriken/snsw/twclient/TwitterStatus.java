@@ -306,6 +306,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public SymbolEntity[] getSymbolEntities() {
 		return symbolEntities;
 	}
