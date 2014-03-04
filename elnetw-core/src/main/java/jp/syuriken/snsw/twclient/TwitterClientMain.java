@@ -72,6 +72,7 @@ import jp.syuriken.snsw.twclient.bus.TimelineFetcherFactory;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
+import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
@@ -384,14 +385,15 @@ public class TwitterClientMain {
 		configBuilder.getGroup("UI")
 				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
 				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
-		configBuilder
-				.getGroup("core")
+		configBuilder.getGroup("core")
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
 						new IntegerConfigType(1, 60, 1000))
 				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
 						new BooleanConfigType());
-		configBuilder.getGroup("高度な設定").addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
-				new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
+		configBuilder.getGroup("高度な設定")
+				.addConfig(null, "コンシューマーキーの設定", null, new ConsumerTokenConfigType())
+				.addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
+						new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
 	}
 
 	@Initializer(name = "filter/func", phase = "preinit")
