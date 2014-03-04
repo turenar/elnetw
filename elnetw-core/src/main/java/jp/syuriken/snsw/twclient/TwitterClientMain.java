@@ -267,7 +267,7 @@ public class TwitterClientMain {
 		try {
 			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			logger.warn("LookAndFeelの設定に失敗", e);
+			e.printStackTrace(); // logger cannot use.
 		}
 	}
 

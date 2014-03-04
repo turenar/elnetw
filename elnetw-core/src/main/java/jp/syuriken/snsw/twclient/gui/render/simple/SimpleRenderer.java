@@ -24,8 +24,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 
 import javax.swing.JLabel;
@@ -56,7 +54,7 @@ import static jp.syuriken.snsw.twclient.ClientConfiguration.APPLICATION_NAME;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SimpleRenderer implements TabRenderer, ActionListener {
+public class SimpleRenderer implements TabRenderer {
 	private static final Logger logger = LoggerFactory.getLogger(SimpleRenderer.class);
 	private final RenderTarget renderTarget;
 	private final Font uiFont;
@@ -91,11 +89,6 @@ public class SimpleRenderer implements TabRenderer, ActionListener {
 		int height = Math.max(18, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
 		iconSize = new Dimension(64, height);
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		String actionCommand = e.getActionCommand();
 	}
 
 	public void fireFocusEvent(FocusEvent e, RenderObject renderObject) {
@@ -183,6 +176,8 @@ public class SimpleRenderer implements TabRenderer, ActionListener {
 			case TabRenderer.WRITER_ACCOUNT_CHANGED:
 				getActualUserId();
 				break;
+			default:
+				// do nothing
 		}
 
 	}

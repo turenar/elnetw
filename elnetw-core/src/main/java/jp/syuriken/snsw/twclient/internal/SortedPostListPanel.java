@@ -473,7 +473,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+	public synchronized void propertyChange(PropertyChangeEvent evt) {
 		switch (evt.getPropertyName()) {
 			case PROPERTY_BUCKET_SIZE:
 				bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
@@ -487,6 +487,8 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 			case PROPERTY_MAX_SIZE:
 				maxContainSize = getProperty(PROPERTY_MAX_SIZE);
 				break;
+			default:
+				// do nothing
 		}
 	}
 

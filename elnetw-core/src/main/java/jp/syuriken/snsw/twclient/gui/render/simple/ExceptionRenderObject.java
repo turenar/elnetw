@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.util.Date;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.syuriken.snsw.twclient.Utility;
 import twitter4j.TwitterException;
 
@@ -58,6 +59,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 	}
 
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public Date getDate() {
 		return date;
 	}
