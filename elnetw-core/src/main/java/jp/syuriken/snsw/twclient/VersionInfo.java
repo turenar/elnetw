@@ -110,9 +110,8 @@ public final class VersionInfo {
 	 */
 	public static String getUniqueVersion() {
 		String version = getVersion();
-		String revision = getCommittedRevision();
 		if (version.equals(UNKNOWN_STRING)) {
-			return revision;
+			return getCommittedRevision();
 		} else if (version.endsWith("-SNAPSHOT")) {
 			return getDescribedVersion();
 		}
