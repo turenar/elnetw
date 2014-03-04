@@ -24,7 +24,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
@@ -46,8 +45,6 @@ import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -66,12 +63,10 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public class StatusRenderObject extends AbstractRenderObject {
 
-	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
 	private final long userId;
 	private final Status status;
 	private final String uniqId;
-	private String tooltip;
 	private JLabel tweetViewRetweetButton;
 	private JLabel tweetViewReplyButton;
 	private JLabel tweetViewFavoriteButton;
@@ -408,7 +403,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 		componentStatusText = new JLabel(status.getText());
 
 		if (twitterStatus.isRetweet()) {
-			tooltip = "Retweeted by @" + twitterStatus.getUser().getScreenName();
+			componentStatusText.setToolTipText("Retweeted by @" + twitterStatus.getUser().getScreenName());
 		}
 
 		if (twitterStatus.isRetweet()) {
@@ -419,17 +414,6 @@ public class StatusRenderObject extends AbstractRenderObject {
 				foregroundColor = Color.RED;
 			}
 		}
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		logger.trace("{}", e);
-		getFrameApi().handleShortcutKey("list", e);
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override

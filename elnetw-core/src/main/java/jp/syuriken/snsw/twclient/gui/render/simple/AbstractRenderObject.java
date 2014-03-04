@@ -153,26 +153,6 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 	}
 
-	protected static void nl2br(StringBuffer stringBuffer) {
-		int start = stringBuffer.length();
-		int offset = start;
-		int position;
-		while ((position = stringBuffer.indexOf("\n", offset)) >= 0) {
-			stringBuffer.replace(position, position + 1, "<br>");
-			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuffer.indexOf(" ", offset)) >= 0) {
-			stringBuffer.replace(position, position + 1, "&nbsp;");
-			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuffer.indexOf("&amp;", offset)) >= 0) {
-			stringBuffer.replace(position, position + 5, "&amp;amp;");
-			offset = position + 9;
-		}
-	}
-
 	protected static TweetEntity[] sortEntities(EntitySupport status) {
 		int entitiesLen;
 		HashtagEntity[] hashtagEntities = status.getHashtagEntities();
@@ -389,14 +369,17 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
+		logger.trace("{}", e);
+		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override

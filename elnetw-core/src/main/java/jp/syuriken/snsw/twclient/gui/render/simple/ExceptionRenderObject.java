@@ -71,7 +71,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 	public void focusGained(FocusEvent e) {
 		super.focusGained(e);
 		Throwable handlingException = ex;
-		StringBuilder stringBuilder = new StringBuilder().append(ex.getLocalizedMessage()).append("<br><br>");
+		StringBuilder stringBuilder = new StringBuilder("<html>").append(ex.getLocalizedMessage()).append("<br><br>");
 		while (null != (handlingException = handlingException.getCause())) {
 			stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 		}
