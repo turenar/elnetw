@@ -415,15 +415,6 @@ public class ClientConfiguration {
 		return extraClassLoader;
 	}
 
-	/**
-	 * 情報取得のスケジューラを取得する。
-	 *
-	 * @return スケジューラ
-	 */
-	public synchronized MessageBus getMessageBus() {
-		return messageBus;
-	}
-
 	public MessageFilter[] getFilters() {
 		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
@@ -494,6 +485,15 @@ public class ClientConfiguration {
 	 */
 	public JobQueue getJobQueue() {
 		return jobQueue;
+	}
+
+	/**
+	 * 情報取得のスケジューラを取得する。
+	 *
+	 * @return スケジューラ
+	 */
+	public synchronized MessageBus getMessageBus() {
+		return messageBus;
 	}
 
 	/**
@@ -622,8 +622,8 @@ public class ClientConfiguration {
 		ActionHandler actionHandler = getActionHandler(intentArguments);
 		if (actionHandler != null) {
 			try {
-				actionHandler.handleAction(intentArguments);
 				logger.trace("call {}", intentArguments);
+				actionHandler.handleAction(intentArguments);
 			} catch (RuntimeException e) {
 				logger.error("Uncaught exception", e);
 			}
@@ -881,11 +881,6 @@ public class ClientConfiguration {
 		this.extraClassLoader = extraClassLoader;
 	}
 
-	/*package*/
-	synchronized void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
-	}
-
 	/**
 	 * FrameApiを設定する
 	 *
@@ -906,6 +901,11 @@ public class ClientConfiguration {
 	 */
 	/*package*/void setInitializing(boolean isInitializing) {
 		this.isInitializing = isInitializing;
+	}
+
+	/*package*/
+	synchronized void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
 	}
 
 	/*package*/void setOpts(String[] args) {

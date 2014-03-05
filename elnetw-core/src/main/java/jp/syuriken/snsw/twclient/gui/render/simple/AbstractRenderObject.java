@@ -209,6 +209,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	@Override
 	public void focusGained(FocusEvent e) {
+		getFrameApi().clearTweetView();
 		if (renderer.getFocusOwner() != null) {
 			AbstractRenderObject lostFocusObject = renderer.getFocusOwner();
 			lostFocusObject.linePanel.setBackground(lostFocusObject.backgroundColor);
@@ -418,6 +419,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 		this.focusGained(new FocusEvent(getComponent(), FocusEvent.FOCUS_GAINED, true));
+		this.linePanel.requestFocusInWindow();
 		generatePopupMenu(getPopupMenuType());
 
 		Component[] components = popupMenu.getComponents();

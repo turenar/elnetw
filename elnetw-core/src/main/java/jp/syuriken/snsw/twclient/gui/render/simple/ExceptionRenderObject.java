@@ -78,7 +78,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 			stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
 		}
 		StringBuilder escaped = escapeHTML(stringBuilder);
-		getFrameApi().clearTweetView();
+
 		getFrameApi().setTweetViewText(escaped.toString(), null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(date, true), null,
 				DO_NOTHING_WHEN_POINTED);

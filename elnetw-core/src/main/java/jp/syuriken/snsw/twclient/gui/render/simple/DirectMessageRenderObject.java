@@ -29,6 +29,7 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -74,12 +75,16 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 				start = hashtagEntity.getStart();
 				end = hashtagEntity.getEnd();
 				replaceText = null;
-				url = "http://command/hashtag!name=" + hashtagEntity.getText();
+				IntentArguments intent = getIntentArguments("hashtag");
+				intent.putExtra("name", hashtagEntity.getText());
+				url = getFrameApi().getCommandUrl(intent);
 			} else if (entity instanceof URLEntity) {
 				URLEntity urlEntity = (URLEntity) entity;
 				if (urlEntity instanceof MediaEntity) {
 					MediaEntity mediaEntity = (MediaEntity) urlEntity;
-					url = "http://command/openimg!url=" + mediaEntity.getMediaURL();
+					IntentArguments intent = getIntentArguments("openimg");
+					intent.putExtra("url", mediaEntity.getMediaURL());
+					url = getFrameApi().getCommandUrl(intent);
 				} else {
 					url = urlEntity.getURL();
 				}
@@ -91,7 +96,9 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 				start = mentionEntity.getStart();
 				end = mentionEntity.getEnd();
 				replaceText = null;
-				url = "http://command/userinfo!screenName=" + mentionEntity.getScreenName();
+				IntentArguments intent = getIntentArguments("userinfo");
+				intent.putExtra("screenName", mentionEntity.getScreenName());
+				url = getFrameApi().getCommandUrl(intent);
 			} else {
 				throw new AssertionError();
 			}
@@ -111,7 +118,7 @@ public class DirectMessageRenderObject extends AbstractRenderObject {
 				directMessage.getRecipient().getName());
 		String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
 		Icon userProfileIcon = componentUserIcon.getIcon();
-		getFrameApi().clearTweetView();
+
 		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);

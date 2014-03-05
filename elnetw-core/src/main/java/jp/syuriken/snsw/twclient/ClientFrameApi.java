@@ -28,6 +28,7 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -90,11 +91,14 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	String getActionCommandByShortcutKey(String component, String keyString);
 
 	/**
-	 * ClientConfigurationインスタンスを取得する。
+	 * コマンドを呼び出すURLを取得する。
 	 *
-	 * @return インスタンス
+	 * {@link #clearTweetView()}で初期化される。
+	 *
+	 * @param intentArguments アクションコマンド引数
+	 * @return 呼び出し用URL。このインスタンス内でのみ使用でき、外部でアクセスしても何の結果ももたらさない。
 	 */
-	ClientConfiguration getClientConfiguration();
+	String getCommandUrl(IntentArguments intentArguments);
 
 	/**
 	 * デフォルトで使用されるフォントを取得する。
@@ -109,13 +113,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return 親フレームになることができるコンポーネント
 	 */
 	Component getFrame();
-
-	/**
-	 * 画像をキャッシュするオブジェクトを取得する。
-	 *
-	 * @return ImageCacherインスタンス
-	 */
-	ImageCacher getImageCacher();
 
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
@@ -161,6 +158,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return 読み込み用Twitterインスタンス
 	 * @see ClientConfiguration#getTwitterForRead()
 	 */
+	@Deprecated
 	Twitter getTwitterForRead();
 
 	/**
@@ -169,6 +167,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return 書き込み用のTwitterインスタンス
 	 * @see ClientConfiguration#getTwitterForWrite()
 	 */
+	@Deprecated
 	Twitter getTwitterForWrite();
 
 	/**
