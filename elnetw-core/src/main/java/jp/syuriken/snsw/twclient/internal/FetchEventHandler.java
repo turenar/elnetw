@@ -28,12 +28,12 @@ import java.net.URLConnection;
  */
 public interface FetchEventHandler {
 	/**
-	 * コンテント長が得られた。
+	 * コネクションを確立した。
 	 *
-	 * @param contentLength 不明の場合は-1、それ以外はコンテント長
+	 * @param connection コネクション
 	 * @throws InterruptedException 割り込みされた
 	 */
-	void onContentLength(int contentLength) throws InterruptedException;
+	void onConnection(URLConnection connection) throws InterruptedException;
 
 	/**
 	 * IO例外が発生

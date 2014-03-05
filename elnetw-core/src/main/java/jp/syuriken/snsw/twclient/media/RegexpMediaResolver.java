@@ -21,7 +21,6 @@
 package jp.syuriken.snsw.twclient.media;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,6 +29,8 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
+import jp.syuriken.snsw.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,29 @@ import org.slf4j.LoggerFactory;
  */
 public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 
-	private static final int BUFSIZE = 65536;
+	private static class MyFetchEventHandler implements FetchEventHandler {
+
+		private String contentEncoding;
+
+		public String getContentEncoding() {
+			return contentEncoding;
+		}
+
+		@Override
+		public void onConnection(URLConnection connection) throws InterruptedException {
+			contentEncoding = connection.getContentEncoding();
+		}
+
+		@Override
+		public void onException(URLConnection connection, IOException e) {
+			logger.warn("fetch", e);
+		}
+
+		@Override
+		public void onLoaded(int imageLen) throws InterruptedException {
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 	private final Pattern regexp;
 
@@ -49,48 +72,19 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 	}
 
 	private String getContentsFromUrl(URL mediaUrl) throws IOException, InterruptedException {
-		int bufLength;
-		byte[] data;
-		URLConnection connection = mediaUrl.openConnection();
-		int contentLength = connection.getContentLength();
-		InputStream stream = connection.getInputStream();
+		MyFetchEventHandler handler = new MyFetchEventHandler();
+		byte[] contents = NetworkSupport.fetchContents(mediaUrl, handler);
 
-		bufLength = contentLength < 0 ? BUFSIZE : contentLength + 1;
-		data = new byte[bufLength];
-		int imageLen = 0;
-		int loadLen;
-		while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
-			imageLen += loadLen;
-
-			if (bufLength == imageLen) {
-				bufLength = bufLength << 1;
-				if (bufLength < 0) {
-					bufLength = Integer.MAX_VALUE;
-				}
-				byte[] newData = new byte[bufLength];
-				System.arraycopy(data, 0, newData, 0, imageLen);
-				data = newData;
-			}
-
-			synchronized (this) {
-				try {
-					wait(1);
-				} catch (InterruptedException e) {
-					throw e;
-				}
-			}
-		}
-		stream.close(); // help keep-alive
 		Charset charset = Charset.forName("UTF-8");
 		try {
-			String encoding = connection.getContentEncoding();
+			String encoding = handler.getContentEncoding();
 			if (encoding != null) {
 				charset = Charset.forName(encoding);
 			}
 		} catch (UnsupportedCharsetException e) {
 			logger.warn("Invalid Charset", e);
 		}
-		return new String(data, 0, imageLen, charset);
+		return new String(contents, charset);
 	}
 
 	@Override

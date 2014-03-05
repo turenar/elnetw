@@ -93,8 +93,8 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 
 		@Override
-		public void onContentLength(int contentLength) throws InterruptedException {
-			this.contentLength = contentLength;
+		public void onConnection(URLConnection connection) throws InterruptedException {
+			this.contentLength = connection.getContentLength();
 			onLoaded(0);
 		}
 

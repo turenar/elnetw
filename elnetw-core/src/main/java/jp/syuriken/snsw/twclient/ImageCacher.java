@@ -131,7 +131,7 @@ public class ImageCacher {
 		}
 
 		@Override
-		public void onContentLength(int contentLength) throws InterruptedException {
+		public void onConnection(URLConnection connection) throws InterruptedException {
 		}
 
 		@Override
