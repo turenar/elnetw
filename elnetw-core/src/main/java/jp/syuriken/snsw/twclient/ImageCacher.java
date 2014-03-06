@@ -330,7 +330,7 @@ public class ImageCacher {
 					logger.debug("Flushed: {}", Utility.protectPrivacy(entry.cacheFile.getPath()));
 					/*} catch (FileNotFoundException e) {*/
 				} catch (IOException e) {
-					logger.warn("Failed flushing cache: " + Utility.protectPrivacy(entry.cacheFile.getPath()), e);
+					logger.warn("Failed flushing cache: {}", Utility.protectPrivacy(entry.cacheFile.getPath()), e);
 					return false;
 				} finally {
 					try {
@@ -338,7 +338,7 @@ public class ImageCacher {
 							outputStream.close();
 						}
 					} catch (IOException e) {
-						logger.warn("Failed close file: " + Utility.protectPrivacy(entry.cacheFile.getPath()), e);
+						logger.warn("Failed close file: {}", Utility.protectPrivacy(entry.cacheFile.getPath()), e);
 					}
 				}
 			}
@@ -511,7 +511,7 @@ public class ImageCacher {
 	 */
 	public boolean setImageIcon(JLabel label, User user) {
 		String imageKey = getImageKey(user);
-		String url = user.getProfileImageURL();
+		String url = user.getProfileImageURLHttps();
 		ImageEntry entry = cachedImages.get(imageKey);
 		if (entry == null) {
 			try {
