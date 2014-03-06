@@ -200,6 +200,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		return status.getCreatedAt();
 	}
 
+	@Override
+	protected String getPopupMenuType() {
+		return "status";
+	}
+
 	/**
 	 * ツイートビューの隣に表示するふぁぼボタン
 	 *
@@ -374,11 +379,6 @@ public class StatusRenderObject extends AbstractRenderObject {
 		getConfiguration().handleAction(intentArguments);
 	}
 
-	@Override
-	protected String getPopupMenuType() {
-		return "status";
-	}
-
 	protected void initComponents() {
 		Status twitterStatus = this.status;
 
@@ -403,7 +403,25 @@ public class StatusRenderObject extends AbstractRenderObject {
 		componentSentBy = new JLabel(screenName);
 		componentSentBy.setFont(renderer.getDefaultFont());
 
-		componentStatusText = new JLabel(status.getText());
+		StringBuilder statusText = new StringBuilder(status.getText());
+
+		URLEntity[] urlEntities = status.getURLEntities();
+		if (urlEntities != null) {
+			for (URLEntity entity : urlEntities) {
+				String entityText = entity.getText();
+				int start = statusText.indexOf(entityText);
+				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
+			}
+		}
+		MediaEntity[] mediaEntities = status.getMediaEntities();
+		if (mediaEntities != null) {
+			for (URLEntity entity : mediaEntities) {
+				String entityText = entity.getText();
+				int start = statusText.indexOf(entityText);
+				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
+			}
+		}
+		componentStatusText = new JLabel(statusText.toString());
 
 		// in Windows, tooltip keep MouseEvent from being fired.
 		// I don't know why. On any other operating systems, is this reproduced?
