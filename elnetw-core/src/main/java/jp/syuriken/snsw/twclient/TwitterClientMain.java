@@ -500,8 +500,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "urlProvider", phase = "init")
 	public void initUrlProviders() {
-		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)",
-				new NullMediaResolver());
+		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)", new NullMediaResolver(true));
 		UrlResolverManager.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
 				new RegexpMediaResolver("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
 	}

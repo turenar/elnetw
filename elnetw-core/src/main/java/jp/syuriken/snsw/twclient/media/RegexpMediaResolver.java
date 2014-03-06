@@ -35,12 +35,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * twitpicのImage URLを取得するプロバイダー
+ * 汎用的な、&lt;img&gt;のsrc属性からImage URLを取得するリゾルバ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RegexpMediaResolver extends AbstractMediaUrlResolver {
-
+public class RegexpMediaResolver implements MediaUrlResolver {
 	private static class MyFetchEventHandler implements FetchEventHandler {
 
 		private String contentEncoding;
@@ -67,6 +66,11 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 	private final Pattern regexp;
 
+	/**
+	 * インスタンスを作成する
+	 *
+	 * @param regexp 画像URL正規表現
+	 */
 	public RegexpMediaResolver(String regexp) {
 		this.regexp = Pattern.compile("<img[^>]+src=[\"']?(" + regexp + ")[\"']?");
 	}
@@ -88,7 +92,7 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 	}
 
 	@Override
-	public String getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
+	public UrlInfo getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
 		URL mediaUrl;
 		try {
 			mediaUrl = new URL(url);
@@ -98,7 +102,7 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 		String contents = getContentsFromUrl(mediaUrl);
 		Matcher matcher = regexp.matcher(contents);
 		if (matcher.find()) {
-			return matcher.group(1);
+			return new UrlInfo(matcher.group(1), false, true);
 		} else {
 			return null;
 		}

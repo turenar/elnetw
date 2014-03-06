@@ -28,6 +28,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
@@ -45,6 +46,11 @@ import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.media.MediaUrlDispatcher;
+import jp.syuriken.snsw.twclient.media.UrlInfo;
+import jp.syuriken.snsw.twclient.media.UrlResolverManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -61,7 +67,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StatusRenderObject extends AbstractRenderObject {
+public class StatusRenderObject extends AbstractRenderObject implements MediaUrlDispatcher {
 
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
 	private final long userId;
@@ -72,6 +78,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 	private JLabel tweetViewFavoriteButton;
 	private JPanel tweetViewOperationPanel;
 	private JLabel tweetViewOtherButton;
+	private HashMap<String, UrlInfo> urlInfoMap;
 
 	public StatusRenderObject(long userId, Status status, SimpleRenderer renderer) {
 		super(renderer);
@@ -115,13 +122,23 @@ public class StatusRenderObject extends AbstractRenderObject {
 				url = getFrameApi().getCommandUrl(intent);
 			} else if (entity instanceof URLEntity) {
 				URLEntity urlEntity = (URLEntity) entity;
+				// entityがMediaEntity (=pic.twitter.com)かどうかを調べる。
+				// MediaEntityの場合は無条件で画像ファイルとみなす。
+				// URLEntityの場合は、UrlResolverManagerに#initComponents()で問い合わせた結果を元に判断。
 				if (urlEntity instanceof MediaEntity) {
 					MediaEntity mediaEntity = (MediaEntity) urlEntity;
 					IntentArguments intent = getIntentArguments("openimg");
 					intent.putExtra("url", mediaEntity.getMediaURL());
 					url = getFrameApi().getCommandUrl(intent);
 				} else {
-					url = urlEntity.getURL();
+					UrlInfo urlInfo = urlInfoMap.get(urlEntity.getExpandedURL());
+					if (urlInfo != null && urlInfo.isMediaFile()) {
+						IntentArguments intent = getIntentArguments("openimg");
+						intent.putExtra("url", urlInfo.getResolvedUrl());
+						url = getFrameApi().getCommandUrl(intent);
+					} else {
+						url = urlEntity.getURL();
+					}
 				}
 				start = urlEntity.getStart();
 				end = urlEntity.getEnd();
@@ -374,6 +391,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		return uniqId;
 	}
 
+	@Override
+	public void gotMediaUrl(String original, UrlInfo resolvedUrl) {
+		urlInfoMap.put(original, resolvedUrl);
+	}
+
 	private void handleAction(IntentArguments intentArguments) {
 		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		getConfiguration().handleAction(intentArguments);
@@ -407,10 +429,12 @@ public class StatusRenderObject extends AbstractRenderObject {
 
 		URLEntity[] urlEntities = status.getURLEntities();
 		if (urlEntities != null) {
+			urlInfoMap = new HashMap<>();
 			for (URLEntity entity : urlEntities) {
 				String entityText = entity.getText();
 				int start = statusText.indexOf(entityText);
 				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
+				UrlResolverManager.async(entity.getExpandedURL(), this);
 			}
 		}
 		MediaEntity[] mediaEntities = status.getMediaEntities();
@@ -509,6 +533,14 @@ public class StatusRenderObject extends AbstractRenderObject {
 				}
 				break;
 		}
+	}
+
+	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
+
+	@Override
+	public void onException(String url, Exception ex) {
+		logger.warn("failed resolving url: {}", url, ex);
+		renderer.onException(ex);
 	}
 
 	private void openBrowser(String url) {

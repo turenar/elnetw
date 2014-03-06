@@ -28,9 +28,14 @@ import java.io.IOException;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface MediaUrlResolver {
-	void async(String url, MediaUrlDispatcher dispatcher);
-
-	void async(String url, MediaUrlDispatcher dispatcher, byte priority);
-
-	String getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException;
+	/**
+	 * urlを解決する
+	 *
+	 * @param url 解決するURL
+	 * @return 解決済みURL (=短縮されていない、画像ファイルURLなど)
+	 * @throws IllegalArgumentException urlとして正しくない
+	 * @throws InterruptedException     スレッドをブロックを必要とする処理中に割り込まれた
+	 * @throws IOException              解決中にIO例外が発生した
+	 */
+	UrlInfo getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException;
 }
