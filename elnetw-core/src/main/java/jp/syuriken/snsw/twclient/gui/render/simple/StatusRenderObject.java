@@ -28,7 +28,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
@@ -46,15 +45,7 @@ import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.media.MediaUrlDispatcher;
-import jp.syuriken.snsw.twclient.media.UrlInfo;
-import jp.syuriken.snsw.twclient.media.UrlResolverManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
 import twitter4j.Status;
-import twitter4j.TweetEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -67,10 +58,9 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StatusRenderObject extends AbstractRenderObject implements MediaUrlDispatcher {
+public class StatusRenderObject extends EntitySupportRenderObject {
 
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
-	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private final long userId;
 	private final TwitterStatus status;
 	private final String uniqId;
@@ -79,7 +69,6 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 	private JLabel tweetViewFavoriteButton;
 	private JPanel tweetViewOperationPanel;
 	private JLabel tweetViewOtherButton;
-	private HashMap<String, UrlInfo> urlInfoMap;
 
 	public StatusRenderObject(long userId, Status status, SimpleRenderer renderer) {
 		super(renderer);
@@ -104,73 +93,7 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 		Status originalStatus = status;
 		Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 		String text = status.getText();
-		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
-
-		TweetEntity[] entities = sortEntities(status);
-		int offset = 0;
-		for (TweetEntity entity : entities) {
-			int start = entity.getStart();
-			int end = entity.getEnd();
-			String url;
-
-			stringBuilder.append(escapeHTML(text.substring(offset, start)));
-
-			if (entity instanceof HashtagEntity) {
-				HashtagEntity hashtagEntity = (HashtagEntity) entity;
-				IntentArguments intent = getIntentArguments("hashtag");
-				intent.putExtra("name", hashtagEntity.getText());
-				url = getFrameApi().getCommandUrl(intent);
-				stringBuilder.append("<a href='").append(url).append("'>")
-						.append(escapeHTML(text.substring(start, end)))
-						.append("</a>");
-			} else if (entity instanceof URLEntity) {
-				URLEntity urlEntity = (URLEntity) entity;
-				boolean isMediaFile;
-				// entityがMediaEntity (=pic.twitter.com)かどうかを調べる。
-				// MediaEntityの場合は無条件で画像ファイルとみなす。
-				// URLEntityの場合は、UrlResolverManagerに#initComponents()で問い合わせた結果を元に判断。
-				if (urlEntity instanceof MediaEntity) {
-					MediaEntity mediaEntity = (MediaEntity) urlEntity;
-					IntentArguments intent = getIntentArguments("openimg");
-					intent.putExtra("url", mediaEntity.getMediaURL());
-					url = getFrameApi().getCommandUrl(intent);
-					isMediaFile = true;
-				} else {
-					UrlInfo urlInfo = urlInfoMap.get(urlEntity.getExpandedURL());
-					if (urlInfo != null && urlInfo.isMediaFile()) {
-						IntentArguments intent = getIntentArguments("openimg");
-						intent.putExtra("url", urlInfo.getResolvedUrl());
-						url = getFrameApi().getCommandUrl(intent);
-						isMediaFile = true;
-					} else {
-						url = urlEntity.getURL();
-						isMediaFile = false;
-					}
-				}
-				stringBuilder.append("<a href='").append(url).append("'>")
-						.append(escapeHTML(urlEntity.getDisplayURL()));
-				if (isMediaFile) {
-					stringBuilder.append("<img src='")
-							.append(ImageResource.getUrlImageFileIcon())
-							.append("' border='0'>");
-				}
-				stringBuilder.append("</a>");
-			} else if (entity instanceof UserMentionEntity) {
-				UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-				IntentArguments intent = getIntentArguments("userinfo");
-				intent.putExtra("screenName", mentionEntity.getScreenName());
-				url = getFrameApi().getCommandUrl(intent);
-				stringBuilder.append("<a href='").append(url).append("'>")
-						.append(escapeHTML(text.substring(start, end)))
-						.append("</a>");
-			} else {
-				throw new AssertionError();
-			}
-
-			offset = end;
-		}
-		escapeHTML(text.substring(offset), stringBuilder);
-		String tweetText = stringBuilder.toString();
+		String tweetText = getTweetViewText(status, text);
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
 		String source = status.getSource();
@@ -398,11 +321,6 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 		return uniqId;
 	}
 
-	@Override
-	public void gotMediaUrl(String original, UrlInfo resolvedUrl) {
-		urlInfoMap.put(original, resolvedUrl);
-	}
-
 	private void handleAction(IntentArguments intentArguments) {
 		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		getConfiguration().handleAction(intentArguments);
@@ -432,27 +350,7 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 		componentSentBy = new JLabel(screenName);
 		componentSentBy.setFont(renderer.getDefaultFont());
 
-		StringBuilder statusText = new StringBuilder(status.getText());
-
-		URLEntity[] urlEntities = status.getURLEntities();
-		if (urlEntities != null) {
-			urlInfoMap = new HashMap<>();
-			for (URLEntity entity : urlEntities) {
-				String entityText = entity.getText();
-				int start = statusText.indexOf(entityText);
-				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
-				UrlResolverManager.async(entity.getExpandedURL(), this);
-			}
-		}
-		MediaEntity[] mediaEntities = status.getMediaEntities();
-		if (mediaEntities != null) {
-			for (URLEntity entity : mediaEntities) {
-				String entityText = entity.getText();
-				int start = statusText.indexOf(entityText);
-				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
-			}
-		}
-		componentStatusText = new JLabel(statusText.toString());
+		setStatusTextWithEntities(status, status.getText());
 
 		// in Windows, tooltip keep MouseEvent from being fired.
 		// I don't know why. On any other operating systems, is this reproduced?
@@ -540,12 +438,6 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 				}
 				break;
 		}
-	}
-
-	@Override
-	public void onException(String url, Exception ex) {
-		logger.warn("failed resolving url: {}", url, ex);
-		renderer.onException(ex);
 	}
 
 	private void openBrowser(String url) {

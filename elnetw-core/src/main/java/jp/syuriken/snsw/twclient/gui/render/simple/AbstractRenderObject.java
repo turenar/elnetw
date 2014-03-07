@@ -375,12 +375,12 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	}
 
 	@Override
-	public void keyTyped(KeyEvent e) {
+	public void keyReleased(KeyEvent e) {
+		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override
-	public void keyReleased(KeyEvent e) {
-		getFrameApi().handleShortcutKey("list", e);
+	public void keyTyped(KeyEvent e) {
 	}
 
 	@Override
@@ -435,4 +435,5 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 			}
 		}
 	}
+
 }
