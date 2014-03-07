@@ -21,6 +21,7 @@
 package jp.syuriken.snsw.twclient.gui;
 
 import java.io.IOException;
+import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -31,30 +32,16 @@ import javax.swing.ImageIcon;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public final class ImageResource {
-	public static ImageIcon getImgFavOff() {
-		return IMG_FAV_OFF;
-	}
 
-	public static ImageIcon getImgFavOn() {
-		return IMG_FAV_ON;
-	}
-
-	public static ImageIcon getImgFavHover() {
-		return IMG_FAV_HOVER;
-	}
-
-	public static ImageIcon getImgTwitterLogo() {
-		return IMG_TWITTER_LOGO;
-	}
-
-	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
 	private static final ImageIcon IMG_FAV_OFF;
-	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+
 	private static final ImageIcon IMG_FAV_ON;
-	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+
 	private static final ImageIcon IMG_FAV_HOVER;
-	/** Twitterのロゴ (青背景に白) */
+
 	private static final ImageIcon IMG_TWITTER_LOGO;
+
+	private static final URL URL_IMAGE_FILE_ICON;
 
 	static {
 		ClassLoader classLoader = ImageResource.class.getClassLoader();
@@ -74,5 +61,31 @@ public final class ImageResource {
 		} catch (IOException e) {
 			throw new AssertionError("必要なリソース Twitterのロゴ が読み込めませんでした");
 		}
+		URL_IMAGE_FILE_ICON = classLoader.getResource("jp/syuriken/snsw/twclient/img/img_icon.png");
+	}
+
+	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+	public static ImageIcon getImgFavHover() {
+		return IMG_FAV_HOVER;
+	}
+
+	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
+	public static ImageIcon getImgFavOff() {
+		return IMG_FAV_OFF;
+	}
+
+	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+	public static ImageIcon getImgFavOn() {
+		return IMG_FAV_ON;
+	}
+
+	/** Twitterのロゴ (青背景に白) */
+	public static ImageIcon getImgTwitterLogo() {
+		return IMG_TWITTER_LOGO;
+	}
+
+	/** 画像ファイルアイコンURL */
+	public static URL getUrlImageFileIcon() {
+		return URL_IMAGE_FILE_ICON;
 	}
 }

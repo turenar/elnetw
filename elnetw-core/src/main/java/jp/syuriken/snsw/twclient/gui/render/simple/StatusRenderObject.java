@@ -70,6 +70,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 public class StatusRenderObject extends AbstractRenderObject implements MediaUrlDispatcher {
 
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private final long userId;
 	private final TwitterStatus status;
 	private final String uniqId;
@@ -107,21 +108,24 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 
 		TweetEntity[] entities = sortEntities(status);
 		int offset = 0;
-		for (Object entity : entities) {
-			int start;
-			int end;
-			String replaceText;
+		for (TweetEntity entity : entities) {
+			int start = entity.getStart();
+			int end = entity.getEnd();
 			String url;
+
+			stringBuilder.append(escapeHTML(text.substring(offset, start)));
+
 			if (entity instanceof HashtagEntity) {
 				HashtagEntity hashtagEntity = (HashtagEntity) entity;
-				start = hashtagEntity.getStart();
-				end = hashtagEntity.getEnd();
-				replaceText = null;
 				IntentArguments intent = getIntentArguments("hashtag");
 				intent.putExtra("name", hashtagEntity.getText());
 				url = getFrameApi().getCommandUrl(intent);
+				stringBuilder.append("<a href='").append(url).append("'>")
+						.append(escapeHTML(text.substring(start, end)))
+						.append("</a>");
 			} else if (entity instanceof URLEntity) {
 				URLEntity urlEntity = (URLEntity) entity;
+				boolean isMediaFile;
 				// entityがMediaEntity (=pic.twitter.com)かどうかを調べる。
 				// MediaEntityの場合は無条件で画像ファイルとみなす。
 				// URLEntityの場合は、UrlResolverManagerに#initComponents()で問い合わせた結果を元に判断。
@@ -130,36 +134,39 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 					IntentArguments intent = getIntentArguments("openimg");
 					intent.putExtra("url", mediaEntity.getMediaURL());
 					url = getFrameApi().getCommandUrl(intent);
+					isMediaFile = true;
 				} else {
 					UrlInfo urlInfo = urlInfoMap.get(urlEntity.getExpandedURL());
 					if (urlInfo != null && urlInfo.isMediaFile()) {
 						IntentArguments intent = getIntentArguments("openimg");
 						intent.putExtra("url", urlInfo.getResolvedUrl());
 						url = getFrameApi().getCommandUrl(intent);
+						isMediaFile = true;
 					} else {
 						url = urlEntity.getURL();
+						isMediaFile = false;
 					}
 				}
-				start = urlEntity.getStart();
-				end = urlEntity.getEnd();
-				replaceText = urlEntity.getDisplayURL();
+				stringBuilder.append("<a href='").append(url).append("'>")
+						.append(escapeHTML(urlEntity.getDisplayURL()));
+				if (isMediaFile) {
+					stringBuilder.append("<img src='")
+							.append(ImageResource.getUrlImageFileIcon())
+							.append("' border='0'>");
+				}
+				stringBuilder.append("</a>");
 			} else if (entity instanceof UserMentionEntity) {
 				UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-				start = mentionEntity.getStart();
-				end = mentionEntity.getEnd();
-				replaceText = null;
 				IntentArguments intent = getIntentArguments("userinfo");
 				intent.putExtra("screenName", mentionEntity.getScreenName());
 				url = getFrameApi().getCommandUrl(intent);
+				stringBuilder.append("<a href='").append(url).append("'>")
+						.append(escapeHTML(text.substring(start, end)))
+						.append("</a>");
 			} else {
 				throw new AssertionError();
 			}
 
-			String insertText = "<a href='" + url + "'>"
-					+ escapeHTML(replaceText == null ? text.substring(start, end) : replaceText)
-					+ "</a>";
-			stringBuilder.append(escapeHTML(text.substring(offset, start)));
-			stringBuilder.append(insertText);
 			offset = end;
 		}
 		escapeHTML(text.substring(offset), stringBuilder);
@@ -534,8 +541,6 @@ public class StatusRenderObject extends AbstractRenderObject implements MediaUrl
 				break;
 		}
 	}
-
-	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 
 	@Override
 	public void onException(String url, Exception ex) {
