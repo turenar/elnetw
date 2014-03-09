@@ -23,47 +23,16 @@ package jp.syuriken.snsw.twclient.media;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
-import jp.syuriken.snsw.twclient.internal.NetworkSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 汎用的な、&lt;img&gt;のsrc属性からImage URLを取得するリゾルバ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RegexpMediaResolver implements MediaUrlResolver {
-	private static class MyFetchEventHandler implements FetchEventHandler {
+public class RegexpMediaResolver extends AbstractMediaResolver {
 
-		private String contentEncoding;
-
-		public String getContentEncoding() {
-			return contentEncoding;
-		}
-
-		@Override
-		public void onConnection(URLConnection connection) throws InterruptedException {
-			contentEncoding = connection.getContentEncoding();
-		}
-
-		@Override
-		public void onException(URLConnection connection, IOException e) {
-			logger.warn("fetch", e);
-		}
-
-		@Override
-		public void onLoaded(int imageLen) throws InterruptedException {
-		}
-	}
-
-	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 	private final Pattern regexp;
 
 	/**
@@ -73,22 +42,6 @@ public class RegexpMediaResolver implements MediaUrlResolver {
 	 */
 	public RegexpMediaResolver(String regexp) {
 		this.regexp = Pattern.compile("<img[^>]+src=[\"']?(" + regexp + ")[\"']?");
-	}
-
-	private String getContentsFromUrl(URL mediaUrl) throws IOException, InterruptedException {
-		MyFetchEventHandler handler = new MyFetchEventHandler();
-		byte[] contents = NetworkSupport.fetchContents(mediaUrl, handler);
-
-		Charset charset = Charset.forName("UTF-8");
-		try {
-			String encoding = handler.getContentEncoding();
-			if (encoding != null) {
-				charset = Charset.forName(encoding);
-			}
-		} catch (UnsupportedCharsetException e) {
-			logger.warn("Invalid Charset", e);
-		}
-		return new String(contents, charset);
 	}
 
 	@Override
