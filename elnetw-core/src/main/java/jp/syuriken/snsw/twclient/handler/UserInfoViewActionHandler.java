@@ -29,8 +29,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -100,12 +99,9 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 		}
 	}
 
-	private static Logger logger = LoggerFactory.getLogger(UserInfoViewActionHandler.class);
-
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		JMenuItem aboutMenuItem = new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
-		return aboutMenuItem;
+		return new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
 	}
 
 	@Override
@@ -131,9 +127,10 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 			}
 		}
 
-		ClientConfiguration configuration = ClientConfiguration.getInstance();
-		final UserInfoFrameTab tab = new UserInfoFrameTab(user);
+		TwitterUser twitterUser = (user instanceof TwitterUser) ? (TwitterUser) user : new TwitterUser(user);
+		final UserInfoFrameTab tab = new UserInfoFrameTab(twitterUser);
 		final long userId = user.getId();
+		ClientConfiguration configuration = ClientConfiguration.getInstance();
 		configuration.addJob(new UserTimelineFetcher(tab, userId));
 		configuration.addFrameTab(tab);
 		configuration.focusFrameTab(tab);

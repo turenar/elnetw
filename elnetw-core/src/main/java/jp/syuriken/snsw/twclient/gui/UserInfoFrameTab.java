@@ -20,7 +20,6 @@
 
 package jp.syuriken.snsw.twclient.gui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -33,6 +32,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
@@ -60,6 +60,7 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -123,6 +124,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
 	private ImageIcon imageIcon;
+	private final HashMap<String, IntentArguments> urlIntentMap;
 
 	/**
 	 * インスタンスを生成する。
@@ -157,6 +159,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				super.run();
 			}
 		});
+		urlIntentMap = new HashMap<>();
 	}
 
 	/**
@@ -176,9 +179,10 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	 *
 	 * @param user ユーザー
 	 */
-	public UserInfoFrameTab(User user) {
+	public UserInfoFrameTab(TwitterUser user) {
 		super();
 		setUser(user);
+		urlIntentMap = new HashMap<>();
 	}
 
 	@Override
@@ -193,6 +197,14 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				}
 			});
 		}
+	}
+
+	private int nextUrlId = 0;
+
+	protected String getCommandUrl(IntentArguments intentArguments) {
+		String url = "http://command/?id=" + (nextUrlId++);
+		urlIntentMap.put(url, intentArguments);
+		return url;
 	}
 
 	@Override
@@ -235,8 +247,11 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		buffer.setLength(0);
 		matcher = Regex.VALID_HASHTAG.matcher(bio);
 		while (matcher.find()) {
+			IntentArguments intent = getIntentArguments("hashtag");
+			intent.putExtra("name", matcher.group(Regex.VALID_HASHTAG_GROUP_TAG));
+
 			matcher.appendReplacement(buffer, "$" + Regex.VALID_HASHTAG_GROUP_BEFORE
-					+ "<a href='http://command/hashtag!name=$" + Regex.VALID_HASHTAG_GROUP_TAG + "'>$"
+					+ "<a href='" + getCommandUrl(intent) + "'>$"
 					+ Regex.VALID_HASHTAG_GROUP_HASH + "$" + Regex.VALID_HASHTAG_GROUP_TAG + "</a>");
 		}
 		matcher.appendTail(buffer);
@@ -247,15 +262,20 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		while (matcher.find()) {
 			String list = matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST);
 			if (list == null) {
+				IntentArguments intent = getIntentArguments("userinfo");
+				intent.putExtra("screenName", matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME));
+
 				matcher.appendReplacement(buffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
-						+ "<a href='http://command/userinfo!screenName=$"
-						+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "'>$"
+						+ "<a href='" + getCommandUrl(intent) + "'>$"
 						+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
 						+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "</a>");
 			} else {
+				IntentArguments intent = getIntentArguments("list");
+				intent.putExtra("user", matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME));
+				intent.putExtra("listName", matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST));
+
 				matcher.appendReplacement(buffer, "$" + Regex.VALID_MENTION_OR_LIST_GROUP_BEFORE
-						+ "<a href='http://command/list!user=$" + Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME
-						+ "&listName=$" + Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "'>$"
+						+ "<a href='" + getCommandUrl(intent) + "'>$"
 						+ Regex.VALID_MENTION_OR_LIST_GROUP_AT + "$"
 						+ Regex.VALID_MENTION_OR_LIST_GROUP_USERNAME + "$"
 						+ Regex.VALID_MENTION_OR_LIST_GROUP_LIST + "</a>");
@@ -293,9 +313,9 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				public void hyperlinkUpdate(HyperlinkEvent e) {
 					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 						String url = e.getURL().toString();
-						if (url.startsWith("http://command/")) {
-							String command = url.substring("http://command/".length());
-							handleAction(getIntentArguments(command));
+						IntentArguments intentArguments = urlIntentMap.get(url);
+						if (intentArguments != null) {
+							intentArguments.invoke();
 						} else {
 							try {
 								getConfiguration().getUtility().openBrowser(url);
@@ -307,8 +327,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				}
 			});
 
-			Color bkgrnd = getComponentLocation().getBackground();
-			componentBioEditorPane.setBackground(bkgrnd);
+			componentBioEditorPane.setBackground(getComponentLocation().getBackground());
 			componentBioEditorPane.setOpaque(false);
 			componentBioEditorPane.setText("読込中...");
 		}
