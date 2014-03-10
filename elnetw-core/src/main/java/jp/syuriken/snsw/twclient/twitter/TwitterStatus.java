@@ -18,11 +18,15 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.twitter;
 
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.syuriken.snsw.twclient.CacheManager;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.GeoLocation;
@@ -64,6 +68,15 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return jsonObject;
 	}
 
+	private static JSONObject getRetweetJSONObject(JSONObject jsonObject) {
+		try {
+			return jsonObject == null ? null : jsonObject.getJSONObject("retweeted_status");
+		} catch (JSONException e) {
+			logger.error("Although twitter.isRetweet() is true, json don't have retweet", e);
+			return null;
+		}
+	}
+
 	private final long[] contributors;
 	private final Date createdAt;
 	private final long id;
@@ -72,7 +85,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private final boolean isTruncated;
 	private final TwitterStatus retweetedStatus;
 	private final User user;
-	//	private final String json;
+	private final String json;
 	private/*final*/ GeoLocation geoLocation;
 	private/*final*/ HashtagEntity[] hashtagEntities;
 	private/*final*/ String inReplyToScreenName;
@@ -93,14 +106,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private String isoLanguageCode;
 	private SymbolEntity[] symbolEntities;
 
-
 	/**
 	 * インスタンスを生成する。
 	 *
 	 * @param originalStatus オリジナルステータス
 	 */
 	public TwitterStatus(Status originalStatus) {
-		this(originalStatus, getJsonObject(originalStatus));
+		this(originalStatus, getJsonObject(originalStatus), originalStatus.getUser());
 	}
 
 	/**
@@ -110,7 +122,18 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 * @param jsonObject     生JSON。取得できなかった場合にはnull。
 	 */
 	public TwitterStatus(Status originalStatus, JSONObject jsonObject) {
-		//json = jsonObject == null ? null : jsonObject.toString();
+		this(originalStatus, jsonObject, originalStatus.getUser());
+	}
+
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param originalStatus オリジナルステータス
+	 * @param jsonObject     生JSON。取得できなかった場合にはnull。
+	 * @param user           getUser()
+	 */
+	public TwitterStatus(Status originalStatus, JSONObject jsonObject, User user) {
+		json = jsonObject == null ? null : jsonObject.toString();
 		favorited = originalStatus.isFavorited();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		urlEntities = originalStatus.getURLEntities();
@@ -131,7 +154,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		retweetCount = originalStatus.getRetweetCount();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		contributors = originalStatus.getContributors();
-		user = getCachedUser(originalStatus.getUser());
+		this.user = getCachedUser(user);
 		possiblySensitive = originalStatus.isPossiblySensitive();
 		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
 		retweeted = originalStatus.isRetweeted();
@@ -140,20 +163,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		symbolEntities = originalStatus.getSymbolEntities();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
-		if (originalStatus instanceof TwitterStatus) {
-			// do nothing
-		/*} else if (jsonObject == null) {
-			retweetedStatus = new TwitterStatus(retweetedStatus);*/
-		} else {
-			if (retweetedStatus != null && retweetedStatus instanceof TwitterStatus == false) {
+		if (!(originalStatus instanceof TwitterStatus)) {
+			if (!(retweetedStatus == null || retweetedStatus instanceof TwitterStatus)) {
 				CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
-				Status cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
-				if (cachedStatus == null || cachedStatus instanceof TwitterStatus == false) {
-					Status status = new TwitterStatus(retweetedStatus);
-					cachedStatus = cacheManager.cacheStatusIfAbsent(status);
-					if (cachedStatus == null) {
-						cachedStatus = status;
-					}
+				TwitterStatus cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
+				if (cachedStatus == null) {
+					TwitterStatus status = new TwitterStatus(retweetedStatus, getRetweetJSONObject(jsonObject));
+					cachedStatus = cacheManager.getCachedStatus(status);
 				}
 				retweetedStatus = cachedStatus;
 			}
@@ -162,7 +178,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
-	public int compareTo(Status b) {
+	public int compareTo(@Nonnull Status b) {
 		long thisId = id;
 		long thatId = b.getId();
 		if (thisId < thatId) {
@@ -180,7 +196,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 			return false;
 		} else if (this == obj) {
 			return true;
-		} else if (obj instanceof Status == false) {
+		} else if (!(obj instanceof Status)) {
 			return false;
 		}
 		return ((Status) obj).getId() == id;
@@ -256,13 +272,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return inReplyToStatusId;
 	}
 
-	/*
-	@Override
-	public String getJson() {
-		return json;
-	}
-	*/
-
 	@Override
 	public long getInReplyToUserId() {
 		return inReplyToUserId;
@@ -271,6 +280,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public String getIsoLanguageCode() {
 		return isoLanguageCode;
+	}
+
+	@Override
+	public String getJson() {
+		return json;
 	}
 
 	@SuppressFBWarnings("EI_EXPOSE_REP")
@@ -404,7 +418,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		this.retweetedByMe = retweetedByMe;
 	}
 
-	public void update(Status status) {
+	public TwitterStatus update(Status status) {
 		favorited = status.isFavorited();
 		retweetedByMe = status.isRetweetedByMe();
 		urlEntities = status.getURLEntities();
@@ -427,6 +441,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		//contributors = status.getContributors();
 		//user = getCachedUser(status.getUser());
 		possiblySensitive = status.isPossiblySensitive();
-		currentUserRetweetId = status.getCurrentUserRetweetId();
+		currentUserRetweetId = status.getCurrentUserRetweetId();return this;
 	}
 }

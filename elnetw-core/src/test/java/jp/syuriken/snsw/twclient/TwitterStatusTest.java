@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import twitter4j.HashtagEntity;
@@ -33,7 +35,6 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
-import twitter4j.User;
 import twitter4j.UserMentionEntity;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.json.DataObjectFactory;
@@ -52,7 +53,7 @@ public class TwitterStatusTest {
 		public CacheManager getCacheManager() {
 			return new CacheManager(this) {
 				@Override
-				public User getCachedUser(long userId) {
+				public TwitterUser getCachedUser(long userId) {
 					return null;
 				}
 			};
@@ -67,7 +68,7 @@ public class TwitterStatusTest {
 	/*package*/static class TestObj {
 
 		/*package*/ String json;
-		/*package*/ List<String> entity = new ArrayList<String>();
+		/*package*/ List<String> entity = new ArrayList<>();
 		public Object text;
 	}
 
@@ -77,7 +78,7 @@ public class TwitterStatusTest {
 	@BeforeClass
 	public static void init() {
 		Scanner scanner = new Scanner(TwitterStatusTest.class.getResourceAsStream("entity-test.txt"), "UTF-8");
-		tests = new ArrayList<TestObj>();
+		tests = new ArrayList<>();
 		TestObj nowObj = null;
 		while (scanner.hasNext()) {
 			String line = scanner.nextLine();
@@ -122,7 +123,7 @@ public class TwitterStatusTest {
 	}
 
 	/**
-	 * {@link TwitterStatus#TwitterStatus(Status)} のためのテスト・メソッド。
+	 * {@link jp.syuriken.snsw.twclient.twitter.TwitterStatus#TwitterStatus(Status)} のためのテスト・メソッド。
 	 *
 	 * @throws TwitterException json例外
 	 * @throws IOException      IO例外

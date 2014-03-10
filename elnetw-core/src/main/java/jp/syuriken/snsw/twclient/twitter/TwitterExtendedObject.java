@@ -18,7 +18,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.twitter;
 
 /**
  * Twitter拡張オブジェクト
@@ -27,10 +27,10 @@ package jp.syuriken.snsw.twclient;
  */
 interface TwitterExtendedObject {
 
-	//	/**
-	//	 * 元のJSONを取得する。
-	//	 *
-	//	 * @return JSON
-	//	 */
-	//	String getJson();
+	/**
+	 * 元のJSONを取得する。
+	 *
+	 * @return JSON
+	 */
+	String getJson();
 }

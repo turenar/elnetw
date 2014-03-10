@@ -40,11 +40,11 @@ import javax.swing.event.AncestorListener;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
