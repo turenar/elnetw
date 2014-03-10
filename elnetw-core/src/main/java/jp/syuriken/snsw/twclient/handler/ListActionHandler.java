@@ -67,7 +67,7 @@ public class ListActionHandler implements ActionHandler {
 				listName = listName.substring(1);
 			}
 			ClientConfiguration.getInstance().getUtility().openBrowser(
-					new URI("http", "twitter.com", userName + "/" + listName).toASCIIString());
+					new URI("https", "twitter.com", "/" + userName + "/lists/" + listName, null).toASCIIString());
 		} catch (URISyntaxException e) {
 			throw new AssertionError(e);
 		} catch (Exception e) {
