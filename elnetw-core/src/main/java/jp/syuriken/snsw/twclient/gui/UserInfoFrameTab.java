@@ -31,6 +31,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -106,6 +108,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private static final String TAB_ID = "userinfo";
 	private static final Logger logger = LoggerFactory.getLogger(UserInfoFrameTab.class);
 	private final Font operationFont = frameApi.getUiFont().deriveFont(Font.PLAIN, frameApi.getUiFont().getSize() - 1);
+	private final HashMap<String, IntentArguments> urlIntentMap;
 	/** 指定されたユーザー */
 	protected User user;
 	/** レンダラ */
@@ -124,7 +127,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
 	private ImageIcon imageIcon;
-	private final HashMap<String, IntentArguments> urlIntentMap;
+	private int nextUrlId = 0;
 
 	/**
 	 * インスタンスを生成する。
@@ -197,14 +200,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				}
 			});
 		}
-	}
-
-	private int nextUrlId = 0;
-
-	protected String getCommandUrl(IntentArguments intentArguments) {
-		String url = "http://command/?id=" + (nextUrlId++);
-		urlIntentMap.put(url, intentArguments);
-		return url;
 	}
 
 	@Override
@@ -287,6 +282,12 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	/*package*/ClientConfiguration getClientConfiguration() {
 		return configuration;
+	}
+
+	protected String getCommandUrl(IntentArguments intentArguments) {
+		String url = "http://command/?id=" + (nextUrlId++);
+		urlIntentMap.put(url, intentArguments);
+		return url;
 	}
 
 	private JScrollPane getComponentBio() {
@@ -410,6 +411,17 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel getComponentUserIcon() {
 		if (componentUserIcon == null) {
 			componentUserIcon = new JLabel();
+			componentUserIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			componentUserIcon.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					try {
+						new ImageViewerFrame(new URL(user.getOriginalProfileImageURLHttps())).setVisible(true);
+					} catch (MalformedURLException ex) {
+						logger.warn("conversion of originalProfileImageURLHttps to URL failed", ex);
+					}
+				}
+			});
 		}
 		return componentUserIcon;
 	}
