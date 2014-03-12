@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -249,6 +250,7 @@ public class CacheManager {
 
 	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合は引数のTwitterUserインスタンスを返す。
+	 *
 	 * @param user キャッシュ済みUser
 	 * @return TwitterUserインスタンス
 	 */
@@ -272,7 +274,7 @@ public class CacheManager {
 	 * Statusを取得する。なんらかの理由でStatusが取得できなかった場合はnull。
 	 * このメソッドはブロックする可能性がある。
 	 *
-	 * @param statusId  TwitterStatus ID
+	 * @param statusId TwitterStatus ID
 	 * @return Statusインスタンス。
 	 */
 	public TwitterStatus getStatus(long statusId) {

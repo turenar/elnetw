@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -218,17 +219,17 @@ public class MessageBusTest {
 	public void testGetRecursivePaths() throws Exception {
 		MessageBus messageBus = new MyMessageBus();
 		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b"),
-				"a:b", "a:all","$all:all","$all:b");
+				"a:b", "a:all", "$all:all", "$all:b");
 		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c"),
-				"a:b/c", "a:b/all", "a:all","$all:all","$all:b/c");
+				"a:b/c", "a:b/all", "a:all", "$all:all", "$all:b/c");
 		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c/d"),
-				"a:b/c/d", "a:b/c/all", "a:b/all", "a:all","$all:b/c/d","$all:all");
+				"a:b/c/d", "a:b/c/all", "a:b/all", "a:all", "$all:b/c/d", "$all:all");
 
 		TreeSet<String> treeSet = new TreeSet<>();
 		messageBus.getRecursivePaths(treeSet, "a", "b/c/d/e");
 		assertArrayItemsEquals(treeSet,
 				"a:b/c/d/e", "a:b/c/d/all", "a:b/c/all", "a:b/all", "a:all",
-				"$all:b/c/d/e","$all:all");
+				"$all:b/c/d/e", "$all:all");
 	}
 
 	@Test

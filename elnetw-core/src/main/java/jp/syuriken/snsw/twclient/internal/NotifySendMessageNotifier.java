@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -40,7 +41,7 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 	public static boolean checkUsable(ClientConfiguration configuration) {
 		if (Utility.getOstype() == Utility.OSType.OTHER) {
 			try {
-				if (Runtime.getRuntime().exec(new String[]{
+				if (Runtime.getRuntime().exec(new String[] {
 						"which",
 						"notify-send"
 				}).waitFor() == 0) {
@@ -61,13 +62,13 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) throws IOException {
 		if (imageFile == null) {
-			Runtime.getRuntime().exec(new String[]{
+			Runtime.getRuntime().exec(new String[] {
 					"notify-send",
 					summary,
 					text
 			});
 		} else {
-			Runtime.getRuntime().exec(new String[]{
+			Runtime.getRuntime().exec(new String[] {
 					"notify-send",
 					"-i",
 					imageFile.getPath(),

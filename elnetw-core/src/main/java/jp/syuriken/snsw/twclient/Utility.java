@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -330,7 +331,7 @@ public class Utility {
 	}
 
 	static {
-		privacyEntries = new KVEntry[]{
+		privacyEntries = new KVEntry[] {
 				new KVEntry(System.getProperty("elnetw.home"), "{DATA}/"),
 				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
@@ -449,7 +450,7 @@ public class Utility {
 		if (detectedBrowser == null) {
 			for (String browser : BROWSER_CANDIDATES) {
 				try {
-					if (Runtime.getRuntime().exec(new String[]{
+					if (Runtime.getRuntime().exec(new String[] {
 							"which",
 							browser
 					}).waitFor() == 0) {
@@ -505,13 +506,13 @@ public class Utility {
 	 *
 	 * @param url 開くURL
 	 * @throws java.awt.HeadlessException GUIを使用できない
-	 * @throws InvocationTargetException 関数のinvokeに失敗 (Mac OS)
-	 * @throws IllegalAccessException アクセスに失敗
-	 * @throws IllegalArgumentException 正しくない引数
-	 * @throws IOException IOエラーが発生
-	 * @throws NoSuchMethodException 関数のinvokeに失敗 (Mac OS)
-	 * @throws SecurityException セキュリティ例外
-	 * @throws ClassNotFoundException クラスのinvokeに失敗 (Mac OS)
+	 * @throws InvocationTargetException  関数のinvokeに失敗 (Mac OS)
+	 * @throws IllegalAccessException     アクセスに失敗
+	 * @throws IllegalArgumentException   正しくない引数
+	 * @throws IOException                IOエラーが発生
+	 * @throws NoSuchMethodException      関数のinvokeに失敗 (Mac OS)
+	 * @throws SecurityException          セキュリティ例外
+	 * @throws ClassNotFoundException     クラスのinvokeに失敗 (Mac OS)
 	 */
 	public void openBrowser(String url) throws Exception {
 		detectOS();
@@ -528,7 +529,7 @@ public class Utility {
 					break;
 				case OTHER:
 					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[]{
+					Runtime.getRuntime().exec(new String[] {
 							browser,
 							url.trim()
 					});

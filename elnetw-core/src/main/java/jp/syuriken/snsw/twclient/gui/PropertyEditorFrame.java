@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -66,7 +67,7 @@ public class PropertyEditorFrame extends JFrame {
 
 		private static final long serialVersionUID = 1L;
 
-		Class<?>[] types = new Class<?>[]{
+		Class<?>[] types = new Class<?>[] {
 				String.class,
 				String.class,
 		};
@@ -305,7 +306,7 @@ public class PropertyEditorFrame extends JFrame {
 		ClientProperties configProperties = configuration.getConfigProperties();
 		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements(); ) {
 			String key = (String) enumeration.nextElement();
-			tableModel.addRow(new Object[]{
+			tableModel.addRow(new Object[] {
 					key,
 					configProperties.getProperty(key)
 			});
