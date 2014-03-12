@@ -23,7 +23,19 @@
 			<url>https://raw.github.com/turenar/maven-repo/master</url>
 		</repository>
 	</repositories>
-
+	<pluginRepositories>
+		<pluginRepository>
+			<id>turenar-mvnrepo</id>
+			<name>Elnetw's Maven Repository</name>
+			<url>https://raw.github.com/turenar/maven-repo/master</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
 	<scm>
 		<connection>scm:git:git://github.com/turenar/elnetw.git</connection>
 		<developerConnection>scm:git:https://github.com/turenar/elnetw.git</developerConnection>
