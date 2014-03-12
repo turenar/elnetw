@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH;
 import static jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator.DEFAULT_SHORT_URL_LENGTH_HTTPS;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * {@link DefaultTweetLengthCalculator}のためのテスト
@@ -43,7 +43,7 @@ public class DefaultTweetLengthCalculatorTest {
 	private static final String TEXT2 = getString(120) + "https://t.co";
 	private static final String TEXT1 = getString(120) + "http://t.co";
 
-	private static final String getString(int width) {
+	private static String getString(int width) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < width; i++) {
 			stringBuilder.append('あ');

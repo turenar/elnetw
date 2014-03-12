@@ -26,6 +26,7 @@ import java.awt.event.FocusEvent;
  * Focus Event
  */
 public class RendererFocusEvent extends FocusEvent {
+	private static final long serialVersionUID = -2372696262107928913L;
 	private final RenderObject renderObject;
 
 	public RendererFocusEvent(FocusEvent e, RenderObject renderObject) {

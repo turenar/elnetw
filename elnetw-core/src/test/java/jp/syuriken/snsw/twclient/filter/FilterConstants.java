@@ -29,7 +29,7 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.json.DataObjectFactory;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * フィルタ・テスト用の定数等を格納したクラス。
@@ -108,9 +108,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			STATUS_4 = loadStatus("21947795900469248.json");
 			STATUS_5 = loadStatus("st_test.json");
 			DM_1 = loadDirectMessage("dm.json");
-		} catch (TwitterException e) {
-			throw new AssertionError(e);
-		} catch (IOException e) {
+		} catch (TwitterException | IOException e) {
 			throw new AssertionError(e);
 		}
 	}
@@ -132,8 +130,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	}
 
 	private static DirectMessage loadDirectMessage(String fileName) throws TwitterException, IOException {
-		DirectMessage directMessage = DataObjectFactory.createDirectMessage(loadFromFile(fileName));
-		return directMessage;
+		return DataObjectFactory.createDirectMessage(loadFromFile(fileName));
 	}
 
 	private static String loadFromFile(String fileName) throws IOException {
@@ -142,8 +139,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			stream = new BufferedInputStream(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
 			byte[] buf = new byte[65536];
 			int len = stream.read(buf);
-			String str = new String(buf, 0, len, Charset.forName("utf8"));
-			return str;
+			return new String(buf, 0, len, Charset.forName("utf8"));
 		} finally {
 			if (stream != null) {
 				try {
@@ -156,8 +152,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	}
 
 	private static Status loadStatus(String fileName) throws TwitterException, IOException {
-		Status status = DataObjectFactory.createStatus(loadFromFile(fileName));
-		return status;
+		return DataObjectFactory.createStatus(loadFromFile(fileName));
 	}
 
 	/**

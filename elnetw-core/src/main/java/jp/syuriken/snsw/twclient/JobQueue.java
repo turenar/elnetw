@@ -146,7 +146,7 @@ public class JobQueue {
 
 	@SuppressWarnings("unchecked")
 	private static LinkedQueue<Runnable>[] makeLinkedQueueArray() {
-		return new LinkedQueue[PRIORITY_MAX + 1];
+		return (LinkedQueue<Runnable>[]) new LinkedQueue<?>[PRIORITY_MAX + 1];
 	}
 
 	private final LinkedQueue<Runnable>[] queues;
