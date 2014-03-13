@@ -30,11 +30,11 @@ import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
 
 /**
  * タイムラインビュー

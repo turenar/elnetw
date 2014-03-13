@@ -21,9 +21,9 @@
 
 package jp.syuriken.snsw.twclient.bus;
 
-import java.util.Map;
 import java.util.Properties;
 
+import twitter4j.HttpClientConfiguration;
 import twitter4j.conf.Configuration;
 
 /**
@@ -44,15 +44,6 @@ public class TwitterConfigurationImpl implements Configuration {
 		return 0;
 	}
 
-	@Override
-	public String getClientURL() {
-		return null;
-	}
-
-	@Override
-	public String getClientVersion() {
-		return null;
-	}
 
 	@Override
 	public long getContributingTo() {
@@ -65,53 +56,8 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public int getHttpConnectionTimeout() {
-		return 0;
-	}
-
-	@Override
-	public int getHttpDefaultMaxPerRoute() {
-		return 0;
-	}
-
-	@Override
-	public int getHttpMaxTotalConnections() {
-		return 0;
-	}
-
-	@Override
-	public String getHttpProxyHost() {
+	public HttpClientConfiguration getHttpClientConfiguration() {
 		return null;
-	}
-
-	@Override
-	public String getHttpProxyPassword() {
-		return null;
-	}
-
-	@Override
-	public int getHttpProxyPort() {
-		return 0;
-	}
-
-	@Override
-	public String getHttpProxyUser() {
-		return null;
-	}
-
-	@Override
-	public int getHttpReadTimeout() {
-		return 0;
-	}
-
-	@Override
-	public int getHttpRetryCount() {
-		return 0;
-	}
-
-	@Override
-	public int getHttpRetryIntervalSeconds() {
-		return 0;
 	}
 
 	@Override
@@ -209,11 +155,6 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public Map<String, String> getRequestHeaders() {
-		return null;
-	}
-
-	@Override
 	public String getRestBaseURL() {
 		return null;
 	}
@@ -233,10 +174,6 @@ public class TwitterConfigurationImpl implements Configuration {
 		return null;
 	}
 
-	@Override
-	public String getUserAgent() {
-		return null;
-	}
 
 	@Override
 	public String getUserStreamBaseURL() {
@@ -249,37 +186,12 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public boolean isDalvik() {
-		return false;
-	}
-
-	@Override
 	public boolean isDebugEnabled() {
 		return false;
 	}
 
 	@Override
-	public boolean isGAE() {
-		return false;
-	}
-
-	@Override
-	public boolean isGZIPEnabled() {
-		return false;
-	}
-
-	@Override
-	public boolean isIncludeEntitiesEnabled() {
-		return false;
-	}
-
-	@Override
 	public boolean isIncludeMyRetweetEnabled() {
-		return false;
-	}
-
-	@Override
-	public boolean isIncludeRTsEnabled() {
 		return false;
 	}
 
@@ -293,10 +205,6 @@ public class TwitterConfigurationImpl implements Configuration {
 		return false;
 	}
 
-	@Override
-	public boolean isPrettyDebugEnabled() {
-		return false;
-	}
 
 	@Override
 	public boolean isStallWarningsEnabled() {
@@ -310,6 +218,11 @@ public class TwitterConfigurationImpl implements Configuration {
 
 	@Override
 	public boolean isUserStreamRepliesAllEnabled() {
+		return false;
+	}
+
+	@Override
+	public boolean isUserStreamWithFollowingsEnabled() {
 		return false;
 	}
 }

@@ -69,11 +69,11 @@ import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.JSONArray;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.Status;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.org.json.JSONArray;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ツイート表示用のタブ

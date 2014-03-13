@@ -35,11 +35,11 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
+import twitter4j.HttpResponseCode;
 import twitter4j.PagableResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.internal.http.HttpResponseCode;
 
 /**
  * リストに入っているかどかを用いてフィルタする
@@ -61,7 +61,7 @@ public class InListProperty implements FilterProperty {
 	protected class UserFollewedByListFetcher implements ParallelRunnable {
 
 		/** リストID */
-		protected int listId;
+		protected long listId;
 		private Logger logger = LoggerFactory.getLogger(UserFollewedByListFetcher.class);
 
 
@@ -115,7 +115,7 @@ public class InListProperty implements FilterProperty {
 		@Override
 		public void run() {
 			ArrayList<User> userListMembers = new ArrayList<User>();
-			int listId = this.listId;
+			long listId = this.listId;
 			long cursor = -1;
 			int life = 10;
 			do {
@@ -134,7 +134,7 @@ public class InListProperty implements FilterProperty {
 							logger.info("failed retrieving listMembers (over retry limit)");
 							return; // fail fetcher
 						}
-						continue; // with (prev) cursor
+						// continue; // with (prev) cursor
 					} else if (statusCode == HttpResponseCode.NOT_FOUND) {
 						logger.info("failed retrieving listMembers (Not Found): listId={}", listId);
 						return; // fail fetcher

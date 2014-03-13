@@ -586,10 +586,11 @@ public class ClientConfiguration {
 		String consumerKey = consumerPair[0];
 		String consumerSecret = consumerPair[1];
 
-		return new ConfigurationBuilder().setOAuthConsumerKey(consumerKey).setOAuthConsumerSecret(consumerSecret)
+		return new ConfigurationBuilder()
+				.setOAuthConsumerKey(consumerKey)
+				.setOAuthConsumerSecret(consumerSecret)
 				.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
-				.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
-				.setClientURL(VersionInfo.getSupportUrl());
+				.setJSONStoreEnabled(true);
 	}
 
 	/**

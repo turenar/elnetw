@@ -66,12 +66,12 @@ import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
 
 /**
  * ユーザー情報を表示するFrameTab
@@ -170,7 +170,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param jsonString シリアル化されたデータ
-	 * @throws twitter4j.internal.org.json.JSONException               JSON例外
+	 * @throws twitter4j.JSONException                                 JSON例外
 	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException クエリエラー
 	 */
 	public UserInfoFrameTab(String jsonString) throws JSONException,

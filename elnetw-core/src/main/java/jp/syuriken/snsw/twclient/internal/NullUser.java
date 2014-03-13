@@ -21,7 +21,6 @@
 
 package jp.syuriken.snsw.twclient.internal;
 
-import java.net.URL;
 import java.util.Date;
 
 import twitter4j.RateLimitStatus;
@@ -143,13 +142,6 @@ public class NullUser implements User {
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public String getProfileBackgroundImageUrl() {
-		return null;
-	}
-
 	@Override
 	public String getProfileBackgroundImageURL() {
 		return null;
@@ -195,12 +187,6 @@ public class NullUser implements User {
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public URL getProfileImageUrlHttps() {
-		return null;
-	}
 
 	@Override
 	public String getProfileImageURLHttps() {

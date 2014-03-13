@@ -32,13 +32,15 @@ import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import twitter4j.HashtagEntity;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
+import twitter4j.JSONTokener;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.json.DataObjectFactoryUtil;
-import twitter4j.json.DataObjectFactory;
 
 import static org.junit.Assert.*;
 
@@ -130,7 +132,7 @@ public class TwitterStatusTest {
 	 * @throws IOException      IO例外
 	 */
 	@Test
-	public void testTwitterStatus() throws TwitterException, IOException {
+	public void testTwitterStatus() throws TwitterException, IOException, JSONException {
 		ClientConfiguration configuration = new ClientConfigurationExtension();
 		ClientConfiguration.setInstance(configuration);
 		ClientProperties clientProperties = new ClientProperties();
@@ -138,9 +140,8 @@ public class TwitterStatusTest {
 				"UTF-8"));
 		configuration.setConfigProperties(clientProperties);
 		for (TestObj test : tests) {
-			Status status = DataObjectFactory.createStatus(test.json);
-			DataObjectFactoryUtil.registerJSONObject(status, test.json);
-			status = new TwitterStatus(status);
+			Status status = TwitterObjectFactory.createStatus(test.json);
+			status = new TwitterStatus(status, new JSONObject(new JSONTokener(test.json)));
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}

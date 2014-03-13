@@ -32,17 +32,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.MediaEntity;
 import twitter4j.Place;
 import twitter4j.RateLimitStatus;
+import twitter4j.Scopes;
 import twitter4j.Status;
 import twitter4j.SymbolEntity;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
-import twitter4j.json.DataObjectFactory;
 
 /**
  * RT/favしたかどうかを格納できるStatus拡張型
@@ -50,13 +51,12 @@ import twitter4j.json.DataObjectFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterStatus implements Status, TwitterExtendedObject {
-
 	private static final long serialVersionUID = -188757917578787367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 
 	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
-		String json = DataObjectFactory.getRawJSON(originalStatus);
+		String json = TwitterObjectFactory.getRawJSON(originalStatus);
 		JSONObject jsonObject = null;
 		if (json != null) {
 			try {
@@ -104,8 +104,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private long currentUserRetweetId;
 	private boolean retweeted;
 	private int favoriteCount;
-	private String isoLanguageCode;
+	private String lang;
 	private SymbolEntity[] symbolEntities;
+	private Scopes scopes;
 
 	/**
 	 * インスタンスを生成する。
@@ -160,8 +161,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		currentUserRetweetId = originalStatus.getCurrentUserRetweetId();
 		retweeted = originalStatus.isRetweeted();
 		favoriteCount = originalStatus.getFavoriteCount();
-		isoLanguageCode = originalStatus.getIsoLanguageCode();
+		lang = originalStatus.getLang();
 		symbolEntities = originalStatus.getSymbolEntities();
+		scopes = originalStatus.getScopes();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (!(originalStatus instanceof TwitterStatus)) {
@@ -279,8 +281,8 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
-	public String getIsoLanguageCode() {
-		return isoLanguageCode;
+	public String getLang() {
+		return lang;
 	}
 
 	@Override
@@ -370,6 +372,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public boolean isPossiblySensitive() {
 		return possiblySensitive;
+	}
+
+	@Override
+	public Scopes getScopes() {
+		return scopes;
 	}
 
 	@Override

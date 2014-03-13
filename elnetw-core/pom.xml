@@ -221,6 +221,6 @@
 		</plugins>
 	</reporting>
 	<properties>
-		<twitter4j.version>3.0.5</twitter4j.version>
+		<twitter4j.version>4.0.0</twitter4j.version>
 	</properties>
 </project>

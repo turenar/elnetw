@@ -21,7 +21,6 @@
 
 package jp.syuriken.snsw.twclient.filter;
 
-import java.net.URL;
 import java.util.Date;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -146,13 +145,6 @@ class TestUser implements User {
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public String getProfileBackgroundImageUrl() {
-		return null;
-	}
-
 	@Override
 	public String getProfileBackgroundImageUrlHttps() {
 		return null;
@@ -195,13 +187,6 @@ class TestUser implements User {
 
 	@Override
 	public String getProfileImageURLHttps() {
-		return null;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public URL getProfileImageUrlHttps() {
 		return null;
 	}
 

@@ -28,9 +28,9 @@ import javax.swing.Icon;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.Status;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
 
 /**
  * メンション表示用タブ

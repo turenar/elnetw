@@ -21,8 +21,6 @@
 
 package jp.syuriken.snsw.twclient.twitter;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -32,13 +30,13 @@ import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.JSONException;
+import twitter4j.JSONObject;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
-import twitter4j.json.DataObjectFactory;
 
 /**
  * プロフィールの更新ができるUser拡張型
@@ -51,7 +49,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
 
 	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
-		String json = DataObjectFactory.getRawJSON(originalUser);
+		String json = TwitterObjectFactory.getRawJSON(originalUser);
 		JSONObject jsonObject = null;
 		if (json != null) {
 			try {
@@ -313,14 +311,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBackgroundImageUrl;
 	}
 
-	@SuppressFBWarnings("NM_CONFUSING")
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public String getProfileBackgroundImageUrl() {
-		return profileBackgroundImageUrl;
-	}
-
 	@Override
 	public String getProfileBackgroundImageUrlHttps() {
 		return profileBackgroundImageUrlHttps;
@@ -364,17 +354,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public String getProfileImageURLHttps() {
 		return profileImageUrlHttps;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public URL getProfileImageUrlHttps() {
-		try {
-			return new URL(profileImageUrlHttps);
-		} catch (MalformedURLException e) {
-			return null;
-		}
 	}
 
 	@Override
