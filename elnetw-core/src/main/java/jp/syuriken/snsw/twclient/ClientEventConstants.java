@@ -88,4 +88,10 @@ public interface ClientEventConstants {
 	 * (thread: Swing Event Dispatcher Thread; arg: {@link java.awt.event.MouseEvent})
 	 */
 	/*public static final*/ String EVENT_CLICKED_CREATED_AT = "event createdAt clicked";
+	/**
+	 * {@link jp.syuriken.snsw.twclient.ClientFrameApi#setTweetViewCreatedBy(javax.swing.Icon, String, String, int)}で設定された
+	 * ユーザーアイコンラベルがクリックされたイベント
+	 * (thread: Swing Event Dispatcher Thread; arg: {@link java.awt.event.MouseEvent})
+	 */
+	/*public static final*/ String EVENT_CLICKED_USERICON = "event usericon clicked";
 }

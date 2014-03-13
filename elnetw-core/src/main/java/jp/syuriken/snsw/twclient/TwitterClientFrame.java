@@ -24,6 +24,7 @@ package jp.syuriken.snsw.twclient;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -33,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -555,12 +557,6 @@ import static java.lang.Math.max;
 		imageCacher = new ImageCacher(configuration);
 
 		logger.info("frame initialized");
-	}
-
-	@Deprecated
-	@Override
-	public ActionHandler addActionHandler(String name, ActionHandler handler) {
-		return configuration.addActionHandler(name, handler);
 	}
 
 	@Override
@@ -1128,6 +1124,12 @@ import static java.lang.Math.max;
 			tweetViewUserIconLabel = new JLabel();
 			tweetViewUserIconLabel.setHorizontalAlignment(JLabel.CENTER);
 			tweetViewUserIconLabel.setVerticalAlignment(JLabel.CENTER);
+			tweetViewUserIconLabel.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					getSelectingTab().getRenderer().onClientMessage(ClientEventConstants.EVENT_CLICKED_USERICON, e);
+				}
+			});
 		}
 		return tweetViewUserIconLabel;
 	}
@@ -1321,6 +1323,8 @@ import static java.lang.Math.max;
 	@Override
 	public void setTweetViewCreatedBy(Icon icon, String createdBy, String toolTip, int actionFlag) {
 		getTweetViewUserIconLabel().setIcon(icon);
+		getTweetViewUserIconLabel().setCursor((actionFlag & SET_CURSOR_HAND) == 0 ? Cursor.getDefaultCursor()
+				: Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		getTweetViewCreatedByLabel().setText(createdBy);
 		getTweetViewCreatedByLabel().setToolTipText(toolTip);
 		tweetViewCreatedByFlag = actionFlag;

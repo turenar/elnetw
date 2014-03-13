@@ -27,6 +27,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Date;
 
@@ -43,14 +45,18 @@ import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
+import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_CURSOR_HAND;
 import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_FOREGROUND_COLOR_BLUE;
 import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 
@@ -120,7 +126,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		Icon userProfileIcon = componentUserIcon.getIcon();
 
 		getFrameApi().setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
-		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
+		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null,
+				SET_FOREGROUND_COLOR_BLUE | UNDERLINE | SET_CURSOR_HAND);
 		getFrameApi().setTweetViewText(tweetText, overlayString, UNDERLINE);
 		getFrameApi().setTweetViewOperationPanel(getTweetViewOperationPanel());
 	}
@@ -382,6 +389,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 
 	@Override
 	public void onEvent(String name, Object arg) {
+		super.onEvent(name, arg);
 		switch (name) {
 			case REQUEST_COPY:
 				copyToClipboard("@" + status.getUser().getScreenName() + ": " + status.getText());
@@ -438,7 +446,21 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 					handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
 				}
 				break;
+			case EVENT_CLICKED_USERICON:
+				try {
+					new ImageViewerFrame(new URL(getOriginalUser(status).getOriginalProfileImageURLHttps())).setVisible(
+							true);
+				} catch (MalformedURLException e) {
+					logger.error("failed getting original profile image", e);
+				}
+				break;
 		}
+	}
+
+	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
+
+	private User getOriginalUser(TwitterStatus status) {
+		return status.isRetweet() ? status.getRetweetedStatus().getUser() : status.getUser();
 	}
 
 	private void openBrowser(String url) {

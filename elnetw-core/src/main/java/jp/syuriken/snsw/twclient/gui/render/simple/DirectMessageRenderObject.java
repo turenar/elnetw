@@ -23,16 +23,23 @@ package jp.syuriken.snsw.twclient.gui.render.simple;
 
 import java.awt.Color;
 import java.awt.event.FocusEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Date;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
+import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_CURSOR_HAND;
 
 /**
  * Render object for direct messages
@@ -64,7 +71,7 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 		Icon userProfileIcon = componentUserIcon.getIcon();
 
 		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_CURSOR_HAND);
 		getFrameApi().setTweetViewText(tweetText, null, DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewOperationPanel(null);
 	}
@@ -83,6 +90,21 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	public Date getDate() {
 		return directMessage.getCreatedAt();
 	}
+
+	@Override
+	public void onEvent(String name, Object arg) {
+		super.onEvent(name, arg);
+		if (name.equals(ClientEventConstants.EVENT_CLICKED_USERICON)) {
+			try {
+				new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
+						.setVisible(true);
+			} catch (MalformedURLException e) {
+				logger.error("failed getting original profile image", e);
+			}
+		}
+	}
+
+	private static final Logger logger = LoggerFactory.getLogger(DirectMessageRenderObject.class);
 
 	@Override
 	public String getUniqId() {

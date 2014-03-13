@@ -42,24 +42,14 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface ClientFrameApi extends TweetLengthUpdater {
-
+	/** ポインタ時に何もしない */
+	/*public static final*/ int DO_NOTHING_WHEN_POINTED = 0;
 	/** ポインタ時にはforegroundをblueに設定する */
 	/*public static final*/ int SET_FOREGROUND_COLOR_BLUE = 1;
 	/** ポインタ時にはunderlineを引く */
 	/*public static final*/ int UNDERLINE = 1 << 1;
-	/** ポインタ時に何もしない */
-	/*public static final*/ int DO_NOTHING_WHEN_POINTED = 0;
-
-	/**
-	 * アクションハンドラを追加する
-	 *
-	 * @param name    ハンドラ名
-	 * @param handler ハンドラ
-	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
-	 * @deprecated use {@link ClientConfiguration#addActionHandler(String, ActionHandler)}
-	 */
-	@Deprecated
-	ActionHandler addActionHandler(String name, ActionHandler handler);
+	/** ポインタ時にはcursorをHANDに設定する */
+	/*public static final*/ int SET_CURSOR_HAND = 1 << 2;
 
 	/**
 	 * ショートカットキーとアクションコマンドを関連付ける
