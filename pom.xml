@@ -46,6 +46,10 @@
 			<url>http://oss.sonatype.org/content/repositories/releases</url>
 		</pluginRepository>
 		<pluginRepository>
+			<id>turenar-mvnrepo</id>
+			<url>https://raw.github.com/turenar/maven-repo/master</url>
+		</pluginRepository>
+		<pluginRepository>
 			<id>clojars.org</id>
 			<url>http://clojars.org/repo</url>
 		</pluginRepository>
