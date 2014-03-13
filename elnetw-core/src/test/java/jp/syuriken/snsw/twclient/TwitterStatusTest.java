@@ -23,6 +23,7 @@ package jp.syuriken.snsw.twclient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -32,9 +33,6 @@ import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import twitter4j.HashtagEntity;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
-import twitter4j.JSONTokener;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -76,6 +74,13 @@ public class TwitterStatusTest {
 	}
 
 	private static ArrayList<TestObj> tests;
+	private static Method registerMethod;
+	private static NoSuchMethodException registerMethodException;
+
+	@SuppressWarnings("UnusedDeclaration") // called from reflection
+	private static <T> T fakeRegisterJSONObject(T key, Object json) {
+		throw new AssertionError(registerMethodException);
+	}
 
 	/** クラス初期化 */
 	@BeforeClass
@@ -109,6 +114,23 @@ public class TwitterStatusTest {
 		if (nowObj != null) {
 			tests.add(nowObj);
 		}
+		try {
+			registerMethod = TwitterObjectFactory.class
+					.getDeclaredMethod("registerJSONObject", Object.class, Object.class);
+			registerMethod.setAccessible(true);
+		} catch (NoSuchMethodException e) {
+			try {
+				// fail only if #registerJSONObject is called
+				registerMethod = TwitterStatusTest.class
+						.getDeclaredMethod("fakeRegisterJSONObject", Object.class, Object.class);
+				registerMethodException = e;
+			} catch (NoSuchMethodException e1) {
+				// fail any case
+				e1.addSuppressed(e);
+				throw new AssertionError(e1);
+			}
+
+		}
 	}
 
 	private String getEntityText(String text, Object entity) {
@@ -125,6 +147,15 @@ public class TwitterStatusTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private <T> T registerJSONObject(T key, Object json) throws ReflectiveOperationException {
+		if (registerMethod == null) {
+			throw new AssertionError();
+		} else {
+			return (T) registerMethod.invoke(null, key, json);
+		}
+	}
+
 	/**
 	 * {@link jp.syuriken.snsw.twclient.twitter.TwitterStatus#TwitterStatus(Status)} のためのテスト・メソッド。
 	 *
@@ -132,7 +163,7 @@ public class TwitterStatusTest {
 	 * @throws IOException      IO例外
 	 */
 	@Test
-	public void testTwitterStatus() throws TwitterException, IOException, JSONException {
+	public void testTwitterStatus() throws Throwable {
 		ClientConfiguration configuration = new ClientConfigurationExtension();
 		ClientConfiguration.setInstance(configuration);
 		ClientProperties clientProperties = new ClientProperties();
@@ -140,8 +171,8 @@ public class TwitterStatusTest {
 				"UTF-8"));
 		configuration.setConfigProperties(clientProperties);
 		for (TestObj test : tests) {
-			Status status = TwitterObjectFactory.createStatus(test.json);
-			status = new TwitterStatus(status, new JSONObject(new JSONTokener(test.json)));
+			Status status = registerJSONObject(TwitterObjectFactory.createStatus(test.json), test.json);
+			status = new TwitterStatus(status);
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}
