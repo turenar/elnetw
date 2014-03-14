@@ -182,7 +182,7 @@ public class ArgParserTest {
 		ArgParser parser = new ArgParser();
 		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
 
-		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female extreme"));
 		assertTrue(arguments.hasOpt("--gender"));
 		assertEquals("male", arguments.getOptArg("--gender"));
 		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
@@ -199,7 +199,7 @@ public class ArgParserTest {
 		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
 		parser.addShortOpt("-g", "--gender");
 
-		ParsedArguments arguments = parser.parse(a("-g male --gender female"));
+		ParsedArguments arguments = parser.parse(a("-g male --gender female extra-ordinary"));
 		assertTrue(arguments.hasOpt("--gender"));
 		assertEquals("male", arguments.getOptArg("--gender"));
 		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
@@ -214,6 +214,28 @@ public class ArgParserTest {
 		assertNull(next.getShortOptName());
 		assertEquals("--gender", next.getLongOptName());
 		assertEquals("female", next.getArg());
+		assertFalse(iterator.hasNext());
+
+
+		iterator = arguments.getOptionListIterator();
+		assertTrue(iterator.hasNext());
+		next = iterator.next();
+		assertEquals("-g", next.getShortOptName());
+		assertEquals("--gender", next.getLongOptName());
+		assertEquals("male", next.getArg());
+
+		assertTrue(iterator.hasNext());
+		next = iterator.next();
+		assertNull(next.getShortOptName());
+		assertEquals("--gender", next.getLongOptName());
+		assertEquals("female", next.getArg());
+
+		assertTrue(iterator.hasNext());
+		next = iterator.next();
+		assertNull(next.getShortOptName());
+		assertNull(next.getLongOptName());
+		assertEquals("extra-ordinary", next.getArg());
+
 		assertFalse(iterator.hasNext());
 	}
 

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * arguments parsed by ArgParser.
@@ -31,14 +32,16 @@ import java.util.Iterator;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ParsedArguments {
-	private final ArrayList<String> errorMessages;
-	private final ArrayList<String> processArguments;
-	private final HashMap<String, OptionInfo> optionInfos;
+	protected final ArrayList<String> errorMessages;
+	protected final ArrayList<String> processArguments;
+	protected final HashMap<String, OptionInfo> optionInfos;
+	protected final LinkedList<OptionInfo> optionInfoList;
 
 	protected ParsedArguments() {
 		errorMessages = new ArrayList<>(0);
 		processArguments = new ArrayList<>();
 		optionInfos = new HashMap<>();
+		optionInfoList = new LinkedList<>();
 	}
 
 	/**
@@ -76,10 +79,20 @@ public class ParsedArguments {
 
 	/**
 	 * プロセス引数を追加する
+	 *
 	 * @param arg プロセス引数 (オプションと何も関係がない引数)
 	 */
 	protected void addProcessArgument(String arg) {
+		optionInfoList.add(new OptionInfo(null, null, arg));
 		processArguments.add(arg);
+	}
+
+	/**
+	 * すべてのオプション情報を取得する。これは指定された順番通りに並べられている
+	 * @return オプション情報のイテレータ
+	 */
+	public Iterator<OptionInfo> getOptionListIterator() {
+		return Collections.unmodifiableList(optionInfoList).iterator();
 	}
 
 	/**
@@ -93,6 +106,7 @@ public class ParsedArguments {
 	protected void addShortOpt(String shortOptName, String longOptName, String arg, boolean supportMultiArg) {
 		OptionInfo optionInfo = optionInfos.get(longOptName);
 		OptionInfo newInfo = new OptionInfo(shortOptName, longOptName, arg);
+		optionInfoList.add(newInfo);
 		if (optionInfo == null) {
 			optionInfos.put(longOptName, newInfo);
 		} else {
@@ -106,6 +120,7 @@ public class ParsedArguments {
 
 	/**
 	 * パースエラー数を取得する。
+	 *
 	 * @return エラー数
 	 */
 	public int getErrorCount() {
@@ -114,6 +129,7 @@ public class ParsedArguments {
 
 	/**
 	 * エラーメッセージの配列を取得する。
+	 *
 	 * @return パースエラーメッセージ。
 	 */
 	public String[] getErrorMessages() {
@@ -122,6 +138,7 @@ public class ParsedArguments {
 
 	/**
 	 * 長いオプションと関連付けられる引数を取得する。
+	 *
 	 * @param longOptName 長いオプション名
 	 * @return 引数。オプションが複数指定された場合は最初のオプションの引数。nullの可能性あり。
 	 */
@@ -132,6 +149,7 @@ public class ParsedArguments {
 
 	/**
 	 * 長いオプションと関連付けられる{@link jp.syuriken.snsw.lib.parser.OptionInfo}インスタンスを取得する。
+	 *
 	 * @param longOptName 長いオプション名
 	 * @return オプション情報。オプションが指定されていない場合null。
 	 */
@@ -141,6 +159,7 @@ public class ParsedArguments {
 
 	/**
 	 * オプションと関連付けられないプロセス引数配列を取得する。
+	 *
 	 * @return プロセス引数配列。
 	 */
 	public String[] getProcessArguments() {
@@ -149,6 +168,7 @@ public class ParsedArguments {
 
 	/**
 	 * 最初のプロセス引数を取得する。
+	 *
 	 * @return プロセス引数
 	 */
 	public String getProcessArgument() {
@@ -166,6 +186,7 @@ public class ParsedArguments {
 
 	/**
 	 * 指定した番号のプロセス引数を取得する。
+	 *
 	 * @param i 番号
 	 * @return プロセス引数
 	 */
@@ -175,6 +196,7 @@ public class ParsedArguments {
 
 	/**
 	 * プロセス引数の数を取得する
+	 *
 	 * @return 数
 	 */
 	public int getProcessArgumentCount() {
@@ -183,6 +205,7 @@ public class ParsedArguments {
 
 	/**
 	 * パースエラーがあるかどうかを調べる。
+	 *
 	 * @return パースエラーがある場合true。それ以外false。
 	 */
 	public boolean hasError() {
@@ -191,6 +214,7 @@ public class ParsedArguments {
 
 	/**
 	 * オプションが指定されたかどうかを返す。
+	 *
 	 * @param longOptName 長いオプション名
 	 * @return 指定されているかどうか。
 	 */
