@@ -21,10 +21,21 @@
 package jp.syuriken.snsw.lib.parser;
 
 /**
- * OptionType
+ * 引数を必要とするかどうか
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public enum OptionType {
-	NO_ARGUMENT, REQUIRED_ARGUMENT, OPTIONAL_ARGUMENT
+	/**
+	 * 引数は指定できない
+	 */
+	NO_ARGUMENT,
+	/**
+	 * 引数は指定しなければならない
+	 */
+	REQUIRED_ARGUMENT,
+	/**
+	 * 引数は任意である
+	 */
+	OPTIONAL_ARGUMENT
 }

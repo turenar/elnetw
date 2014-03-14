@@ -20,35 +20,130 @@
 
 package jp.syuriken.snsw.lib.parser;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * store option info
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class OptionInfo {
-	private final String shortOptName;
-	private final String longOptName;
-	private final String arg;
+public class OptionInfo implements Iterable<OptionInfo> {
+	/**
+	 * イテレータ
+	 */
+	protected class InfoIterator implements Iterator<OptionInfo> {
+		private OptionInfo info;
+		private boolean isNextThis;
 
+		public InfoIterator() {
+			info = OptionInfo.this;
+			isNextThis = true;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return isNextThis || !(info == null || info.next == null);
+		}
+
+		@Override
+		public OptionInfo next() {
+			if (info == null) {
+				throw new NoSuchElementException();
+			} else if (isNextThis) {
+				isNextThis = false;
+			} else {
+				info = info.next;
+			}
+			return info;
+		}
+
+		@Override
+		public void remove() throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	private String shortOptName;
+	private String longOptName;
+	private String arg;
+	protected OptionInfo next;
+	protected OptionInfo last = this;
+
+	/**
+	 * インスタンスを作成する
+	 * @param shortOptName 短いオプション名 (null可)
+	 * @param longOptName 長いオプション名
+	 * @param arg 引数
+	 */
 	public OptionInfo(String shortOptName, String longOptName, String arg) {
 		this.shortOptName = shortOptName;
 		this.longOptName = longOptName;
 		this.arg = arg;
 	}
 
-	public OptionInfo(String longOptName, String arg) {
-		this(null, longOptName, arg);
+	/**
+	 * 末尾に追加する。
+	 *
+	 * @param info 次に指定されたオプションの情報
+	 */
+	protected void add(OptionInfo info) {
+		last.next = info;
+		last = info;
 	}
 
+	/**
+	 * 引数を取得する
+	 * @return 引数
+	 */
 	public String getArg() {
 		return arg;
 	}
 
+	/**
+	 * OptionInfoのイテレータを取得する。
+	 *
+	 * @return OptionInfo
+	 */
+	public Iterator<OptionInfo> iterator() {
+		return new InfoIterator();
+	}
+
+	/**
+	 * 次のOptionInfoを取得する
+	 *
+	 * @return 次のOptionInfo
+	 */
+	public OptionInfo next() {
+		return next;
+	}
+
+	/**
+	 * 長いオプション名を取得する。
+	 * @return 長いオプション名
+	 */
 	public String getLongOptName() {
 		return longOptName;
 	}
 
+	/**
+	 * 短いオプション名を取得する。
+	 * @return 短いオプション名
+	 */
 	public String getShortOptName() {
 		return shortOptName;
+	}
+
+	/**
+	 * このインスタンスの内容を更新する
+	 *
+	 * @param shortOptName 短いオプション名 (null可)
+	 * @param longOptName  長いオプション名
+	 * @param arg          引数
+	 */
+	protected void update(String shortOptName, String longOptName, String arg) {
+		this.shortOptName = shortOptName;
+		this.longOptName = longOptName;
+		this.arg = arg;
 	}
 }

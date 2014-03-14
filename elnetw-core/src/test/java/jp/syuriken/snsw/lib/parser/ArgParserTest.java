@@ -20,6 +20,8 @@
 
 package jp.syuriken.snsw.lib.parser;
 
+import java.util.Iterator;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class ArgParserTest {
 
-	private static void assertArrayEmpty(Object[] actual) {
+	private static <T> void assertArrayEmpty(T[] actual) {
 		assertArrayEquals(new Object[]{}, actual);
 	}
 
@@ -157,8 +159,62 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge=fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
+		assertArrayEmpty(arguments.getProcessArguments());
 		assertNoError(arguments);
+	}
+
+	@Test
+	public void testParseMultipleArgsWithSingleOpt() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT);
+
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("female", arguments.getOptArg("--gender"));
+		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
+		assertTrue(iterator.hasNext());
+		assertEquals("female", iterator.next().getArg());
+		assertFalse(iterator.hasNext());
+	}
+
+	@Test
+	public void testParseMultipleArgsWithMultipleOpt() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
+
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("male", arguments.getOptArg("--gender"));
+		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
+		assertTrue(iterator.hasNext());
+		assertEquals("male", iterator.next().getArg());
+		assertTrue(iterator.hasNext());
+		assertEquals("female", iterator.next().getArg());
+		assertFalse(iterator.hasNext());
+	}
+
+	@Test
+	public void testParseMultipleArgsWithMixedOpt() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
+		parser.addShortOpt("-g", "--gender");
+
+		ParsedArguments arguments = parser.parse(a("-g male --gender female"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("male", arguments.getOptArg("--gender"));
+		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
+		assertTrue(iterator.hasNext());
+		OptionInfo next = iterator.next();
+		assertEquals("-g", next.getShortOptName());
+		assertEquals("--gender", next.getLongOptName());
+		assertEquals("male", next.getArg());
+		assertTrue(iterator.hasNext());
+
+		next = iterator.next();
+		assertNull(next.getShortOptName());
+		assertEquals("--gender", next.getLongOptName());
+		assertEquals("female", next.getArg());
+		assertFalse(iterator.hasNext());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

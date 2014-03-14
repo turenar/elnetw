@@ -29,23 +29,66 @@ import java.util.HashMap;
  */
 public class ArgParser {
 
-	protected final HashMap<String, OptionType> optionInfoMap;
-	private final HashMap<String, String> shortOptMap;
+	private class OptionConfig {
+		private final OptionType type;
+		private final boolean multiple;
 
+		public OptionConfig(OptionType type, boolean multiple) {
+			this.type = type;
+			this.multiple = multiple;
+		}
+
+		public OptionType getType() {
+			return type;
+		}
+
+		public boolean isMultiple() {
+			return multiple;
+		}
+	}
+
+	protected final HashMap<String, OptionConfig> optionInfoMap;
+	protected final HashMap<String, String> shortOptMap;
+
+	/**
+	 * インスタンスを作成する。
+	 */
 	public ArgParser() {
 		optionInfoMap = new HashMap<>();
 		shortOptMap = new HashMap<>();
 	}
 
+	/**
+	 * 長いオプションをパース対象として追加する。
+	 * @param longOptName 長いオプション名
+	 * @param type オプションタイプ
+	 * @return このインスタンス
+	 */
 	public ArgParser addLongOpt(String longOptName, OptionType type) {
-		optionInfoMap.put(getLongOptName(longOptName), type);
+		return addLongOpt(longOptName, type, false);
+	}
+
+	public ArgParser addLongOpt(String longOptName, OptionType type, boolean multiple) {
+		optionInfoMap.put(getLongOptName(longOptName), new OptionConfig(type, multiple));
 		return this;
 	}
 
+	/**
+	 * 短いオプションを長いオプション名の別名として追加する。
+	 * @param shortOptName 短いオプション名
+	 * @param longOptName 長いオプション名
+	 * @return このインスタンス
+	 */
 	public ArgParser addShortOpt(char shortOptName, String longOptName) {
 		return addShortOpt("-" + shortOptName, longOptName);
 	}
 
+	/**
+	 * 短いオプションを長いオプション名の別名として追加する。
+	 * @param shortOptName 短いオプション名
+	 * @param longOptName 長いオプション名
+	 * @return このインスタンス
+	 */
 	public ArgParser addShortOpt(String shortOptName, String longOptName) {
 		if (optionInfoMap.containsKey(getLongOptName(longOptName))) {
 			if (shortOptName.length() == 1) {
@@ -61,17 +104,23 @@ public class ArgParser {
 		return this;
 	}
 
-	public static String getLongOptName(String longOptName) {
+	protected static String getLongOptName(String longOptName) {
 		return longOptName.startsWith("--") ? longOptName : ("--" + longOptName);
 	}
 
-	public ParsedArguments parse(String[] argv) {
-		ArgTokenizer tokenizer = new ArgTokenizer(argv);
+	/**
+	 * 引数をパースする
+	 *
+	 * @param args 引数の配列
+	 * @return ParsedArgumentsインスタンス。
+	 */
+	public ParsedArguments parse(String[] args) {
+		ArgTokenizer tokenizer = new ArgTokenizer(args);
 		ParsedArguments parsed = new ParsedArguments();
 		while (tokenizer.next()) {
 			String opt = tokenizer.getOpt();
 			if (opt == null) {
-				parsed.addProcArg(tokenizer.getArg());
+				parsed.addProcessArgument(tokenizer.getArg());
 			} else if (!opt.equals("--")) {
 				String longOpt;
 				if (opt.startsWith("--")) {
@@ -80,18 +129,18 @@ public class ArgParser {
 					longOpt = shortOptMap.get(opt);
 					if (longOpt == null) {
 						parsed.addParseError(ParseErrorType.UNKNOWN_SHORT_OPT, opt);
-						parsed.addProcArg(opt);
+						parsed.addProcessArgument(opt);
 						continue;
 					}
 				}
-				OptionType optionType = optionInfoMap.get(longOpt);
-				if (optionType == null) {
+				OptionConfig optionConfig = optionInfoMap.get(longOpt);
+				if (optionConfig == null) {
 					parsed.addParseError(ParseErrorType.UNKNOWN_LONG_OPT, opt);
-					parsed.addProcArg(longOpt);
+					parsed.addProcessArgument(longOpt);
 					continue;
 				}
 				String arg;
-				switch (optionType) {
+				switch (optionConfig.getType()) {
 					case REQUIRED_ARGUMENT:
 						arg = tokenizer.getArg();
 						if (arg == null) {
@@ -115,9 +164,9 @@ public class ArgParser {
 				}
 
 				if (opt.equals(longOpt)) {
-					parsed.addLongOpt(longOpt, arg);
+					parsed.addLongOpt(longOpt, arg, optionConfig.isMultiple());
 				} else {
-					parsed.addShortOpt(opt, longOpt, arg);
+					parsed.addShortOpt(opt, longOpt, arg, optionConfig.isMultiple());
 				}
 			}
 		}
