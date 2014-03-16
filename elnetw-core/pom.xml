@@ -65,12 +65,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>gnu.getopt</groupId>
-			<artifactId>java-getopt</artifactId>
-			<version>[1.0,)</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
 			<version>${twitter4j.version}</version>

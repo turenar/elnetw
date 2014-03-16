@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -27,8 +28,6 @@ import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -37,6 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
@@ -171,15 +172,15 @@ public class ClientConfiguration {
 		INSTANCE = conf;
 	}
 
-	private final List<ClientTab> tabsList = new ArrayList<ClientTab>();
+	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	private final transient JobQueue jobQueue = new JobQueue();
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<String, ActionHandler>();
+	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
 	/*package*/ ClientProperties configProperties;
 	/*package*/ ClientProperties configDefaultProperties;
-	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<String, Twitter>();
+	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<>();
 	private volatile TrayIcon trayIcon;
 	private TwitterClientFrame frameApi;
 	private volatile boolean isInitializing = true;
@@ -190,10 +191,11 @@ public class ClientConfiguration {
 	private volatile MessageBus messageBus;
 	private boolean portabledConfiguration;
 	private volatile CacheManager cacheManager;
-	private List<String> args;
 	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
 	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
+	private ParsedArguments parsedArguments;
+	private ArgParser argParser;
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
@@ -338,6 +340,14 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * ArgParserインスタンスを取得する
+	 * @return ArgParser
+	 */
+	public ArgParser getArgParser() {
+		return argParser;
+	}
+
+	/**
 	 * キャッシュマネージャを取得する。
 	 *
 	 * @return キャッシュマネージャ
@@ -415,15 +425,6 @@ public class ClientConfiguration {
 		return extraClassLoader;
 	}
 
-	/**
-	 * 情報取得のスケジューラを取得する。
-	 *
-	 * @return スケジューラ
-	 */
-	public synchronized MessageBus getMessageBus() {
-		return messageBus;
-	}
-
 	public MessageFilter[] getFilters() {
 		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
@@ -497,13 +498,20 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * アプリケーション実行時に指定されたオプションの変更できないリストを取得する。
-	 * なお、内容はGetoptによって並び替えられている
+	 * 情報取得のスケジューラを取得する。
 	 *
-	 * @return unmodifiable List
+	 * @return スケジューラ
 	 */
-	public List<String> getOpts() {
-		return Collections.unmodifiableList(args);
+	public synchronized MessageBus getMessageBus() {
+		return messageBus;
+	}
+
+	/**
+	 * 実行時引数から作られたParsedArgumentsを取得する
+	 * @return ParsedArguments
+	 */
+	public ParsedArguments getParsedArguments() {
+		return parsedArguments;
 	}
 
 	/**
@@ -848,6 +856,10 @@ public class ClientConfiguration {
 		return old;
 	}
 
+	/*package*/ void setArgParser(ArgParser argParser) {
+		this.argParser = argParser;
+	}
+
 	/*package*/
 	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
@@ -881,11 +893,6 @@ public class ClientConfiguration {
 		this.extraClassLoader = extraClassLoader;
 	}
 
-	/*package*/
-	synchronized void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
-	}
-
 	/**
 	 * FrameApiを設定する
 	 *
@@ -908,8 +915,13 @@ public class ClientConfiguration {
 		this.isInitializing = isInitializing;
 	}
 
-	/*package*/void setOpts(String[] args) {
-		this.args = Arrays.asList(args);
+	/*package*/
+	synchronized void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
+	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
+		this.parsedArguments = parsedArguments;
 	}
 
 	/*package*/void setPortabledConfiguration(boolean portable) {

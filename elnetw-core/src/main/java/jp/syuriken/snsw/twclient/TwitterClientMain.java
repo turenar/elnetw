@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -61,8 +62,9 @@ import javax.swing.UIManager;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.OptionType;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.DirectMessageFetcherFactory;
 import jp.syuriken.snsw.twclient.bus.MentionsFetcherFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
@@ -236,13 +238,13 @@ public class TwitterClientMain {
 	private final Thread MAIN_THREAD;
 	/** スレッドホルダ */
 	protected final Object threadHolder = new Object();
-	private String[] args;
+	private final ArgParser parser;
+	private final ParsedArguments parsedArguments;
 	/** 設定 */
 	protected ClientConfiguration configuration;
 	/** 設定データ */
 	protected ClientProperties configProperties;
 	private Logger logger;
-	protected Getopt getopt;
 	protected JobWorkerThread jobWorkerThread;
 	protected boolean debugMode;
 	protected boolean portable;
@@ -256,16 +258,19 @@ public class TwitterClientMain {
 	 * @param args コマンドラインオプション
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
-		this.args = args;
 		this.classLoader = classLoader;
 		MAIN_THREAD = Thread.currentThread();
-		LongOpt[] longOpts = new LongOpt[] {
-				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
-		};
-		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
+		parser = new ArgParser();
+		parser.addLongOpt("--debug", OptionType.NO_ARGUMENT)
+				.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT)
+				.addLongOpt("--define", OptionType.REQUIRED_ARGUMENT)
+				.addShortOpt("-d", "--debug")
+				.addShortOpt("-L", "--classpath")
+				.addShortOpt("-D", "--define");
+		parsedArguments = parser.parse(args);
 
 		try {
-			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace(); // logger cannot use.
 		}
@@ -558,28 +563,24 @@ public class TwitterClientMain {
 	 * @return 終了値
 	 */
 	public HashMap<String, Object> run() {
-		Getopt getopt = this.getopt;
-		int c;
 		portable = Boolean.getBoolean("config.portable");
 		debugMode = false;
-		while ((c = getopt.getopt()) != -1) {
-			switch (c) {
-				case 'd':
-					portable = true;
-					debugMode = true;
-					break;
-				case 'L':
-				case 'D':
-					break; // do nothing
-				default:
-					break;
-			}
+		if (parsedArguments.hasOpt("--debug")) {
+			portable = true;
+			debugMode = true;
 		}
+
 		setHomeProperty();
 		setDebugLogger();
+
+		for (Iterator<String> errorMessages = parsedArguments.getErrorMessageIterator(); errorMessages.hasNext(); ) {
+			logger.warn("ArgParser: {}", errorMessages.next());
+		}
+
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
-		configuration.setOpts(args);
+		configuration.setArgParser(parser);
+		configuration.setParsedArguments(parsedArguments);
 
 		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
