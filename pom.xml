@@ -38,6 +38,7 @@
 		<module>elnetw-core</module>
 		<module>elnetw-launcher</module>
 		<module>elnetw-filter-tokenizer</module>
+		<module>elnetw-common</module>
 	</modules>
 
 	<pluginRepositories>
@@ -73,6 +74,11 @@
 			<dependency>
 				<groupId>jp.syuriken.snsw</groupId>
 				<artifactId>elnetw-filter-tokenizer</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jp.syuriken.snsw</groupId>
+				<artifactId>elnetw-common</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

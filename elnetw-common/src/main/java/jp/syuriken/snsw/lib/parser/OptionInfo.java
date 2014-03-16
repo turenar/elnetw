@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -72,9 +73,10 @@ public class OptionInfo implements Iterable<OptionInfo> {
 
 	/**
 	 * インスタンスを作成する
+	 *
 	 * @param shortOptName 短いオプション名 (null可)
-	 * @param longOptName 長いオプション名
-	 * @param arg 引数
+	 * @param longOptName  長いオプション名
+	 * @param arg          引数
 	 */
 	public OptionInfo(String shortOptName, String longOptName, String arg) {
 		this.shortOptName = shortOptName;
@@ -94,6 +96,7 @@ public class OptionInfo implements Iterable<OptionInfo> {
 
 	/**
 	 * 引数を取得する
+	 *
 	 * @return 引数
 	 */
 	public String getArg() {
@@ -120,6 +123,7 @@ public class OptionInfo implements Iterable<OptionInfo> {
 
 	/**
 	 * 長いオプション名を取得する。
+	 *
 	 * @return 長いオプション名
 	 */
 	public String getLongOptName() {
@@ -128,6 +132,7 @@ public class OptionInfo implements Iterable<OptionInfo> {
 
 	/**
 	 * 短いオプション名を取得する。
+	 *
 	 * @return 短いオプション名
 	 */
 	public String getShortOptName() {

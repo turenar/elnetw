@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -49,6 +50,28 @@ public class ArgParser {
 
 	protected final HashMap<String, OptionConfig> optionInfoMap;
 	protected final HashMap<String, String> shortOptMap;
+
+	/**
+	 * 未知のオプションを無視するかどうかを取得する
+	 */
+	public boolean isIgnoreUnknownOption() {
+		return ignoreUnknownOption;
+	}
+
+	/**
+	 * 未知のオプションを無視するかどうかを設定する
+	 *
+	 * @param ignoreUnknownOption 無視するかどうか
+	 */
+	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
+		this.ignoreUnknownOption = ignoreUnknownOption;
+		return this;
+	}
+
+	/**
+	 * 未知のオプションを無視するかどうか
+	 */
+	protected boolean ignoreUnknownOption;
 
 	/**
 	 * インスタンスを作成する。
@@ -93,7 +116,7 @@ public class ArgParser {
 		if (optionInfoMap.containsKey(getLongOptName(longOptName))) {
 			if (shortOptName.length() == 1) {
 				shortOptName = "-" + shortOptName;
-			} else if (shortOptName.length() != 2 || shortOptName.charAt(0) != '-') {
+			} else if (!(shortOptName.length() == 2 && shortOptName.charAt(0) == '-')) {
 				// shortOptName is not -X style
 				throw new IllegalArgumentException("Illegal shortOptName: " + shortOptName);
 			}
@@ -128,6 +151,7 @@ public class ArgParser {
 				} else {
 					longOpt = shortOptMap.get(opt);
 					if (longOpt == null) {
+						if (!ignoreUnknownOption)
 						parsed.addParseError(ParseErrorType.UNKNOWN_SHORT_OPT, opt);
 						parsed.addProcessArgument(opt);
 						continue;
@@ -135,6 +159,7 @@ public class ArgParser {
 				}
 				OptionConfig optionConfig = optionInfoMap.get(longOpt);
 				if (optionConfig == null) {
+					if (!ignoreUnknownOption)
 					parsed.addParseError(ParseErrorType.UNKNOWN_LONG_OPT, opt);
 					parsed.addProcessArgument(longOpt);
 					continue;

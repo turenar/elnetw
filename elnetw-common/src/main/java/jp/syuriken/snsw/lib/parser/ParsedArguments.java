@@ -33,6 +33,7 @@ import java.util.LinkedList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ParsedArguments {
+	private static final NullOptionInfo NULL_OPTION_INFO = new NullOptionInfo();
 	protected final ArrayList<String> errorMessages;
 	protected final ArrayList<String> processArguments;
 	protected final HashMap<String, OptionInfo> optionInfos;
@@ -90,6 +91,18 @@ public class ParsedArguments {
 
 	public Iterator<String> getErrorMessageIterator() {
 		return Collections.unmodifiableList(errorMessages).iterator();
+	}
+
+	/**
+	 * オプション情報を取得する。
+	 *
+	 * @param longOptName 長いオプション名
+	 * @param iterable    イテレータブル: nullを返さない。拡張for文等でこのまま使用可能である
+	 * @return オプション情報
+	 */
+	public OptionInfo getOptInfo(String longOptName, boolean iterable) {
+		OptionInfo optInfo = getOptInfo(longOptName);
+		return iterable && optInfo == null ? NULL_OPTION_INFO : optInfo;
 	}
 
 	/**

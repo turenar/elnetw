@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -20,11 +21,37 @@
 
 package jp.syuriken.snsw.lib.parser;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
- * Parse Error Type
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * null option info
  */
-public enum ParseErrorType {
-	UNKNOWN_LONG_OPT, MISSING_ARGUMENT, UNKNOWN_SHORT_OPT
+public class NullOptionInfo extends OptionInfo {
+	/**
+	 * インスタンスを作成する
+	 */
+	public NullOptionInfo() {
+		super(null, null, null);
+	}
+
+	@Override
+	public Iterator<OptionInfo> iterator() {
+		return new Iterator<OptionInfo>() {
+			@Override
+			public boolean hasNext() {
+				return false;
+			}
+
+			@Override
+			public OptionInfo next() {
+				throw new NoSuchElementException();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
 }
