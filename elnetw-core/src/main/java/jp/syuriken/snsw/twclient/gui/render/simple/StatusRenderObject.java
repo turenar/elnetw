@@ -27,7 +27,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import javax.swing.GroupLayout;
@@ -148,12 +147,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 		String tweetText = stringBuilder.toString();
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
-		String source = status.getSource();
-		int tagIndexOf = source.indexOf('>');
-		int tagLastIndexOf = source.lastIndexOf('<');
-		String createdAtToolTip =
-				MessageFormat.format("from {0}",
-						source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
+		String createdAtToolTip = getViaString(originalStatus);
 		String createdAt = Utility.getDateString(status.getCreatedAt(), true);
 		String overlayString;
 		if (originalStatus.isRetweet()) {
@@ -197,6 +191,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 	@Override
 	public Date getDate() {
 		return status.getCreatedAt();
+	}
+
+	@Override
+	protected String getPopupMenuType() {
+		return "status";
 	}
 
 	/**
@@ -370,14 +369,26 @@ public class StatusRenderObject extends AbstractRenderObject {
 		return uniqId;
 	}
 
+	private String getViaString(Status status) {
+		StringBuilder stringBuilder = new StringBuilder("via ");
+		getViaString(status.isRetweet() ? status.getRetweetedStatus() : status, stringBuilder);
+		if (status.isRetweet()) {
+			getViaString(status, stringBuilder.append(" (Retweeted via "));
+			stringBuilder.append(")");
+		}
+		return stringBuilder.toString();
+	}
+
+	private void getViaString(Status status, StringBuilder builder) {
+		String source = status.getSource();
+		int tagIndexOf = source.indexOf('>');
+		int tagLastIndexOf = source.lastIndexOf('<');
+		builder.append(source, tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf);
+	}
+
 	private void handleAction(IntentArguments intentArguments) {
 		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		getConfiguration().handleAction(intentArguments);
-	}
-
-	@Override
-	protected String getPopupMenuType() {
-		return "status";
 	}
 
 	protected void initComponents() {
