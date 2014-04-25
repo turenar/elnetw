@@ -29,7 +29,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import javax.swing.GroupLayout;
@@ -68,6 +67,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
 public class StatusRenderObject extends EntitySupportRenderObject {
 
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private final long userId;
 	private final TwitterStatus status;
 	private final String uniqId;
@@ -103,12 +103,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		String tweetText = getTweetViewText(status, text);
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
-		String source = status.getSource();
-		int tagIndexOf = source.indexOf('>');
-		int tagLastIndexOf = source.lastIndexOf('<');
-		String createdAtToolTip =
-				MessageFormat.format("from {0}",
-						source.substring(tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf));
+		String createdAtToolTip = getViaString(originalStatus);
 		String createdAt = Utility.getDateString(status.getCreatedAt(), true);
 		String overlayString;
 		if (originalStatus.isRetweet()) {
@@ -153,6 +148,10 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 	@Override
 	public Date getDate() {
 		return status.getCreatedAt();
+	}
+
+	private User getOriginalUser(TwitterStatus status) {
+		return status.isRetweet() ? status.getRetweetedStatus().getUser() : status.getUser();
 	}
 
 	@Override
@@ -329,6 +328,23 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		return uniqId;
 	}
 
+	private String getViaString(Status status) {
+		StringBuilder stringBuilder = new StringBuilder("via ");
+		getViaString(status.isRetweet() ? status.getRetweetedStatus() : status, stringBuilder);
+		if (status.isRetweet()) {
+			getViaString(status, stringBuilder.append(" (Retweeted via "));
+			stringBuilder.append(")");
+		}
+		return stringBuilder.toString();
+	}
+
+	private void getViaString(Status status, StringBuilder builder) {
+		String source = status.getSource();
+		int tagIndexOf = source.indexOf('>');
+		int tagLastIndexOf = source.lastIndexOf('<');
+		builder.append(source, tagIndexOf + 1, tagLastIndexOf == -1 ? source.length() : tagLastIndexOf);
+	}
+
 	private void handleAction(IntentArguments intentArguments) {
 		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		getConfiguration().handleAction(intentArguments);
@@ -455,12 +471,6 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 				}
 				break;
 		}
-	}
-
-	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
-
-	private User getOriginalUser(TwitterStatus status) {
-		return status.isRetweet() ? status.getRetweetedStatus().getUser() : status.getUser();
 	}
 
 	private void openBrowser(String url) {
