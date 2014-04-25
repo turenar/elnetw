@@ -32,12 +32,12 @@ import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ImageCacher;
-import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.gui.render.RendererFocusEvent;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -253,9 +253,9 @@ public class SimpleRenderer implements TabRenderer {
 					.setText("ふぁぼられました: \"" + favoritedStatus.getText() + "\""));
 		}
 		if (source.getId() == actualUserId) {
-			Status cachedStatus = cacheManager.getCachedStatus(favoritedStatus.getId());
-			if (cachedStatus instanceof TwitterStatus) {
-				((TwitterStatus) cachedStatus).update(favoritedStatus);
+			TwitterStatus cachedStatus = cacheManager.getCachedStatus(favoritedStatus.getId());
+			if (cachedStatus != null) {
+				cachedStatus.update(favoritedStatus);
 			}
 		}
 	}
@@ -313,9 +313,9 @@ public class SimpleRenderer implements TabRenderer {
 					.setUniqId(
 							"!unfav/" + source.getScreenName() + "/" + target.getScreenName() + "/" + unfavoritedStatus.getId()));
 		} else if (source.getId() == actualUserId) {
-			Status status = cacheManager.getCachedStatus(unfavoritedStatus.getId());
-			if (status instanceof TwitterStatus) {
-				((TwitterStatus) status).update(unfavoritedStatus);
+			TwitterStatus status = cacheManager.getCachedStatus(unfavoritedStatus.getId());
+			if (status != null) {
+				status.update(unfavoritedStatus);
 			}
 		}
 	}

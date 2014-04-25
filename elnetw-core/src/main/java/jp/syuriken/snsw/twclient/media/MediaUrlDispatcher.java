@@ -31,10 +31,10 @@ public interface MediaUrlDispatcher {
 	 *
 	 * If url can't resolve, url is as well as original
 	 *
-	 * @param original original url
-	 * @param url      resolved url. if original url can't be resolved by resolver, url is just original url
+	 * @param original    original url
+	 * @param resolvedUrl resolved url. if original url can't be resolved by resolver, url is just original url
 	 */
-	void gotMediaUrl(String original, String url);
+	void gotMediaUrl(String original, UrlInfo resolvedUrl);
 
 	/**
 	 * got exception during url resolving

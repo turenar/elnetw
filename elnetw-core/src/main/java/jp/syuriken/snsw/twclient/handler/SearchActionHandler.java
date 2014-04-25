@@ -27,6 +27,7 @@ import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 
 /**
  * 検索するアクションハンドラ
@@ -57,6 +58,8 @@ public class SearchActionHandler implements ActionHandler {
 					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
 		} catch (URISyntaxException e) {
 			throw new AssertionError(e);
+		} catch (Exception e) {
+			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
 		}
 	}
 

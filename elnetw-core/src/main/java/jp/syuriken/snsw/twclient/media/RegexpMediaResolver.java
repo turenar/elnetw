@@ -21,80 +21,31 @@
 package jp.syuriken.snsw.twclient.media;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * twitpicのImage URLを取得するプロバイダー
+ * 汎用的な、&lt;img&gt;のsrc属性からImage URLを取得するリゾルバ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RegexpMediaResolver extends AbstractMediaUrlResolver {
+public class RegexpMediaResolver extends AbstractMediaResolver {
 
-	private static final int BUFSIZE = 65536;
-	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 	private final Pattern regexp;
 
+	/**
+	 * インスタンスを作成する
+	 *
+	 * @param regexp 画像URL正規表現
+	 */
 	public RegexpMediaResolver(String regexp) {
 		this.regexp = Pattern.compile("<img[^>]+src=[\"']?(" + regexp + ")[\"']?");
 	}
 
-	private String getContentsFromUrl(URL mediaUrl) throws IOException, InterruptedException {
-		int bufLength;
-		byte[] data;
-		URLConnection connection = mediaUrl.openConnection();
-		int contentLength = connection.getContentLength();
-		InputStream stream = connection.getInputStream();
-
-		bufLength = contentLength < 0 ? BUFSIZE : contentLength + 1;
-		data = new byte[bufLength];
-		int imageLen = 0;
-		int loadLen;
-		while ((loadLen = stream.read(data, imageLen, bufLength - imageLen)) != -1) {
-			imageLen += loadLen;
-
-			if (bufLength == imageLen) {
-				bufLength = bufLength << 1;
-				if (bufLength < 0) {
-					bufLength = Integer.MAX_VALUE;
-				}
-				byte[] newData = new byte[bufLength];
-				System.arraycopy(data, 0, newData, 0, imageLen);
-				data = newData;
-			}
-
-			synchronized (this) {
-				try {
-					wait(1);
-				} catch (InterruptedException e) {
-					throw e;
-				}
-			}
-		}
-		stream.close(); // help keep-alive
-		Charset charset = Charset.forName("UTF-8");
-		try {
-			String encoding = connection.getContentEncoding();
-			if (encoding != null) {
-				charset = Charset.forName(encoding);
-			}
-		} catch (UnsupportedCharsetException e) {
-			logger.warn("Invalid Charset", e);
-		}
-		return new String(data, 0, imageLen, charset);
-	}
-
 	@Override
-	public String getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
+	public UrlInfo getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
 		URL mediaUrl;
 		try {
 			mediaUrl = new URL(url);
@@ -104,7 +55,7 @@ public class RegexpMediaResolver extends AbstractMediaUrlResolver {
 		String contents = getContentsFromUrl(mediaUrl);
 		Matcher matcher = regexp.matcher(contents);
 		if (matcher.find()) {
-			return matcher.group(1);
+			return new UrlInfo(matcher.group(1), false, true);
 		} else {
 			return null;
 		}

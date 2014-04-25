@@ -27,6 +27,7 @@ import static javax.swing.LayoutStyle.ComponentPlacement;
  */
 public class ConsumerTokenConfigType implements ConfigType {
 	private static final class JPanelMod extends JPanel {
+		private static final long serialVersionUID = 6122245743341671206L;
 		private JLabel componentDescriptionLabel;
 		private JLabel componentConsumerKeyLabel;
 		private JLabel componentConsumerSecretLabel;

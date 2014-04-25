@@ -96,6 +96,7 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 	public TimelineViewTab() {
 		super();
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
+		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
 
 	/**
@@ -107,6 +108,7 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 	public TimelineViewTab(String data) throws JSONException {
 		super(data);
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
+		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
 
 	@Override

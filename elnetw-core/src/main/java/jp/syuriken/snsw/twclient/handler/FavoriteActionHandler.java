@@ -25,8 +25,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -65,8 +65,7 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		JMenuItem favMenuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
-		return favMenuItem;
+		return new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
 	}
 
 	@Override
@@ -74,7 +73,9 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 		Status status = getStatus(arguments);
 		if (status == null) {
 			throwIllegalArgument();
+			return; // dead code
 		}
+
 		boolean favFlag = !status.isFavorited();
 
 		String forceFlag = arguments.getExtraObj("force", String.class);

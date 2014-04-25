@@ -54,7 +54,8 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 		return status;
 	}
 
-	protected void throwIllegalArgument() {
+
+	protected void throwIllegalArgument() throws IllegalArgumentException {
 		throw new IllegalArgumentException(
 				"Specify arg `status`(Status) or `" + ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA
 						+ "`(RenderPanel)");

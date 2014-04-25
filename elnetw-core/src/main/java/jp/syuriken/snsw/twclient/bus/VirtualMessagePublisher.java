@@ -22,7 +22,11 @@ package jp.syuriken.snsw.twclient.bus;
 
 import java.util.TreeSet;
 
+import jp.syuriken.snsw.twclient.CacheManager;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -43,6 +47,7 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	private static final Logger logger = LoggerFactory.getLogger(VirtualMessagePublisher.class);
 	private final String[] paths;
 	private final MessageBus messageBus;
+	private final CacheManager cacheManager;
 	private volatile int modifiedCount;
 	private volatile ClientMessageListener[] cachedListeners;
 
@@ -59,6 +64,7 @@ class VirtualMessagePublisher implements ClientMessageListener {
 			}
 		}
 		this.paths = paths.toArray(new String[paths.size()]);
+		cacheManager = ClientConfiguration.getInstance().getCacheManager();
 	}
 
 	private ClientMessageListener[] getListeners() {
@@ -76,10 +82,38 @@ class VirtualMessagePublisher implements ClientMessageListener {
 		return listeners;
 	}
 
+	private Status getStatus(Status status, ClientMessageListener[] listeners) {
+		if (!(listeners.length == 0 || status instanceof TwitterStatus)) {
+			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
+			if (cachedStatus == null) {
+				return cacheManager.getCachedStatus(new TwitterStatus(status));
+			} else {
+				return cachedStatus;
+			}
+		} else {
+			return status;
+		}
+	}
+
+	private User getUser(User user, ClientMessageListener[] listeners) {
+		if (!(listeners.length == 0 || user instanceof TwitterUser)) {
+			TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
+			if (cachedUser == null) {
+				return cacheManager.getCachedUser(new TwitterUser(user));
+			} else {
+				return cachedUser;
+			}
+		} else {
+			return user;
+		}
+	}
 
 	@Override
 	public void onBlock(User source, User blockedUser) {
 		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		blockedUser = getUser(blockedUser, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onBlock(source, blockedUser);
@@ -200,6 +234,9 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		target = getUser(target, listeners);
+		favoritedStatus = getStatus(favoritedStatus, listeners);
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onFavorite(source, target, favoritedStatus);
@@ -212,6 +249,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onFollow(User source, User followedUser) {
 		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		followedUser = getUser(followedUser, listeners);
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onFollow(source, followedUser);
@@ -260,6 +299,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onStatus(Status status) {
 		ClientMessageListener[] listeners = getListeners();
+		status = getStatus(status, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onStatus(status);
@@ -284,6 +325,9 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUnblock(User source, User unblockedUser) {
 		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		unblockedUser = getUser(unblockedUser, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUnblock(source, unblockedUser);
@@ -296,6 +340,10 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		target = getUser(target, listeners);
+		unfavoritedStatus = getStatus(unfavoritedStatus, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUnfavorite(source, target, unfavoritedStatus);
@@ -308,6 +356,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		listOwner = getUser(listOwner, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListCreation(listOwner, list);
@@ -320,6 +370,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListDeletion(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		listOwner = getUser(listOwner, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListDeletion(listOwner, list);
@@ -332,6 +384,10 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		addedMember = getUser(addedMember, listeners);
+		listOwner = getUser(listOwner, listeners);
+
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListMemberAddition(addedMember, listOwner, list);
@@ -344,6 +400,9 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		deletedMember = getUser(deletedMember, listeners);
+		listOwner = getUser(listOwner, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListMemberDeletion(deletedMember, listOwner, list);
@@ -356,6 +415,9 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		subscriber = getUser(subscriber, listeners);
+		listOwner = getUser(listOwner, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListSubscription(subscriber, listOwner, list);
@@ -368,6 +430,10 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		subscriber = getUser(subscriber, listeners);
+		listOwner = getUser(listOwner, listeners);
+
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListUnsubscription(subscriber, listOwner, list);
@@ -380,6 +446,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserListUpdate(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
+		listOwner = getUser(listOwner, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserListUpdate(listOwner, list);
@@ -392,6 +460,8 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
 		ClientMessageListener[] listeners = getListeners();
+		updatedUser = getUser(updatedUser, listeners);
+
 		for (ClientMessageListener listener : listeners) {
 			try {
 				listener.onUserProfileUpdate(updatedUser);

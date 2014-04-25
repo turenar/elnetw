@@ -46,6 +46,20 @@ import org.slf4j.LoggerFactory;
  */
 public class Utility {
 
+	/**
+	 * OSの種別を判断する。
+	 *
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
+	 */
+	public enum OSType {
+		/** Windows環境 */
+		WINDOWS,
+		/** MacOS環境 */
+		MAC,
+		/** その他 (*nixなど) */
+		OTHER
+	}
+
 	private static class KVEntry {
 
 		final String key;
@@ -65,20 +79,6 @@ public class Utility {
 			this.priority = priority;
 			this.messageNotifierClass = messageNotifierClass;
 		}
-	}
-
-	/**
-	 * OSの種別を判断する。
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public enum OSType {
-		/** Windows環境 */
-		WINDOWS,
-		/** MacOS環境 */
-		MAC,
-		/** その他 (*nixなど) */
-		OTHER
 	}
 
 	/** 秒→ミリセカンド */
@@ -466,6 +466,7 @@ public class Utility {
 			detectedBrowser =
 					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "elnetw",
 							JOptionPane.INFORMATION_MESSAGE);
+			configuration.getConfigProperties().setProperty("gui.browser.cmd", detectedBrowser);
 		}
 		this.detectedBrowser = detectedBrowser;
 		return detectedBrowser;
@@ -503,18 +504,16 @@ public class Utility {
 	 * browserを表示する。
 	 *
 	 * @param url 開くURL
-	 * @return <dl>
-	 * <dt>HeadlessException</dt><dd>GUIを使用できない</dd>
-	 * <dt>InvocationTargetException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 * <dt>IllegalAccessException</dt><dd>アクセスに失敗</dd>
-	 * <dt>IllegalArgumentException</dt><dd>正しくない引数</dd>
-	 * <dt>IOException</dt><dd>IOエラーが発生</dd>
-	 * <dt>NoSuchMethodException</dt><dd>関数のinvokeに失敗 (Mac OS)</dd>
-	 * <dt>SecurityException</dt><dd>セキュリティ例外</dd>
-	 * <dt>ClassNotFoundException</dt><dd>クラスのinvokeに失敗 (Mac OS)</dd>
-	 * </dl>
+	 * @throws java.awt.HeadlessException GUIを使用できない
+	 * @throws InvocationTargetException 関数のinvokeに失敗 (Mac OS)
+	 * @throws IllegalAccessException アクセスに失敗
+	 * @throws IllegalArgumentException 正しくない引数
+	 * @throws IOException IOエラーが発生
+	 * @throws NoSuchMethodException 関数のinvokeに失敗 (Mac OS)
+	 * @throws SecurityException セキュリティ例外
+	 * @throws ClassNotFoundException クラスのinvokeに失敗 (Mac OS)
 	 */
-	public Exception openBrowser(String url) {
+	public void openBrowser(String url) throws Exception {
 		detectOS();
 		try {
 			switch (ostype) {
@@ -537,10 +536,9 @@ public class Utility {
 				default:
 					break;
 			}
-			return null;
 		} catch (Exception ex) {
 			logger.warn("Failed opening browser", ex);
-			return ex;
+			throw ex;
 		}
 	}
 

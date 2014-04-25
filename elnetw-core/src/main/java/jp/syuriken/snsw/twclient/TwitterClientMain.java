@@ -132,6 +132,7 @@ import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
+import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -212,8 +213,14 @@ public class TwitterClientMain {
 		return SINGLETON;
 	}
 
-	/*package*/
-	static int getLauncherAbiVersion() {
+	/**
+	 * このクラスのABIバージョンを返す。method signatureの変更等でこの数値を上げる。
+	 * ランチャーは対応していないABIバージョンが帰って来た時、エラー終了しなければならない。
+	 *
+	 * @return ABIバージョン
+	 */
+	@SuppressWarnings("UnusedDeclaration")
+	/*package*/ static int getLauncherAbiVersion() {
 		return LAUNCHER_ABI_VERSION;
 	}
 
@@ -505,10 +512,11 @@ public class TwitterClientMain {
 
 	@Initializer(name = "urlProvider", phase = "init")
 	public void initUrlProviders() {
-		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)",
-				new NullMediaResolver());
+		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)", new NullMediaResolver(true));
 		UrlResolverManager.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
 				new RegexpMediaResolver("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
+		UrlResolverManager.addMediaProvider("^http://p\\.twipple\\.jp/[a-zA-Z0-9]+",
+				new XpathMediaResolver("id('post_image')/@src"));
 	}
 
 	@Initializer(name = "bus/init", dependencies = "gui/tab/restore", phase = "prestart")

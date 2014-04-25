@@ -119,12 +119,12 @@ public class JobQueue {
 	public static final byte PRIORITY_UI = 10;
 	/** 優先度 中 */
 	public static final byte PRIORITY_MEDIUM = 8;
+	/** 優先度 デフォルト */
+	public static final byte PRIORITY_DEFAULT = PRIORITY_MEDIUM;
 	/** 優先度 低 */
 	public static final byte PRIORITY_LOW = 4;
 	/** アイドル時に... */
 	public static final byte PRIORITY_IDLE = 0;
-	/** 優先度 デフォルト */
-	public static final byte PRIORITY_DEFAULT = PRIORITY_MEDIUM;
 
 	/*package*/
 	static int binarySearch(int[] table, int needle) {
@@ -146,7 +146,7 @@ public class JobQueue {
 
 	@SuppressWarnings("unchecked")
 	private static LinkedQueue<Runnable>[] makeLinkedQueueArray() {
-		return new LinkedQueue[PRIORITY_MAX + 1];
+		return (LinkedQueue<Runnable>[]) new LinkedQueue<?>[PRIORITY_MAX + 1];
 	}
 
 	private final LinkedQueue<Runnable>[] queues;
@@ -224,17 +224,20 @@ public class JobQueue {
 		int randomInt = ThreadLocalRandom.current().nextInt(priorityRandomMax);
 		int priorityNumber = binarySearch(randomToPriorityTable, randomInt);
 
-		final int max = priorityNumber + PRIORITY_MAX;
-		for (int i = priorityNumber; i <= max; i++) {
+		int i = priorityNumber;
+		do {
 			if (size.get() == 0) {
 				return null;
 			}
-			job = queues[i % (PRIORITY_MAX + 1)].poll();
+			job = queues[i--].poll();
 			if (job != null) {
 				size.decrementAndGet();
 				return job;
 			}
-		}
+			if (i < 0) {
+				i = PRIORITY_MAX;
+			}
+		} while (i != priorityNumber);
 		return null;
 	}
 

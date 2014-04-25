@@ -93,8 +93,8 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 
 		@Override
-		public void onContentLength(int contentLength) throws InterruptedException {
-			this.contentLength = contentLength;
+		public void onConnection(URLConnection connection) throws InterruptedException {
+			this.contentLength = connection.getContentLength();
 			onLoaded(0);
 		}
 
@@ -170,6 +170,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	}
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
+	private static final long serialVersionUID = 8816712425087567400L;
 	private final URL url;
 	private int resizeScaleFactor;
 	private transient MouseListener zoomMouseListener = new MouseAdapter() {
@@ -245,7 +246,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		final int h = pixelGrabber.getHeight();
 		WritableRaster raster = cm.createCompatibleWritableRaster(w, h);
 		BufferedImage renderedImage = new BufferedImage(cm, raster, cm.isAlphaPremultiplied(),
-				new Hashtable());
+				new Hashtable<String, Object>());
 		renderedImage.getRaster().setDataElements(0, 0, w, h, pixelGrabber.getPixels());
 		return renderedImage;
 	}

@@ -34,9 +34,9 @@ import org.slf4j.LoggerFactory;
  */
 public class NetworkSupport {
 	private static class NullFetchEventHandler implements FetchEventHandler {
-
 		@Override
-		public void onContentLength(int contentLength) {
+		public void onConnection(URLConnection connection) throws InterruptedException {
+
 		}
 
 		@Override
@@ -79,7 +79,7 @@ public class NetworkSupport {
 		try {
 			connection = url.openConnection();
 			int contentLength = connection.getContentLength();
-			handler.onContentLength(contentLength);
+			handler.onConnection(connection);
 
 			stream = connection.getInputStream();
 

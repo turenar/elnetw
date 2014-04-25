@@ -70,7 +70,6 @@ public class MiscRenderObject extends AbstractRenderObject {
 	@Override
 	public void focusGained(FocusEvent e) {
 		super.focusGained(e);
-		getFrameApi().clearTweetView();
 		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
 				DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,

@@ -70,6 +70,7 @@ import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
@@ -530,6 +531,7 @@ import static java.lang.Math.max;
 	/*package*/ int tweetViewCreatedByFlag;
 	/*package*/ int tweetViewCreatedAtFlag;
 	/*package*/ int tweetViewTextOverlayFlag;
+	/*package*/ HashMap<String, IntentArguments> urlIntentMap = new HashMap<>();
 
 	/**
 	 * Creates new form TwitterClientFrame
@@ -576,7 +578,11 @@ import static java.lang.Math.max;
 		setTweetViewCreatedAt(null, null, DO_NOTHING_WHEN_POINTED);
 		setTweetViewCreatedBy(null, null, null, DO_NOTHING_WHEN_POINTED);
 		setTweetViewOperationPanel(null);
+		urlIntentMap.clear();
+		nextIntentUrlId = 0;
 	}
+
+	private int nextIntentUrlId;
 
 	@Override
 	public void doPost() {
@@ -626,8 +632,11 @@ import static java.lang.Math.max;
 	}
 
 	@Override
-	public ClientConfiguration getClientConfiguration() {
-		return configuration;
+	public String getCommandUrl(IntentArguments intentArguments) {
+		String url = "http://command/?id=" + nextIntentUrlId;
+		urlIntentMap.put(url, intentArguments);
+		nextIntentUrlId++;
+		return url;
 	}
 
 	/**
@@ -695,10 +704,6 @@ import static java.lang.Math.max;
 		return this;
 	}
 
-	@Override
-	public ImageCacher getImageCacher() {
-		return imageCacher;
-	}
 
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
@@ -887,14 +892,16 @@ import static java.lang.Math.max;
 				public void hyperlinkUpdate(HyperlinkEvent e) {
 					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 						String url = e.getURL().toString();
-						if (url.startsWith("http://command/")) {
-							String command = url.substring("http://command/".length());
-							selectingTab.handleAction(Utility.getIntentArguments(command));
+						logger.debug(url);
+						IntentArguments intentArguments = urlIntentMap.get(url);
+						if (intentArguments != null) {
+							intentArguments.invoke();
 						} else {
 							try {
 								configuration.getUtility().openBrowser(url);
 							} catch (Exception e1) {
-								e1.printStackTrace(); //TODO
+								configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID,
+										"error").onException(e1);
 							}
 						}
 					}

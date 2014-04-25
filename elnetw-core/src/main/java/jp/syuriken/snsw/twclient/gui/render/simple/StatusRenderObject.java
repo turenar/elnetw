@@ -24,7 +24,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
@@ -41,17 +40,12 @@ import javax.swing.event.AncestorListener;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.TwitterStatus;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.render.RendererManager;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
-import twitter4j.TweetEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -64,14 +58,12 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StatusRenderObject extends AbstractRenderObject {
+public class StatusRenderObject extends EntitySupportRenderObject {
 
-	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
 	private final long userId;
-	private final Status status;
+	private final TwitterStatus status;
 	private final String uniqId;
-	private String tooltip;
 	private JLabel tweetViewRetweetButton;
 	private JLabel tweetViewReplyButton;
 	private JLabel tweetViewFavoriteButton;
@@ -81,7 +73,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 	public StatusRenderObject(long userId, Status status, SimpleRenderer renderer) {
 		super(renderer);
 		this.userId = userId;
-		this.status = status;
+		this.status = status instanceof TwitterStatus ? (TwitterStatus) status : new TwitterStatus(status);
 		uniqId = RendererManager.getStatusUniqId(status.getId());
 	}
 
@@ -101,51 +93,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 		Status originalStatus = status;
 		Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 		String text = status.getText();
-		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
-
-		TweetEntity[] entities = sortEntities(status);
-		int offset = 0;
-		for (Object entity : entities) {
-			int start;
-			int end;
-			String replaceText;
-			String url;
-			if (entity instanceof HashtagEntity) {
-				HashtagEntity hashtagEntity = (HashtagEntity) entity;
-				start = hashtagEntity.getStart();
-				end = hashtagEntity.getEnd();
-				replaceText = null;
-				url = "http://command/hashtag!name=" + hashtagEntity.getText();
-			} else if (entity instanceof URLEntity) {
-				URLEntity urlEntity = (URLEntity) entity;
-				if (urlEntity instanceof MediaEntity) {
-					MediaEntity mediaEntity = (MediaEntity) urlEntity;
-					url = "http://command/openimg!url=" + mediaEntity.getMediaURL();
-				} else {
-					url = urlEntity.getURL();
-				}
-				start = urlEntity.getStart();
-				end = urlEntity.getEnd();
-				replaceText = urlEntity.getDisplayURL();
-			} else if (entity instanceof UserMentionEntity) {
-				UserMentionEntity mentionEntity = (UserMentionEntity) entity;
-				start = mentionEntity.getStart();
-				end = mentionEntity.getEnd();
-				replaceText = null;
-				url = "http://command/userinfo!screenName=" + mentionEntity.getScreenName();
-			} else {
-				throw new AssertionError();
-			}
-
-			String insertText = "<a href='" + url + "'>"
-					+ escapeHTML(replaceText == null ? text.substring(start, end) : replaceText)
-					+ "</a>";
-			stringBuilder.append(escapeHTML(text.substring(offset, start)));
-			stringBuilder.append(insertText);
-			offset = end;
-		}
-		escapeHTML(text.substring(offset), stringBuilder);
-		String tweetText = stringBuilder.toString();
+		String tweetText = getTweetViewText(status, text);
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
 		String source = status.getSource();
@@ -169,7 +117,7 @@ public class StatusRenderObject extends AbstractRenderObject {
 			getTweetViewFavoriteButton().setIcon(ImageResource.getImgFavOff());
 		}
 		Icon userProfileIcon = componentUserIcon.getIcon();
-		getFrameApi().clearTweetView();
+
 		getFrameApi().setTweetViewCreatedAt(createdAt, createdAtToolTip, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
 		getFrameApi().setTweetViewCreatedBy(userProfileIcon, createdBy, null, SET_FOREGROUND_COLOR_BLUE | UNDERLINE);
 		getFrameApi().setTweetViewText(tweetText, overlayString, UNDERLINE);
@@ -197,6 +145,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 	@Override
 	public Date getDate() {
 		return status.getCreatedAt();
+	}
+
+	@Override
+	protected String getPopupMenuType() {
+		return "status";
 	}
 
 	/**
@@ -273,22 +226,20 @@ public class StatusRenderObject extends AbstractRenderObject {
 			tweetViewOperationPanel.setPreferredSize(new Dimension(76, 76));
 			tweetViewOperationPanel.setMinimumSize(new Dimension(76, 76));
 			GroupLayout layout = new GroupLayout(tweetViewOperationPanel);
-			layout.setHorizontalGroup(layout
-					.createParallelGroup()
-					.addGroup(
-							layout.createSequentialGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
-									.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
-					.addGroup(
-							layout.createSequentialGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-									.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
-			layout.setVerticalGroup(layout
-					.createSequentialGroup()
-					.addGroup(
-							layout.createParallelGroup().addComponent(getTweetViewReplyButton(), 32, 32, 32)
-									.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
-					.addGroup(
-							layout.createParallelGroup().addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-									.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+			layout.setHorizontalGroup(layout.createParallelGroup()
+					.addGroup(layout.createSequentialGroup()
+							.addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+					.addGroup(layout.createSequentialGroup()
+							.addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+			layout.setVerticalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup()
+							.addComponent(getTweetViewReplyButton(), 32, 32, 32)
+							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+					.addGroup(layout.createParallelGroup()
+							.addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
+							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
 		}
 		return tweetViewOperationPanel;
 	}
@@ -375,14 +326,8 @@ public class StatusRenderObject extends AbstractRenderObject {
 		getConfiguration().handleAction(intentArguments);
 	}
 
-	@Override
-	protected String getPopupMenuType() {
-		return "status";
-	}
-
 	protected void initComponents() {
-		Status twitterStatus = status instanceof TwitterStatus ? status
-				: new TwitterStatus(status);
+		Status twitterStatus = this.status;
 
 		Status status;
 		if (twitterStatus.isRetweet()) {
@@ -405,11 +350,13 @@ public class StatusRenderObject extends AbstractRenderObject {
 		componentSentBy = new JLabel(screenName);
 		componentSentBy.setFont(renderer.getDefaultFont());
 
-		componentStatusText = new JLabel(status.getText());
+		setStatusTextWithEntities(status, status.getText());
 
-		if (twitterStatus.isRetweet()) {
-			tooltip = "Retweeted by @" + twitterStatus.getUser().getScreenName();
-		}
+		// in Windows, tooltip keep MouseEvent from being fired.
+		// I don't know why. On any other operating systems, is this reproduced?
+		/*if(twitterStatus.isRetweet()) {
+			componentStatusText.setToolTipText("Retweeted by @" + twitterStatus.getUser().getScreenName());
+		}*/
 
 		if (twitterStatus.isRetweet()) {
 			foregroundColor = Color.GREEN;
@@ -419,17 +366,6 @@ public class StatusRenderObject extends AbstractRenderObject {
 				foregroundColor = Color.RED;
 			}
 		}
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		logger.trace("{}", e);
-		getFrameApi().handleShortcutKey("list", e);
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		getFrameApi().handleShortcutKey("list", e);
 	}
 
 	@Override
@@ -504,7 +440,11 @@ public class StatusRenderObject extends AbstractRenderObject {
 		}
 	}
 
-	private boolean openBrowser(String url) {
-		return ClientConfiguration.getInstance().getUtility().openBrowser(url) == null;
+	private void openBrowser(String url) {
+		try {
+			ClientConfiguration.getInstance().getUtility().openBrowser(url);
+		} catch (Exception e) {
+			renderer.onException(e);
+		}
 	}
 }

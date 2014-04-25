@@ -31,7 +31,7 @@ import twitter4j.MediaEntity;
 import twitter4j.RateLimitStatus;
 import twitter4j.TwitterAPIConfiguration;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * {@link QuoteTweetLengthCalculator}のためのテスト
@@ -41,6 +41,7 @@ import static junit.framework.Assert.assertEquals;
 public class QuoteTweetLengthCalculatorTest {
 
 	private static class MyTwitterAPIConfiguration implements TwitterAPIConfiguration {
+		private static final long serialVersionUID = -7382399680564850414L;
 
 		@Override
 		public int getAccessLevel() {

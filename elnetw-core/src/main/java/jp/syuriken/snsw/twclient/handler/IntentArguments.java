@@ -22,12 +22,15 @@ package jp.syuriken.snsw.twclient.handler;
 
 import java.util.HashMap;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+
 /**
  * ActionHandler用の引数管理
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class IntentArguments implements Cloneable {
+	private static final ClientConfiguration configuration = ClientConfiguration.getInstance();
 	private String intentName;
 	private HashMap<String, Object> extraArgs;
 
@@ -122,6 +125,13 @@ public class IntentArguments implements Cloneable {
 	 */
 	public String getIntentName() {
 		return intentName;
+	}
+
+	/**
+	 * delegate for {@link jp.syuriken.snsw.twclient.ClientConfiguration#handleAction(IntentArguments)}
+	 */
+	public void invoke() {
+		configuration.handleAction(this);
 	}
 
 	/**

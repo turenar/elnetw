@@ -26,6 +26,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.internal.ConcurrentSoftHashMap;
+
 /**
  * Url Resolver Manager. This provides url resolver delegation
  *
@@ -44,6 +49,8 @@ public class UrlResolverManager {
 
 	private static ReentrantReadWriteLock mediaResolversLock = new ReentrantReadWriteLock();
 	private static CopyOnWriteArrayList<MediaProviderInfo> mediaResolvers = new CopyOnWriteArrayList<>();
+	private static ConcurrentSoftHashMap<String, UrlInfo> cacheMap = new ConcurrentSoftHashMap<>();
+	private static ClientConfiguration configuration = ClientConfiguration.getInstance();
 
 	public static void addMediaProvider(String urlPattern, MediaUrlResolver mediaUrlProvider) {
 		mediaResolversLock.writeLock().lock();
@@ -54,21 +61,65 @@ public class UrlResolverManager {
 		}
 	}
 
+	/**
+	 * 非同期的にurlを解決する。
+	 *
+	 * @param url        URL
+	 * @param dispatcher 解決されたURLを受け取るハンドラ。null不可
+	 */
 	public static void async(String url, MediaUrlDispatcher dispatcher) {
-		MediaUrlResolver resolver = getProvider(url);
-		if (resolver == null) {
-			dispatcher.gotMediaUrl(url, url);
+		async(url, dispatcher, JobQueue.PRIORITY_DEFAULT);
+	}
+
+	/**
+	 * 非同期的にurlを解決する。
+	 *
+	 * @param url        URL
+	 * @param dispatcher 解決されたURLを受け取るハンドラ。null不可
+	 * @param priority   ジョブ優先度
+	 */
+	public static void async(final String url, final MediaUrlDispatcher dispatcher, byte priority) {
+		UrlInfo cachedUrl = getCachedUrl(url);
+		if (cachedUrl != null) {
+			dispatcher.gotMediaUrl(url, cachedUrl);
 		} else {
-			resolver.async(url, dispatcher);
+			configuration.addJob(priority, new ParallelRunnable() {
+				@Override
+				public void run() {
+					try {
+						dispatcher.gotMediaUrl(url, getUrl(url));
+					} catch (Exception e) {
+						dispatcher.onException(url, e);
+					}
+				}
+			});
 		}
 	}
 
-	public static void async(String url, MediaUrlDispatcher dispatcher, byte priority) {
-		MediaUrlResolver resolver = getProvider(url);
-		if (resolver == null) {
-			dispatcher.gotMediaUrl(url, url);
-		} else {
-			resolver.async(url, dispatcher, priority);
+	/**
+	 * キャッシュされたURL情報を再帰的に確認しながら取得する
+	 *
+	 * @param url URL
+	 * @return キャッシュ済みURL情報。nullの可能性あり。
+	 */
+	public static UrlInfo getCachedUrl(String url) {
+		UrlInfo oldCachedUrl = null;
+		UrlInfo cachedUrl;
+		String processingUrl = url;
+		while (true) {
+			// キャッシュの確認
+			cachedUrl = cacheMap.get(processingUrl);
+			if (cachedUrl == null || cachedUrl.getResolvedUrl().equals(processingUrl)) {
+				// キャッシュが見つからないときは最後に確認できたキャッシュを返す
+				return oldCachedUrl;
+			} else if (!cachedUrl.shouldRecursive()) {
+				// キャッシュは見つかったけどこれ以上確認する必要はない
+				return cachedUrl;
+			} else {
+				// まだ確認する必要があるかもしれない
+				oldCachedUrl = cachedUrl;
+				processingUrl = cachedUrl.getResolvedUrl();
+			}
 		}
 	}
 
@@ -88,12 +139,56 @@ public class UrlResolverManager {
 		}
 	}
 
-	public static String getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
-		MediaUrlResolver provider = getProvider(url);
-		if (provider == null) {
-			return null;
-		} else {
-			return provider.getUrl(url);
+	/**
+	 * urlを解決する。
+	 *
+	 * @param url URL
+	 * @return 解決されたURL情報。nullの可能性あり。
+	 */
+	public static UrlInfo getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
+		UrlInfo oldUrl = null;
+		String processingUrl = url;
+		while (true) {
+			// キャッシュのチェック
+			UrlInfo cachedUrl = getCachedUrl(processingUrl);
+			if (cachedUrl != null) {
+				// キャッシュに存在する場合は、再帰的に解決すべきかどうかを確認する。
+				// またresolvedUrl==processingUrl (resolvedUrlはこれ以上解決のしようがない) かどうかも確認する
+				// あてはまる場合はキャッシュを返す。
+				if (!cachedUrl.shouldRecursive() || cachedUrl.getResolvedUrl().equals(processingUrl)) {
+					return cachedUrl; // avoid inf-loop
+				}
+				// resolvedUrlは解決できる可能性がある (=前回の解決時にエラー落ち？) 場合はそれをもとに
+				// 解決を再開する。
+				oldUrl = cachedUrl;
+				processingUrl = cachedUrl.getResolvedUrl();
+				continue;
+			}
+			// 解決してくれそうなクラスを取得する。
+			MediaUrlResolver provider = getProvider(url);
+			if (provider == null) {
+				// 解決できそうもないよ
+				return oldUrl;
+			}
+			// resolveを試してみる
+			UrlInfo resolvedUrl = provider.getUrl(processingUrl);
+			if (resolvedUrl == null) {
+				// やっぱり解決できなかった
+				// 一度も解決できなかった時はエラー (=これ以上解決できないもの) として保存
+				cacheMap.put(processingUrl, oldUrl == null ? new UrlInfo(url) : oldUrl);
+				return oldUrl;
+			} else {
+				// 解決できた
+				// キャッシュに保存する
+				cacheMap.put(processingUrl, resolvedUrl);
+				if (!resolvedUrl.shouldRecursive()) {
+					// 再帰的に解決しなくてもいい時＝終了
+					return resolvedUrl;
+				}
+				// 次のresolveを試す。
+				processingUrl = resolvedUrl.getResolvedUrl();
+				oldUrl = resolvedUrl;
+			}
 		}
 	}
 }

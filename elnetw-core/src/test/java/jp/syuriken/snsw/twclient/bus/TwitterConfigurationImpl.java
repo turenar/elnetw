@@ -31,6 +31,7 @@ import twitter4j.conf.Configuration;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterConfigurationImpl implements Configuration {
+	private static final long serialVersionUID = 1616007835451341178L;
 	private final String name;
 
 	public TwitterConfigurationImpl(String name) {

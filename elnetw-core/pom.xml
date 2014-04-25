@@ -117,6 +117,11 @@
 			<artifactId>base64</artifactId>
 			<version>2.3.8</version>
 		</dependency>
+		<dependency>
+			<groupId>nu.validator.htmlparser</groupId>
+			<artifactId>htmlparser</artifactId>
+			<version>1.4</version>
+		</dependency>
 	</dependencies>
 
 	<organization>
@@ -180,11 +185,18 @@
 				<version>2.10</version>
 				<configuration>
 					<includeTestSourceDirectory>false</includeTestSourceDirectory>
-					<configLocation>.settings/checkstyle.xml</configLocation>
+					<configLocation>rules/checkstyle.xml</configLocation>
 					<headerLocation>../doc/license/elnetw.txt</headerLocation>
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>jp.syuriken.snsw</groupId>
+				<artifactId>srccheck-rules</artifactId>
+				<version>1</version>
+			</extension>
+		</extensions>
 	</build>
 	<reporting>
 		<plugins>
@@ -193,7 +205,7 @@
 				<artifactId>findbugs-maven-plugin</artifactId>
 				<version>2.5.3-SNAPSHOT</version>
 				<configuration>
-					<excludeFilterFile>.settings/findbugs-exclude.xml</excludeFilterFile>
+					<excludeFilterFile>rules/findbugs-exclude.xml</excludeFilterFile>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<effort>Max</effort>
 					<sourceEncoding>${file.encoding}</sourceEncoding>
@@ -207,7 +219,7 @@
 				<version>2.10</version>
 				<configuration>
 					<includeTestSourceDirectory>false</includeTestSourceDirectory>
-					<configLocation>.settings/checkstyle.xml</configLocation>
+					<configLocation>rules/checkstyle.xml</configLocation>
 					<headerLocation>../doc/license/elnetw.txt</headerLocation>
 				</configuration>
 			</plugin>

@@ -18,13 +18,17 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.twitter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.syuriken.snsw.twclient.CacheManager;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.RateLimitStatus;
@@ -157,30 +161,26 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		Status status = originalUser.getStatus();
 		JSONObject statusJsonObject;
 		try {
-			statusJsonObject =
-					jsonObject == null ? null : (jsonObject.isNull("status") ? null : jsonObject
-							.getJSONObject("status"));
+			statusJsonObject = jsonObject == null ? null :
+					(jsonObject.isNull("status") ? null : jsonObject.getJSONObject("status"));
 		} catch (JSONException e) {
 			logger.error("Cannot parse json", e);
 			throw new RuntimeException(e);
 		}
-		if (status != null && status instanceof TwitterStatus == false) {
+		if (!(status == null || status instanceof TwitterStatus)) {
 			ClientConfiguration configuration = ClientConfiguration.getInstance();
 			CacheManager cacheManager = configuration.getCacheManager();
-			Status cachedStatus = cacheManager.getCachedStatus(status.getId());
+			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
 			if (cachedStatus == null) {
-				status = new TwitterStatus(status, statusJsonObject);
-				cachedStatus = cacheManager.cacheStatusIfAbsent(status);
-				if (cachedStatus != null) {
-					status = cachedStatus;
-				}
+				TwitterStatus twitterStatus = new TwitterStatus(status, statusJsonObject, this);
+				status = cacheManager.getCachedStatus(twitterStatus);
 			}
 		}
 		this.status = status;
 	}
 
 	@Override
-	public int compareTo(User b) {
+	public int compareTo(@Nonnull User b) {
 		long thisId = id;
 		long thatId = b.getId();
 		if (thisId < thatId) {
@@ -198,7 +198,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 			return false;
 		} else if (this == obj) {
 			return true;
-		} else if (obj instanceof User == false) {
+		} else if (!(obj instanceof User)) {
 			return false;
 		}
 		return ((User) obj).getId() == id;
@@ -509,7 +509,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	 * @param user 新しい情報が含まれたユーザー
 	 * @throws IllegalArgumentException このユーザーのIDと指定したユーザーのIDが一致しない
 	 */
-	public void updateUser(User user) throws IllegalArgumentException {
+	public TwitterUser updateUser(User user) throws IllegalArgumentException {
 		if (id != user.getId()) {
 			throw new IllegalArgumentException("UserIDが一致しません");
 		}
@@ -530,5 +530,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		status = user.getStatus();
 		statusesCount = user.getStatusesCount();
 		url = user.getURL();
+		return this;
 	}
 }
