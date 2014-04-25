@@ -38,9 +38,16 @@
 			<outputFileNameMapping>launcher.${artifact.extension}</outputFileNameMapping>
 			<includes>
 				<include>jp.syuriken.snsw:elnetw-launcher</include>
-				<include>jp.syuriken.snsw:elnetw-common</include>
 			</includes>
 		</dependencySet>
+		<dependencySet>
+		<useProjectArtifact>true</useProjectArtifact>
+		<outputDirectory>bin</outputDirectory>
+		<outputFileNameMapping>library.${artifact.extension}</outputFileNameMapping>
+		<includes>
+			<include>jp.syuriken.snsw:elnetw-common</include>
+		</includes>
+	</dependencySet>
 	</dependencySets>
 
 	<fileSets>
