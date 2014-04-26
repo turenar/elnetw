@@ -308,7 +308,7 @@ public class SimpleRenderer implements TabRenderer {
 			logger.trace("onUnFavorite: source={}, target={}, unfavoritedStatus={}", source, target, unfavoritedStatus);
 		}
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"unfav", source, target, unfavoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"unfav", source, target, unfavoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.LIGHT_GRAY)
 					.setCreatedBy(source)
@@ -327,13 +327,13 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onUnfollow(User source, User unfollowedUser) {
 		if (unfollowedUser.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"follow", source, unfollowedUser})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"unfollow", source, unfollowedUser})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setIcon(source)
 					.setCreatedBy(source)
-					.setUniqId("!follow/" + source.getScreenName() + "/" + unfollowedUser.getScreenName())
-					.setText("@" + unfollowedUser.getScreenName() + " にフォローされました"));
+					.setUniqId("!unfollow/" + source.getScreenName() + "/" + unfollowedUser.getScreenName())
+					.setText("@" + unfollowedUser.getScreenName() + " にフォロー解除されました"));
 		}
 	}
 

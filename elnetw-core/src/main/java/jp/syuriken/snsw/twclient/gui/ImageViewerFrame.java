@@ -33,14 +33,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
-import java.util.Hashtable;
 
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
@@ -52,6 +48,7 @@ import javax.swing.LayoutStyle;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
 import jp.syuriken.snsw.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
@@ -126,7 +123,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 					if (imageIcon.getIconHeight() < 0) {
 						updateImageLabel("画像のロードに失敗したもよう");
 					} else {
-						ImageViewerFrame.this.image = createBufferedImage(image);
+						ImageViewerFrame.this.image = Utility.createBufferedImage(image, new MediaTracker(ImageViewerFrame.this));
 						checkImageSize();
 						EventQueue.invokeLater(new Runnable() {
 							@Override
@@ -228,28 +225,6 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 				maxImageLength = maxImageLength * 2 / 3;
 			}
 		}
-	}
-
-	/*package*/BufferedImage createBufferedImage(Image image) throws InterruptedException {
-		if (image instanceof BufferedImage) {
-			return (BufferedImage) image;
-		}
-
-		MediaTracker tracker = new MediaTracker(this);
-		tracker.addImage(image, 0);
-		tracker.waitForAll();
-
-		PixelGrabber pixelGrabber = new PixelGrabber(image, 0, 0, -1, -1, false);
-		pixelGrabber.grabPixels();
-		ColorModel cm = pixelGrabber.getColorModel();
-
-		final int w = pixelGrabber.getWidth();
-		final int h = pixelGrabber.getHeight();
-		WritableRaster raster = cm.createCompatibleWritableRaster(w, h);
-		BufferedImage renderedImage = new BufferedImage(cm, raster, cm.isAlphaPremultiplied(),
-				new Hashtable<String, Object>());
-		renderedImage.getRaster().setDataElements(0, 0, w, h, pixelGrabber.getPixels());
-		return renderedImage;
 	}
 
 	private JLabel getComponentImageLabel() {

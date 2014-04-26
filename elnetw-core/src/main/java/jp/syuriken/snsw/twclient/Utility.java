@@ -22,8 +22,14 @@
 package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.MediaTracker;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.PixelGrabber;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -31,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -46,20 +53,6 @@ import org.slf4j.LoggerFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class Utility {
-
-	/**
-	 * OSの種別を判断する。
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public enum OSType {
-		/** Windows環境 */
-		WINDOWS,
-		/** MacOS環境 */
-		MAC,
-		/** その他 (*nixなど) */
-		OTHER
-	}
 
 	private static class KVEntry {
 
@@ -82,6 +75,20 @@ public class Utility {
 		}
 	}
 
+	/**
+	 * OSの種別を判断する。
+	 *
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
+	 */
+	public enum OSType {
+		/** Windows環境 */
+		WINDOWS,
+		/** MacOS環境 */
+		MAC,
+		/** その他 (*nixなど) */
+		OTHER
+	}
+
 	/** 秒→ミリセカンド */
 	public static final long SEC2MS = 1000;
 	/** 分→ミリセカンド */
@@ -94,7 +101,7 @@ public class Utility {
 
 	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<>();
-	/*package*/ static final String[] BROWSER_CANDIDATES = new String[] {
+	/*package*/ static final String[] BROWSER_CANDIDATES = new String[]{
 			"xdg-open",
 			"firefox",
 			"iron",
@@ -177,6 +184,27 @@ public class Utility {
 		int newg = (int) ((target.getGreen() * (1.0 - alpha)) + (source.getGreen() * alpha));
 		int newb = (int) ((target.getBlue() * (1.0 - alpha)) + (source.getBlue() * alpha));
 		return new Color(newr, newg, newb, target.getAlpha());
+	}
+
+	public static BufferedImage createBufferedImage(Image image, MediaTracker tracker) throws InterruptedException {
+		if (image instanceof BufferedImage) {
+			return (BufferedImage) image;
+		}
+
+		tracker.addImage(image, 0);
+		tracker.waitForAll();
+
+		PixelGrabber pixelGrabber = new PixelGrabber(image, 0, 0, -1, -1, false);
+		pixelGrabber.grabPixels();
+		ColorModel cm = pixelGrabber.getColorModel();
+
+		final int w = pixelGrabber.getWidth();
+		final int h = pixelGrabber.getHeight();
+		WritableRaster raster = cm.createCompatibleWritableRaster(w, h);
+		BufferedImage renderedImage = new BufferedImage(cm, raster, cm.isAlphaPremultiplied(),
+				new Hashtable<String, Object>());
+		renderedImage.getRaster().setDataElements(0, 0, w, h, pixelGrabber.getPixels());
+		return renderedImage;
 	}
 
 	/** OSを確定する */
@@ -333,7 +361,7 @@ public class Utility {
 	}
 
 	static {
-		privacyEntries = new KVEntry[] {
+		privacyEntries = new KVEntry[]{
 				new KVEntry(System.getProperty("elnetw.home"), "{DATA}/"),
 				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
 				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
@@ -452,7 +480,7 @@ public class Utility {
 		if (detectedBrowser == null) {
 			for (String browser : BROWSER_CANDIDATES) {
 				try {
-					if (Runtime.getRuntime().exec(new String[] {
+					if (Runtime.getRuntime().exec(new String[]{
 							"which",
 							browser
 					}).waitFor() == 0) {
@@ -531,7 +559,7 @@ public class Utility {
 					break;
 				case OTHER:
 					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[] {
+					Runtime.getRuntime().exec(new String[]{
 							browser,
 							url.trim()
 					});
