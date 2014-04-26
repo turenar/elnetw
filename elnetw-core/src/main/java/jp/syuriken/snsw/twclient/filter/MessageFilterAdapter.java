@@ -35,6 +35,11 @@ import twitter4j.UserList;
  */
 public abstract class MessageFilterAdapter implements MessageFilter {
 	@Override
+	public boolean onUnfollow(User source, User unfollowedUser) {
+		return false;
+	}
+
+	@Override
 	public boolean onBlock(User source, User blockedUser) {
 		return false;
 	}

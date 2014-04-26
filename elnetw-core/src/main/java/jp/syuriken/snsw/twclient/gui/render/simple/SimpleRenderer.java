@@ -117,6 +117,10 @@ public class SimpleRenderer implements TabRenderer {
 		return focusOwner;
 	}
 
+	public void setFocusOwner(AbstractRenderObject focusOwner) {
+		this.focusOwner = focusOwner;
+	}
+
 	protected int getFontHeight() {
 		return fontHeight;
 	}
@@ -136,7 +140,6 @@ public class SimpleRenderer implements TabRenderer {
 	protected Dimension getLinePanelSizeOfSentBy() {
 		return linePanelSizeOfSentBy;
 	}
-
 
 	protected RenderTarget getTarget() {
 		return renderTarget;
@@ -244,7 +247,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		if (target.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"fav", source, target, favoritedStatus})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"fav", source, target, favoritedStatus})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setCreatedBy(source)
@@ -264,7 +267,7 @@ public class SimpleRenderer implements TabRenderer {
 	@Override
 	public void onFollow(User source, User followedUser) {
 		if (followedUser.getId() == actualUserId) {
-			renderTarget.addStatus(new MiscRenderObject(this, new Object[] {"follow", source, followedUser})
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"follow", source, followedUser})
 					.setBackgroundColor(Color.GRAY)
 					.setForegroundColor(Color.YELLOW)
 					.setIcon(source)
@@ -322,6 +325,19 @@ public class SimpleRenderer implements TabRenderer {
 	}
 
 	@Override
+	public void onUnfollow(User source, User unfollowedUser) {
+		if (unfollowedUser.getId() == actualUserId) {
+			renderTarget.addStatus(new MiscRenderObject(this, new Object[]{"follow", source, unfollowedUser})
+					.setBackgroundColor(Color.GRAY)
+					.setForegroundColor(Color.YELLOW)
+					.setIcon(source)
+					.setCreatedBy(source)
+					.setUniqId("!follow/" + source.getScreenName() + "/" + unfollowedUser.getScreenName())
+					.setText("@" + unfollowedUser.getScreenName() + " にフォローされました"));
+		}
+	}
+
+	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 	}
 
@@ -351,9 +367,5 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
-	}
-
-	public void setFocusOwner(AbstractRenderObject focusOwner) {
-		this.focusOwner = focusOwner;
 	}
 }

@@ -22,6 +22,7 @@
 package jp.syuriken.snsw.twclient.gui;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import twitter4j.User;
 
 /**
  * タブレンダラ

@@ -111,6 +111,10 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	}
 
 	@Override
+	public void onUnfollow(User source, User unfollowedUser) {
+	}
+
+	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 	}
 

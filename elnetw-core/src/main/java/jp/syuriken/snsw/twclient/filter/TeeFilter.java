@@ -287,6 +287,16 @@ public class TeeFilter implements TabRenderer {
 	}
 
 	@Override
+	public void onUnfollow(User source, User unfollowedUser) {
+		for (MessageFilter filter : filters) {
+			if (filter.onUnfollow(source, unfollowedUser)) {
+				return;
+			}
+		}
+		renderer.onUnfollow(source, unfollowedUser);
+	}
+
+	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 		for (MessageFilter filter : filters) {
 			if (filter.onUserListCreation(listOwner, list)) {

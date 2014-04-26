@@ -174,7 +174,6 @@ public class TwitterConfigurationImpl implements Configuration {
 		return null;
 	}
 
-
 	@Override
 	public String getUserStreamBaseURL() {
 		return null;
@@ -186,7 +185,17 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
+	public boolean isDaemonEnabled() {
+		return false;
+	}
+
+	@Override
 	public boolean isDebugEnabled() {
+		return false;
+	}
+
+	@Override
+	public boolean isIncludeEntitiesEnabled() {
 		return false;
 	}
 
@@ -204,7 +213,6 @@ public class TwitterConfigurationImpl implements Configuration {
 	public boolean isMBeanEnabled() {
 		return false;
 	}
-
 
 	@Override
 	public boolean isStallWarningsEnabled() {
