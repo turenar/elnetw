@@ -57,6 +57,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
@@ -71,7 +72,6 @@ import twitter4j.JSONObject;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
-import twitter4j.User;
 
 /**
  * ユーザー情報を表示するFrameTab
@@ -111,7 +111,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private final Font operationFont = frameApi.getUiFont().deriveFont(Font.PLAIN, frameApi.getUiFont().getSize() - 1);
 	private final HashMap<String, IntentArguments> urlIntentMap;
 	/** 指定されたユーザー */
-	protected User user;
+	protected TwitterUser user;
 	/** レンダラ */
 	protected DelegateRenderer renderer = new UserInfoTweetsRenderer();
 	private JScrollPane componentBio;
@@ -145,11 +145,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		configuration.addJob(new TwitterRunnable() {
 			@Override
 			protected void access() throws TwitterException {
-				ResponseList<Status> timeline =
-						configuration.getTwitterForRead().getUserTimeline(userId);
-				for (Status status : timeline) {
-					getRenderer().onStatus(status);
-				}
+				TwitterUser user = configuration.getCacheManager().getUser(userId);
+				setUser(user);
 			}
 
 			@Override
@@ -513,7 +510,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		layout.setVerticalGroup(
 				layout.createSequentialGroup()
 						.addComponent(getComponentUserInfo(), 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-						.addComponent(getComponentTweetsScrollPane()));
+						.addComponent(getComponentTweetsScrollPane())
+		);
 
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(getComponentUserInfo(), 96, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -552,7 +550,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		//super.initTimeline();
 	}
 
-	/*package*/ void setUser(final User user) {
+	/*package*/ void setUser(final TwitterUser user) {
 		this.user = user;
 		configuration.getMessageBus().establish(accountId, "all", getRenderer());
 		EventQueue.invokeLater(new Runnable() {
@@ -611,6 +609,17 @@ public class UserInfoFrameTab extends DefaultClientTab {
 					componentMuteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
 				} else {
 					componentMuteCheckBox.setEnabled(true);
+				}
+			}
+		});
+
+		configuration.addJob(JobQueue.PRIORITY_LOW, new TwitterRunnable() {
+			@Override
+			protected void access() throws TwitterException {
+				ResponseList<Status> timeline = getClientConfiguration().getTwitterForRead().getUserTimeline(user.getId());
+				TabRenderer renderer = getRenderer();
+				for (Status status : timeline) {
+					renderer.onStatus(status);
 				}
 			}
 		});
