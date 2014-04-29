@@ -39,7 +39,6 @@ public class ActionButtonConfigType implements ConfigType {
 
 	private final String buttonText;
 	/*package*/final String actionCommand;
-	/*package*/final ClientFrameApi frameApi;
 	private final ActionListener ACTION_LISTENER = new ActionListener() {
 
 		@Override
@@ -47,6 +46,7 @@ public class ActionButtonConfigType implements ConfigType {
 			ClientConfiguration.getInstance().handleAction(new IntentArguments(actionCommand));
 		}
 	};
+	/*package*/final ClientFrameApi frameApi;
 
 
 	/**

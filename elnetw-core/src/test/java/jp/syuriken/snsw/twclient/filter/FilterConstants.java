@@ -64,39 +64,25 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 
 	/** 常にtrueを返す {@link FilterDispatcherBase} */
 	public static final FilterDispatcherBase TRUE_DISPATCHER = new BooleanFilterDispatcher(true);
-
-	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
-	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[] {
-			this
-	};
-
-	/** 最後にフィルタしようとしたオブジェクト */
-	protected Object lastFilteringObject;
-
 	/**
 	 * &#64;twit4j による 2012年7月10日14:35 投稿。
 	 * 「Tue Jul 10 14:35:33 JST 2012 test」
 	 */
 	public static final Status STATUS_1;
-
 	/**
 	 * &#64;ture7s による 2012年7月11日18:01JST 投稿
 	 * 「てす &#64;ture7 &#64;ture7s」
 	 */
 	public static final Status STATUS_2;
-
 	/**
 	 * &#64;ture7s による 2012年7月11日18:02JST 投稿
 	 * 「&#64;ture7s てす ‪#てす‬ http://example.com」
 	 */
 	public static final Status STATUS_3;
-
 	/** API Documentに記述されているリツイートされたStatusのテスト用データ */
 	public static final Status STATUS_4;
-
 	/** {@link #STATUS_2}とほとんど同じだが、verifiedおよびprotectedがtrueになってる実在しないデータ */
 	public static final Status STATUS_5;
-
 	/** API Documentに記述されているダイレクトメッセージのテスト用データ */
 	public static final DirectMessage DM_1;
 
@@ -112,7 +98,6 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			throw new AssertionError(e);
 		}
 	}
-
 
 	/**
 	 * ユーティリティーメソッド。
@@ -154,6 +139,13 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	private static Status loadStatus(String fileName) throws TwitterException, IOException {
 		return DataObjectFactory.createStatus(loadFromFile(fileName));
 	}
+
+	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
+	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[] {
+			this
+	};
+	/** 最後にフィルタしようとしたオブジェクト */
+	protected Object lastFilteringObject;
 
 	/**
 	 * 最後にフィルタしようとしたオブジェクトが正しいかどうかを確認する。

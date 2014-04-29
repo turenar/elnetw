@@ -89,30 +89,6 @@ public class ParsedArguments {
 		processArguments.add(arg);
 	}
 
-	public Iterator<String> getErrorMessageIterator() {
-		return Collections.unmodifiableList(errorMessages).iterator();
-	}
-
-	/**
-	 * オプション情報を取得する。
-	 *
-	 * @param longOptName 長いオプション名
-	 * @param iterable    イテレータブル: nullを返さない。拡張for文等でこのまま使用可能である
-	 * @return オプション情報
-	 */
-	public OptionInfo getOptInfo(String longOptName, boolean iterable) {
-		OptionInfo optInfo = getOptInfo(longOptName);
-		return iterable && optInfo == null ? NULL_OPTION_INFO : optInfo;
-	}
-
-	/**
-	 * すべてのオプション情報を取得する。これは指定された順番通りに並べられている
-	 * @return オプション情報のイテレータ
-	 */
-	public Iterator<OptionInfo> getOptionListIterator() {
-		return Collections.unmodifiableList(optionInfoList).iterator();
-	}
-
 	/**
 	 * 短いオプションを追加する
 	 *
@@ -145,6 +121,10 @@ public class ParsedArguments {
 		return errorMessages.size();
 	}
 
+	public Iterator<String> getErrorMessageIterator() {
+		return Collections.unmodifiableList(errorMessages).iterator();
+	}
+
 	/**
 	 * エラーメッセージの配列を取得する。
 	 *
@@ -166,6 +146,18 @@ public class ParsedArguments {
 	}
 
 	/**
+	 * オプション情報を取得する。
+	 *
+	 * @param longOptName 長いオプション名
+	 * @param iterable    イテレータブル: nullを返さない。拡張for文等でこのまま使用可能である
+	 * @return オプション情報
+	 */
+	public OptionInfo getOptInfo(String longOptName, boolean iterable) {
+		OptionInfo optInfo = getOptInfo(longOptName);
+		return iterable && optInfo == null ? NULL_OPTION_INFO : optInfo;
+	}
+
+	/**
 	 * 長いオプションと関連付けられる{@link jp.syuriken.snsw.lib.parser.OptionInfo}インスタンスを取得する。
 	 *
 	 * @param longOptName 長いオプション名
@@ -176,12 +168,12 @@ public class ParsedArguments {
 	}
 
 	/**
-	 * オプションと関連付けられないプロセス引数配列を取得する。
+	 * すべてのオプション情報を取得する。これは指定された順番通りに並べられている
 	 *
-	 * @return プロセス引数配列。
+	 * @return オプション情報のイテレータ
 	 */
-	public String[] getProcessArguments() {
-		return processArguments.toArray(new String[processArguments.size()]);
+	public Iterator<OptionInfo> getOptionListIterator() {
+		return Collections.unmodifiableList(optionInfoList).iterator();
 	}
 
 	/**
@@ -191,15 +183,6 @@ public class ParsedArguments {
 	 */
 	public String getProcessArgument() {
 		return getProcessArgument(0);
-	}
-
-	/**
-	 * プロセス引数のイテレータを取得する。
-	 *
-	 * @return イテレータ
-	 */
-	public Iterator<String> getProcessArgumentIterator() {
-		return Collections.unmodifiableList(processArguments).iterator();
 	}
 
 	/**
@@ -219,6 +202,24 @@ public class ParsedArguments {
 	 */
 	public int getProcessArgumentCount() {
 		return processArguments.size();
+	}
+
+	/**
+	 * プロセス引数のイテレータを取得する。
+	 *
+	 * @return イテレータ
+	 */
+	public Iterator<String> getProcessArgumentIterator() {
+		return Collections.unmodifiableList(processArguments).iterator();
+	}
+
+	/**
+	 * オプションと関連付けられないプロセス引数配列を取得する。
+	 *
+	 * @return プロセス引数配列。
+	 */
+	public String[] getProcessArguments() {
+		return processArguments.toArray(new String[processArguments.size()]);
 	}
 
 	/**

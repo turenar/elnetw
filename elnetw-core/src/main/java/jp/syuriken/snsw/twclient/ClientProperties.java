@@ -668,7 +668,8 @@ public class ClientProperties extends Properties {
 		setProperty(
 				key,
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
-						color.getAlpha()));
+						color.getAlpha())
+		);
 	}
 
 	/**

@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 public class ArgParserTest {
 
 	private static <T> void assertArrayEmpty(T[] actual) {
-		assertArrayEquals(new Object[]{}, actual);
+		assertArrayEquals(new Object[] {}, actual);
 	}
 
 	private static void assertNoError(ParsedArguments arguments) {
@@ -54,7 +54,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertNull(arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[]{"fuga"}, arguments.getProcessArguments());
+		assertArrayEquals(new String[] {"fuga"}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -66,7 +66,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
+		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -80,7 +80,7 @@ public class ArgParserTest {
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertNull(arguments.getOptArg("--hoge"));
 		assertTrue(arguments.hasOpt("--fuga"));
-		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
+		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -92,7 +92,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
+		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -106,7 +106,7 @@ public class ArgParserTest {
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertFalse(arguments.hasOpt("--fuga"));
 		assertEquals("--fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
+		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -119,6 +119,18 @@ public class ArgParserTest {
 		assertEquals(1, arguments.getErrorCount());
 		assertFalse(arguments.hasOpt("--hoge"));
 		assertArrayEquals(a("--hoge fuga"), arguments.getProcessArguments());
+	}
+
+	@Test
+	public void testAddLongOpt3Argument() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--hoge", OptionType.REQUIRED_ARGUMENT);
+
+		ParsedArguments arguments = parser.parse(a("--hoge=fuga"));
+		assertTrue(arguments.hasOpt("--hoge"));
+		assertEquals("fuga", arguments.getOptArg("--hoge"));
+		assertArrayEmpty(arguments.getProcessArguments());
+		assertNoError(arguments);
 	}
 
 	@Test
@@ -152,46 +164,16 @@ public class ArgParserTest {
 		assertNoError(arguments);
 	}
 
-	@Test
-	public void testAddLongOpt3Argument() throws Exception {
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalShortOptChar() throws Exception {
 		ArgParser parser = new ArgParser();
-		parser.addLongOpt("--hoge", OptionType.REQUIRED_ARGUMENT);
-
-		ParsedArguments arguments = parser.parse(a("--hoge=fuga"));
-		assertTrue(arguments.hasOpt("--hoge"));
-		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEmpty(arguments.getProcessArguments());
-		assertNoError(arguments);
+		parser.addShortOpt('d', "--hoge");
 	}
 
-	@Test
-	public void testParseMultipleArgsWithSingleOpt() throws Exception {
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalShortOptStringA() throws Exception {
 		ArgParser parser = new ArgParser();
-		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT);
-
-		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
-		assertTrue(arguments.hasOpt("--gender"));
-		assertEquals("female", arguments.getOptArg("--gender"));
-		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
-		assertTrue(iterator.hasNext());
-		assertEquals("female", iterator.next().getArg());
-		assertFalse(iterator.hasNext());
-	}
-
-	@Test
-	public void testParseMultipleArgsWithMultipleOpt() throws Exception {
-		ArgParser parser = new ArgParser();
-		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
-
-		ParsedArguments arguments = parser.parse(a("--gender male --gender female extreme"));
-		assertTrue(arguments.hasOpt("--gender"));
-		assertEquals("male", arguments.getOptArg("--gender"));
-		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
-		assertTrue(iterator.hasNext());
-		assertEquals("male", iterator.next().getArg());
-		assertTrue(iterator.hasNext());
-		assertEquals("female", iterator.next().getArg());
-		assertFalse(iterator.hasNext());
+		parser.addShortOpt("-d", "--hoge");
 	}
 
 	@Test
@@ -240,15 +222,33 @@ public class ArgParserTest {
 		assertFalse(iterator.hasNext());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testIllegalShortOptChar() throws Exception {
+	@Test
+	public void testParseMultipleArgsWithMultipleOpt() throws Exception {
 		ArgParser parser = new ArgParser();
-		parser.addShortOpt('d', "--hoge");
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
+
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female extreme"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("male", arguments.getOptArg("--gender"));
+		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
+		assertTrue(iterator.hasNext());
+		assertEquals("male", iterator.next().getArg());
+		assertTrue(iterator.hasNext());
+		assertEquals("female", iterator.next().getArg());
+		assertFalse(iterator.hasNext());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testIllegalShortOptStringA() throws Exception {
+	@Test
+	public void testParseMultipleArgsWithSingleOpt() throws Exception {
 		ArgParser parser = new ArgParser();
-		parser.addShortOpt("-d", "--hoge");
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT);
+
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("female", arguments.getOptArg("--gender"));
+		Iterator<OptionInfo> iterator = arguments.getOptInfo("--gender").iterator();
+		assertTrue(iterator.hasNext());
+		assertEquals("female", iterator.next().getArg());
+		assertFalse(iterator.hasNext());
 	}
 }

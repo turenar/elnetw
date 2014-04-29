@@ -185,9 +185,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 			queueUpdateImage();
 		}
 	};
-	/*package*/ BufferedImage image;
+	/*package*/transient BufferedImage image;
 	private JLabel imageLabel;
-	private ImageViewerFrame.ImageFetcher imageFetcher;
+	private transient ImageViewerFrame.ImageFetcher imageFetcher;
 	private JLabel componentZoomIn;
 	private JLabel componentZoomOut;
 	private Font uiFont;

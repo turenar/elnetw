@@ -80,6 +80,10 @@ public class InitializeException extends Exception {
 		return initializerInfo;
 	}
 
+	/*package*/void setInitializerInfo(InitializerInfo info) {
+		initializerInfo = info;
+	}
+
 	@Override
 	public String getLocalizedMessage() {
 		return getMessage() + "\ninitializer:" + initializerInfo;
@@ -87,9 +91,5 @@ public class InitializeException extends Exception {
 
 	public String getReason() {
 		return reason;
-	}
-
-	/*package*/void setInitializerInfo(InitializerInfo info) {
-		initializerInfo = info;
 	}
 }

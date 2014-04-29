@@ -32,15 +32,15 @@ public interface TabRenderer extends ClientMessageListener {
 	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
 
 	/**
-	 * render for display requirements
-	 */
-	void onDisplayRequirement();
-
-	/**
 	 * render account changed message.
 	 *
 	 * {@inheritDoc}
 	 */
 	@Override
 	void onChangeAccount(boolean forWrite);
+
+	/**
+	 * render for display requirements
+	 */
+	void onDisplayRequirement();
 }

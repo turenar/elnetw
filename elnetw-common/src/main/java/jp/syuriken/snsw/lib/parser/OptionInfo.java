@@ -104,24 +104,6 @@ public class OptionInfo implements Iterable<OptionInfo> {
 	}
 
 	/**
-	 * OptionInfoのイテレータを取得する。
-	 *
-	 * @return OptionInfo
-	 */
-	public Iterator<OptionInfo> iterator() {
-		return new InfoIterator();
-	}
-
-	/**
-	 * 次のOptionInfoを取得する
-	 *
-	 * @return 次のOptionInfo
-	 */
-	public OptionInfo next() {
-		return next;
-	}
-
-	/**
 	 * 長いオプション名を取得する。
 	 *
 	 * @return 長いオプション名
@@ -137,6 +119,24 @@ public class OptionInfo implements Iterable<OptionInfo> {
 	 */
 	public String getShortOptName() {
 		return shortOptName;
+	}
+
+	/**
+	 * OptionInfoのイテレータを取得する。
+	 *
+	 * @return OptionInfo
+	 */
+	public Iterator<OptionInfo> iterator() {
+		return new InfoIterator();
+	}
+
+	/**
+	 * 次のOptionInfoを取得する
+	 *
+	 * @return 次のOptionInfo
+	 */
+	public OptionInfo next() {
+		return next;
 	}
 
 	/**

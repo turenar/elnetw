@@ -49,6 +49,23 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 	}
 
 	@Override
+	public void focusGained(FocusEvent e) {
+		super.focusGained(e);
+		Throwable handlingException = ex;
+		StringBuilder stringBuilder = new StringBuilder("<html>").append(ex.getLocalizedMessage()).append("<br><br>");
+		while (null != (handlingException = handlingException.getCause())) {
+			stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
+		}
+		StringBuilder escaped = escapeHTML(stringBuilder);
+
+		getFrameApi().setTweetViewText(escaped.toString(), null, DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(date, true), null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), ex.getClass().getName(), null,
+				DO_NOTHING_WHEN_POINTED);
+	}
+
+	@Override
 	public Object getBasedObject() {
 		return ex;
 	}
@@ -67,23 +84,6 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 	@Override
 	public String getUniqId() {
 		return uniqId;
-	}
-
-	@Override
-	public void focusGained(FocusEvent e) {
-		super.focusGained(e);
-		Throwable handlingException = ex;
-		StringBuilder stringBuilder = new StringBuilder("<html>").append(ex.getLocalizedMessage()).append("<br><br>");
-		while (null != (handlingException = handlingException.getCause())) {
-			stringBuilder.append("Caused by ").append(handlingException.toString()).append("<br>");
-		}
-		StringBuilder escaped = escapeHTML(stringBuilder);
-
-		getFrameApi().setTweetViewText(escaped.toString(), null, DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(date, true), null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), ex.getClass().getName(), null,
-				DO_NOTHING_WHEN_POINTED);
 	}
 
 	@Override

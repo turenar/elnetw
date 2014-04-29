@@ -30,7 +30,7 @@ import java.util.HashMap;
  */
 public class ArgParser {
 
-	private class OptionConfig {
+	private static class OptionConfig {
 		private final OptionType type;
 		private final boolean multiple;
 
@@ -48,26 +48,12 @@ public class ArgParser {
 		}
 	}
 
+	protected static String getLongOptName(String longOptName) {
+		return longOptName.startsWith("--") ? longOptName : ("--" + longOptName);
+	}
+
 	protected final HashMap<String, OptionConfig> optionInfoMap;
 	protected final HashMap<String, String> shortOptMap;
-
-	/**
-	 * 未知のオプションを無視するかどうかを取得する
-	 */
-	public boolean isIgnoreUnknownOption() {
-		return ignoreUnknownOption;
-	}
-
-	/**
-	 * 未知のオプションを無視するかどうかを設定する
-	 *
-	 * @param ignoreUnknownOption 無視するかどうか
-	 */
-	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
-		this.ignoreUnknownOption = ignoreUnknownOption;
-		return this;
-	}
-
 	/**
 	 * 未知のオプションを無視するかどうか
 	 */
@@ -83,8 +69,9 @@ public class ArgParser {
 
 	/**
 	 * 長いオプションをパース対象として追加する。
+	 *
 	 * @param longOptName 長いオプション名
-	 * @param type オプションタイプ
+	 * @param type        オプションタイプ
 	 * @return このインスタンス
 	 */
 	public ArgParser addLongOpt(String longOptName, OptionType type) {
@@ -98,8 +85,9 @@ public class ArgParser {
 
 	/**
 	 * 短いオプションを長いオプション名の別名として追加する。
+	 *
 	 * @param shortOptName 短いオプション名
-	 * @param longOptName 長いオプション名
+	 * @param longOptName  長いオプション名
 	 * @return このインスタンス
 	 */
 	public ArgParser addShortOpt(char shortOptName, String longOptName) {
@@ -108,8 +96,9 @@ public class ArgParser {
 
 	/**
 	 * 短いオプションを長いオプション名の別名として追加する。
+	 *
 	 * @param shortOptName 短いオプション名
-	 * @param longOptName 長いオプション名
+	 * @param longOptName  長いオプション名
 	 * @return このインスタンス
 	 */
 	public ArgParser addShortOpt(String shortOptName, String longOptName) {
@@ -127,8 +116,21 @@ public class ArgParser {
 		return this;
 	}
 
-	protected static String getLongOptName(String longOptName) {
-		return longOptName.startsWith("--") ? longOptName : ("--" + longOptName);
+	/**
+	 * 未知のオプションを無視するかどうかを取得する
+	 */
+	public boolean isIgnoreUnknownOption() {
+		return ignoreUnknownOption;
+	}
+
+	/**
+	 * 未知のオプションを無視するかどうかを設定する
+	 *
+	 * @param ignoreUnknownOption 無視するかどうか
+	 */
+	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
+		this.ignoreUnknownOption = ignoreUnknownOption;
+		return this;
 	}
 
 	/**
@@ -151,16 +153,18 @@ public class ArgParser {
 				} else {
 					longOpt = shortOptMap.get(opt);
 					if (longOpt == null) {
-						if (!ignoreUnknownOption)
-						parsed.addParseError(ParseErrorType.UNKNOWN_SHORT_OPT, opt);
+						if (!ignoreUnknownOption) {
+							parsed.addParseError(ParseErrorType.UNKNOWN_SHORT_OPT, opt);
+						}
 						parsed.addProcessArgument(opt);
 						continue;
 					}
 				}
 				OptionConfig optionConfig = optionInfoMap.get(longOpt);
 				if (optionConfig == null) {
-					if (!ignoreUnknownOption)
-					parsed.addParseError(ParseErrorType.UNKNOWN_LONG_OPT, opt);
+					if (!ignoreUnknownOption) {
+						parsed.addParseError(ParseErrorType.UNKNOWN_LONG_OPT, opt);
+					}
 					parsed.addProcessArgument(longOpt);
 					continue;
 				}

@@ -40,7 +40,8 @@ public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 	private static final Pattern tokenPattern = Pattern.compile( //
 			"(?:" + Regex.VALID_URL + "|" //
 					+ Regex.VALID_HASHTAG + "|" //
-					+ Regex.VALID_MENTION_OR_LIST + ")", Pattern.CASE_INSENSITIVE);
+					+ Regex.VALID_MENTION_OR_LIST + ")", Pattern.CASE_INSENSITIVE
+	);
 	private static final Pattern urlPattern = Regex.VALID_URL;
 	private final TweetLengthUpdater updater;
 	private TwitterAPIConfiguration apiConfiguration;

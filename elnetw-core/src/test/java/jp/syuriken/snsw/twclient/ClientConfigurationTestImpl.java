@@ -44,12 +44,6 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 		return null;
 	}
 
-	// proxy
-	@Override
-	public void setMessageBus(MessageBus messageBus) {
-		super.setMessageBus(messageBus);
-	}
-
 	public void setGlobalInstance() {
 		while (true) {
 			reentrantLock.readLock().lock();
@@ -69,5 +63,11 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 				}
 			}
 		}
+	}
+
+	// proxy
+	@Override
+	public void setMessageBus(MessageBus messageBus) {
+		super.setMessageBus(messageBus);
 	}
 }

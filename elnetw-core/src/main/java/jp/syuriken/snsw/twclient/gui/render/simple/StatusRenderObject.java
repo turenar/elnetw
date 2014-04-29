@@ -437,6 +437,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 					handleAction(new IntentArguments("userinfo").putExtra("user", status.getUser()));
 				}
 				break;
+			default:
+				// do nothing
 		}
 	}
 

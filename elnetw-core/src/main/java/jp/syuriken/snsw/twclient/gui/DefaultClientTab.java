@@ -210,16 +210,6 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	}
 
 	/**
-	 * focus and set flag to scroll (not immediately scrolling)
-	 *
-	 * @param focusTo component to be focused
-	 */
-	protected void focusAndScroll(RenderPanel focusTo) {
-		focusTo.requestFocusInWindow();
-		shouldBeScrollToPost = true;
-	}
-
-	/**
 	 * PostListを更新する。
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
@@ -437,6 +427,16 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 			RenderPanel component = renderObject.getComponent();
 			postListAddQueue.add(component);
 		}
+	}
+
+	/**
+	 * focus and set flag to scroll (not immediately scrolling)
+	 *
+	 * @param focusTo component to be focused
+	 */
+	protected void focusAndScroll(RenderPanel focusTo) {
+		focusTo.requestFocusInWindow();
+		shouldBeScrollToPost = true;
 	}
 
 	@Override

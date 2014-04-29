@@ -113,7 +113,8 @@ public class ConfigFrame extends JFrame {
 								.createParallelGroup()
 								.addGroup(
 										layout.createSequentialGroup().addGroup(horizontalNameGroup)
-												.addGroup(horizontalValueGroup)).addGroup(horizontalCombinedGroup));
+												.addGroup(horizontalValueGroup)
+								).addGroup(horizontalCombinedGroup));
 				tabContent.add(subgroupPanel);
 				if (subgroup != null) {
 					subgroupPanel.setBorder(new TitledBorder(subgroup));
@@ -133,7 +134,8 @@ public class ConfigFrame extends JFrame {
 			} else {
 				verticalGroup.addGroup(
 						layout.createBaselineGroup(false, true).addComponent(label)
-								.addComponent(valueComponent, 24, 24, 24)).addGap(2, 2, 2);
+								.addComponent(valueComponent, 24, 24, 24)
+				).addGap(2, 2, 2);
 				horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
 				horizontalValueGroup.addComponent(valueComponent, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
