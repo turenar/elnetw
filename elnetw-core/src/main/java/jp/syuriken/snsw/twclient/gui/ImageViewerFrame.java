@@ -305,9 +305,16 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 	@Override
 	public void pack() {
+		Dimension labelSize = getComponentImageLabel().getSize();
+		labelSize.width += 2; // border... should not be const...
+		labelSize.height += 2; // border...
+		getComponentImageScrollPane().setPreferredSize(labelSize);
+		getComponentImageScrollPane().validate();
+		validate();
 		super.pack();
-		int width = image.getWidth();
-		int height = image.getHeight();
+
+		int width = getWidth();
+		int height = getHeight();
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		if (width < 64) {
 			width = 64;
@@ -320,17 +327,18 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 			height = screenSize.height;
 		}
 		setSize(width, height);
+		validate();
 	}
 
 	/*package*/ void queueUpdateImage() {
 		getComponentImageLabel().setIcon(null);
 		getComponentImageLabel().setText("Loading...");
+		final MediaContainer mediaContainer = updateImageSize();
 		ClientConfiguration.getInstance().addJob(JobQueue.PRIORITY_MAX, new ParallelRunnable() {
 			@Override
 			public void run() {
 				synchronized (ImageViewerFrame.this) {
 					try {
-						final MediaContainer mediaContainer = updateImageSize();
 						mediaContainer.mediaTracker.waitForID(0);
 						EventQueue.invokeLater(new ImageUpdater(mediaContainer.fastScaledImage));
 						logger.debug("ivf.job.fastdone");
@@ -364,6 +372,8 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 			height = height * 3 / 2;
 			width = width * 3 / 2;
 		}
+		getComponentImageLabel().setSize(width, height);
+		pack();
 		Image fastScaledInstance = image.getScaledInstance(width, height, Image.SCALE_FAST);
 		Image slowScaledInstance = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
 
