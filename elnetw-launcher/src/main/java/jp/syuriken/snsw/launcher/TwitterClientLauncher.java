@@ -103,14 +103,17 @@ public class TwitterClientLauncher {
 	}
 
 	private final String[] args;
+	private final boolean quietFlag;
 	private ArrayList<String> classpath = new ArrayList<>();
 
 	private TwitterClientLauncher(String[] args) {
 		ArgParser parser = new ArgParser();
 		parser.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT, true)
 				.addLongOpt("--declare", OptionType.REQUIRED_ARGUMENT, true)
+				.addLongOpt("--quiet", OptionType.NO_ARGUMENT)
 				.addShortOpt("-D", "--declare")
 				.addShortOpt("-L", "--classpath")
+				.addShortOpt("-q", "--quiet")
 				.setIgnoreUnknownOption(true);
 		ParsedArguments parsedArguments = parser.parse(args);
 		for (OptionInfo info : parsedArguments.getOptInfo("--declare", true)) {
@@ -135,6 +138,7 @@ public class TwitterClientLauncher {
 			}
 		}
 		this.args = args;
+		quietFlag = parsedArguments.hasOpt("--quiet");
 	}
 
 	private int getAbiVersion(Class<?> clazz) {
@@ -240,11 +244,12 @@ public class TwitterClientLauncher {
 		}
 		URL[] urls = urlList.toArray(new URL[urlList.size()]);
 
-		System.out.print("[launcher] classpath=");
-		System.out.println(Arrays.toString(urls));
+		if (!quietFlag) {
+			System.out.print("[launcher] classpath=");
+			System.out.println(Arrays.toString(urls));
+		}
 
-		URLClassLoader classLoader = new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
-		return classLoader;
+		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 
 	public int run() {
