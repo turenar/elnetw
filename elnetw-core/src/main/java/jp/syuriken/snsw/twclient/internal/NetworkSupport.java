@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 
+import com.squareup.okhttp.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public class NetworkSupport {
 	private static final int BUFFER_SIZE = 65536;
 	private static final Logger logger = LoggerFactory.getLogger(NetworkSupport.class);
 	public static final NullFetchEventHandler NULL_FETCH_EVENT_HANDLER = new NullFetchEventHandler();
+	private static final OkHttpClient httpClient = new OkHttpClient();
 
 	private static byte[] copyOfRange(byte[] data, int imageLen) {
 		return data.length == imageLen ? data : Arrays.copyOfRange(data, 0, imageLen);
@@ -78,7 +80,11 @@ public class NetworkSupport {
 		URLConnection connection = null;
 		InputStream stream = null;
 		try {
-			connection = url.openConnection();
+			if (url.getProtocol().startsWith("https")) {
+				connection = httpClient.open(url);
+			} else {
+				connection = url.openConnection();
+			}
 			int contentLength = connection.getContentLength();
 			handler.onConnection(connection);
 
