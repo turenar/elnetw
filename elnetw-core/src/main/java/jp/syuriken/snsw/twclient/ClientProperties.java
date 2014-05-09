@@ -40,8 +40,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -65,6 +65,10 @@ public class ClientProperties extends Properties {
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";
 	private static final String ENCRYPT_FOOTER = "$";
+	private static final long SEC2MS = 1000;
+	private static final long MIN2MS = SEC2MS * 60;
+	private static final long HOUR2MS = MIN2MS * 60;
+	private static final long DAY2MS = HOUR2MS * 24;
 
 	private static byte[] decrypt(byte[] src, Key decryptKey) throws InvalidKeyException {
 		try {
@@ -79,19 +83,11 @@ public class ClientProperties extends Properties {
 
 			cipher.init(Cipher.DECRYPT_MODE, decryptKey, algorithmParameters);
 			return cipher.doFinal(dat);
-		} catch (IllegalBlockSizeException e) {
+		} catch (IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException | NoSuchAlgorithmException | IOException e) {
 			throw new RuntimeException(e);
 		} catch (BadPaddingException e) {
 			// BadPadding is because of InvalidKey
 			throw new InvalidKeyException("passphrase seems to be illegal", e);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchPaddingException e) {
-			throw new RuntimeException(e);
-		} catch (InvalidAlgorithmParameterException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -109,15 +105,7 @@ public class ClientProperties extends Properties {
 			System.arraycopy(enc, 0, ret, 2 + iv.length, enc.length);
 
 			return ret;
-		} catch (IllegalBlockSizeException e) {
-			throw new RuntimeException(e);
-		} catch (BadPaddingException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchPaddingException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
+		} catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException | IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -147,7 +135,6 @@ public class ClientProperties extends Properties {
 	protected transient ArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
 	protected File storeFile;
-	private transient Hashtable<String, Object> cacheTable;
 
 	/** インスタンスを生成する。 */
 	public ClientProperties() {
@@ -161,8 +148,7 @@ public class ClientProperties extends Properties {
 	 */
 	public ClientProperties(Properties defaults) {
 		super(defaults);
-		listeners = new ArrayList<PropertyChangeListener>();
-		cacheTable = new Hashtable<String, Object>();
+		listeners = new ArrayList<>();
 	}
 
 	/**
@@ -177,44 +163,20 @@ public class ClientProperties extends Properties {
 		listeners.add(listener);
 	}
 
-	/**
-	 * 変換済みの値をキャッシュする。
-	 *
-	 * @param key   キー
-	 * @param value 値
-	 */
-	protected synchronized void cacheValue(String key, Object value) {
-		cacheTable.put(key, value);
-	}
-
-	/**
-	 * キャッシュ済みの値を削除する。
-	 *
-	 * @param key キー
-	 * @return キャッシュされていた変換済みの値。キャッシュされていなかった場合null
-	 */
-	protected synchronized Object clearCachedValue(String key) {
-		return cacheTable.remove(key);
-	}
-
 	@Override
 	public synchronized boolean equals(Object o) {
-		if (o instanceof ClientProperties == false) {
-			if (o instanceof Properties && listeners == null && storeFile == null) {
-				return super.equals(o);
-			} else {
-				return false;
-			}
+		if (!(o instanceof ClientProperties)) {
+			return false;
 		}
-		if (super.equals(o) == false) {
+		if (!super.equals(o)) {
 			return false;
 		}
 		ClientProperties c = (ClientProperties) o;
 		synchronized (c) {
-			if (listeners.equals(c.listeners) == false) {
+			if (!listeners.equals(c.listeners)) {
 				return false;
 			}
-			if (storeFile.equals(c.storeFile) == false) {
+			if (!storeFile.equals(c.storeFile)) {
 				return false;
 			}
 		}
@@ -228,7 +190,7 @@ public class ClientProperties extends Properties {
 	 * @param oldValue 古い値
 	 * @param newValue 新しい値
 	 */
-	public synchronized void firePropetyChanged(String key, String oldValue, String newValue) {
+	public synchronized void firePropertyChanged(String key, String oldValue, String newValue) {
 		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
 		for (PropertyChangeListener listener : listeners) {
 			listener.propertyChange(evt);
@@ -242,11 +204,11 @@ public class ClientProperties extends Properties {
 	 * @return space-separated array
 	 */
 	public synchronized String[] getArray(String key) {
-		String accountListString = getProperty(key, "").trim();
-		if (accountListString.isEmpty()) {
+		String property = getProperty(key, "").trim();
+		if (property.isEmpty()) {
 			return new String[0];
 		} else {
-			return accountListString.split(" ");
+			return property.split(" ");
 		}
 	}
 
@@ -259,33 +221,8 @@ public class ClientProperties extends Properties {
 	 * @return boolean値
 	 */
 	public synchronized boolean getBoolean(String key) {
-		Boolean boolean1 = getCachedValue(key, Boolean.class);
-		if (boolean1 != null) {
-			return boolean1;
-		}
-
 		String value = getProperty(key);
-		boolean1 = Boolean.parseBoolean(value);
-		cacheValue(key, boolean1);
-		return boolean1;
-	}
-
-	/**
-	 * キャッシュされた値を取得する。
-	 *
-	 * @param key           キー
-	 * @param expectedClass 期待するClass
-	 * @return キャッシュされていない、またはexpectedClassのインスタンスではない場合null。
-	 * それ以外はキャッシュされた値
-	 */
-	@SuppressWarnings("unchecked")
-	protected synchronized <T> T getCachedValue(String key, Class<T> expectedClass) {
-		Object cachedValue = cacheTable.get(key);
-		if (cachedValue == null || expectedClass.isInstance(cachedValue) == false) {
-			return null;
-		} else {
-			return (T) cachedValue;
-		}
+		return Boolean.parseBoolean(value);
 	}
 
 	/**
@@ -299,27 +236,19 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException    数値に変換できない値です
 	 */
 	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
-		Color color = getCachedValue(key, Color.class);
-		if (color != null) {
-			return color;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
 		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 4) {
-			color =
-					new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
-							Integer.parseInt(rgba[3]));
+			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
+					Integer.parseInt(rgba[3]));
 		} else if (rgba.length == 3) {
-			color = new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
+			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はColorに使用できる値ではありません: {1}", key, value));
 		}
-		cacheValue(key, color);
-		return color;
 	}
 
 	/**
@@ -332,23 +261,16 @@ public class ClientProperties extends Properties {
 	 * @throws IllegalArgumentException 正しくない設定値
 	 */
 	public synchronized Dimension getDimension(String key) throws IllegalArgumentException {
-		Dimension dimension = getCachedValue(key, Dimension.class);
-		if (dimension != null) {
-			return dimension;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
 		}
 		String[] rgba = value.split(",");
 		if (rgba.length == 2) {
-			dimension = new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
+			return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はDimensionに使用できる値ではありません: {1}", key, value));
 		}
-		cacheValue(key, dimension);
-		return dimension;
 	}
 
 	/**
@@ -360,15 +282,7 @@ public class ClientProperties extends Properties {
 	 * @return keyに関連付けられたdouble
 	 */
 	public synchronized double getDouble(String key) {
-		Double double1 = getCachedValue(key, Double.class);
-		if (double1 != null) {
-			return double1;
-		}
-
-		String value = getProperty(key);
-		double1 = Double.valueOf(value);
-		cacheValue(key, double1);
-		return double1;
+		return Double.valueOf(getProperty(key));
 	}
 
 	/**
@@ -380,15 +294,8 @@ public class ClientProperties extends Properties {
 	 * @return keyに関連付けられたfloat
 	 */
 	public synchronized float getFloat(String key) {
-		Float float1 = getCachedValue(key, Float.class);
-		if (float1 != null) {
-			return float1;
-		}
-
 		String value = getProperty(key);
-		float1 = Float.valueOf(value);
-		cacheValue(key, float1);
-		return float1;
+		return Float.valueOf(value);
 	}
 
 	/**
@@ -408,11 +315,6 @@ public class ClientProperties extends Properties {
 	 *                                  正しいint値が指定されていない。
 	 */
 	public synchronized Font getFont(String key) throws IllegalArgumentException {
-		Font font = getCachedValue(key, Font.class);
-		if (font != null) {
-			return font;
-		}
-
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -434,23 +336,28 @@ public class ClientProperties extends Properties {
 		} else {
 			fontSizeString = value.substring(indexOfFontNameSeparator + 1, indexOfFontSizeSeparator);
 			String fontStyleString = value.substring(indexOfFontSizeSeparator + 1).trim().toLowerCase();
-			if (fontStyleString.equals("plain")) {
-				fontStyle = Font.PLAIN;
-			} else if (fontStyleString.equals("bold")) {
-				fontStyle = Font.BOLD;
-			} else if (fontStyleString.equals("italic")) {
-				fontStyle = Font.ITALIC;
-			} else if (fontStyleString.equals("bold|italic") || fontStyleString.equals("italic|bold")) {
-				fontStyle = Font.BOLD | Font.ITALIC;
-			} else {
-				fontStyle = Integer.parseInt(fontStyleString);
+			switch (fontStyleString) {
+				case "plain":
+					fontStyle = Font.PLAIN;
+					break;
+				case "bold":
+					fontStyle = Font.BOLD;
+					break;
+				case "italic":
+					fontStyle = Font.ITALIC;
+					break;
+				case "bold|italic":
+				case "italic|bold":
+					fontStyle = Font.BOLD | Font.ITALIC;
+					break;
+				default:
+					fontStyle = Integer.parseInt(fontStyleString);
+					break;
 			}
 		}
 		int fontSize = Integer.parseInt(fontSizeString.trim());
 
-		font = new Font(fontName, fontStyle, fontSize);
-		cacheValue(key, font);
-		return font;
+		return new Font(fontName, fontStyle, fontSize);
 	}
 
 	/**
@@ -463,15 +370,8 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException 数値として認識できない値
 	 */
 	public synchronized int getInteger(String key) throws NumberFormatException {
-		Integer integer = getCachedValue(key, Integer.class);
-		if (integer != null) {
-			return integer;
-		}
-
 		String value = getProperty(key);
-		integer = Integer.valueOf(value);
-		cacheValue(key, integer);
-		return integer;
+		return Integer.valueOf(value);
 	}
 
 	/**
@@ -502,15 +402,8 @@ public class ClientProperties extends Properties {
 	 * @throws NumberFormatException 数値として認識できない値
 	 */
 	public synchronized long getLong(String key) throws NumberFormatException {
-		Long long1 = getCachedValue(key, Long.class);
-		if (long1 != null) {
-			return long1;
-		}
-
 		String value = getProperty(key);
-		long1 = Long.valueOf(value);
-		cacheValue(key, long1);
-		return long1;
+		return Long.valueOf(value);
 	}
 
 	/**
@@ -617,6 +510,48 @@ public class ClientProperties extends Properties {
 		}
 	}
 
+	/**
+	 * get milliseconds
+	 *
+	 * @param key property key
+	 * @return milliseconds
+	 */
+	public long getTime(String key) {
+		return getTime(key, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * get time
+	 *
+	 * @param key    property key
+	 * @param asUnit unit of time
+	 * @return time converted by asUnit
+	 */
+	public synchronized long getTime(String key, TimeUnit asUnit) {
+		String property = getProperty(key);
+		char lastChar = property.charAt(property.length() - 1);
+		TimeUnit unit = null;
+		switch (lastChar) {
+			case 's':
+				unit = TimeUnit.SECONDS;
+				break;
+			case 'm':
+				unit = TimeUnit.MINUTES;
+				break;
+			case 'h':
+				unit = TimeUnit.HOURS;
+				break;
+			case 'd':
+				unit = TimeUnit.DAYS;
+				break;
+		}
+		if (unit == null) {
+			return asUnit.convert(Long.parseLong(property), TimeUnit.MILLISECONDS);
+		} else {
+			return asUnit.convert(Long.parseLong(property.substring(0, property.length() - 1)), unit);
+		}
+	}
+
 	@Override
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
@@ -627,13 +562,12 @@ public class ClientProperties extends Properties {
 
 	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		listeners = new ArrayList<PropertyChangeListener>();
-		cacheTable = new Hashtable<String, Object>();
+		listeners = new ArrayList<>();
 	}
 
 	@Override
 	public synchronized Object remove(Object key) {
-		firePropetyChanged((String) key, getProperty((String) key), null);
+		firePropertyChanged((String) key, getProperty((String) key), null);
 		return super.remove(key);
 	}
 
@@ -654,7 +588,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setBoolean(String key, boolean value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -665,7 +598,6 @@ public class ClientProperties extends Properties {
 	 * @param color Colorインスタンス。null不可。
 	 */
 	public synchronized void setColor(String key, Color color) {
-		clearCachedValue(key);
 		setProperty(
 				key,
 				MessageFormat.format("{0},{1},{2},{3}", color.getRed(), color.getGreen(), color.getBlue(),
@@ -679,7 +611,6 @@ public class ClientProperties extends Properties {
 	 * @param dimension Dimensionインスタンス。null不可。
 	 */
 	public synchronized void setDimension(String key, Dimension dimension) {
-		clearCachedValue(key);
 		setProperty(key, dimension.width + "," + dimension.height);
 	}
 
@@ -690,7 +621,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setDouble(String key, double value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -701,7 +631,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setFloat(String key, float value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -712,10 +641,7 @@ public class ClientProperties extends Properties {
 	 * @param font フォントインスタンス
 	 */
 	public synchronized void setFont(String key, Font font) throws IllegalArgumentException {
-		clearCachedValue(key);
-		StringBuilder property = new StringBuilder(font.getName()).append(',')
-				.append(font.getSize()).append(',').append(font.getStyle());
-		setProperty(key, property.toString());
+		setProperty(key, font.getName() + ',' + font.getSize() + ',' + font.getStyle());
 	}
 
 	/**
@@ -725,7 +651,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setInteger(String key, int value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -736,7 +661,6 @@ public class ClientProperties extends Properties {
 	 * @param value 値
 	 */
 	public synchronized void setLong(String key, long value) {
-		clearCachedValue(key);
 		setProperty(key, String.valueOf(value));
 	}
 
@@ -775,7 +699,7 @@ public class ClientProperties extends Properties {
 	@Override
 	public synchronized Object setProperty(String key, String newValue) {
 		String oldValue = getProperty(key);
-		firePropetyChanged(key, oldValue, newValue);
+		firePropertyChanged(key, oldValue, newValue);
 		return super.setProperty(key, newValue);
 	}
 
@@ -786,6 +710,46 @@ public class ClientProperties extends Properties {
 	 */
 	public synchronized void setStoreFile(File storeFile) {
 		this.storeFile = storeFile;
+	}
+
+	/**
+	 * set user-friendly property for time as millisecond
+	 *
+	 * @param key  key
+	 * @param time time as milliseconds
+	 */
+	public void setTime(String key, long time) {
+		setTime(key, time, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * set user-friendly property for time
+	 *
+	 * @param key    property key
+	 * @param time   time as asUnit
+	 * @param asUnit unit of time
+	 */
+	public synchronized void setTime(String key, long time, TimeUnit asUnit) {
+		long milliTime = TimeUnit.MILLISECONDS.convert(time, asUnit);
+		String unit;
+		long unitTime;
+		if (milliTime % DAY2MS == 0) {
+			unitTime = milliTime / DAY2MS;
+			unit = "d";
+		} else if (milliTime % HOUR2MS == 0) {
+			unitTime = milliTime / HOUR2MS;
+			unit = "h";
+		} else if (milliTime % MIN2MS == 0) {
+			unitTime = milliTime / MIN2MS;
+			unit = "m";
+		} else if (milliTime % SEC2MS == 0) {
+			unitTime = milliTime / SEC2MS;
+			unit = "s";
+		} else {
+			unitTime = milliTime;
+			unit = "";
+		}
+		setProperty(key, unitTime + unit);
 	}
 
 	/** ファイルに保存する。 */
