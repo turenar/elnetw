@@ -21,8 +21,13 @@
 
 package jp.syuriken.snsw.twclient;
 
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ジョブキューを保持するクラスです。時間のかかる作業 (HTTP通信など) をする場合は、このクラスに
@@ -31,7 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class JobQueue {
-
 	/** 優先度を格納するクラスもどき。このクラスの定数は全て{@link JobQueue}で定義されています。 */
 	public /*static*/ interface Priority {
 		/** 優先度 高 */
@@ -46,6 +50,46 @@ public class JobQueue {
 		/*public static final*/ byte UI = PRIORITY_UI;
 		/** アイドル時に... */
 		/*public static final*/ byte IDLE = PRIORITY_IDLE;
+	}
+
+	protected static class JobWorkerThread extends Thread {
+		private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
+		private static final AtomicInteger threadNumber = new AtomicInteger();
+		protected JobQueue jobQueue;
+		protected boolean isParent;
+
+		public JobWorkerThread(JobQueue jobQueue, boolean isParent) {
+			super("worker-" + threadNumber.getAndIncrement());
+			this.jobQueue = jobQueue;
+			this.isParent = isParent;
+			setDaemon(false);
+		}
+
+		@Override
+		public void run() {
+			// avoid getfield mnemonic
+			JobQueue jobQueue = this.jobQueue;
+			Logger logger = JobWorkerThread.logger;
+
+			while (true) { // main loop
+				Runnable job = jobQueue.getJob(this);
+				if (job == null) {
+					break;
+				}
+				try {
+					job.run();
+				} catch (RuntimeException e) {
+					logger.warn("{}: uncaught runtime-exception", getName(), e);
+				}
+			} // end main loop
+
+			jobQueue.finishWorker(this);
+		}
+
+		@Override
+		public String toString() {
+			return getName();
+		}
 	}
 
 	/**
@@ -112,6 +156,7 @@ public class JobQueue {
 		}
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(JobQueue.class);
 	/** 優先度 最高 */
 	public static final byte PRIORITY_MAX = 15;
 	/** 優先度 高 */
@@ -150,11 +195,16 @@ public class JobQueue {
 		return (LinkedQueue<Runnable>[]) new LinkedQueue<?>[PRIORITY_MAX + 1];
 	}
 
+	private final AtomicInteger runningWorkerThreadCount = new AtomicInteger();
 	private final LinkedQueue<Runnable>[] queues;
 	private final int[] randomToPriorityTable;
 	private final AtomicInteger size = new AtomicInteger();
 	private final int priorityRandomMax;
-	private Object jobWorkerThreadHolder = null;
+	private final ArrayList<JobWorkerThread> childThreads;
+	private final JobWorkerThread workerMainThread;
+	protected final ConcurrentLinkedQueue<Runnable> serializedJobQueue = new ConcurrentLinkedQueue<>();
+	protected volatile boolean isShutdownPhase;
+	private int coreThreadsCount;
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
@@ -167,6 +217,11 @@ public class JobQueue {
 		}
 		priorityRandomMax = 1 << (PRIORITY_MAX + 1);
 		randomToPriorityTable[PRIORITY_MAX + 1] = priorityRandomMax;
+
+		initProperties();
+		childThreads = new ArrayList<>();
+		workerMainThread = addWorker(true);
+		runningWorkerThreadCount.incrementAndGet();
 	}
 
 	/**
@@ -188,14 +243,16 @@ public class JobQueue {
 		}
 
 		if (job != null) {
-			if (jobWorkerThreadHolder == null) {
+			if (isShutdownPhase) {
 				job.run();
 			} else {
 				LinkedQueue<Runnable> queue = queues[priority];
 				queue.add(job);
 				size.incrementAndGet();
-				synchronized (jobWorkerThreadHolder) {
-					jobWorkerThreadHolder.notify();
+
+				ensureWorkerThreads();
+				synchronized (this) {
+					notify();
 				}
 			}
 		}
@@ -208,6 +265,73 @@ public class JobQueue {
 	 */
 	public void addJob(Runnable job) {
 		addJob(PRIORITY_DEFAULT, job);
+	}
+
+	private void addWorker(int expectedThreadCount) {
+		if (runningWorkerThreadCount.compareAndSet(expectedThreadCount, expectedThreadCount + 1)) {
+			synchronized (childThreads) {
+				addWorker(false);
+			}
+		}
+	}
+
+	protected JobWorkerThread addWorker(boolean isMainWorker) {
+		JobWorkerThread worker = new JobWorkerThread(this, isMainWorker);
+		childThreads.add(worker);
+		worker.start();
+		logger.debug("Worker thread {} started", worker);
+		return worker;
+	}
+
+	private void ensureWorkerThreads() {
+		int threadCount = runningWorkerThreadCount.get();
+		if (threadCount < coreThreadsCount) {
+			addWorker(threadCount);
+		}
+	}
+
+	private void finishWorker(JobWorkerThread jobWorkerThread) {
+		runningWorkerThreadCount.decrementAndGet();
+		synchronized (childThreads) {
+			childThreads.remove(jobWorkerThread);
+		}
+		synchronized (this) {
+			notify(); // sometimes make JobQueue#shutdownNow wake up and recheck workers alive
+		}
+	}
+
+	protected Runnable getJob(JobWorkerThread worker) {
+		do {
+			Runnable job = null;
+			if (worker.isParent) {
+				job = serializedJobQueue.poll();
+			}
+			if (job == null) {
+				job = getJob();
+			}
+			if (job == null) {
+				synchronized (this) {
+					try {
+						logger.trace("{}: Try to wait", worker);
+						wait();
+						logger.trace("{}: Wake up", worker);
+					} catch (InterruptedException e) {
+						logger.info("{}: Interrupted", worker);
+						if (isShutdownPhase) {
+							return null;
+						}
+					}
+				}
+			} else {
+				if (worker.isParent || job instanceof ParallelRunnable) {
+					return job;
+				} else {
+					logger.trace("{}: Add to SerializeQueue: {}", worker, job);
+					serializedJobQueue.add(job);
+					workerMainThread.interrupt(); // wake up worker main thread
+				}
+			}
+		} while (true);
 	}
 
 	/**
@@ -242,6 +366,11 @@ public class JobQueue {
 		return null;
 	}
 
+	protected void initProperties() {
+		ClientProperties properties = ClientConfiguration.getInstance().getConfigProperties();
+		coreThreadsCount = properties.getInteger("core.jobqueue.threads");
+	}
+
 	/**
 	 * キューが空かどうかを調べる
 	 *
@@ -251,21 +380,34 @@ public class JobQueue {
 		return size.get() == 0;
 	}
 
-	/**
-	 * ジョブワーカースレッドを設定する。
-	 * <p>
-	 * ジョブワーカースレッドは、ジョブキューにジョブが追加されたときに {@link Thread#notify()}される
-	 * スレッドです。このスレッドでは、ジョブキューの消費が仕事となります。
-	 * </p>
-	 * <p>
-	 * <strong>パラメータにnullを指定して呼び出す</strong>と、ジョブワーカースレッドの仕事が解除され、
-	 * ジョブが追加されると同時にJobQueue内部で {@link Runnable#run()}が呼び出されるようになります。
-	 * </p>
-	 *
-	 * @param threadHolder スレッドホルダ
-	 */
-	public void setJobWorkerThread(Object threadHolder) {
-		jobWorkerThreadHolder = threadHolder;
+	public void setCoreThreadsCount(int coreThreadsCount) {
+		this.coreThreadsCount = coreThreadsCount;
+	}
+
+	public boolean shutdownNow(int jobworkerJoinTimeout) throws InterruptedException {
+		shutdownWorkerThreads();
+		long timeout = System.currentTimeMillis() + jobworkerJoinTimeout;
+		synchronized (this) {
+			while (runningWorkerThreadCount.get() != 0) {
+				long remain = timeout - System.currentTimeMillis();
+				if (remain <= 0) {
+					return false;
+				} else {
+					wait(remain);
+				}
+			}
+			return true;
+		}
+
+	}
+
+	public void shutdownWorkerThreads() {
+		isShutdownPhase = true;
+		synchronized (childThreads) {
+			for (Thread childThread : childThreads) {
+				childThread.interrupt();
+			}
+		}
 	}
 
 	/**

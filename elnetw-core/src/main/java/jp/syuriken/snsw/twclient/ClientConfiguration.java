@@ -175,8 +175,8 @@ public class ClientConfiguration {
 	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-	private final transient JobQueue jobQueue = new JobQueue();
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
+	private transient JobQueue jobQueue;
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
 	/*package*/ ClientProperties configProperties;
 	/*package*/ ClientProperties configDefaultProperties;
@@ -903,6 +903,10 @@ public class ClientConfiguration {
 	 */
 	/*package*/void setInitializing(boolean isInitializing) {
 		this.isInitializing = isInitializing;
+	}
+
+	/*package*/ void setJobQueue(JobQueue jobQueue) {
+		this.jobQueue = jobQueue;
 	}
 
 	/*package*/

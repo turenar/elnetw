@@ -251,7 +251,7 @@ public class TwitterClientMain {
 	protected ClientProperties configProperties;
 	private Logger logger;
 	protected Getopt getopt;
-	protected JobWorkerThread jobWorkerThread;
+	protected JobQueue jobQueue;
 	protected boolean debugMode;
 	protected boolean portable;
 	protected MessageBus messageBus;
@@ -865,22 +865,21 @@ public class TwitterClientMain {
 		}
 	}
 
-	@Initializer(name = "jobqueue", dependencies = "config", phase = "preinit")
+	@Initializer(name = "jobqueue", dependencies = "config", phase = "earlyinit")
 	public void startJobWorkerThread(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			jobWorkerThread = new JobWorkerThread(configuration.getJobQueue());
-			jobWorkerThread.start();
+			jobQueue = new JobQueue();
+			configuration.setJobQueue(jobQueue);
 		} else {
-			jobWorkerThread.cleanUp();
+			jobQueue.shutdownWorkerThreads();
 			while (true) {
 				try {
-					jobWorkerThread.join(JOBWORKER_JOIN_TIMEOUT);
-					if (jobWorkerThread.isAlive()) {
+					if (jobQueue.shutdownNow(JOBWORKER_JOIN_TIMEOUT)) {
+						break;
+					} else {
 						// ImageIO caught interrupt but not set INTERRUPTED-STATUS
 						// If it seemed to be occurred, retry to shutdown jobWorker
-						jobWorkerThread.cleanUp();
-					} else {
-						break;
+						jobQueue.shutdownWorkerThreads();
 					}
 				} catch (InterruptedException e) {
 					// continue;

@@ -132,6 +132,23 @@ public class JobQueueTest {
 		}
 	}
 
+	private static class JobQueueTestImpl extends JobQueue {
+		@Override
+		protected JobWorkerThread addWorker(boolean isMainWorker) {
+			return new JobWorkerThread(this, true) {
+				@Override
+				public void run() {
+					// do nothing
+				}
+			};
+		}
+
+		@Override
+		protected void initProperties() {
+			// do nothing
+		}
+	}
+
 	public static class TestRunnable implements Runnable {
 		public final int value;
 
@@ -153,8 +170,9 @@ public class JobQueueTest {
 
 	@Test
 	public void testAddJob() throws Exception {
-		JobQueue jobQueue = new JobQueue();
-		jobQueue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+		JobQueue jobQueue = new JobQueueTestImpl();
+		// out-dated
+		//jobQueue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
 
 		jobQueue.addJob(new TestRunnable(0));
 		assertEquals(1, jobQueue.size());
@@ -173,8 +191,9 @@ public class JobQueueTest {
 
 	@Test
 	public void testAddJobParallel() throws Exception {
-		JobQueue queue = new JobQueue();
-		queue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+		JobQueue queue = new JobQueueTestImpl();
+		//queue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+
 		// add into queue
 		CountDownLatch latch = new CountDownLatch(THREADS_COUNT);
 		synchronized (queue) {
@@ -204,20 +223,19 @@ public class JobQueueTest {
 		assertEquals(THREADS_COUNT * COUNT_PER_THREAD, total);
 		assertEquals(0, queue.size());
 	}
-
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalPriority0() {
-		new JobQueue().addJob((byte) -1, new TestRunnable(0));
+		new JobQueueTestImpl().addJob((byte) -1, new TestRunnable(0));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalPriority1() {
-		new JobQueue().addJob((byte) 127, new TestRunnable(0));
+		new JobQueueTestImpl().addJob((byte) 127, new TestRunnable(0));
 	}
 
 	@Test
 	public void testIsEmpty() throws Exception {
-		JobQueue jobQueue = new JobQueue();
+		JobQueue jobQueue = new JobQueueTestImpl();
 		assertTrue(jobQueue.isEmpty());
 		assertEquals(0, jobQueue.size());
 	}
