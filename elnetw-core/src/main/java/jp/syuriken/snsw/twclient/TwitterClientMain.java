@@ -871,7 +871,7 @@ public class TwitterClientMain {
 			jobQueue = new JobQueue();
 			configuration.setJobQueue(jobQueue);
 		} else {
-			jobQueue.shutdownWorkerThreads();
+			jobQueue.shutdown();
 			while (true) {
 				try {
 					if (jobQueue.shutdownNow(JOBWORKER_JOIN_TIMEOUT)) {
@@ -879,7 +879,7 @@ public class TwitterClientMain {
 					} else {
 						// ImageIO caught interrupt but not set INTERRUPTED-STATUS
 						// If it seemed to be occurred, retry to shutdown jobWorker
-						jobQueue.shutdownWorkerThreads();
+						jobQueue.shutdown();
 					}
 				} catch (InterruptedException e) {
 					// continue;

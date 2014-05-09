@@ -134,7 +134,7 @@ public class JobQueueTest {
 
 	private static class JobQueueTestImpl extends JobQueue {
 		@Override
-		protected JobWorkerThread addWorker(boolean isMainWorker) {
+		protected JobWorkerThread addWorker(int expectedWorkerCount, boolean isMainWorker) {
 			return new JobWorkerThread(this, true) {
 				@Override
 				public void run() {

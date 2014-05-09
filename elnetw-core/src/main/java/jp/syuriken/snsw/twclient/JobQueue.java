@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +56,23 @@ public class JobQueue {
 	protected static class JobWorkerThread extends Thread {
 		private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
 		private static final AtomicInteger threadNumber = new AtomicInteger();
-		protected JobQueue jobQueue;
-		protected boolean isParent;
+		protected final JobQueue jobQueue;
+		protected final boolean isParent;
+		private final ReentrantLock lock = new ReentrantLock();
 
 		public JobWorkerThread(JobQueue jobQueue, boolean isParent) {
 			super("worker-" + threadNumber.getAndIncrement());
 			this.jobQueue = jobQueue;
 			this.isParent = isParent;
 			setDaemon(false);
+		}
+
+		public boolean isLocked() {
+			return lock.isLocked();
+		}
+
+		public void lock() {
+			lock.lock();
 		}
 
 		@Override
@@ -72,14 +82,19 @@ public class JobQueue {
 			Logger logger = JobWorkerThread.logger;
 
 			while (true) { // main loop
-				Runnable job = jobQueue.getJob(this);
-				if (job == null) {
-					break;
-				}
+				lock(); // set JobWorking State
 				try {
-					job.run();
-				} catch (RuntimeException e) {
-					logger.warn("{}: uncaught runtime-exception", getName(), e);
+					Runnable job = jobQueue.getJob(this);
+					if (job == null) {
+						break;
+					}
+					try {
+						job.run();
+					} catch (RuntimeException e) {
+						logger.warn("{}: uncaught runtime-exception", getName(), e);
+					}
+				} finally {
+					unlock(); // set Idle State
 				}
 			} // end main loop
 
@@ -89,6 +104,14 @@ public class JobQueue {
 		@Override
 		public String toString() {
 			return getName();
+		}
+
+		public boolean tryLock() {
+			return lock.tryLock();
+		}
+
+		public void unlock() {
+			lock.unlock();
 		}
 	}
 
@@ -195,16 +218,47 @@ public class JobQueue {
 		return (LinkedQueue<Runnable>[]) new LinkedQueue<?>[PRIORITY_MAX + 1];
 	}
 
-	private final AtomicInteger runningWorkerThreadCount = new AtomicInteger();
-	private final LinkedQueue<Runnable>[] queues;
-	private final int[] randomToPriorityTable;
-	private final AtomicInteger size = new AtomicInteger();
-	private final int priorityRandomMax;
-	private final ArrayList<JobWorkerThread> childThreads;
-	private final JobWorkerThread workerMainThread;
+	/**
+	 * ワーカースレッド数。
+	 */
+	protected final AtomicInteger runningWorkerThreadCount = new AtomicInteger();
+	/**
+	 * ジョブキュー本体。0が優先度低く、15が優先度高い
+	 */
+	protected final LinkedQueue<Runnable>[] queues;
+	/**
+	 * どのジョブを選ぶかに使用する2のべき乗テーブル。
+	 */
+	protected final int[] randomToPriorityTable;
+	/**
+	 * ジョブ数
+	 */
+	protected final AtomicInteger size = new AtomicInteger();
+	/**
+	 * どのジョブを選ぶかを決めるときにどこまで大きい乱数を作るべきか
+	 */
+	protected final int priorityRandomMax;
+	/**
+	 * ジョブワーカースレッドのリスト。get(0)==workerMainThread
+	 */
+	protected final ArrayList<JobWorkerThread> childThreads;
+	/**
+	 * ワーカーのメインスレッド (application main threadとは違う)。
+	 * このインスタンスでのみParallelRunnableではないジョブが動く。
+	 */
+	protected final JobWorkerThread workerMainThread;
+	/**
+	 * ParallelRunnableではないジョブを格納するキュー。
+	 */
 	protected final ConcurrentLinkedQueue<Runnable> serializedJobQueue = new ConcurrentLinkedQueue<>();
+	/**
+	 * {@link #shutdown()}が呼ばれたらtrue。
+	 */
 	protected volatile boolean isShutdownPhase;
-	private int coreThreadsCount;
+	/**
+	 * core threads count
+	 */
+	protected int coreThreadsCount;
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
@@ -220,8 +274,7 @@ public class JobQueue {
 
 		initProperties();
 		childThreads = new ArrayList<>();
-		workerMainThread = addWorker(true);
-		runningWorkerThreadCount.incrementAndGet();
+		workerMainThread = addWorker(0, true);
 	}
 
 	/**
@@ -267,41 +320,40 @@ public class JobQueue {
 		addJob(PRIORITY_DEFAULT, job);
 	}
 
-	private void addWorker(int expectedThreadCount) {
+	protected JobWorkerThread addWorker(int expectedThreadCount, boolean isParent) {
 		if (runningWorkerThreadCount.compareAndSet(expectedThreadCount, expectedThreadCount + 1)) {
 			synchronized (childThreads) {
-				addWorker(false);
+				JobWorkerThread worker = new JobWorkerThread(this, isParent);
+				childThreads.add(worker);
+				worker.start();
+				logger.debug("Worker thread {} started", worker);
+				return worker;
 			}
+		} else {
+			return null;
 		}
 	}
 
-	protected JobWorkerThread addWorker(boolean isMainWorker) {
-		JobWorkerThread worker = new JobWorkerThread(this, isMainWorker);
-		childThreads.add(worker);
-		worker.start();
-		logger.debug("Worker thread {} started", worker);
-		return worker;
-	}
-
-	private void ensureWorkerThreads() {
+	protected void ensureWorkerThreads() {
 		int threadCount = runningWorkerThreadCount.get();
 		if (threadCount < coreThreadsCount) {
-			addWorker(threadCount);
+			addWorker(threadCount, false);
 		}
 	}
 
-	private void finishWorker(JobWorkerThread jobWorkerThread) {
-		runningWorkerThreadCount.decrementAndGet();
-		synchronized (childThreads) {
-			childThreads.remove(jobWorkerThread);
-		}
+	protected void finishWorker(JobWorkerThread jobWorkerThread) {
 		synchronized (this) {
+			synchronized (childThreads) {
+				childThreads.remove(jobWorkerThread);
+			}
+			runningWorkerThreadCount.decrementAndGet();
 			notify(); // sometimes make JobQueue#shutdownNow wake up and recheck workers alive
 		}
+		logger.debug("{}: Finish", jobWorkerThread);
 	}
 
 	protected Runnable getJob(JobWorkerThread worker) {
-		do {
+		while (true) {
 			Runnable job = null;
 			if (worker.isParent) {
 				job = serializedJobQueue.poll();
@@ -328,10 +380,16 @@ public class JobQueue {
 				} else {
 					logger.trace("{}: Add to SerializeQueue: {}", worker, job);
 					serializedJobQueue.add(job);
-					workerMainThread.interrupt(); // wake up worker main thread
+					if (workerMainThread.tryLock()) { // check idle state
+						try {
+							workerMainThread.interrupt(); // wake up worker main thread
+						} finally {
+							workerMainThread.unlock();
+						}
+					} // if main worker is working, worker will work soon.
 				}
 			}
-		} while (true);
+		}
 	}
 
 	/**
@@ -384,8 +442,27 @@ public class JobQueue {
 		this.coreThreadsCount = coreThreadsCount;
 	}
 
+	/**
+	 * ジョブワーカースレッドをシャットダウンする。新しく追加されるジョブはそのままそのスレッド上で動くようになる。
+	 */
+	public void shutdown() {
+		isShutdownPhase = true;
+		synchronized (childThreads) {
+			for (Thread childThread : childThreads) {
+				childThread.interrupt();
+			}
+		}
+	}
+
+	/**
+	 * 今すぐシャットダウンする。
+	 *
+	 * @param jobworkerJoinTimeout ジョブワーカースレッドが終了するまでの最大待機時間
+	 * @return シャットダウンに成功したかどうか。
+	 * @throws InterruptedException 割り込まれた。
+	 */
 	public boolean shutdownNow(int jobworkerJoinTimeout) throws InterruptedException {
-		shutdownWorkerThreads();
+		shutdown();
 		long timeout = System.currentTimeMillis() + jobworkerJoinTimeout;
 		synchronized (this) {
 			while (runningWorkerThreadCount.get() != 0) {
@@ -399,15 +476,6 @@ public class JobQueue {
 			return true;
 		}
 
-	}
-
-	public void shutdownWorkerThreads() {
-		isShutdownPhase = true;
-		synchronized (childThreads) {
-			for (Thread childThread : childThreads) {
-				childThread.interrupt();
-			}
-		}
 	}
 
 	/**
