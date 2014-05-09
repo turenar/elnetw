@@ -67,10 +67,6 @@ public class JobQueue {
 			setDaemon(false);
 		}
 
-		public boolean isLocked() {
-			return lock.isLocked();
-		}
-
 		public void lock() {
 			lock.lock();
 		}
@@ -259,6 +255,18 @@ public class JobQueue {
 	 * core threads count
 	 */
 	protected int coreThreadsCount;
+	/**
+	 * maximum threads count
+	 */
+	protected int maximumThreadsCount;
+	/**
+	 * threshold for adding worker
+	 */
+	protected int execWorkerThreshold;
+	/**
+	 * worker keep alive time
+	 */
+	protected long keepAliveTime;
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
@@ -334,13 +342,23 @@ public class JobQueue {
 		}
 	}
 
+	/**
+	 * check if should start another worker thread
+	 */
 	protected void ensureWorkerThreads() {
 		int threadCount = runningWorkerThreadCount.get();
 		if (threadCount < coreThreadsCount) {
 			addWorker(threadCount, false);
+		} else if (threadCount < maximumThreadsCount && size.get() >= threadCount * execWorkerThreshold) {
+			addWorker(threadCount, false);
 		}
 	}
 
+	/**
+	 * exit worker
+	 *
+	 * @param jobWorkerThread worker thread
+	 */
 	protected void finishWorker(JobWorkerThread jobWorkerThread) {
 		synchronized (this) {
 			synchronized (childThreads) {
@@ -352,7 +370,24 @@ public class JobQueue {
 		logger.debug("{}: Finish", jobWorkerThread);
 	}
 
+	/**
+	 * get core thread pool size
+	 *
+	 * @return core thread pool size
+	 */
+	public int getCoreThreadsCount() {
+		return coreThreadsCount;
+	}
+
+	/**
+	 * get a job for WorkerThread.
+	 *
+	 * @param worker WorkerThread
+	 * @return job. if {@link #isShutdownPhase} is true, return null.
+	 * if wait(keepAliveTime) timed out and working thread count is larger than coreThreadsCount, return null.
+	 */
 	protected Runnable getJob(JobWorkerThread worker) {
+		boolean wakeUpFlag = false;
 		while (true) {
 			Runnable job = null;
 			if (worker.isParent) {
@@ -364,20 +399,32 @@ public class JobQueue {
 			if (job == null) {
 				synchronized (this) {
 					try {
+						if (wakeUpFlag && runningWorkerThreadCount.get() > coreThreadsCount) {
+							// exit free worker
+							logger.debug("{}: No job! exitting...", worker);
+							return null;
+						}
 						logger.trace("{}: Try to wait", worker);
-						wait();
+						wait(keepAliveTime);
 						logger.trace("{}: Wake up", worker);
+						wakeUpFlag = true;
 					} catch (InterruptedException e) {
 						logger.info("{}: Interrupted", worker);
 						if (isShutdownPhase) {
 							return null;
+						} else {
+							wakeUpFlag = false; // clear wake up flag
 						}
 					}
 				}
 			} else {
+				wakeUpFlag = false; // clear wake up flag if job is found
 				if (worker.isParent || job instanceof ParallelRunnable) {
+					//  main worker:  run <extends Runnable>
+					// other workers: run <extends ParallelRunnable>
 					return job;
 				} else {
+					// other workers don't run just Runnable
 					logger.trace("{}: Add to SerializeQueue: {}", worker, job);
 					serializedJobQueue.add(job);
 					if (workerMainThread.tryLock()) { // check idle state
@@ -424,9 +471,30 @@ public class JobQueue {
 		return null;
 	}
 
+	/**
+	 * get worker keep alive time
+	 *
+	 * @return worker keep alive time
+	 */
+	public long getKeepAliveTime() {
+		return keepAliveTime;
+	}
+
+	/**
+	 * get maximum thread pool size
+	 *
+	 * @return maximum thread pool size
+	 */
+	public int getMaximumThreadPoolSize() {
+		return maximumThreadsCount;
+	}
+
 	protected void initProperties() {
 		ClientProperties properties = ClientConfiguration.getInstance().getConfigProperties();
 		coreThreadsCount = properties.getInteger("core.jobqueue.threads");
+		maximumThreadsCount = properties.getInteger("core.jobqueue.max_threads");
+		execWorkerThreshold = properties.getInteger("core.jobqueue.exec_threshold");
+		keepAliveTime = properties.getTime("core.jobqueue.keep_alive");
 	}
 
 	/**
@@ -438,8 +506,31 @@ public class JobQueue {
 		return size.get() == 0;
 	}
 
-	public void setCoreThreadsCount(int coreThreadsCount) {
+	/**
+	 * set core thread pool size
+	 *
+	 * @param coreThreadsCount new size
+	 */
+	public void setCoreThreadPoolSize(int coreThreadsCount) {
 		this.coreThreadsCount = coreThreadsCount;
+	}
+
+	/**
+	 * set keep alive time
+	 *
+	 * @param keepAliveTime worker thread keep-alive time
+	 */
+	public void setKeepAliveTime(long keepAliveTime) {
+		this.keepAliveTime = keepAliveTime;
+	}
+
+	/**
+	 * set maximum thread pool size
+	 *
+	 * @param maximumThreadsCount new size
+	 */
+	public void setMaximumThreadPoolSize(int maximumThreadsCount) {
+		this.maximumThreadsCount = maximumThreadsCount;
 	}
 
 	/**
@@ -489,7 +580,8 @@ public class JobQueue {
 
 	@Override
 	public String toString() {
-		StringBuilder stringBuilder = new StringBuilder("JobQueue{size=[");
+		StringBuilder stringBuilder = new StringBuilder("JobQueue{workerCount=")
+				.append(runningWorkerThreadCount).append(", size=[");
 		for (LinkedQueue<Runnable> queue : queues) {
 			stringBuilder.append(queue.size()).append(", ");
 		}
