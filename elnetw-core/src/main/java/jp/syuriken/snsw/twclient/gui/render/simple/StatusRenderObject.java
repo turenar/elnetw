@@ -470,6 +470,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 					logger.error("failed getting original profile image", e);
 				}
 				break;
+			default:
+				// do nothing
 		}
 	}
 
