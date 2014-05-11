@@ -43,6 +43,7 @@ import twitter4j.UserMentionEntity;
  * Abstract Render Object for EntitySupport
  */
 public abstract class EntitySupportRenderObject extends AbstractRenderObject implements MediaUrlDispatcher {
+	private static final Logger logger = LoggerFactory.getLogger(EntitySupportRenderObject.class);
 	protected HashMap<String, UrlInfo> urlInfoMap;
 
 	public EntitySupportRenderObject(SimpleRenderer renderer) {
@@ -123,8 +124,6 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 	public void gotMediaUrl(String original, UrlInfo resolvedUrl) {
 		urlInfoMap.put(original, resolvedUrl);
 	}
-
-	private static final Logger logger = LoggerFactory.getLogger(EntitySupportRenderObject.class);
 
 	@Override
 	public void onException(String url, Exception ex) {

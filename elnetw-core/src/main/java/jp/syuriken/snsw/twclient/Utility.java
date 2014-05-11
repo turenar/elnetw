@@ -47,20 +47,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Utility {
 
-	/**
-	 * OSの種別を判断する。
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	public enum OSType {
-		/** Windows環境 */
-		WINDOWS,
-		/** MacOS環境 */
-		MAC,
-		/** その他 (*nixなど) */
-		OTHER
-	}
-
 	private static class KVEntry {
 
 		final String key;
@@ -80,6 +66,20 @@ public class Utility {
 			this.priority = priority;
 			this.messageNotifierClass = messageNotifierClass;
 		}
+	}
+
+	/**
+	 * OSの種別を判断する。
+	 *
+	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
+	 */
+	public enum OSType {
+		/** Windows環境 */
+		WINDOWS,
+		/** MacOS環境 */
+		MAC,
+		/** その他 (*nixなど) */
+		OTHER
 	}
 
 	/** 秒→ミリセカンド */

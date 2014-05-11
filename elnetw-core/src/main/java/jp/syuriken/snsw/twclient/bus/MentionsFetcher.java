@@ -104,12 +104,13 @@ public class MentionsFetcher extends TwitterRunnable implements MessageChannel {
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
-				@Override
-				public void run() {
-					configuration.addJob(JobQueue.Priority.LOW, MentionsFetcher.this);
-				}
-			}, 0, intervalOfMentions,
-					TimeUnit.SECONDS);
+																				  @Override
+																				  public void run() {
+																					  configuration.addJob(JobQueue.Priority.LOW, MentionsFetcher.this);
+																				  }
+																			  }, 0, intervalOfMentions,
+					TimeUnit.SECONDS
+			);
 		}
 	}
 }

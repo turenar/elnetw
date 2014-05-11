@@ -513,7 +513,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		layout.setVerticalGroup(
 				layout.createSequentialGroup()
 						.addComponent(getComponentUserInfo(), 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-						.addComponent(getComponentTweetsScrollPane()));
+						.addComponent(getComponentTweetsScrollPane())
+		);
 
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(getComponentUserInfo(), 96, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)

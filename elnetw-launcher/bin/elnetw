@@ -6,6 +6,9 @@
 #|ランチャーjarを見付け出して起動させる。
 #+-----------------------
 
+# consts
+: ${TT_MAIN_CLASS:=jp.syuriken.snsw.launcher.TwitterClientLauncher}
+
 # functions
 
 #########################
@@ -15,6 +18,19 @@
 #########################
 add_java_arg() {
   tt_java_args="${tt_java_args} $1"
+}
+
+#########################
+# add_classpath
+#　 クラスパスに追加
+# $1=classpath
+#########################
+add_classpath() {
+  if test -z "${tt_classpath}"; then
+    tt_classpath="$1"
+  else
+    tt_classpath="${tt_classpath}:$1"
+  fi
 }
 
 #########################
@@ -99,10 +115,14 @@ for i in "${BATCH_PARENT_DIR}"/target/elnetw-*-jar.jar; do
 done
 
 if test ! -z "${_dist_jar}"; then
-  TTJAR="${_dist_jar}"
+  # standalone jar is found
+  add_classpath "${_dist_jar}"
   add_java_arg '-Dconfig.portable=true'
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
-  TTJAR="${BATCH_PARENT_DIR}/bin/launcher.jar"
+  add_classpath "${BATCH_PARENT_DIR}/bin/launcher.jar"
+  if test -e "${BATCH_PARENT_DIR}/bin/library.jar"; then
+    add_classpath "${BATCH_PARENT_DIR}/bin/library.jar"
+  fi
 else
   # jarが見つからない
   echo
@@ -115,11 +135,11 @@ else
 fi
 
 
-while true; do
+while [ -n "$1" ]; do
   case "$1" in
     -J)   add_java_arg "$2"; shift;;
     -J*)  add_java_arg "${1#-J}";;
-    *)    break;;
+    *)    add_arg "$1";;
   esac
 
   shift
@@ -133,4 +153,4 @@ add_classpath_dir "${BATCH_PARENT_DIR}/lib"
 test -x "${HOME}/.elnetw/launcher.cfg" && source "${HOME}/.elnetw/launcher.cfg"
 
 
-"${JAVA_BIN}" ${tt_java_args} -jar "${TTJAR}" ${tt_args} $@
+"${JAVA_BIN}" ${tt_java_args} -classpath "${tt_classpath}" ${TT_MAIN_CLASS} ${tt_args}

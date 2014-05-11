@@ -28,8 +28,6 @@ import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -38,6 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
@@ -124,6 +124,16 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * テスト以外呼び出し禁止！
+	 *
+	 * @param conf インスタンス
+	 */
+	/*package*/
+	static void setInstance(ClientConfiguration conf) {
+		INSTANCE = conf;
+	}
+
+	/**
 	 * タブ復元時に使用するコンストラクタを追加する。
 	 * この関数は {@link #putClientTabConstructor(String, Constructor)} を内部で呼び出します。
 	 * {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタがあるクラスである必要があります。
@@ -161,17 +171,6 @@ public class ClientConfiguration {
 					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
 		}
 	}
-
-	/**
-	 * テスト以外呼び出し禁止！
-	 *
-	 * @param conf インスタンス
-	 */
-	/*package*/
-	static void setInstance(ClientConfiguration conf) {
-		INSTANCE = conf;
-	}
-
 	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
@@ -191,10 +190,11 @@ public class ClientConfiguration {
 	private volatile MessageBus messageBus;
 	private boolean portabledConfiguration;
 	private volatile CacheManager cacheManager;
-	private List<String> args;
 	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
 	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
+	private ParsedArguments parsedArguments;
+	private ArgParser argParser;
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
@@ -339,12 +339,30 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * ArgParserインスタンスを取得する
+	 *
+	 * @return ArgParser
+	 */
+	public ArgParser getArgParser() {
+		return argParser;
+	}
+
+	/*package*/ void setArgParser(ArgParser argParser) {
+		this.argParser = argParser;
+	}
+
+	/**
 	 * キャッシュマネージャを取得する。
 	 *
 	 * @return キャッシュマネージャ
 	 */
 	public synchronized CacheManager getCacheManager() {
 		return cacheManager;
+	}
+
+	/*package*/
+	synchronized void setCacheManager(CacheManager cacheManager) {
+		this.cacheManager = cacheManager;
 	}
 
 	/**
@@ -354,6 +372,11 @@ public class ClientConfiguration {
 	 */
 	public synchronized ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
+	}
+
+	/*package*/
+	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
+		this.configBuilder = configBuilder;
 	}
 
 	/**
@@ -366,12 +389,30 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * デフォルト設定を格納するプロパティを設定する。
+	 *
+	 * @param configDefaultProperties the configDefaultProperties to set
+	 */
+	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
+		this.configDefaultProperties = configDefaultProperties;
+	}
+
+	/**
 	 * 現在のユーザー設定を格納するプロパティを取得する。
 	 *
 	 * @return the configProperties
 	 */
 	public synchronized ClientProperties getConfigProperties() {
 		return configProperties;
+	}
+
+	/**
+	 * 現在のユーザー設定を格納するプロパティを設定する。
+	 *
+	 * @param configProperties the configProperties to set
+	 */
+	public synchronized void setConfigProperties(ClientProperties configProperties) {
+		this.configProperties = configProperties;
 	}
 
 	/**
@@ -416,6 +457,11 @@ public class ClientConfiguration {
 		return extraClassLoader;
 	}
 
+	/*package*/
+	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
+		this.extraClassLoader = extraClassLoader;
+	}
+
 	public MessageFilter[] getFilters() {
 		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
@@ -427,6 +473,15 @@ public class ClientConfiguration {
 	 */
 	public ClientFrameApi getFrameApi() {
 		return frameApi;
+	}
+
+	/**
+	 * FrameApiを設定する
+	 *
+	 * @param frameApi フレームAPI
+	 */
+	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
+		this.frameApi = frameApi;
 	}
 
 	/**
@@ -479,6 +534,10 @@ public class ClientConfiguration {
 		return imageCacher;
 	}
 
+	/*package*/void setImageCacher(ImageCacher imageCacher) {
+		this.imageCacher = imageCacher;
+	}
+
 	/**
 	 * ジョブキューを取得する。
 	 *
@@ -497,14 +556,22 @@ public class ClientConfiguration {
 		return messageBus;
 	}
 
+	/*package*/
+	synchronized void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	/**
-	 * アプリケーション実行時に指定されたオプションの変更できないリストを取得する。
-	 * なお、内容はGetoptによって並び替えられている
+	 * 実行時引数から作られたParsedArgumentsを取得する
 	 *
-	 * @return unmodifiable List
+	 * @return ParsedArguments
 	 */
-	public List<String> getOpts() {
-		return Collections.unmodifiableList(args);
+	public ParsedArguments getParsedArguments() {
+		return parsedArguments;
+	}
+
+	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
+		this.parsedArguments = parsedArguments;
 	}
 
 	/**
@@ -516,6 +583,11 @@ public class ClientConfiguration {
 		return timer;
 	}
 
+	/*package*/
+	synchronized void setTimer(ScheduledExecutorService timer) {
+		this.timer = timer;
+	}
+
 	/**
 	 * TrayIconをかえす。nullの場合有り。
 	 *
@@ -523,6 +595,15 @@ public class ClientConfiguration {
 	 */
 	public synchronized TrayIcon getTrayIcon() {
 		return trayIcon;
+	}
+
+	/**
+	 * トレイアイコン
+	 *
+	 * @param trayIcon the trayIcon to set
+	 */
+	public synchronized void setTrayIcon(TrayIcon trayIcon) {
+		this.trayIcon = trayIcon;
 	}
 
 	/**
@@ -662,6 +743,15 @@ public class ClientConfiguration {
 	 */
 	public boolean isInitializing() {
 		return isInitializing;
+	}
+
+	/**
+	 * 初期化中/初期TLロード中であるかを設定する
+	 *
+	 * @param isInitializing 初期化中かどうか。
+	 */
+	/*package*/void setInitializing(boolean isInitializing) {
+		this.isInitializing = isInitializing;
 	}
 
 	/**
@@ -850,90 +940,12 @@ public class ClientConfiguration {
 		return old;
 	}
 
-	/*package*/
-	synchronized void setCacheManager(CacheManager cacheManager) {
-		this.cacheManager = cacheManager;
-	}
-
-	/*package*/
-	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
-		this.configBuilder = configBuilder;
-	}
-
-	/**
-	 * デフォルト設定を格納するプロパティを設定する。
-	 *
-	 * @param configDefaultProperties the configDefaultProperties to set
-	 */
-	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
-		this.configDefaultProperties = configDefaultProperties;
-	}
-
-	/**
-	 * 現在のユーザー設定を格納するプロパティを設定する。
-	 *
-	 * @param configProperties the configProperties to set
-	 */
-	public synchronized void setConfigProperties(ClientProperties configProperties) {
-		this.configProperties = configProperties;
-	}
-
-	/*package*/
-	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
-		this.extraClassLoader = extraClassLoader;
-	}
-
-	/**
-	 * FrameApiを設定する
-	 *
-	 * @param frameApi フレームAPI
-	 */
-	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
-		this.frameApi = frameApi;
-	}
-
-	/*package*/void setImageCacher(ImageCacher imageCacher) {
-		this.imageCacher = imageCacher;
-	}
-
-	/**
-	 * 初期化中/初期TLロード中であるかを設定する
-	 *
-	 * @param isInitializing 初期化中かどうか。
-	 */
-	/*package*/void setInitializing(boolean isInitializing) {
-		this.isInitializing = isInitializing;
-	}
 
 	/*package*/ void setJobQueue(JobQueue jobQueue) {
 		this.jobQueue = jobQueue;
 	}
-
-	/*package*/
-	synchronized void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
-	}
-
-	/*package*/void setOpts(String[] args) {
-		this.args = Arrays.asList(args);
-	}
-
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;
-	}
-
-	/*package*/
-	synchronized void setTimer(ScheduledExecutorService timer) {
-		this.timer = timer;
-	}
-
-	/**
-	 * トレイアイコン
-	 *
-	 * @param trayIcon the trayIcon to set
-	 */
-	public synchronized void setTrayIcon(TrayIcon trayIcon) {
-		this.trayIcon = trayIcon;
 	}
 
 	/**

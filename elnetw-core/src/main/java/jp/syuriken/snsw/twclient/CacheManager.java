@@ -238,6 +238,17 @@ public class CacheManager {
 	}
 
 	/**
+	 * キャッシュ済みStatusを取得する。キャッシュされていなかったりStatusが存在しない(404)場合は引数のTwitterStatusインスタンスを返す。
+	 *
+	 * @param status キャッシュ済みStatus
+	 * @return TwitterStatusインスタンス
+	 */
+	public TwitterStatus getCachedStatus(TwitterStatus status) {
+		TwitterStatus twitterStatus = cacheStatusIfAbsent(status);
+		return twitterStatus == null ? status : twitterStatus.update(status);
+	}
+
+	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
 	 *
@@ -257,17 +268,6 @@ public class CacheManager {
 	public TwitterUser getCachedUser(TwitterUser user) {
 		TwitterUser twitterUser = cacheUserIfAbsent(user);
 		return twitterUser == null ? user : twitterUser.updateUser(user);
-	}
-
-	/**
-	 * キャッシュ済みStatusを取得する。キャッシュされていなかったりStatusが存在しない(404)場合は引数のTwitterStatusインスタンスを返す。
-	 *
-	 * @param status キャッシュ済みStatus
-	 * @return TwitterStatusインスタンス
-	 */
-	public TwitterStatus getCachedStatus(TwitterStatus status) {
-		TwitterStatus twitterStatus = cacheStatusIfAbsent(status);
-		return twitterStatus == null ? status : twitterStatus.update(status);
 	}
 
 	/**

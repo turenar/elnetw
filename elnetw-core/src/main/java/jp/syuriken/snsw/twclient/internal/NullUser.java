@@ -21,6 +21,7 @@
 
 package jp.syuriken.snsw.twclient.internal;
 
+import java.net.URL;
 import java.util.Date;
 
 import twitter4j.RateLimitStatus;
@@ -75,6 +76,11 @@ public class NullUser implements User {
 	@Override
 	public String getDescription() {
 		return null;
+	}
+
+	@Override
+	public URLEntity[] getDescriptionURLEntities() {
+		return new URLEntity[0];
 	}
 
 	@Override
@@ -187,11 +193,11 @@ public class NullUser implements User {
 		return null;
 	}
 
-
 	@Override
 	public String getProfileImageURLHttps() {
 		return null;
 	}
+
 
 	@Override
 	public String getProfileLinkColor() {
@@ -244,6 +250,11 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public URLEntity getURLEntity() {
+		return null;
+	}
+
+	@Override
 	public int getUtcOffset() {
 		return -1;
 	}
@@ -261,16 +272,6 @@ public class NullUser implements User {
 	@Override
 	public boolean isFollowRequestSent() {
 		return false;
-	}
-
-	@Override
-	public URLEntity[] getDescriptionURLEntities() {
-		return new URLEntity[0];
-	}
-
-	@Override
-	public URLEntity getURLEntity() {
-		return null;
 	}
 
 	@Override

@@ -17,12 +17,12 @@
 	</appender>
 
 	<logger name="jp.syuriken.snsw">
-		<level value="TRACE" />
+		<level value="TRACE"/>
 	</logger>
 
 	<root>
-		<level value="INFO" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE" />
+		<level value="INFO"/>
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="FILE"/>
 	</root>
 </configuration>

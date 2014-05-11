@@ -100,12 +100,13 @@ public class DirectMessageFetcher extends TwitterRunnable implements MessageChan
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
 
-				@Override
-				public void run() {
-					configuration.addJob(JobQueue.Priority.LOW, DirectMessageFetcher.this);
-				}
-			}, 0, intervalOfDirectMessage,
-					TimeUnit.SECONDS);
+																				  @Override
+																				  public void run() {
+																					  configuration.addJob(JobQueue.Priority.LOW, DirectMessageFetcher.this);
+																				  }
+																			  }, 0, intervalOfDirectMessage,
+					TimeUnit.SECONDS
+			);
 		}
 	}
 }

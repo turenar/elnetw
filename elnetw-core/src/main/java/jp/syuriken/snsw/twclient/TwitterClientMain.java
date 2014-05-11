@@ -34,7 +34,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -59,11 +58,9 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.OptionType;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.DirectMessageFetcherFactory;
 import jp.syuriken.snsw.twclient.bus.MentionsFetcherFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
@@ -124,6 +121,7 @@ import jp.syuriken.snsw.twclient.init.InitializeException;
 import jp.syuriken.snsw.twclient.init.InitializeService;
 import jp.syuriken.snsw.twclient.init.Initializer;
 import jp.syuriken.snsw.twclient.init.InitializerInstance;
+import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
@@ -244,13 +242,13 @@ public class TwitterClientMain {
 	private final Thread MAIN_THREAD;
 	/** スレッドホルダ */
 	protected final Object threadHolder = new Object();
-	private String[] args;
+	private final ArgParser parser;
+	private final ParsedArguments parsedArguments;
 	/** 設定 */
 	protected ClientConfiguration configuration;
 	/** 設定データ */
 	protected ClientProperties configProperties;
 	private Logger logger;
-	protected Getopt getopt;
 	protected JobQueue jobQueue;
 	protected boolean debugMode;
 	protected boolean portable;
@@ -264,16 +262,20 @@ public class TwitterClientMain {
 	 * @param args コマンドラインオプション
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
-		this.args = args;
 		this.classLoader = classLoader;
 		MAIN_THREAD = Thread.currentThread();
-		LongOpt[] longOpts = new LongOpt[] {
-				new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd'),
-		};
-		getopt = new Getopt("elnetw", args, "dL:D:", longOpts);
+		parser = new ArgParser();
+		parser.addLongOpt("--debug", OptionType.NO_ARGUMENT)
+				.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT)
+				.addLongOpt("--define", OptionType.REQUIRED_ARGUMENT)
+				.addShortOpt("-d", "--debug")
+				.addShortOpt("-L", "--classpath")
+				.addShortOpt("-D", "--define");
+		LoggingConfigurator.setOpts(parser);
+		parsedArguments = parser.parse(args);
 
 		try {
-			javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace(); // logger cannot use.
 		}
@@ -567,28 +569,25 @@ public class TwitterClientMain {
 	 * @return 終了値
 	 */
 	public HashMap<String, Object> run() {
-		Getopt getopt = this.getopt;
-		int c;
 		portable = Boolean.getBoolean("config.portable");
 		debugMode = false;
-		while ((c = getopt.getopt()) != -1) {
-			switch (c) {
-				case 'd':
-					portable = true;
-					debugMode = true;
-					break;
-				case 'L':
-				case 'D':
-					break; // do nothing
-				default:
-					break;
-			}
+		if (parsedArguments.hasOpt("--debug")) {
+			portable = true;
+			debugMode = true;
 		}
+
 		setHomeProperty();
-		setDebugLogger();
+		LoggingConfigurator.setLogger(parsedArguments);
+		logger = LoggerFactory.getLogger(TwitterClientMain.class);
+
+		for (Iterator<String> errorMessages = parsedArguments.getErrorMessageIterator(); errorMessages.hasNext(); ) {
+			logger.warn("ArgParser: {}", errorMessages.next());
+		}
+
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
-		configuration.setOpts(args);
+		configuration.setArgParser(parser);
+		configuration.setParsedArguments(parsedArguments);
 
 		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
@@ -667,26 +666,6 @@ public class TwitterClientMain {
 		} else {
 			configProperties.store();
 		}
-	}
-
-	private void setDebugLogger() {
-		if (debugMode) {
-			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
-			if (resource == null) {
-				logger.error("resource /logback-debug.xml is not found");
-			} else {
-				LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-				try {
-					JoranConfigurator configurator = new JoranConfigurator();
-					configurator.setContext(context);
-					context.reset();
-					configurator.doConfigure(resource);
-				} catch (JoranException je) {
-					// StatusPrinter will handle this
-				}
-			}
-		}
-		logger = LoggerFactory.getLogger(getClass());
 	}
 
 	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")

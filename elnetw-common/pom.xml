@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>elnetw common library</name>
+	<artifactId>elnetw-common</artifactId>
+	<url>http://github.com/turenar/elnetw</url>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>jp.syuriken.snsw</groupId>
+		<artifactId>elnetw</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>Google Code</system>
+		<url>https://github.com/turenar/elnetw/issues</url>
+	</issueManagement>
+
+	<description>elnetw common library modules</description>
+
+
+	<repositories>
+		<repository>
+			<id>twitter4j.org</id>
+			<name>twitter4j.org Repository</name>
+			<url>http://twitter4j.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>turenar-mvnrepo</id>
+			<name>Elnetw's Maven Repository</name>
+			<url>https://raw.github.com/turenar/maven-repo/master</url>
+		</repository>
+	</repositories>
+
+	<scm>
+		<connection>scm:git:git://github.com/turenar/elnetw.git</connection>
+		<developerConnection>scm:git:https://github.com/turenar/elnetw.git</developerConnection>
+		<tag>scm:git:https://github.com/turenar/elnetw.git</tag>
+		<url>https://github.com/turenar/elnetw</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<name>Turenai Project</name>
+			<email>snswinhaiku.lo@gmail.com</email>
+		</developer>
+	</developers>
+
+	<dependencies>
+		<!-- flag: ignore-packaging -->
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+		</dependency>
+		<!-- flag: /ignore-packaging -->
+	</dependencies>
+
+	<organization>
+		<name>Turenai Project</name>
+		<url>http://snsw.syuriken.jp</url>
+	</organization>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
+		<outputDirectory>target/bin</outputDirectory>
+		<testOutputDirectory>target/test</testOutputDirectory>
+		<defaultGoal>test</defaultGoal>
+		<directory>target</directory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>**/*Test.java</include>
+					</includes>
+					<argLine>-Xmx512M</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.code54.mojo</groupId>
+				<artifactId>buildversion-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>set-properties</goal>
+						</goals>
+						<configuration>
+							<tstampFormat>yyyyMMdd</tstampFormat>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<extensions>
+			<extension>
+				<groupId>jp.syuriken.snsw</groupId>
+				<artifactId>srccheck-rules</artifactId>
+				<version>1</version>
+			</extension>
+		</extensions>
+	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.5.4-SNAPSHOT</version>
+				<configuration>
+					<excludeFilterFile>rules/findbugs-exclude.xml</excludeFilterFile>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<effort>Max</effort>
+					<sourceEncoding>${file.encoding}</sourceEncoding>
+					<includeTests>false</includeTests>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<includeTestSourceDirectory>false</includeTestSourceDirectory>
+					<configLocation>rules/checkstyle.xml</configLocation>
+					<headerLocation>../doc/license/elnetw.txt</headerLocation>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>
