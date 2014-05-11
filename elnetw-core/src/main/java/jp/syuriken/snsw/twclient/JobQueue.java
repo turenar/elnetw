@@ -34,6 +34,9 @@ import org.slf4j.LoggerFactory;
  * ジョブキューを保持するクラスです。時間のかかる作業 (HTTP通信など) をする場合は、このクラスに
  * ジョブを追加することが推奨されます。(推奨であって強制ではありません)
  *
+ * <p>インスタンス生成直後はワーカーは動いていません。{@link jp.syuriken.snsw.twclient.TwitterClientMain} が必要なときに
+ * ワーカースレッドを開始します。</p>
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class JobQueue {
@@ -190,6 +193,18 @@ public class JobQueue {
 	public static final byte PRIORITY_LOW = 4;
 	/** アイドル時に... */
 	public static final byte PRIORITY_IDLE = 0;
+	/** phaseをstateに格納するためのビットオフセット */
+	private static final int PHASE_BIT_OFFSET = (Integer.SIZE - 3);
+	/** worker count最大値 */
+	protected static final int WORKER_CAPACITY = (1 << PHASE_BIT_OFFSET) - 1;
+	/** インスタンスが作成された直後でまだワーカーは動いていない。 initProperties()必要 */
+	protected static final int PHASE_NEW = 0 << PHASE_BIT_OFFSET;
+	/** ワーカーが動いている */
+	protected static final int PHASE_RUNNING = 1 << PHASE_BIT_OFFSET;
+	/** #shutdown() が呼ばれた */
+	protected static final int PHASE_STOPPING = 2 << PHASE_BIT_OFFSET;
+	/** ワーカーが全て停止した */
+	protected static final int PHASE_EXITED = 3 << PHASE_BIT_OFFSET;
 
 	/*package*/
 	static int binarySearch(int[] table, int needle) {
@@ -209,15 +224,46 @@ public class JobQueue {
 		return end;
 	}
 
+	/**
+	 * ワーカー数を取得する
+	 *
+	 * @param state ステータス値
+	 * @return ワーカー数
+	 */
+	protected static int countOf(int state) {
+		return state & WORKER_CAPACITY;
+	}
+
 	@SuppressWarnings("unchecked")
 	private static LinkedQueue<Runnable>[] makeLinkedQueueArray() {
 		return (LinkedQueue<Runnable>[]) new LinkedQueue<?>[PRIORITY_MAX + 1];
 	}
 
 	/**
+	 * フェーズを取得する
+	 *
+	 * @param state ステータス値
+	 * @return フェーズ値
+	 */
+	protected static int phaseOf(int state) {
+		return state & ~WORKER_CAPACITY;
+	}
+
+	/**
+	 * 与えられたフェーズとワーカー数からステータス値を作成する
+	 *
+	 * @param phase       フェーズ
+	 * @param workerCount ワーカー数
+	 * @return ステータス値
+	 */
+	protected static int stateOf(int phase, int workerCount) {
+		return phase | workerCount;
+	}
+
+	/**
 	 * ワーカースレッド数。
 	 */
-	protected final AtomicInteger runningWorkerThreadCount = new AtomicInteger();
+	protected final AtomicInteger state = new AtomicInteger(stateOf(PHASE_NEW, 0));
 	/**
 	 * ジョブキュー本体。0が優先度低く、15が優先度高い
 	 */
@@ -248,15 +294,11 @@ public class JobQueue {
 	 */
 	protected final ConcurrentLinkedQueue<Runnable> serializedJobQueue = new ConcurrentLinkedQueue<>();
 	/**
-	 * {@link #shutdown()}が呼ばれたらtrue。
-	 */
-	protected volatile boolean isShutdownPhase;
-	/**
-	 * core threads count
+	 * core threads pool size
 	 */
 	protected int coreThreadsCount;
 	/**
-	 * maximum threads count
+	 * maximum threads pool size
 	 */
 	protected int maximumThreadsCount;
 	/**
@@ -280,7 +322,6 @@ public class JobQueue {
 		priorityRandomMax = 1 << (PRIORITY_MAX + 1);
 		randomToPriorityTable[PRIORITY_MAX + 1] = priorityRandomMax;
 
-		initProperties();
 		childThreads = new ArrayList<>();
 		workerMainThread = addWorker(0, true);
 	}
@@ -304,7 +345,7 @@ public class JobQueue {
 		}
 
 		if (job != null) {
-			if (isShutdownPhase) {
+			if (phaseOf(state.get()) >= PHASE_STOPPING) {
 				job.run();
 			} else {
 				LinkedQueue<Runnable> queue = queues[priority];
@@ -328,13 +369,23 @@ public class JobQueue {
 		addJob(PRIORITY_DEFAULT, job);
 	}
 
-	protected JobWorkerThread addWorker(int expectedThreadCount, boolean isParent) {
-		if (runningWorkerThreadCount.compareAndSet(expectedThreadCount, expectedThreadCount + 1)) {
+	/**
+	 * ワーカーを追加する。そして、フェーズが{@link #PHASE_NEW}でなければスレッドを起動する。
+	 *
+	 * @param state    ステータス値。現在のステータス値が一致しなければ追加しない。
+	 * @param isParent メインスレッドかどうか
+	 * @return ワーカーを追加した場合そのワーカー。追加しなかった場合null。
+	 */
+	protected JobWorkerThread addWorker(int state, boolean isParent) {
+		if (this.state.compareAndSet(state, state + 1)) {
+			logger.trace("{}", this);
 			synchronized (childThreads) {
 				JobWorkerThread worker = new JobWorkerThread(this, isParent);
 				childThreads.add(worker);
-				worker.start();
-				logger.debug("Worker thread {} started", worker);
+				if (phaseOf(state) != PHASE_NEW) {
+					worker.start();
+					logger.debug("Worker thread {} started", worker);
+				}
 				return worker;
 			}
 		} else {
@@ -346,11 +397,15 @@ public class JobQueue {
 	 * check if should start another worker thread
 	 */
 	protected void ensureWorkerThreads() {
-		int threadCount = runningWorkerThreadCount.get();
-		if (threadCount < coreThreadsCount) {
-			addWorker(threadCount, false);
-		} else if (threadCount < maximumThreadsCount && size.get() >= threadCount * execWorkerThreshold) {
-			addWorker(threadCount, false);
+		int state = this.state.get();
+		if (phaseOf(state) < PHASE_RUNNING) {
+			return;
+		}
+
+		int threadCount = countOf(state);
+		if (threadCount < coreThreadsCount
+				|| (threadCount < maximumThreadsCount && size.get() >= threadCount * execWorkerThreshold)) {
+			addWorker(state, false);
 		}
 	}
 
@@ -364,8 +419,11 @@ public class JobQueue {
 			synchronized (childThreads) {
 				childThreads.remove(jobWorkerThread);
 			}
-			runningWorkerThreadCount.decrementAndGet();
+			int state = this.state.decrementAndGet();
 			notify(); // sometimes make JobQueue#shutdownNow wake up and recheck workers alive
+			if (countOf(state) == 0) {
+				this.state.compareAndSet(state, stateOf(PHASE_EXITED, 0));
+			}
 		}
 		logger.debug("{}: Finish", jobWorkerThread);
 	}
@@ -383,7 +441,7 @@ public class JobQueue {
 	 * get a job for WorkerThread.
 	 *
 	 * @param worker WorkerThread
-	 * @return job. if {@link #isShutdownPhase} is true, return null.
+	 * @return job. if {@link #isShutdownPhase()} is true, return null.
 	 * if wait(keepAliveTime) timed out and working thread count is larger than coreThreadsCount, return null.
 	 */
 	protected Runnable getJob(JobWorkerThread worker) {
@@ -397,24 +455,24 @@ public class JobQueue {
 				job = getJob();
 			}
 			if (job == null) {
-				synchronized (this) {
-					try {
-						if (wakeUpFlag && runningWorkerThreadCount.get() > coreThreadsCount) {
-							// exit free worker
-							logger.debug("{}: No job! exitting...", worker);
-							return null;
-						}
-						logger.trace("{}: Try to wait", worker);
+				try {
+					if (wakeUpFlag && countOf(state.get()) > coreThreadsCount) {
+						// exit free worker
+						logger.debug("{}: No job! exitting...", worker);
+						return null;
+					}
+					logger.trace("{}: Try to wait", worker);
+					synchronized (this) {
 						wait(keepAliveTime);
-						logger.trace("{}: Wake up", worker);
-						wakeUpFlag = true;
-					} catch (InterruptedException e) {
-						logger.info("{}: Interrupted", worker);
-						if (isShutdownPhase) {
-							return null;
-						} else {
-							wakeUpFlag = false; // clear wake up flag
-						}
+					}
+					logger.trace("{}: Wake up", worker);
+					wakeUpFlag = true;
+				} catch (InterruptedException e) {
+					logger.info("{}: Interrupted", worker);
+					if (isShutdownPhase()) {
+						return null;
+					} else {
+						wakeUpFlag = false; // clear wake up flag
 					}
 				}
 			} else {
@@ -506,21 +564,49 @@ public class JobQueue {
 		return size.get() == 0;
 	}
 
+	private boolean isShutdownPhase() {
+		return phaseOf(state.get()) >= PHASE_STOPPING;
+	}
+
+	private String phaseOfString(int state) {
+		int phase = phaseOf(state);
+		switch (phase) {
+			case PHASE_NEW:
+				return "NEW";
+			case PHASE_RUNNING:
+				return "RUNNING";
+			case PHASE_STOPPING:
+				return "STOPPING";
+			case PHASE_EXITED:
+				return "EXIED";
+			default:
+				return String.valueOf(phase >>> PHASE_BIT_OFFSET);
+		}
+	}
+
 	/**
 	 * set core thread pool size
 	 *
 	 * @param coreThreadsCount new size
 	 */
 	public void setCoreThreadPoolSize(int coreThreadsCount) {
+		if (coreThreadsCount <= 0) {
+			throw new IllegalArgumentException("core threads pool size must be larger than zero.");
+		}
 		this.coreThreadsCount = coreThreadsCount;
 	}
 
 	/**
 	 * set keep alive time
 	 *
-	 * @param keepAliveTime worker thread keep-alive time
+	 * @param keepAliveTime worker thread keep-alive time.
+	 *                      if 0, we try to keep worker alive
+	 *                      until invoked {@link #shutdown()} or {@link #shutdownNow(int)}
 	 */
 	public void setKeepAliveTime(long keepAliveTime) {
+		if (keepAliveTime < 0) {
+			throw new IllegalArgumentException("keep alive time must not be minus number");
+		}
 		this.keepAliveTime = keepAliveTime;
 	}
 
@@ -530,14 +616,36 @@ public class JobQueue {
 	 * @param maximumThreadsCount new size
 	 */
 	public void setMaximumThreadPoolSize(int maximumThreadsCount) {
+		if (maximumThreadsCount <= 0) {
+			throw new IllegalArgumentException("maximum threads pool size must be larger than zero.");
+		} else if (coreThreadsCount > maximumThreadsCount) {
+			throw new IllegalArgumentException("maximum threads pool size must be larger than core threads pool size");
+		}
 		this.maximumThreadsCount = maximumThreadsCount;
+	}
+
+	/**
+	 * フェーズを設定する。
+	 *
+	 * @param phase フェーズ。
+	 */
+	protected final void setPhase(int phase) {
+		int state;
+		int prevState;
+		do {
+			prevState = this.state.get();
+			state = stateOf(phase, countOf(prevState));
+		} while (!this.state.compareAndSet(prevState, state));
 	}
 
 	/**
 	 * ジョブワーカースレッドをシャットダウンする。新しく追加されるジョブはそのままそのスレッド上で動くようになる。
 	 */
 	public void shutdown() {
-		isShutdownPhase = true;
+		int state = this.state.get();
+		if (phaseOf(state) < PHASE_STOPPING) {
+			setPhase(PHASE_STOPPING);
+		}
 		synchronized (childThreads) {
 			for (Thread childThread : childThreads) {
 				childThread.interrupt();
@@ -548,15 +656,15 @@ public class JobQueue {
 	/**
 	 * 今すぐシャットダウンする。
 	 *
-	 * @param jobworkerJoinTimeout ジョブワーカースレッドが終了するまでの最大待機時間
+	 * @param joinTimeout ジョブワーカースレッドが終了するまでの最大待機時間
 	 * @return シャットダウンに成功したかどうか。
 	 * @throws InterruptedException 割り込まれた。
 	 */
-	public boolean shutdownNow(int jobworkerJoinTimeout) throws InterruptedException {
+	public boolean shutdownNow(int joinTimeout) throws InterruptedException {
 		shutdown();
-		long timeout = System.currentTimeMillis() + jobworkerJoinTimeout;
+		long timeout = System.currentTimeMillis() + joinTimeout;
 		synchronized (this) {
-			while (runningWorkerThreadCount.get() != 0) {
+			while (countOf(state.get()) != 0) {
 				long remain = timeout - System.currentTimeMillis();
 				if (remain <= 0) {
 					return false;
@@ -564,6 +672,7 @@ public class JobQueue {
 					wait(remain);
 				}
 			}
+			setPhase(PHASE_EXITED);
 			return true;
 		}
 
@@ -578,10 +687,23 @@ public class JobQueue {
 		return size.get();
 	}
 
+	/**
+	 * ワーカースレッドを開始する。
+	 */
+	public void startWorker() {
+		if (phaseOf(state.get()) == PHASE_NEW) {
+			initProperties();
+			setPhase(PHASE_RUNNING);
+			workerMainThread.start();
+		}
+	}
+
 	@Override
 	public String toString() {
-		StringBuilder stringBuilder = new StringBuilder("JobQueue{workerCount=")
-				.append(runningWorkerThreadCount).append(", size=[");
+		int state = this.state.get();
+
+		StringBuilder stringBuilder = new StringBuilder("JobQueue{state=").append(phaseOfString(state))
+				.append(", workerCount=").append(countOf(state)).append(", size=[");
 		for (LinkedQueue<Runnable> queue : queues) {
 			stringBuilder.append(queue.size()).append(", ");
 		}

@@ -175,7 +175,7 @@ public class ClientConfiguration {
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
-	private transient JobQueue jobQueue;
+	private transient JobQueue jobQueue = new JobQueue();
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
 	/*package*/ ClientProperties configProperties;
 	/*package*/ ClientProperties configDefaultProperties;
@@ -941,8 +941,6 @@ public class ClientConfiguration {
 	}
 
 
-	/*package*/ void setJobQueue(JobQueue jobQueue) {
-		this.jobQueue = jobQueue;
 	}
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;

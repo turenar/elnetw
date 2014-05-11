@@ -847,8 +847,8 @@ public class TwitterClientMain {
 	@Initializer(name = "jobqueue", dependencies = "config", phase = "earlyinit")
 	public void startJobWorkerThread(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			jobQueue = new JobQueue();
-			configuration.setJobQueue(jobQueue);
+			jobQueue = configuration.getJobQueue();
+			jobQueue.startWorker();
 		} else {
 			jobQueue.shutdown();
 			while (true) {
