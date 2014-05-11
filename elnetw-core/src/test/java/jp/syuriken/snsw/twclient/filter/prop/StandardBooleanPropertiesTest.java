@@ -22,9 +22,9 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  */
 public class StandardBooleanPropertiesTest extends FilterConstants {
 
-	private static ClientConfiguration configuration;
+	private static ClientConfigurationTestImpl configuration;
 
 	/**
 	 * テスト前に呼ばれる関数
@@ -51,9 +51,7 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@BeforeClass
 	public static void tearUpClass() throws Exception {
-		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(); // テスト用メソッド
-		constructor.setAccessible(true);
-		configuration = constructor.newInstance();
+		configuration = new ClientConfigurationTestImpl();
 		ClientProperties defaultProperties = new ClientProperties();
 
 		InputStream resourceStream = null;
@@ -89,13 +87,18 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterDirectMessage() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
 		assertFalse(testIs("dm", STATUS_1));
 		assertFalse(testIs("dm", STATUS_2));
 		assertFalse(testIs("dm", STATUS_3));
 		assertFalse(testIs("dm", STATUS_4));
 		assertFalse(testIs("dm", STATUS_5));
 
-		assertTrue(testIs("dm", DM_1));
+			assertTrue(testIs("dm", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -105,11 +108,16 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterMine() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
 		assertFalse(testIs("mine", STATUS_1));
 		assertTrue(testIs("mine", STATUS_2));
 		assertTrue(testIs("mine", STATUS_3));
 		assertFalse(testIs("mine", STATUS_4));
-		assertTrue(testIs("mine", DM_1));
+			assertTrue(testIs("mine", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -119,13 +127,18 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterProtected() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
 		assertFalse(testIs("protected", STATUS_1));
 		assertFalse(testIs("protected", STATUS_2));
 		assertFalse(testIs("protected", STATUS_3));
 		assertFalse(testIs("protected", STATUS_4));
 		assertTrue(testIs("protected", STATUS_5));
 
-		assertFalse(testIs("protected", DM_1));
+			assertFalse(testIs("protected", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -135,12 +148,17 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterRetweeted() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
 		assertFalse(testIs("retweeted", STATUS_1));
 		assertFalse(testIs("retweeted", STATUS_2));
 		assertFalse(testIs("retweeted", STATUS_3));
 		assertTrue(testIs("retweeted", STATUS_4));
 
-		assertFalse(testIs("retweeted", DM_1));
+			assertFalse(testIs("retweeted", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -150,23 +168,31 @@ public class StandardBooleanPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterStatus() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
 		assertTrue(testIs("status", STATUS_1));
 		assertTrue(testIs("status", STATUS_2));
 		assertTrue(testIs("status", STATUS_3));
 		assertTrue(testIs("status", STATUS_4));
 		assertTrue(testIs("status", STATUS_5));
 
-		assertFalse(testIs("status", DM_1));
+			assertFalse(testIs("status", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
+		configuration.setGlobalInstance();
 		try {
 			new StandardBooleanProperties(configuration, "unknown unknown", "?", false);
 			fail("prop nameを無視してるかな？");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
+		} finally {
+			configuration.clearGlobalInstance();
 		}
 	}
 

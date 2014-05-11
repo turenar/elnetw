@@ -134,7 +134,7 @@ public class JobQueueTest {
 
 	private static class JobQueueTestImpl extends JobQueue {
 		@Override
-		protected JobWorkerThread addWorker(int expectedWorkerCount, boolean isMainWorker) {
+		protected JobWorkerThread addWorker(int state, boolean isMainWorker) {
 			return new JobWorkerThread(this, true) {
 				@Override
 				public void run() {
@@ -223,6 +223,7 @@ public class JobQueueTest {
 		assertEquals(THREADS_COUNT * COUNT_PER_THREAD, total);
 		assertEquals(0, queue.size());
 	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalPriority0() {
 		new JobQueueTestImpl().addJob((byte) -1, new TestRunnable(0));

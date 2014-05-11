@@ -114,6 +114,11 @@ public class NullStatus implements Status {
 	}
 
 	@Override
+	public String getLang() {
+		return null;
+	}
+
+	@Override
 	public MediaEntity[] getMediaEntities() {
 		return null;
 	}
@@ -135,6 +140,11 @@ public class NullStatus implements Status {
 
 	@Override
 	public Status getRetweetedStatus() {
+		return null;
+	}
+
+	@Override
+	public Scopes getScopes() {
 		return null;
 	}
 
@@ -181,16 +191,6 @@ public class NullStatus implements Status {
 	@Override
 	public boolean isPossiblySensitive() {
 		return false;
-	}
-
-	@Override
-	public String getLang() {
-		return null;
-	}
-
-	@Override
-	public Scopes getScopes() {
-		return null;
 	}
 
 	@Override

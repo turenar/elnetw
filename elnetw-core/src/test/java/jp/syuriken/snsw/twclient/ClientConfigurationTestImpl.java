@@ -45,6 +45,14 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 		return null;
 	}
 
+	public void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
+		this.configDefaultProperties = configDefaultProperties;
+	}
+
+	public void setConfigProperties(ClientProperties configProperties) {
+		this.configProperties = configProperties;
+	}
+
 	public void setGlobalInstance() {
 		while (true) {
 			reentrantLock.readLock().lock();

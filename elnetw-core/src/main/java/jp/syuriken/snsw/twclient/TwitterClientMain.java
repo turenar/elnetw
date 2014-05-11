@@ -121,6 +121,7 @@ import jp.syuriken.snsw.twclient.init.InitializeException;
 import jp.syuriken.snsw.twclient.init.InitializeService;
 import jp.syuriken.snsw.twclient.init.Initializer;
 import jp.syuriken.snsw.twclient.init.InitializerInstance;
+import jp.syuriken.snsw.twclient.internal.AsyncAppender;
 import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
@@ -563,6 +564,11 @@ public class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "log/flush", dependencies = {"timer", "config/default", "config"}, phase = "earlyinit")
+	public void registerLogFlusher() {
+		configProperties.firePropertyChanged(AsyncAppender.PROPERTY_FLUSH_INTERVAL, null, null);
+	}
+
 	/**
 	 * 起動する。
 	 *
@@ -644,10 +650,11 @@ public class TwitterClientMain {
 		configuration.setAccountIdForWrite(defaultAccountId);
 	}
 
+
 	@Initializer(name = "config", dependencies = "config/default", phase = "earlyinit")
 	public void setConfigProperties(InitCondition cond) {
 		if (cond.isInitializingPhase()) {
-			configProperties = new ClientProperties(configuration.getConfigDefaultProperties());
+			configProperties = configuration.getConfigProperties();
 			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
 			configProperties.setStoreFile(configFile);
 			if (configFile.exists()) {
@@ -659,7 +666,6 @@ public class TwitterClientMain {
 					logger.warn("設定ファイルの読み込み中にエラー", e);
 				}
 			}
-			configuration.setConfigProperties(configProperties);
 
 			String configVersion = configProperties.getProperty("cfg.version", "0");
 			InitializeService.getService().provideInitializer("config/update/v" + configVersion, true);
@@ -670,7 +676,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")
 	public void setDefaultConfigProperties() {
-		ClientProperties defaultConfig = new ClientProperties();
+		ClientProperties defaultConfig = configuration.getConfigDefaultProperties();
 		try {
 			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
 			if (stream == null) {
@@ -682,7 +688,6 @@ public class TwitterClientMain {
 		} catch (IOException e) {
 			logger.error("デフォルト設定が読み込めません", e);
 		}
-		configuration.setConfigDefaultProperties(defaultConfig);
 	}
 
 	@Initializer(name = "internal-setDefaultExceptionHandler", phase = "earlyinit")

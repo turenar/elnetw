@@ -22,9 +22,9 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  */
 public class StandardIntPropertiesTest extends FilterConstants {
 
-	private static ClientConfiguration configuration;
+	private static ClientConfigurationTestImpl configuration;
 
 	/**
 	 * テスト前に呼ばれる関数
@@ -51,9 +51,7 @@ public class StandardIntPropertiesTest extends FilterConstants {
 	 */
 	@BeforeClass
 	public static void tearUpClass() throws Exception {
-		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(); // テスト用メソッド
-		constructor.setAccessible(true);
-		configuration = constructor.newInstance();
+		configuration = new ClientConfigurationTestImpl();
 		ClientProperties defaultProperties = new ClientProperties();
 
 		InputStream resourceStream = null;
@@ -90,14 +88,19 @@ public class StandardIntPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterInReplyToUserId() throws IllegalSyntaxException {
-		assertEquals(-1, STATUS_1.getInReplyToUserId());
-		assertFalse(testEqual("in_reply_to_userid", -1, STATUS_1));
-		assertFalse(testEqual("in_reply_to_userid", -1, STATUS_2));
-		assertTrue(testEqual("in_reply_to_userid", STATUS_2.getUser().getId(), STATUS_3));
-		assertFalse(testEqual("in_reply_to_userid", -1, STATUS_4));
+		configuration.setGlobalInstance();
+		try {
+			assertEquals(-1, STATUS_1.getInReplyToUserId());
+			assertFalse(testEqual("in_reply_to_userid", -1, STATUS_1));
+			assertFalse(testEqual("in_reply_to_userid", -1, STATUS_2));
+			assertTrue(testEqual("in_reply_to_userid", STATUS_2.getUser().getId(), STATUS_3));
+			assertFalse(testEqual("in_reply_to_userid", -1, STATUS_4));
 
-		assertTrue(testEqual("in_reply_to_userid", DM_1.getRecipientId(), DM_1));
-		assertFalse(testEqual("in_reply_to_userid", STATUS_1.getUser().getId(), DM_1));
+			assertTrue(testEqual("in_reply_to_userid", DM_1.getRecipientId(), DM_1));
+			assertFalse(testEqual("in_reply_to_userid", STATUS_1.getUser().getId(), DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -107,23 +110,31 @@ public class StandardIntPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterRtCount() throws IllegalSyntaxException {
-		assertTrue(testEqual("rtcount", STATUS_1.getRetweetCount(), STATUS_1));
-		assertFalse(testEqual("rtcount", STATUS_2.getRetweetCount(), STATUS_4));
-		assertFalse(testEqual("rtcount", STATUS_3.getRetweetCount(), STATUS_4));
-		assertTrue(testEqual("rtcount", STATUS_4.getRetweetCount(), STATUS_4));
+		configuration.setGlobalInstance();
+		try {
+			assertTrue(testEqual("rtcount", STATUS_1.getRetweetCount(), STATUS_1));
+			assertFalse(testEqual("rtcount", STATUS_2.getRetweetCount(), STATUS_4));
+			assertFalse(testEqual("rtcount", STATUS_3.getRetweetCount(), STATUS_4));
+			assertTrue(testEqual("rtcount", STATUS_4.getRetweetCount(), STATUS_4));
 
-		assertFalse(testEqual("rtcount", 0, DM_1));
-		assertFalse(testEqual("rtcount", -1, DM_1));
+			assertFalse(testEqual("rtcount", 0, DM_1));
+			assertFalse(testEqual("rtcount", -1, DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
+		configuration.setGlobalInstance();
 		try {
 			new StandardIntProperties(configuration, "unknown unknown", "", "");
 			fail("prop nameを無視してるかな？");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
+		} finally {
+			configuration.clearGlobalInstance();
 		}
 	}
 
@@ -134,12 +145,17 @@ public class StandardIntPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterUserId() throws IllegalSyntaxException {
-		assertTrue(testEqual("userid", STATUS_1.getUser().getId(), STATUS_1));
-		assertFalse(testEqual("userid", STATUS_2.getUser().getId(), STATUS_1));
-		assertTrue(testEqual("userid", STATUS_3.getUser().getId(), STATUS_2));
-		assertTrue(testEqual("userid", STATUS_4.getUser().getId(), STATUS_4));
+		configuration.setGlobalInstance();
+		try {
+			assertTrue(testEqual("userid", STATUS_1.getUser().getId(), STATUS_1));
+			assertFalse(testEqual("userid", STATUS_2.getUser().getId(), STATUS_1));
+			assertTrue(testEqual("userid", STATUS_3.getUser().getId(), STATUS_2));
+			assertTrue(testEqual("userid", STATUS_4.getUser().getId(), STATUS_4));
 
-		assertTrue(testEqual("userid", DM_1.getSenderId(), DM_1));
-		assertFalse(testEqual("userid", STATUS_1.getUser().getId(), DM_1));
+			assertTrue(testEqual("userid", DM_1.getSenderId(), DM_1));
+			assertFalse(testEqual("userid", STATUS_1.getUser().getId(), DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 }

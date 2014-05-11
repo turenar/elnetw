@@ -72,11 +72,6 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return backgroundColor;
 	}
 
-	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
-		this.backgroundColor = backgroundColor;
-		return this;
-	}
-
 	@Override
 	public Object getBasedObject() {
 		return base;
@@ -87,28 +82,13 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return createdBy;
 	}
 
-	public MiscRenderObject setCreatedBy(User user) {
-		return setCreatedBy(user.getScreenName())
-				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
-	}
-
 	@Override
 	public Date getDate() {
 		return new Date(date);
 	}
 
-	public MiscRenderObject setDate(long date) {
-		this.date = date;
-		return this;
-	}
-
 	public Color getForegroundColor() {
 		return foregroundColor;
-	}
-
-	public MiscRenderObject setForegroundColor(Color foregroundColor) {
-		this.foregroundColor = foregroundColor;
-		return this;
 	}
 
 	@Override
@@ -116,15 +96,20 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return uniqId;
 	}
 
-	public MiscRenderObject setUniqId(String uniqId) {
-		this.uniqId = uniqId;
-		return this;
-	}
-
 	@Override
 	protected void initComponents() {
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
 		componentSentBy.setFont(renderer.getDefaultFont());
+	}
+
+	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
+		this.backgroundColor = backgroundColor;
+		return this;
+	}
+
+	public MiscRenderObject setCreatedBy(User user) {
+		return setCreatedBy(user.getScreenName())
+				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
 	}
 
 	public MiscRenderObject setCreatedBy(String createdBy) {
@@ -145,6 +130,16 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return this;
 	}
 
+	public MiscRenderObject setDate(long date) {
+		this.date = date;
+		return this;
+	}
+
+	public MiscRenderObject setForegroundColor(Color foregroundColor) {
+		this.foregroundColor = foregroundColor;
+		return this;
+	}
+
 	public MiscRenderObject setIcon(User user) {
 		renderer.getImageCacher().setImageIcon(componentUserIcon, user);
 		return this;
@@ -158,6 +153,11 @@ public class MiscRenderObject extends AbstractRenderObject {
 	public MiscRenderObject setText(String text) {
 		this.text = text;
 		componentStatusText.setText(getShortenString(text, TEXT_MAX_LEN));
+		return this;
+	}
+
+	public MiscRenderObject setUniqId(String uniqId) {
+		this.uniqId = uniqId;
 		return this;
 	}
 }

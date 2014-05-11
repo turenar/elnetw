@@ -21,7 +21,6 @@
 
 package jp.syuriken.snsw.twclient.internal;
 
-import java.net.URL;
 import java.util.Date;
 
 import twitter4j.RateLimitStatus;
