@@ -77,17 +77,16 @@ public class NetworkSupport {
 	 * @return データ
 	 */
 	public static byte[] fetchContents(URL url, FetchEventHandler handler) throws InterruptedException {
-		URLConnection connection = null;
-		InputStream stream = null;
-		try {
-			if (url.getProtocol().startsWith("https")) {
-				connection = httpClient.open(url);
-			} else {
-				connection = url.openConnection();
-			}
-			int contentLength = connection.getContentLength();
-			handler.onConnection(connection);
+		ConnectionInfo connectionInfo = openConnection(url, handler);
+		return connectionInfo == null ? null : fetchContents(connectionInfo);
+	}
 
+	public static byte[] fetchContents(ConnectionInfo info) throws InterruptedException {
+		URLConnection connection = info.getConnection();
+		InputStream stream = null;
+		FetchEventHandler handler = info.getHandler();
+		try {
+			int contentLength = connection.getContentLength();
 			stream = connection.getInputStream();
 
 			/*
@@ -135,6 +134,24 @@ public class NetworkSupport {
 					logger.error("fail closing stream", e);
 				}
 			}
+		}
+	}
+
+	public static ConnectionInfo openConnection(URL url, FetchEventHandler handler) throws InterruptedException {
+		URLConnection connection = null;
+		try {
+			if (url.getProtocol().startsWith("https")) {
+				connection = httpClient.open(url);
+			} else {
+				connection = url.openConnection();
+			}
+			connection.getInputStream();
+			handler.onConnection(connection);
+
+			return new ConnectionInfo(url, handler, connection);
+		} catch (IOException e) {
+			handler.onException(connection, e);
+			return null;
 		}
 	}
 }

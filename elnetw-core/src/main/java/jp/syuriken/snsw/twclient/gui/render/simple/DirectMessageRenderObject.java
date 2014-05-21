@@ -115,7 +115,11 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	protected void initComponents() {
 		componentUserIcon = new JLabel();
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
-		renderer.getImageCacher().setImageIcon(componentUserIcon, directMessage.getSender());
+		try {
+			renderer.getImageCacher().setImageIcon(componentUserIcon, directMessage.getSender());
+		} catch (InterruptedException e) {
+			logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+		}
 
 		componentSentBy = new JLabel(getShortenString(directMessage.getSenderScreenName(), CREATED_BY_MAX_LEN));
 		componentSentBy.setFont(renderer.getDefaultFont());

@@ -520,7 +520,6 @@ import static java.lang.Math.max;
 	/*package*/ JEditorPane tweetViewEditorPane;
 	/*package*/ JLabel tweetViewCreatedByLabel;
 	/*package*/ JLabel tweetViewCreatedAtLabel;
-	/*package*/transient ImageCacher imageCacher;
 	/*package*/ JLabel tweetViewUserIconLabel;
 	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ JLabel postLengthLabel;
@@ -553,8 +552,6 @@ import static java.lang.Math.max;
 
 		getLoginUser();
 		initComponents();
-
-		imageCacher = new ImageCacher(configuration);
 
 		logger.info("frame initialized");
 	}

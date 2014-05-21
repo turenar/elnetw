@@ -445,7 +445,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "cache/image", dependencies = "config", phase = "init")
 	public void initImageCacher() {
-		configuration.setImageCacher(new ImageCacher(configuration));
+		configuration.setImageCacher(new ImageCacher());
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

@@ -585,7 +585,11 @@ public class UserInfoFrameTab extends DefaultClientTab {
 						}
 					}
 				});
-				configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
+				try {
+					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
+				} catch (InterruptedException e) {
+					logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+				}
 
 				getComponentUserName().setText(
 						MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName()));

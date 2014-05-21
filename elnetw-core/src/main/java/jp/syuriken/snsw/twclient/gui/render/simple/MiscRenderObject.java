@@ -30,6 +30,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.User;
 
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
@@ -142,10 +144,14 @@ public class MiscRenderObject extends AbstractRenderObject {
 	}
 
 	public MiscRenderObject setIcon(User user) {
-		renderer.getImageCacher().setImageIcon(componentUserIcon, user);
+		try {
+			renderer.getImageCacher().setImageIcon(componentUserIcon, user);
+		} catch (InterruptedException e) {
+			logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+		}
 		return this;
 	}
-
+private static final Logger logger= LoggerFactory.getLogger(MiscRenderObject.class);
 	public MiscRenderObject setIcon(ImageIcon icon) {
 		componentUserIcon.setIcon(icon);
 		return this;
