@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.net;
 
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -39,6 +39,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.internal.ConnectionInfo;
 import jp.syuriken.snsw.twclient.internal.FetchEventHandler;
 import jp.syuriken.snsw.twclient.internal.NetworkSupport;

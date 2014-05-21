@@ -1,9 +1,11 @@
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.net;
 
 import java.awt.Image;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+
+import jp.syuriken.snsw.twclient.AnimationCanceledImageObserver;
 
 /**
 * LabelImageSetter: ImageSetterのJLabel対応版。

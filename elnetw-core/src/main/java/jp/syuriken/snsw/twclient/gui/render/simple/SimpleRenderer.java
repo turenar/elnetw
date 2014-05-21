@@ -32,7 +32,7 @@ import javax.swing.JLabel;
 import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
