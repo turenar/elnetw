@@ -371,7 +371,7 @@ public class ClientProperties extends Properties {
 	 */
 	public synchronized int getInteger(String key) throws NumberFormatException {
 		String value = getProperty(key);
-		return Integer.valueOf(value);
+		return Integer.parseInt(value);
 	}
 
 	/**
@@ -403,7 +403,7 @@ public class ClientProperties extends Properties {
 	 */
 	public synchronized long getLong(String key) throws NumberFormatException {
 		String value = getProperty(key);
-		return Long.valueOf(value);
+		return Long.parseLong(value);
 	}
 
 	/**
@@ -516,7 +516,7 @@ public class ClientProperties extends Properties {
 	 * @param key property key
 	 * @return milliseconds
 	 */
-	public long getTime(String key) {
+	public synchronized long getTime(String key) {
 		return getTime(key, TimeUnit.MILLISECONDS);
 	}
 
@@ -544,6 +544,8 @@ public class ClientProperties extends Properties {
 			case 'd':
 				unit = TimeUnit.DAYS;
 				break;
+			default:
+				// will be integer...?
 		}
 		if (unit == null) {
 			return asUnit.convert(Long.parseLong(property), TimeUnit.MILLISECONDS);
