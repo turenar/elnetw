@@ -534,7 +534,8 @@ import static java.lang.Math.max;
 	/*package*/ int tweetViewCreatedByFlag;
 	/*package*/ int tweetViewCreatedAtFlag;
 	/*package*/ int tweetViewTextOverlayFlag;
-	/*package*/ HashMap<String, IntentArguments> urlIntentMap = new HashMap<>();
+	/*package*/transient HashMap<String, IntentArguments> urlIntentMap = new HashMap<>();
+	private int nextIntentUrlId;
 
 	/**
 	 * Creates new form TwitterClientFrame
@@ -578,8 +579,6 @@ import static java.lang.Math.max;
 		urlIntentMap.clear();
 		nextIntentUrlId = 0;
 	}
-
-	private int nextIntentUrlId;
 
 	@Override
 	public void doPost() {
@@ -628,14 +627,6 @@ import static java.lang.Math.max;
 		}
 	}
 
-	@Override
-	public String getCommandUrl(IntentArguments intentArguments) {
-		String url = "http://command/?id=" + nextIntentUrlId;
-		urlIntentMap.put(url, intentArguments);
-		nextIntentUrlId++;
-		return url;
-	}
-
 	/**
 	 * メニューバーを取得する。
 	 *
@@ -673,6 +664,14 @@ import static java.lang.Math.max;
 	}
 
 	@Override
+	public String getCommandUrl(IntentArguments intentArguments) {
+		String url = "http://command/?id=" + nextIntentUrlId;
+		urlIntentMap.put(url, intentArguments);
+		nextIntentUrlId++;
+		return url;
+	}
+
+	@Override
 	public Font getDefaultFont() {
 		return DEFAULT_FONT;
 	}
@@ -686,7 +685,8 @@ import static java.lang.Math.max;
 					layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addComponent(getPostPanel(), GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
 									GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(getTweetViewPanel()));
+							.addComponent(getTweetViewPanel())
+			);
 			layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addGroup(layout.createSequentialGroup()
 							.addComponent(getPostPanel(), 64, 64, GroupLayout.PREFERRED_SIZE)
@@ -803,7 +803,9 @@ import static java.lang.Math.max;
 															.addComponent(getPostActionButton()))
 													.addComponent(getPostBoxScrollPane(), 32, 64,
 															GroupLayout.PREFERRED_SIZE))
-											.addContainerGap(6, Short.MAX_VALUE)));
+											.addContainerGap(6, Short.MAX_VALUE)
+							)
+			);
 		}
 		return postPanel;
 	}

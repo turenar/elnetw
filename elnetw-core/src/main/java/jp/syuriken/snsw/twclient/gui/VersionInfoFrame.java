@@ -204,7 +204,8 @@ public class VersionInfoFrame extends JFrame {
 			libraryListScrollPane.setViewportView(getLibraryList());
 			libraryListScrollPane.getVerticalScrollBar().setUnitIncrement(
 					ClientConfiguration.getInstance().getConfigProperties().getInteger(
-							ClientConfiguration.PROPERTY_LIST_SCROLL));
+							ClientConfiguration.PROPERTY_LIST_SCROLL)
+			);
 		}
 		return libraryListScrollPane;
 	}

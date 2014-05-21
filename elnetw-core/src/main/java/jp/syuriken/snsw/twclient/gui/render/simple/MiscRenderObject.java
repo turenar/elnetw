@@ -40,6 +40,10 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MiscRenderObject extends AbstractRenderObject {
+	private static String getUserCreatedByText(User user) {
+		return "@" + user.getScreenName() + " (" + user.getName() + ")";
+	}
+
 	private final Object base;
 	private String createdBy;
 	private String longCreatedBy;
@@ -54,8 +58,23 @@ public class MiscRenderObject extends AbstractRenderObject {
 		uniqId = "!stub/" + date + "/" + ThreadLocalRandom.current().nextInt();
 	}
 
+	@Override
+	public void focusGained(FocusEvent e) {
+		super.focusGained(e);
+		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,
+				DO_NOTHING_WHEN_POINTED);
+		getFrameApi().setTweetViewText(text, null, DO_NOTHING_WHEN_POINTED);
+	}
+
 	public Color getBackgroundColor() {
 		return backgroundColor;
+	}
+
+	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
+		this.backgroundColor = backgroundColor;
+		return this;
 	}
 
 	@Override
@@ -68,14 +87,9 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return createdBy;
 	}
 
-	@Override
-	public void focusGained(FocusEvent e) {
-		super.focusGained(e);
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewText(text, null, DO_NOTHING_WHEN_POINTED);
+	public MiscRenderObject setCreatedBy(User user) {
+		return setCreatedBy(user.getScreenName())
+				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
 	}
 
 	@Override
@@ -83,8 +97,18 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return new Date(date);
 	}
 
+	public MiscRenderObject setDate(long date) {
+		this.date = date;
+		return this;
+	}
+
 	public Color getForegroundColor() {
 		return foregroundColor;
+	}
+
+	public MiscRenderObject setForegroundColor(Color foregroundColor) {
+		this.foregroundColor = foregroundColor;
+		return this;
 	}
 
 	@Override
@@ -92,15 +116,15 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return uniqId;
 	}
 
+	public MiscRenderObject setUniqId(String uniqId) {
+		this.uniqId = uniqId;
+		return this;
+	}
+
 	@Override
 	protected void initComponents() {
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
 		componentSentBy.setFont(renderer.getDefaultFont());
-	}
-
-	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
-		this.backgroundColor = backgroundColor;
-		return this;
 	}
 
 	public MiscRenderObject setCreatedBy(String createdBy) {
@@ -111,33 +135,13 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return this;
 	}
 
-	public MiscRenderObject setCreatedBy(User user) {
-		return setCreatedBy(user.getScreenName())
-				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
-	}
-
 	public MiscRenderObject setCreatedByText(String createdBy) {
 		return setCreatedByText(createdBy, createdBy);
 	}
 
-	private static String getUserCreatedByText(User user) {
-		return "@" + user.getScreenName() + " (" + user.getName() + ")";
-	}
-
-
 	public MiscRenderObject setCreatedByText(String createdBy, String longCreatedBy) {
 		this.longCreatedBy = longCreatedBy;
 		componentSentBy.setText(getShortenString(createdBy, CREATED_BY_MAX_LEN));
-		return this;
-	}
-
-	public MiscRenderObject setDate(long date) {
-		this.date = date;
-		return this;
-	}
-
-	public MiscRenderObject setForegroundColor(Color foregroundColor) {
-		this.foregroundColor = foregroundColor;
 		return this;
 	}
 
@@ -154,11 +158,6 @@ public class MiscRenderObject extends AbstractRenderObject {
 	public MiscRenderObject setText(String text) {
 		this.text = text;
 		componentStatusText.setText(getShortenString(text, TEXT_MAX_LEN));
-		return this;
-	}
-
-	public MiscRenderObject setUniqId(String uniqId) {
-		this.uniqId = uniqId;
 		return this;
 	}
 }

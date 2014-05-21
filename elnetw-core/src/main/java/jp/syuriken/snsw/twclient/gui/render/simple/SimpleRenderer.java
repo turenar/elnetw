@@ -117,6 +117,10 @@ public class SimpleRenderer implements TabRenderer {
 		return focusOwner;
 	}
 
+	public void setFocusOwner(AbstractRenderObject focusOwner) {
+		this.focusOwner = focusOwner;
+	}
+
 	protected int getFontHeight() {
 		return fontHeight;
 	}
@@ -136,7 +140,6 @@ public class SimpleRenderer implements TabRenderer {
 	protected Dimension getLinePanelSizeOfSentBy() {
 		return linePanelSizeOfSentBy;
 	}
-
 
 	protected RenderTarget getTarget() {
 		return renderTarget;
@@ -351,9 +354,5 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
-	}
-
-	public void setFocusOwner(AbstractRenderObject focusOwner) {
-		this.focusOwner = focusOwner;
 	}
 }

@@ -34,7 +34,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -59,9 +58,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.OptionType;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
@@ -125,6 +121,7 @@ import jp.syuriken.snsw.twclient.init.InitializeException;
 import jp.syuriken.snsw.twclient.init.InitializeService;
 import jp.syuriken.snsw.twclient.init.Initializer;
 import jp.syuriken.snsw.twclient.init.InitializerInstance;
+import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
@@ -274,6 +271,7 @@ public class TwitterClientMain {
 				.addShortOpt("-d", "--debug")
 				.addShortOpt("-L", "--classpath")
 				.addShortOpt("-D", "--define");
+		LoggingConfigurator.setOpts(parser);
 		parsedArguments = parser.parse(args);
 
 		try {
@@ -579,7 +577,8 @@ public class TwitterClientMain {
 		}
 
 		setHomeProperty();
-		setDebugLogger();
+		LoggingConfigurator.setLogger(parsedArguments);
+		logger = LoggerFactory.getLogger(TwitterClientMain.class);
 
 		for (Iterator<String> errorMessages = parsedArguments.getErrorMessageIterator(); errorMessages.hasNext(); ) {
 			logger.warn("ArgParser: {}", errorMessages.next());
@@ -667,26 +666,6 @@ public class TwitterClientMain {
 		} else {
 			configProperties.store();
 		}
-	}
-
-	private void setDebugLogger() {
-		if (debugMode) {
-			URL resource = TwitterClientMain.class.getResource("/logback-debug.xml");
-			if (resource == null) {
-				logger.error("resource /logback-debug.xml is not found");
-			} else {
-				LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-				try {
-					JoranConfigurator configurator = new JoranConfigurator();
-					configurator.setContext(context);
-					context.reset();
-					configurator.doConfigure(resource);
-				} catch (JoranException je) {
-					// StatusPrinter will handle this
-				}
-			}
-		}
-		logger = LoggerFactory.getLogger(getClass());
 	}
 
 	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")

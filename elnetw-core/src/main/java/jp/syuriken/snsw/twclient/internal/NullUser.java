@@ -78,6 +78,11 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public URLEntity[] getDescriptionURLEntities() {
+		return new URLEntity[0];
+	}
+
+	@Override
 	public int getFavouritesCount() {
 		return -1;
 	}
@@ -141,7 +146,6 @@ public class NullUser implements User {
 	public String getProfileBackgroundColor() {
 		return null;
 	}
-
 	@Override
 	public String getProfileBackgroundImageURL() {
 		return null;
@@ -186,8 +190,6 @@ public class NullUser implements User {
 	public String getProfileImageURL() {
 		return null;
 	}
-
-
 	@Override
 	public String getProfileImageURLHttps() {
 		return null;
@@ -244,6 +246,11 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public URLEntity getURLEntity() {
+		return null;
+	}
+
+	@Override
 	public int getUtcOffset() {
 		return -1;
 	}
@@ -261,16 +268,6 @@ public class NullUser implements User {
 	@Override
 	public boolean isFollowRequestSent() {
 		return false;
-	}
-
-	@Override
-	public URLEntity[] getDescriptionURLEntities() {
-		return new URLEntity[0];
-	}
-
-	@Override
-	public URLEntity getURLEntity() {
-		return null;
 	}
 
 	@Override

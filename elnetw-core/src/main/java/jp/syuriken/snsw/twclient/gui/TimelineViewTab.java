@@ -47,11 +47,6 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 	private static final String TAB_ID = "timeline";
 	private DelegateRenderer renderer = new DelegateRenderer() {
 		@Override
-		public void onStatus(Status status) {
-			actualRenderer.onStatus(status);
-		}
-
-		@Override
 		public void onChangeAccount(boolean forWrite) {
 			actualRenderer.onChangeAccount(forWrite);
 		}
@@ -78,6 +73,11 @@ public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
 		@Override
 		public void onFollow(User source, User followedUser) {
 			actualRenderer.onFollow(source, followedUser);
+		}
+
+		@Override
+		public void onStatus(Status status) {
+			actualRenderer.onStatus(status);
 		}
 
 		@Override

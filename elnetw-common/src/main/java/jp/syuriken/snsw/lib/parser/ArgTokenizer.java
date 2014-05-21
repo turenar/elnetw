@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.lib.parser;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Process Arguments Tokenizer
  *
@@ -71,6 +73,7 @@ public class ArgTokenizer {
 	private boolean argParsed;
 	private int argIndex = 0;
 
+	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public ArgTokenizer(String[] argv) {
 		this.argv = argv;
 	}
