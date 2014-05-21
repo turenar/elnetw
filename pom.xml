@@ -38,6 +38,7 @@
 		<module>elnetw-core</module>
 		<module>elnetw-launcher</module>
 		<module>elnetw-filter-tokenizer</module>
+		<module>elnetw-common</module>
 	</modules>
 
 	<pluginRepositories>
@@ -77,6 +78,11 @@
 			<dependency>
 				<groupId>jp.syuriken.snsw</groupId>
 				<artifactId>elnetw-filter-tokenizer</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jp.syuriken.snsw</groupId>
+				<artifactId>elnetw-common</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -128,36 +134,31 @@
 					<version>2.4</version>
 				</plugin>
 				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>2.4</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.16</version>
-					<extensions>false</extensions>
-					<inherited>false</inherited>
-					<configuration>
-						<includes>
-							<include>**/*Test.java</include>
-						</includes>
-						<argLine>-Xmx512M</argLine>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>com.code54.mojo</groupId>
-					<artifactId>buildversion-plugin</artifactId>
-					<version>1.0.3</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-site-plugin</artifactId>
-					<version>3.3</version>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>javacc-maven-plugin</artifactId>
+					<version>2.6</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<extensions>false</extensions>
+				<inherited>false</inherited>
+				<configuration>
+					<includes>
+						<include>**/*Test.java</include>
+					</includes>
+					<argLine>-Xmx512M</argLine>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -175,6 +176,7 @@
 			<plugin>
 				<groupId>com.code54.mojo</groupId>
 				<artifactId>buildversion-plugin</artifactId>
+				<version>1.0.3</version>
 				<executions>
 					<execution>
 						<goals>
@@ -189,6 +191,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
+				<version>3.3</version>
 				<configuration>
 					<inputEncoding>UTF-8</inputEncoding>
 					<outputEncoding>UTF-8</outputEncoding>
@@ -211,10 +214,27 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
 				<version>2.5.4-SNAPSHOT</version>
+				<configuration>
+					<excludeFilterFile>rules/findbugs-exclude.xml</excludeFilterFile>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<effort>Max</effort>
+					<sourceEncoding>${file.encoding}</sourceEncoding>
+					<includeTests>true</includeTests>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<includeTestSourceDirectory>false</includeTestSourceDirectory>
+					<configLocation>rules/checkstyle.xml</configLocation>
+					<headerLocation>../doc/license/elnetw.txt</headerLocation>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 	<reporting>
 		<plugins>
 			<plugin>
@@ -242,11 +262,6 @@
 					<docencoding>UTF-8</docencoding>
 					<quiet>true</quiet>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.5.4-SNAPSHOT</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

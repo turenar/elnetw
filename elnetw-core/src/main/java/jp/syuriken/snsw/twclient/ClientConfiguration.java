@@ -28,8 +28,6 @@ import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -38,6 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
@@ -191,10 +191,11 @@ public class ClientConfiguration {
 	private volatile MessageBus messageBus;
 	private boolean portabledConfiguration;
 	private volatile CacheManager cacheManager;
-	private List<String> args;
 	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
 	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
+	private ParsedArguments parsedArguments;
+	private ArgParser argParser;
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
@@ -336,6 +337,14 @@ public class ClientConfiguration {
 	 */
 	public ActionHandler getActionHandler(IntentArguments intent) {
 		return actionHandlerTable.get(intent.getIntentName());
+	}
+
+	/**
+	 * ArgParserインスタンスを取得する
+	 * @return ArgParser
+	 */
+	public ArgParser getArgParser() {
+		return argParser;
 	}
 
 	/**
@@ -498,13 +507,11 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * アプリケーション実行時に指定されたオプションの変更できないリストを取得する。
-	 * なお、内容はGetoptによって並び替えられている
-	 *
-	 * @return unmodifiable List
+	 * 実行時引数から作られたParsedArgumentsを取得する
+	 * @return ParsedArguments
 	 */
-	public List<String> getOpts() {
-		return Collections.unmodifiableList(args);
+	public ParsedArguments getParsedArguments() {
+		return parsedArguments;
 	}
 
 	/**
@@ -850,6 +857,10 @@ public class ClientConfiguration {
 		return old;
 	}
 
+	/*package*/ void setArgParser(ArgParser argParser) {
+		this.argParser = argParser;
+	}
+
 	/*package*/
 	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
@@ -910,8 +921,8 @@ public class ClientConfiguration {
 		this.messageBus = messageBus;
 	}
 
-	/*package*/void setOpts(String[] args) {
-		this.args = Arrays.asList(args);
+	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
+		this.parsedArguments = parsedArguments;
 	}
 
 	/*package*/void setPortabledConfiguration(boolean portable) {

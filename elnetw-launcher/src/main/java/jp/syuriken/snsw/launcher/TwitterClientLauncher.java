@@ -8,7 +8,8 @@
  *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
  *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -33,7 +34,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.syuriken.snsw.lib.parser.ArgParser;
+import jp.syuriken.snsw.lib.parser.OptionInfo;
+import jp.syuriken.snsw.lib.parser.OptionType;
+import jp.syuriken.snsw.lib.parser.ParsedArguments;
 
 /**
  * TwitterClient のためのランチャ
@@ -79,7 +83,7 @@ public class TwitterClientLauncher {
 
 	/** 環境チェック */
 	private static void checkEnvironment() {
-		if (Charset.isSupported("UTF-8") == false) {
+		if (!Charset.isSupported("UTF-8")) {
 			throw new AssertionError("UTF-8 エンコードがサポートされていないようです。UTF-8 エンコードがサポートされていない環境では"
 					+ "このソフトを動かすことはできません。Java VMの開発元に問い合わせてみてください。");
 		}
@@ -101,18 +105,33 @@ public class TwitterClientLauncher {
 	private final String[] args;
 	private ArrayList<String> classpath = new ArrayList<>();
 
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	private TwitterClientLauncher(String[] args) {
-		for (String arg : args) {
-			if (arg.startsWith("-D")) {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT, true)
+				.addLongOpt("--declare", OptionType.REQUIRED_ARGUMENT, true)
+				.addShortOpt("-D", "--declare")
+				.addShortOpt("-L", "--classpath")
+				.setIgnoreUnknownOption(true);
+		ParsedArguments parsedArguments = parser.parse(args);
+		for (OptionInfo info : parsedArguments.getOptInfo("--declare", true)) {
+			String arg = info.getArg();
+			if (arg == null || arg.isEmpty()) {
+				System.err.println("missing argument for -D");
+			} else {
 				int indexOf = arg.indexOf('=');
 				if (indexOf == -1) {
-					System.clearProperty(arg.substring(2));
+					System.clearProperty(arg);
 				} else {
 					System.getProperties().setProperty(arg.substring(2, indexOf), arg.substring(indexOf + 1));
 				}
-			} else if (arg.startsWith("-L")) {
-				classpath.add(arg.substring(2));
+			}
+		}
+		for (OptionInfo info : parsedArguments.getOptInfo("--classpath", true)) {
+			String arg = info.getArg();
+			if (arg == null || arg.isEmpty()) {
+				System.err.println("missing arugment for -L");
+			} else {
+				classpath.add(arg);
 			}
 		}
 		this.args = args;
