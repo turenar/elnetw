@@ -268,7 +268,6 @@ public class ImageCacher {
 				return;
 			}
 
-			Thread.sleep(1000);
 			byte[] imageData = NetworkSupport.fetchContents(entry.connectionInfo);
 			ImageEntry imageEntry = entry.imageEntry;
 			imageEntry.rawData = imageData;
