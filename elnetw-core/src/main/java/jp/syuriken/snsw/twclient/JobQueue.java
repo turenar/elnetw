@@ -79,6 +79,7 @@ public class JobQueue {
 			// avoid getfield mnemonic
 			JobQueue jobQueue = this.jobQueue;
 			Logger logger = JobWorkerThread.logger;
+			long longAliveThreshold = jobQueue.getLongAliveThreshold();
 
 			while (true) { // main loop
 				lock(); // set JobWorking State
@@ -88,7 +89,12 @@ public class JobQueue {
 						break;
 					}
 					try {
+						long startTime = System.currentTimeMillis();
 						job.run();
+						long tookTime = System.currentTimeMillis() - startTime;
+						if (tookTime > longAliveThreshold) {
+							logger.info("{}: took long time. {}ms", job, tookTime);
+						}
 					} catch (RuntimeException e) {
 						logger.warn("{}: uncaught runtime-exception", getName(), e);
 					}
@@ -309,6 +315,7 @@ public class JobQueue {
 	 * worker keep alive time
 	 */
 	protected long keepAliveTime;
+	private long longAliveThreshold;
 
 	/** インスタンスを生成する。 */
 	public JobQueue() {
@@ -539,6 +546,24 @@ public class JobQueue {
 	}
 
 	/**
+	 * set keep alive time
+	 *
+	 * @param keepAliveTime worker thread keep-alive time.
+	 *                      if 0, we try to keep worker alive
+	 *                      until invoked {@link #shutdown()} or {@link #shutdownNow(int)}
+	 */
+	public void setKeepAliveTime(long keepAliveTime) {
+		if (keepAliveTime < 0) {
+			throw new IllegalArgumentException("keep alive time must not be minus number");
+		}
+		this.keepAliveTime = keepAliveTime;
+	}
+
+	public long getLongAliveThreshold() {
+		return longAliveThreshold;
+	}
+
+	/**
 	 * get maximum thread pool size
 	 *
 	 * @return maximum thread pool size
@@ -547,12 +572,27 @@ public class JobQueue {
 		return maximumThreadsCount;
 	}
 
+	/**
+	 * set maximum thread pool size
+	 *
+	 * @param maximumThreadsCount new size
+	 */
+	public void setMaximumThreadPoolSize(int maximumThreadsCount) {
+		if (maximumThreadsCount <= 0) {
+			throw new IllegalArgumentException("maximum threads pool size must be larger than zero.");
+		} else if (coreThreadsCount > maximumThreadsCount) {
+			throw new IllegalArgumentException("maximum threads pool size must be larger than core threads pool size");
+		}
+		this.maximumThreadsCount = maximumThreadsCount;
+	}
+
 	protected void initProperties() {
 		ClientProperties properties = ClientConfiguration.getInstance().getConfigProperties();
-		coreThreadsCount = properties.getInteger("core.jobqueue.threads");
-		maximumThreadsCount = properties.getInteger("core.jobqueue.max_threads");
-		execWorkerThreshold = properties.getInteger("core.jobqueue.exec_threshold");
-		keepAliveTime = properties.getTime("core.jobqueue.keep_alive");
+		coreThreadsCount = properties.getInteger("core.worker.core_threads");
+		maximumThreadsCount = properties.getInteger("core.worker.max_threads");
+		execWorkerThreshold = properties.getInteger("core.worker.exec_threshold");
+		keepAliveTime = properties.getTime("core.worker.keep_alive");
+		longAliveThreshold = properties.getTime("core.worker.long_alive_threshold");
 	}
 
 	/**
@@ -594,34 +634,6 @@ public class JobQueue {
 			throw new IllegalArgumentException("core threads pool size must be larger than zero.");
 		}
 		this.coreThreadsCount = coreThreadsCount;
-	}
-
-	/**
-	 * set keep alive time
-	 *
-	 * @param keepAliveTime worker thread keep-alive time.
-	 *                      if 0, we try to keep worker alive
-	 *                      until invoked {@link #shutdown()} or {@link #shutdownNow(int)}
-	 */
-	public void setKeepAliveTime(long keepAliveTime) {
-		if (keepAliveTime < 0) {
-			throw new IllegalArgumentException("keep alive time must not be minus number");
-		}
-		this.keepAliveTime = keepAliveTime;
-	}
-
-	/**
-	 * set maximum thread pool size
-	 *
-	 * @param maximumThreadsCount new size
-	 */
-	public void setMaximumThreadPoolSize(int maximumThreadsCount) {
-		if (maximumThreadsCount <= 0) {
-			throw new IllegalArgumentException("maximum threads pool size must be larger than zero.");
-		} else if (coreThreadsCount > maximumThreadsCount) {
-			throw new IllegalArgumentException("maximum threads pool size must be larger than core threads pool size");
-		}
-		this.maximumThreadsCount = maximumThreadsCount;
 	}
 
 	/**
