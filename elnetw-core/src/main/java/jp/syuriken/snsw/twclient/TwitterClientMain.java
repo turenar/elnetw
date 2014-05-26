@@ -509,8 +509,8 @@ public class TwitterClientMain {
 	@Initializer(name = "urlProvider", phase = "init")
 	public void initUrlProviders() {
 		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)", new NullMediaResolver(true));
-		UrlResolverManager.addMediaProvider("^http://twitpic\\.com/[a-zA-Z0-9]+",
-				new RegexpMediaResolver("http://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
+		UrlResolverManager.addMediaProvider("^https?://twitpic\\.com/[a-zA-Z0-9]+",
+				new RegexpMediaResolver("https?://.*?\\.cloudfront\\.net/photos/(?:large|full)/[\\w.]+"));
 		UrlResolverManager.addMediaProvider("^http://p\\.twipple\\.jp/[a-zA-Z0-9]+",
 				new XpathMediaResolver("id('post_image')/@src"));
 	}
