@@ -100,6 +100,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private String profileBannerImageUrl;
 	private URLEntity[] descriptionURLEntities;
 	private URLEntity urlEntity;
+	private boolean defaultProfile;
+	private boolean defaultProfileImage;
 
 
 	/**
@@ -155,6 +157,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		profileBannerImageUrl = profileBannerURL == null ? null : profileBannerURL.substring(0, profileBannerURL.length() - 4);
 		descriptionURLEntities = originalUser.getDescriptionURLEntities();
 		urlEntity = originalUser.getURLEntity();
+		defaultProfile = originalUser.isDefaultProfile();
+		defaultProfileImage = originalUser.isDefaultProfileImage();
 
 		json = jsonObject == null ? null : jsonObject.toString();
 
@@ -299,6 +303,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public String getOriginalProfileImageURLHttps() {
 		return toResizedURL(profileImageUrlHttps, "");
+	}
+
+	@Override
+	public boolean isDefaultProfileImage() {
+		return defaultProfileImage;
 	}
 
 	@Override
@@ -458,6 +467,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public boolean isProfileUseBackgroundImage() {
 		return profileUseBackgroundImage;
+	}
+
+	@Override
+	public boolean isDefaultProfile() {
+		return defaultProfile;
 	}
 
 	@Override
