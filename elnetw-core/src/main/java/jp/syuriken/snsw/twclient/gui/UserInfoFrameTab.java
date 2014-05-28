@@ -66,6 +66,7 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.net.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -445,21 +446,13 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return componentUserIcon;
 	}
 
-	private JPanel getComponentUserInfo() {
+	private BackgroundImagePanel getComponentUserInfo() {
 		if (componentUserInfoPanel == null) {
 			componentUserInfoPanel = new BackgroundImagePanel();
 			String bannerURL = user.getProfileBannerLargeURL();
 			if (bannerURL != null) {
-				try {
-					// TODO: from ImageCacher
-					componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
-					componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
-					componentUserInfoPanel.setBackgroundImage(ImageIO.read(new URL(bannerURL)));
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				} catch (IOException e) {
-					logger.warn("IOException occurred while fetch profile banner", e);
-				}
+				componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
+				componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
 			}
 			GroupLayout layout = new GroupLayout(componentUserInfoPanel);
 			componentUserInfoPanel.setLayout(layout);
@@ -540,18 +533,20 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	@Override
 	public JComponent getTabComponent() {
-		tabComponent = new JPanel();
-		GroupLayout layout = new GroupLayout(tabComponent);
-		tabComponent.setLayout(layout);
-		layout.setVerticalGroup(
-				layout.createSequentialGroup()
-						.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-						.addComponent(getComponentTweetsScrollPane())
-		);
+		if (tabComponent == null) {
+			tabComponent = new JPanel();
+			GroupLayout layout = new GroupLayout(tabComponent);
+			tabComponent.setLayout(layout);
+			layout.setVerticalGroup(
+					layout.createSequentialGroup()
+							.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+							.addComponent(getComponentTweetsScrollPane())
+			);
 
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
-				.addComponent(getComponentTweetsScrollPane()));
+			layout.setHorizontalGroup(layout.createParallelGroup()
+					.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+					.addComponent(getComponentTweetsScrollPane()));
+		}
 		return tabComponent;
 	}
 
@@ -623,8 +618,21 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				});
 				try {
 					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
+					configuration.getImageCacher().setImageIcon(new AbstractImageSetter() {
+						@Override
+						public void setImage(Image image) {
+							try {
+								getComponentUserInfo().setBackgroundImage(image);
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+							}
+						}
+					}, new URL(user.getProfileBannerMediumURL()));
 				} catch (InterruptedException e) {
-					logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+					logger.warn("Interrupted", e);
+					Thread.currentThread().interrupt();
+				} catch (MalformedURLException e) {
+					throw new AssertionError(e);
 				}
 
 				getComponentUserName().setText(
