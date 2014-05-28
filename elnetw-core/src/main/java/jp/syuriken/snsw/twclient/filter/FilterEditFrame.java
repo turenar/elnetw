@@ -247,8 +247,8 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 						layout.createSequentialGroup() //
 								.addComponent(getComponentExcludeOption()) //
 								.addGap(0, 16, Short.MAX_VALUE) //
-								.addComponent(
-										getComponentExtractOption())) //
+								.addComponent(getComponentExtractOption())
+				)
 				.addComponent(getComponentFilterEditTextArea(), LEADING));
 		layout.setVerticalGroup(layout.createSequentialGroup() //
 				.addGroup(
@@ -256,7 +256,8 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 								.addComponent(getComponentExcludeOption(), LEADING, PREFERRED_SIZE, PREFERRED_SIZE,
 										PREFERRED_SIZE) //
 								.addComponent(getComponentExtractOption(),
-										TRAILING, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)) //
+										TRAILING, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+				) //
 				.addComponent(getComponentFilterEditTextArea(), 16, DEFAULT_SIZE, Short.MAX_VALUE));
 		addWindowListener(this);
 		setTitle("フィルタの編集 (" + displayString + ": " + propertyKey + ")");

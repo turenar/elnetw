@@ -56,7 +56,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.ImageCacher;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
