@@ -353,6 +353,7 @@ public class JobQueue {
 
 		if (job != null) {
 			if (phaseOf(state.get()) >= PHASE_STOPPING) {
+				logger.warn("Job is registered into outdated jobqueue: {}",job);
 				job.run();
 			} else {
 				LinkedQueue<Runnable> queue = queues[priority];
