@@ -272,6 +272,7 @@ public class ImageCacher {
 			ImageEntry imageEntry = entry.imageEntry;
 			imageEntry.rawData = imageData;
 			imageEntry.image = Toolkit.getDefaultToolkit().createImage(imageData);
+			cachedImages.put(entry.getImageUrl(), entry.imageEntry);
 			configuration.addJob(JobQueue.PRIORITY_IDLE, new ImageFlusher(imageEntry));
 		}
 	}
