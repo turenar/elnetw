@@ -44,11 +44,14 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -135,11 +138,12 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JPanel tabComponent;
 	private boolean focusGained;
 	private boolean isDirty;
-	/*package*/ JCheckBox muteCheckBox;
+	/*package*/ JCheckBoxMenuItem muteCheckBox;
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
 	private ImageIcon imageIcon;
 	private int nextUrlId = 0;
+	private JComponent componentOperationBox;
 
 	/**
 	 * インスタンスを生成する。
@@ -359,13 +363,10 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return componentLocation;
 	}
 
-	private JCheckBox getComponentMuteCheckBox() {
+	private JCheckBoxMenuItem getComponentMuteCheckBox() {
 		if (muteCheckBox == null) {
-			muteCheckBox = new JCheckBox("ミュート");
+			muteCheckBox = new JCheckBoxMenuItem("ミュート");
 			muteCheckBox.setEnabled(false);
-			muteCheckBox.setBackground(new Color(0, 0, 0, 0));
-			muteCheckBox.setForeground(Color.WHITE);
-			muteCheckBox.setFont(operationFont);
 			muteCheckBox.addActionListener(new ActionListener() {
 
 				@Override
@@ -384,6 +385,38 @@ public class UserInfoFrameTab extends DefaultClientTab {
 			});
 		}
 		return muteCheckBox;
+	}
+
+	public JComponent getComponentOperationBox() {
+		if (componentOperationBox == null) {
+			componentOperationBox = new JButton("その他▼");
+			componentOperationBox.setFont(operationFont);
+			componentOperationBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+			final JPopupMenu jPopupMenu = new JPopupMenu();
+			JMenuItem showHeaderItem = new JMenuItem("ヘッダーを表示");
+			showHeaderItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						new ImageViewerFrame(new URL(user.getProfileBannerLargeURL())).setVisible(true);
+					} catch (MalformedURLException e1) {
+						throw new AssertionError(e1);
+					}
+				}
+			});
+			if (user.getProfileBannerLargeURL() == null) {
+				showHeaderItem.setEnabled(false);
+			}
+			jPopupMenu.add(showHeaderItem);
+			jPopupMenu.add(getComponentMuteCheckBox());
+			componentOperationBox.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					jPopupMenu.show(componentOperationBox, e.getX(), e.getY());
+				}
+			});
+		}
+		return componentOperationBox;
 	}
 
 	private Component getComponentOperationsPanel() {
@@ -409,7 +442,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				logger.warn("#getComponentOperationsPanel: Failed load resource");
 			}
 
-			componentOperationsPanel.add(getComponentMuteCheckBox());
+			componentOperationsPanel.add(getComponentOperationBox());
 		}
 		return componentOperationsPanel;
 	}
@@ -653,7 +686,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 						break;
 					}
 				}
-				JCheckBox componentMuteCheckBox = getComponentMuteCheckBox();
+				JCheckBoxMenuItem componentMuteCheckBox = getComponentMuteCheckBox();
 				componentMuteCheckBox.setSelected(filtered);
 				if (frameApi.getLoginUser().getId() == user.getId()) {
 					componentMuteCheckBox.setEnabled(false);
