@@ -618,16 +618,19 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				});
 				try {
 					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
-					configuration.getImageCacher().setImageIcon(new AbstractImageSetter() {
-						@Override
-						public void setImage(Image image) {
-							try {
-								getComponentUserInfo().setBackgroundImage(image);
-							} catch (InterruptedException e) {
-								Thread.currentThread().interrupt();
+					String profileBannerURL = user.getProfileBannerMediumURL();
+					if (profileBannerURL != null) {
+						configuration.getImageCacher().setImageIcon(new AbstractImageSetter() {
+							@Override
+							public void setImage(Image image) {
+								try {
+									getComponentUserInfo().setBackgroundImage(image);
+								} catch (InterruptedException e) {
+									Thread.currentThread().interrupt();
+								}
 							}
-						}
-					}, new URL(user.getProfileBannerMediumURL()));
+						}, new URL(profileBannerURL));
+					}
 				} catch (InterruptedException e) {
 					logger.warn("Interrupted", e);
 					Thread.currentThread().interrupt();
