@@ -60,13 +60,13 @@ public class JobQueue {
 		private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
 		private static final AtomicInteger threadNumber = new AtomicInteger();
 		protected final JobQueue jobQueue;
-		protected final boolean isParent;
+		protected final boolean isMainThread;
 		private final ReentrantLock lock = new ReentrantLock();
 
-		public JobWorkerThread(JobQueue jobQueue, boolean isParent) {
+		public JobWorkerThread(JobQueue jobQueue, boolean isMainThread) {
 			super("worker-" + threadNumber.getAndIncrement());
 			this.jobQueue = jobQueue;
-			this.isParent = isParent;
+			this.isMainThread = isMainThread;
 			setDaemon(false);
 		}
 
@@ -82,22 +82,20 @@ public class JobQueue {
 			long longAliveThreshold = jobQueue.getLongAliveThreshold();
 
 			while (true) { // main loop
+				Runnable job = jobQueue.getJob(this);
+				if (job == null) {
+					break;
+				}
 				lock(); // set JobWorking State
 				try {
-					Runnable job = jobQueue.getJob(this);
-					if (job == null) {
-						break;
+					long startTime = System.currentTimeMillis();
+					job.run();
+					long tookTime = System.currentTimeMillis() - startTime;
+					if (tookTime > longAliveThreshold) {
+						logger.info("{}: took long time. {}ms", job, tookTime);
 					}
-					try {
-						long startTime = System.currentTimeMillis();
-						job.run();
-						long tookTime = System.currentTimeMillis() - startTime;
-						if (tookTime > longAliveThreshold) {
-							logger.info("{}: took long time. {}ms", job, tookTime);
-						}
-					} catch (RuntimeException e) {
-						logger.warn("{}: uncaught runtime-exception", getName(), e);
-					}
+				} catch (RuntimeException e) {
+					logger.warn("{}: uncaught runtime-exception", getName(), e);
 				} finally {
 					unlock(); // set Idle State
 				}
@@ -353,7 +351,7 @@ public class JobQueue {
 
 		if (job != null) {
 			if (phaseOf(state.get()) >= PHASE_STOPPING) {
-				logger.warn("Job is registered into outdated jobqueue: {}",job);
+				logger.warn("Job is registered into outdated jobqueue: {}", job);
 				job.run();
 			} else {
 				LinkedQueue<Runnable> queue = queues[priority];
@@ -456,7 +454,7 @@ public class JobQueue {
 		boolean wakeUpFlag = false;
 		while (true) {
 			Runnable job = null;
-			if (worker.isParent) {
+			if (worker.isMainThread) {
 				job = serializedJobQueue.poll();
 			}
 			if (job == null) {
@@ -464,7 +462,7 @@ public class JobQueue {
 			}
 			if (job == null) {
 				try {
-					if (wakeUpFlag && countOf(state.get()) > coreThreadsCount) {
+					if (wakeUpFlag && !worker.isMainThread && countOf(state.get()) > coreThreadsCount) {
 						// exit free worker
 						logger.debug("{}: No job! exitting...", worker);
 						return null;
@@ -485,7 +483,7 @@ public class JobQueue {
 				}
 			} else {
 				wakeUpFlag = false; // clear wake up flag if job is found
-				if (worker.isParent || job instanceof ParallelRunnable) {
+				if (worker.isMainThread || job instanceof ParallelRunnable) {
 					//  main worker:  run <extends Runnable>
 					// other workers: run <extends ParallelRunnable>
 					return job;
