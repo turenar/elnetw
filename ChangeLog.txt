@@ -1,3 +1,22 @@
+Version 0.1-alpha6
+
+	+ elnetw.cfg supports <time><unit> (ex. 4s 5m 6h) partially
+	+ -Delnetw.home, -Delnetw.cache.dir changes application directory
+	+ Consumer Key can be changed by GUI
+	+ StatusRenderPanel shows displayUrl instead of t.co url
+	+ StatusRenderPanel can preview image by clicking image url (issue #9)
+	+ UserIcon, UserBanner is preview-able (issue #30)
+	+ Show UserBanner as user bio background (issue #30)
+	+ Show preview-able icon if url is supported as media url (issue #27)
+	+ Support SPDY Connection (issue #25)
+	+ Remove java-getopt library
+	+ Show Retweeted-Via (issue #31)
+	+ Log level can be set with --log-level (issue #34)
+	+ Open connection as early as possible with spdy
+	* Fix JobQueue priority wrong handling
+	* Fix NPE in UserInfoTab with tabs restored
+	* Fix unexpected scroll bar appearing in ImageViewerFrame
+
 Version 0.1-alpha5 (Fri Feb 28 18:11:45 JST 2014)
 
 	! sign elnetw jars
