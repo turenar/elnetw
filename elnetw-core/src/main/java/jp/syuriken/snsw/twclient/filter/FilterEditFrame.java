@@ -247,9 +247,8 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 						layout.createSequentialGroup() //
 								.addComponent(getComponentExcludeOption()) //
 								.addGap(0, 16, Short.MAX_VALUE) //
-								.addComponent(
-										getComponentExtractOption())
-				) //
+								.addComponent(getComponentExtractOption())
+				)
 				.addComponent(getComponentFilterEditTextArea(), LEADING));
 		layout.setVerticalGroup(layout.createSequentialGroup() //
 				.addGroup(

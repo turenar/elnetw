@@ -190,6 +190,7 @@ public class NullUser implements User {
 	public String getProfileImageURL() {
 		return null;
 	}
+
 	@Override
 	public String getProfileImageURLHttps() {
 		return null;

@@ -366,7 +366,12 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		}
 
 		componentUserIcon = new JLabel();
-		getImageCacher().setImageIcon(componentUserIcon, status.getUser());
+		try {
+			getImageCacher().setImageIcon(componentUserIcon, status.getUser());
+		} catch (InterruptedException e) {
+			logger.warn("Interrupted",e);
+			Thread.currentThread().interrupt();
+		}
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
 
 		String screenName = user.getScreenName();

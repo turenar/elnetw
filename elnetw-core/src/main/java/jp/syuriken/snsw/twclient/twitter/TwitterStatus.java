@@ -281,13 +281,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
-	public String getLang() {
-		return lang;
+	public String getJson() {
+		return json;
 	}
 
 	@Override
-	public String getJson() {
-		return json;
+	public String getLang() {
+		return lang;
 	}
 
 	@SuppressFBWarnings("EI_EXPOSE_REP")
@@ -315,6 +315,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public TwitterStatus getRetweetedStatus() {
 		return retweetedStatus;
+	}
+
+	@Override
+	public Scopes getScopes() {
+		return scopes;
 	}
 
 	@Override
@@ -390,11 +395,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public boolean isPossiblySensitive() {
 		return possiblySensitive;
-	}
-
-	@Override
-	public Scopes getScopes() {
-		return scopes;
 	}
 
 	@Override

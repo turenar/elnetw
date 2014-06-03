@@ -130,6 +130,7 @@ import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -447,7 +448,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "cache/image", dependencies = "config", phase = "init")
 	public void initImageCacher() {
-		configuration.setImageCacher(new ImageCacher(configuration));
+		configuration.setImageCacher(new ImageCacher());
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */
