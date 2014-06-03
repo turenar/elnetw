@@ -255,6 +255,12 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		// don't queue into Timer: not initialized
 		ClientConfiguration configuration = ClientConfiguration.getInstance();
 		configuration.getConfigProperties().addPropertyChangedListener(this);
+		Runtime.getRuntime().addShutdownHook(new Thread("logger-flusher") {
+			@Override
+			public void run() {
+				flush();
+			}
+		});
 	}
 
 	@Override

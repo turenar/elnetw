@@ -122,6 +122,7 @@ import jp.syuriken.snsw.twclient.init.InitializeService;
 import jp.syuriken.snsw.twclient.init.Initializer;
 import jp.syuriken.snsw.twclient.init.InitializerInstance;
 import jp.syuriken.snsw.twclient.internal.AsyncAppender;
+import jp.syuriken.snsw.twclient.internal.DeadlockMonitor;
 import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
@@ -256,6 +257,7 @@ public class TwitterClientMain {
 	protected MessageBus messageBus;
 	protected TwitterClientFrame frame;
 	private boolean isInterrupted;
+	private DeadlockMonitor deadlockMonitor;
 
 	/**
 	 * インスタンスを生成する。
@@ -846,6 +848,15 @@ public class TwitterClientMain {
 			} catch (InvocationTargetException e) {
 				logger.error("Caught error", e.getCause());
 			}
+		}
+	}
+
+	@Initializer(name = "jobqueue/monitor/deadlock", dependencies = {"timer", "jobqueue"})
+	public void startDeadlockMonitor(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			deadlockMonitor = new DeadlockMonitor();
+		} else {
+			deadlockMonitor.cancel();
 		}
 	}
 
