@@ -355,6 +355,20 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	}
 
 	@Override
+	public void onUnfollow(User source, User unfollowedUser) {
+		ClientMessageListener[] listeners = getListeners();
+		source = getUser(source, listeners);
+		unfollowedUser = getUser(unfollowedUser, listeners);
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onFollow(source, unfollowedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
+			}
+		}
+	}
+
+	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
 		listOwner = getUser(listOwner, listeners);

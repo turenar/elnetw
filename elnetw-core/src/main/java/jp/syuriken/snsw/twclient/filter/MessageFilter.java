@@ -198,13 +198,15 @@ public interface MessageFilter extends ClientEventConstants {
 	 */
 	boolean onStreamDisconnect();
 
+
+	boolean onTrackLimitationNotice(int numberOfLimitedStatuses);
 	/**
-	 * Streamがステータスをスキップしたことをフィルタ
-	 *
-	 * @param numberOfLimitedStatuses スキップされたステータスの数
+	 * フォロー解除をフィルタ
+	 * @param source       フォロー解除元
+	 * @param unfollowedUser フォロー解除先
 	 * @return true=フィルタ中止, false=続行
 	 */
-	boolean onTrackLimitationNotice(int numberOfLimitedStatuses);
+	boolean onUnfollow(User source, User unfollowedUser);
 
 	/**
 	 * ブロックを解除したことをフィルタ

@@ -100,6 +100,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private String profileBannerImageUrl;
 	private URLEntity[] descriptionURLEntities;
 	private URLEntity urlEntity;
+	private boolean defaultProfile;
+	private boolean defaultProfileImage;
 
 
 	/**
@@ -151,9 +153,12 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		name = originalUser.getName();
 		screenName = originalUser.getScreenName();
 		statusesCount = originalUser.getStatusesCount();
-		profileBannerImageUrl = originalUser.getProfileBannerURL();
+		String profileBannerURL = originalUser.getProfileBannerURL(); // delete "/web"
+		profileBannerImageUrl = profileBannerURL == null ? null : profileBannerURL.substring(0, profileBannerURL.length() - 4);
 		descriptionURLEntities = originalUser.getDescriptionURLEntities();
 		urlEntity = originalUser.getURLEntity();
+		defaultProfile = originalUser.isDefaultProfile();
+		defaultProfileImage = originalUser.isDefaultProfileImage();
 
 		json = jsonObject == null ? null : jsonObject.toString();
 
@@ -301,6 +306,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
+	public boolean isDefaultProfileImage() {
+		return defaultProfileImage;
+	}
+
+	@Override
 	public String getProfileBackgroundColor() {
 		return profileBackgroundColor;
 	}
@@ -326,6 +336,14 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad" : null;
 	}
 
+	public String getProfileBannerLargeURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/1500x500" : null;
+	}
+
+	public String getProfileBannerMediumURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/600x200" : null;
+	}
+
 	@Override
 	public String getProfileBannerMobileRetinaURL() {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad_retina" : null;
@@ -339,6 +357,10 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public String getProfileBannerRetinaURL() {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/web_retina" : null;
+	}
+
+	public String getProfileBannerSmallURL() {
+		return profileBannerImageUrl != null ? profileBannerImageUrl + "/300x100" : null;
 	}
 
 	@Override
@@ -445,6 +467,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public boolean isProfileUseBackgroundImage() {
 		return profileUseBackgroundImage;
+	}
+
+	@Override
+	public boolean isDefaultProfile() {
+		return defaultProfile;
 	}
 
 	@Override

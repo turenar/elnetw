@@ -21,6 +21,7 @@
 
 package jp.syuriken.snsw.twclient.gui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -43,16 +44,20 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
@@ -64,6 +69,7 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.net.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +78,8 @@ import twitter4j.JSONObject;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+
+import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
 /**
  * ユーザー情報を表示するFrameTab
@@ -108,6 +116,12 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	private static final String TAB_ID = "userinfo";
 	private static final Logger logger = LoggerFactory.getLogger(UserInfoFrameTab.class);
+	public static final Dimension NEW_BANNER_SIZE = new Dimension(600, 200);
+
+	private static Color setAlpha(Color color, int alpha) {
+		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+	}
+
 	private final Font operationFont = frameApi.getUiFont().deriveFont(Font.PLAIN, frameApi.getUiFont().getSize() - 1);
 	private final HashMap<String, IntentArguments> urlIntentMap;
 	/** 指定されたユーザー */
@@ -120,15 +134,16 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel componentUserIcon;
 	private JLabel componentUserName;
 	private JLabel componentUserURL;
-	private JPanel componentUserInfoPanel;
+	private BackgroundImagePanel componentUserInfoPanel;
 	private JPanel tabComponent;
 	private boolean focusGained;
 	private boolean isDirty;
-	/*package*/ JCheckBox muteCheckBox;
+	/*package*/ JCheckBoxMenuItem muteCheckBox;
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
 	private ImageIcon imageIcon;
 	private int nextUrlId = 0;
+	private JComponent componentOperationBox;
 
 	/**
 	 * インスタンスを生成する。
@@ -216,7 +231,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private String getBioHtml() {
 		String bio = user.getDescription();
 		StringBuilder builder = new StringBuilder();
-		builder.append("<html>");
 		int index = 0;
 		for (; index < bio.length(); ) {
 			int end = bio.indexOf('\n', index);
@@ -232,7 +246,8 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		Matcher matcher = Regex.VALID_URL.matcher(bio);
 		while (matcher.find()) {
 			matcher.appendReplacement(buffer, "$" + Regex.VALID_URL_GROUP_BEFORE + "<a href='$"
-					+ Regex.VALID_URL_GROUP_URL + "'>$" + Regex.VALID_URL_GROUP_URL + "</a>");
+					+ Regex.VALID_URL_GROUP_URL + "'>$" + Regex.VALID_URL_GROUP_URL
+					+ "</a>");
 		}
 		matcher.appendTail(buffer);
 		bio = buffer.toString();
@@ -252,6 +267,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 		buffer.setLength(0);
 		matcher = Regex.VALID_MENTION_OR_LIST.matcher(bio);
+		buffer.append("<html><span></span><span>");
 		while (matcher.find()) {
 			String list = matcher.group(Regex.VALID_MENTION_OR_LIST_GROUP_LIST);
 			if (list == null) {
@@ -301,7 +317,12 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JEditorPane getComponentBioEditorPane() {
 		if (componentBioEditorPane == null) {
 			componentBioEditorPane = new JEditorPane();
-			componentBioEditorPane.setEditorKit(new HTMLEditorKitExtension());
+			HTMLEditorKitExtension kit = new HTMLEditorKitExtension();
+			StyleSheet styleSheet = new StyleSheet();
+			styleSheet.addRule("span { color: #ffffff; }");
+			styleSheet.addRule("a { color: #80ffff; }");
+			kit.setStyleSheet(styleSheet);
+			componentBioEditorPane.setEditorKit(kit);
 			componentBioEditorPane.setContentType("text/html");
 			componentBioEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			componentBioEditorPane.setEditable(false);
@@ -328,6 +349,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 			componentBioEditorPane.setBackground(getComponentLocation().getBackground());
 			componentBioEditorPane.setOpaque(false);
+			componentBioEditorPane.setForeground(Color.WHITE);
 			componentBioEditorPane.setText("読込中...");
 		}
 		return componentBioEditorPane;
@@ -336,15 +358,15 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel getComponentLocation() {
 		if (componentLocation == null) {
 			componentLocation = new JLabel();
+			componentLocation.setForeground(Color.WHITE);
 		}
 		return componentLocation;
 	}
 
-	private JCheckBox getComponentMuteCheckBox() {
+	private JCheckBoxMenuItem getComponentMuteCheckBox() {
 		if (muteCheckBox == null) {
-			muteCheckBox = new JCheckBox("ミュート");
+			muteCheckBox = new JCheckBoxMenuItem("ミュート");
 			muteCheckBox.setEnabled(false);
-			muteCheckBox.setFont(operationFont);
 			muteCheckBox.addActionListener(new ActionListener() {
 
 				@Override
@@ -365,9 +387,42 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return muteCheckBox;
 	}
 
+	public JComponent getComponentOperationBox() {
+		if (componentOperationBox == null) {
+			componentOperationBox = new JButton("その他▼");
+			componentOperationBox.setFont(operationFont);
+			componentOperationBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+			final JPopupMenu jPopupMenu = new JPopupMenu();
+			JMenuItem showHeaderItem = new JMenuItem("ヘッダーを表示");
+			showHeaderItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						new ImageViewerFrame(new URL(user.getProfileBannerLargeURL())).setVisible(true);
+					} catch (MalformedURLException e1) {
+						throw new AssertionError(e1);
+					}
+				}
+			});
+			if (user.getProfileBannerLargeURL() == null) {
+				showHeaderItem.setEnabled(false);
+			}
+			jPopupMenu.add(showHeaderItem);
+			jPopupMenu.add(getComponentMuteCheckBox());
+			componentOperationBox.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					jPopupMenu.show(componentOperationBox, e.getX(), e.getY());
+				}
+			});
+		}
+		return componentOperationBox;
+	}
+
 	private Component getComponentOperationsPanel() {
 		if (componentOperationsPanel == null) {
 			componentOperationsPanel = new JPanel(); //TODO
+			componentOperationsPanel.setBackground(setAlpha(componentOperationsPanel.getBackground(), 192));
 			componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 			try {
 				final JLabel closeIcon =
@@ -387,7 +442,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				logger.warn("#getComponentOperationsPanel: Failed load resource");
 			}
 
-			componentOperationsPanel.add(getComponentMuteCheckBox());
+			componentOperationsPanel.add(getComponentOperationBox());
 		}
 		return componentOperationsPanel;
 	}
@@ -424,9 +479,14 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return componentUserIcon;
 	}
 
-	private JPanel getComponentUserInfo() {
+	private BackgroundImagePanel getComponentUserInfo() {
 		if (componentUserInfoPanel == null) {
-			componentUserInfoPanel = new JPanel();
+			componentUserInfoPanel = new BackgroundImagePanel();
+			String bannerURL = user.getProfileBannerLargeURL();
+			if (bannerURL != null) {
+				componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
+				componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
+			}
 			GroupLayout layout = new GroupLayout(componentUserInfoPanel);
 			componentUserInfoPanel.setLayout(layout);
 			layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -450,11 +510,11 @@ public class UserInfoFrameTab extends DefaultClientTab {
 							.addGroup(layout.createSequentialGroup()
 									.addComponent(getComponentTwitterLogo(), 16, 16, 16)
 									.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE,
-											GroupLayout.PREFERRED_SIZE).addGap(16, 128, 128)
+											PREFERRED_SIZE).addGap(4, 128, 128)
 									.addComponent(getComponentLocation(), 64, GroupLayout.DEFAULT_SIZE,
 											GroupLayout.DEFAULT_SIZE))
 							.addComponent(getComponentUserURL())
-							.addComponent(getComponentBio(), 64, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)));
+							.addComponent(getComponentBio(), 64, PREFERRED_SIZE, Short.MAX_VALUE)));
 		}
 		return componentUserInfoPanel;
 	}
@@ -462,6 +522,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel getComponentUserName() {
 		if (componentUserName == null) {
 			componentUserName = new JLabel();
+			componentUserName.setForeground(Color.WHITE);
 		}
 		return componentUserName;
 	}
@@ -469,6 +530,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private JLabel getComponentUserURL() {
 		if (componentUserURL == null) {
 			componentUserURL = new JLabel();
+			componentUserURL.setForeground(Color.WHITE);
 		}
 		return componentUserURL;
 	}
@@ -504,18 +566,20 @@ public class UserInfoFrameTab extends DefaultClientTab {
 
 	@Override
 	public JComponent getTabComponent() {
-		tabComponent = new JPanel();
-		GroupLayout layout = new GroupLayout(tabComponent);
-		tabComponent.setLayout(layout);
-		layout.setVerticalGroup(
-				layout.createSequentialGroup()
-						.addComponent(getComponentUserInfo(), 128, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-						.addComponent(getComponentTweetsScrollPane())
-		);
+		if (tabComponent == null) {
+			tabComponent = new JPanel();
+			GroupLayout layout = new GroupLayout(tabComponent);
+			tabComponent.setLayout(layout);
+			layout.setVerticalGroup(
+					layout.createSequentialGroup()
+							.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+							.addComponent(getComponentTweetsScrollPane())
+			);
 
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(getComponentUserInfo(), 96, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(getComponentTweetsScrollPane()));
+			layout.setHorizontalGroup(layout.createParallelGroup()
+					.addComponent(getComponentUserInfo(), PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+					.addComponent(getComponentTweetsScrollPane()));
+		}
 		return tabComponent;
 	}
 
@@ -570,7 +634,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				JLabel componentUserURL = getComponentUserURL();
 				if (user.getURL() != null) {
 					stringBuilder.setLength(0);
-					stringBuilder.append("<html>URL:&nbsp;<a style='color:blue;text-decoration: underline;'>");
+					stringBuilder.append("<html>URL:&nbsp;<a style='color: #80ffff;text-decoration: underline;'>");
 					stringBuilder.append(user.getURL()).append("</a>");
 					componentUserURL.setText(stringBuilder.toString());
 				}
@@ -587,8 +651,24 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				});
 				try {
 					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
+					String profileBannerURL = user.getProfileBannerMediumURL();
+					if (profileBannerURL != null) {
+						configuration.getImageCacher().setImageIcon(new AbstractImageSetter() {
+							@Override
+							public void setImage(Image image) {
+								try {
+									getComponentUserInfo().setBackgroundImage(image);
+								} catch (InterruptedException e) {
+									Thread.currentThread().interrupt();
+								}
+							}
+						}, new URL(profileBannerURL));
+					}
 				} catch (InterruptedException e) {
-					logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+					logger.warn("Interrupted", e);
+					Thread.currentThread().interrupt();
+				} catch (MalformedURLException e) {
+					throw new AssertionError(e);
 				}
 
 				getComponentUserName().setText(
@@ -606,7 +686,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 						break;
 					}
 				}
-				JCheckBox componentMuteCheckBox = getComponentMuteCheckBox();
+				JCheckBoxMenuItem componentMuteCheckBox = getComponentMuteCheckBox();
 				componentMuteCheckBox.setSelected(filtered);
 				if (frameApi.getLoginUser().getId() == user.getId()) {
 					componentMuteCheckBox.setEnabled(false);

@@ -143,6 +143,11 @@ public class NullUser implements User {
 	}
 
 	@Override
+	public boolean isDefaultProfileImage() {
+		return false;
+	}
+
+	@Override
 	public String getProfileBackgroundColor() {
 		return null;
 	}
@@ -283,6 +288,11 @@ public class NullUser implements User {
 
 	@Override
 	public boolean isProfileUseBackgroundImage() {
+		return false;
+	}
+
+	@Override
+	public boolean isDefaultProfile() {
 		return false;
 	}
 
