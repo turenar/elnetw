@@ -77,7 +77,9 @@ set WORKDIR=%CD%
 REM バッチファイルが置いてある場所の上のディレクトリに移動し、ディレクトリパスを保存
 cd /d %~dp0..
 set BATCH_PARENT_DIR=%CD%
+echo %BATCH_PARENT_DIR%
 set BATCH_DIR=%~dp0
+echo %BATCH_DIR%
 cd %WORKDIR%
 
 REM binディレクトリから直接起動させたときは上のディレクトリにする。
@@ -87,11 +89,11 @@ REM targetが存在するならポータブル設定
 if exist "%BATCH_PARENT_DIR%\target\elnetw-dist.jar" set PORTABLE_CFG=true
 
 if exist "%BATCH_PARENT_DIR%\target\elnetw-dist.jar" (
-  set TTJAR=%BATCH_PARENT_DIR%\target\elnetw-dist.jar
+  set TT_CLASSPATH=%BATCH_PARENT_DIR%\target\elnetw-dist.jar
   goto ttstart
 )
 if exist "%BATCH_PARENT_DIR%\bin\launcher.jar" (
-  set TTJAR=%BATCH_PARENT_DIR%\bin\launcher.jar
+  set TT_CLASSPATH=%BATCH_PARENT_DIR%\bin\launcher.jar;%BATCH_PARENT_DIR%\bin\library.jar
   goto ttstart
 )
 
@@ -108,10 +110,11 @@ goto error
 set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% %TURETWCL_JAVA_ARGS%
 
 if "%TURETWCL_VIEW_LOG%"=="1" (
-  "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" -L%BATCH_PARENT_DIR% %*
+  echo "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
+  "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
   pause
 ) else (
-  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -jar "%TTJAR%" -L %BATCH_PARENT_DIR% %*
+  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L %BATCH_PARENT_DIR%\lib %*
 )
 if not errorlevel 0 goto error
 goto end
