@@ -37,13 +37,25 @@ import jp.syuriken.snsw.twclient.Utility;
  * JPanelに背景画像を描画する
  */
 public class BackgroundImagePanel extends JPanel {
+	/**
+	 * 背景画像の上に見やすいように塗る色
+	 */
+	public static final Color IMAGE_OVERLAY_COLOR = new Color(0f, 0f, 0f, 0.3f);
 	// 描画する画像
 	private BufferedImage image;
 
+	/**
+	 * インスタンスの生成
+	 *
+	 * @param image 背景画像
+	 */
 	public BackgroundImagePanel(BufferedImage image) {
 		this.image = image;
 	}
 
+	/**
+	 * インスタンスの生成
+	 */
 	public BackgroundImagePanel() {
 		this(null);
 	}
@@ -61,8 +73,8 @@ public class BackgroundImagePanel extends JPanel {
 			double imageHeight = image.getHeight();
 
 			// 画像がコンポーネントの何倍の大きさか計算
-			double sx = (panelWidth / imageWidth);
-			double sy = (panelHeight / imageHeight);
+			double sx = panelWidth / imageWidth;
+			double sy = panelHeight / imageHeight;
 
 			// スケーリング
 			AffineTransform af = AffineTransform.getScaleInstance(sx, sy);
@@ -70,11 +82,17 @@ public class BackgroundImagePanel extends JPanel {
 
 
 		}
-		g2D.setColor(new Color(0f, 0f, 0f, 0.3f));
+		g2D.setColor(IMAGE_OVERLAY_COLOR);
 		g2D.fillRect(0, 0, panelWidth, panelHeight);
 		g2D.dispose();
 	}
 
+	/**
+	 * 背景画像を設定する
+	 *
+	 * @param image 画像
+	 * @throws InterruptedException 読み込まれる前に割り込まれた
+	 */
 	public void setBackgroundImage(Image image) throws InterruptedException {
 		this.image = Utility.createBufferedImage(image, new MediaTracker(this));
 	}

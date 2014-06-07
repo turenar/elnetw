@@ -41,25 +41,58 @@ public class InitializeException extends Exception {
 		this(null, cause);
 	}
 
+	/**
+	 * init
+	 *
+	 * @param initializerInfo info
+	 * @param reason          cause reason
+	 */
 	public InitializeException(InitializerInfo initializerInfo, String reason) {
 		this(initializerInfo, null, reason);
 	}
 
+	/**
+	 * init
+	 *
+	 * @param initializerInfo info
+	 * @param reason          cause reason
+	 * @param exitCode        application exit code
+	 */
 	public InitializeException(InitializerInfo initializerInfo, String reason, int exitCode) {
 		this(initializerInfo, null, reason, exitCode);
 	}
 
+	/**
+	 * init
+	 *
+	 * @param message message
+	 */
 	public InitializeException(String message) {
 		super(message);
 		reason = message;
 		exitCode = -1;
 	}
 
+	/**
+	 * init
+	 *
+	 * @param initializerInfo info
+	 * @param cause           causedBy
+	 * @param reason          cause reason
+	 */
 	public InitializeException(InitializerInfo initializerInfo, Throwable cause,
 			String reason) {
 		this(initializerInfo, cause, reason, -1);
 	}
 
+	/**
+	 * init
+	 *
+	 * @param initializerInfo info
+	 * @param cause           causedBy
+	 * @param reason          cause reason
+	 * @param exitCode        application exit code
+	 */
 	public InitializeException(InitializerInfo initializerInfo, Throwable cause,
 			String reason, int exitCode) {
 		super(reason, cause);
@@ -68,21 +101,33 @@ public class InitializeException extends Exception {
 		this.exitCode = exitCode;
 	}
 
+	/**
+	 * init
+	 *
+	 * @param message message
+	 * @param cause   causedBy
+	 */
 	public InitializeException(String message, Throwable cause) {
 		reason = cause.getLocalizedMessage();
 		exitCode = -1;
 	}
 
+	/**
+	 * get application exit code
+	 *
+	 * @return exit code
+	 */
 	public int getExitCode() {
 		return exitCode;
 	}
 
+	/**
+	 * get info
+	 *
+	 * @return info
+	 */
 	public InitializerInfo getInitializerInfo() {
 		return initializerInfo;
-	}
-
-	/*package*/void setInitializerInfo(InitializerInfo info) {
-		initializerInfo = info;
 	}
 
 	@Override
@@ -90,7 +135,16 @@ public class InitializeException extends Exception {
 		return getMessage() + "\ninitializer:" + initializerInfo;
 	}
 
+	/**
+	 * get cause reason
+	 *
+	 * @return reason
+	 */
 	public String getReason() {
 		return reason;
+	}
+
+	/*package*/void setInitializerInfo(InitializerInfo info) {
+		initializerInfo = info;
 	}
 }

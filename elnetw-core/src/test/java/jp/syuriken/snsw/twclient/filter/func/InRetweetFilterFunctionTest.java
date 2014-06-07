@@ -39,7 +39,7 @@ public class InRetweetFilterFunctionTest extends FilterConstants {
 	@Test
 	public void testConstructor() {
 		try {
-			new InRetweetFilterFunction("inrt", new FilterDispatcherBase[] {});
+			new InRetweetFilterFunction("inrt", new FilterDispatcherBase[]{});
 			fail("childの個数を無視したよう");
 		} catch (IllegalSyntaxException e) {
 			// do nothing

@@ -57,8 +57,17 @@ public class MessageBus {
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
+	/**
+	 * virtual account id for reader
+	 */
 	public static final String READER_ACCOUNT_ID = "$reader";
+	/**
+	 * virtual account id for writer
+	 */
 	public static final String WRITER_ACCOUNT_ID = "$writer";
+	/**
+	 * virtual account id for all account
+	 */
 	public static final String ALL_ACCOUNT_ID = "$all";
 
 	private static String getAppended(StringBuilder builder, String appendedString) {
@@ -272,12 +281,26 @@ public class MessageBus {
 		return accountId + ":" + notifierName;
 	}
 
+	/**
+	 * get recursive path from accountId and notifierName
+	 *
+	 * @param accountId    アカウントID
+	 * @param notifierName notifier name
+	 * @return パスの配列 (** / all..)
+	 */
 	public String[] getRecursivePaths(String accountId, String notifierName) {
 		TreeSet<String> paths = new TreeSet<>();
 		getRecursivePaths(paths, accountId, notifierName);
 		return paths.toArray(new String[paths.size()]);
 	}
 
+	/**
+	 * get recursive path from accountId and notifierName, and add them into paths
+	 *
+	 * @param paths        path collection
+	 * @param accountId    アカウントID
+	 * @param notifierName notifier name
+	 */
 	public void getRecursivePaths(Collection<String> paths, String accountId, String notifierName) {
 		String[] notifierDirs = notifierName.split("/");
 		StringBuilder builder = new StringBuilder(accountId).append(':');
@@ -307,6 +330,9 @@ public class MessageBus {
 		return configuration.getTwitterConfiguration(getActualUserIdString(accountId));
 	}
 
+	/**
+	 * initialize. this method is provided for test.
+	 */
 	protected void init() {
 		twitterForRead = configuration.getTwitterForRead();
 		scheduleGettingTwitterApiConfiguration();

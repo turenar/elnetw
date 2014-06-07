@@ -56,7 +56,7 @@ public class BooleanConfigType implements ConfigType {
 	}
 
 	@Override
-	public boolean isPreferedAsMultiline() {
+	public boolean isPreferredAsMultiline() {
 		return false;
 	}
 

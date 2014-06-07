@@ -32,12 +32,12 @@ import javax.swing.JLabel;
 import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.gui.render.RendererFocusEvent;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +57,15 @@ import static jp.syuriken.snsw.twclient.ClientConfiguration.APPLICATION_NAME;
  */
 public class SimpleRenderer implements TabRenderer {
 	private static final Logger logger = LoggerFactory.getLogger(SimpleRenderer.class);
+	private static final long DISPLAY_REQUIREMENT_PUBLISHED_DATE = 0x7fffffff_ffffffffL;
+	/**
+	 * minimum height for panel
+	 */
+	public static final int MIN_PANEL_HEIGHT = 18;
+	/**
+	 * icon width
+	 */
+	public static final int ICON_WIDTH = 64;
 	private final RenderTarget renderTarget;
 	private final Font uiFont;
 	private final Font defaultFont;
@@ -72,6 +81,12 @@ public class SimpleRenderer implements TabRenderer {
 	private volatile long actualUserId;
 	private AbstractRenderObject focusOwner;
 
+	/**
+	 * init
+	 *
+	 * @param userId user id (virtual or real)
+	 * @param target render target
+	 */
 	public SimpleRenderer(String userId, RenderTarget target) {
 		this.userId = userId;
 		configuration = ClientConfiguration.getInstance();
@@ -87,11 +102,17 @@ public class SimpleRenderer implements TabRenderer {
 		fontMetrics = new JLabel().getFontMetrics(defaultFont);
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
-		int height = Math.max(18, fontHeight);
+		int height = Math.max(MIN_PANEL_HEIGHT, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
-		iconSize = new Dimension(64, height);
+		iconSize = new Dimension(ICON_WIDTH, height);
 	}
 
+	/**
+	 * fire focus event
+	 *
+	 * @param e            event
+	 * @param renderObject render object
+	 */
 	public void fireFocusEvent(FocusEvent e, RenderObject renderObject) {
 		renderTarget.focusGained(new RendererFocusEvent(e, renderObject));
 	}
@@ -101,54 +122,110 @@ public class SimpleRenderer implements TabRenderer {
 		return actualUserId;
 	}
 
+	/**
+	 * get ClientProperties instance
+	 *
+	 * @return ClientProperties
+	 */
 	public ClientProperties getConfigProperties() {
 		return configProperties;
 	}
 
+	/**
+	 * get configuration
+	 *
+	 * @return configuration
+	 */
 	public ClientConfiguration getConfiguration() {
 		return configuration;
 	}
 
+	/**
+	 * get default font
+	 *
+	 * @return default font
+	 */
 	protected Font getDefaultFont() {
 		return defaultFont;
 	}
 
+	/**
+	 * get focus owner of objects which this instance created
+	 *
+	 * @return focus owner
+	 */
 	public AbstractRenderObject getFocusOwner() {
 		return focusOwner;
 	}
 
-	public void setFocusOwner(AbstractRenderObject focusOwner) {
-		this.focusOwner = focusOwner;
-	}
-
+	/**
+	 * get font height
+	 *
+	 * @return font height
+	 */
 	protected int getFontHeight() {
 		return fontHeight;
 	}
 
+	/**
+	 * get font metrics
+	 *
+	 * @return font metrics
+	 */
 	protected FontMetrics getFontMetrics() {
 		return fontMetrics;
 	}
 
+	/**
+	 * get icon size
+	 *
+	 * @return icon size
+	 */
 	protected Dimension getIconSize() {
 		return iconSize;
 	}
 
+	/**
+	 * get image cacher
+	 *
+	 * @return image cacher
+	 */
 	public ImageCacher getImageCacher() {
 		return imageCacher;
 	}
 
+	/**
+	 * get sentBy panel size
+	 *
+	 * @return sentBy panel size
+	 */
 	protected Dimension getLinePanelSizeOfSentBy() {
 		return linePanelSizeOfSentBy;
 	}
 
+	/**
+	 * get render target
+	 *
+	 * @return render target
+	 */
 	protected RenderTarget getTarget() {
 		return renderTarget;
 	}
 
+	/**
+	 * get ui font
+	 *
+	 * @return ui font
+	 */
 	protected Font getUiFont() {
 		return uiFont;
 	}
 
+	/**
+	 * get user id (virtual or real)
+	 *
+	 * @return user id
+	 */
 	public String getUserId() {
 		return userId;
 	}
@@ -164,8 +241,7 @@ public class SimpleRenderer implements TabRenderer {
 				.setBackgroundColor(Color.LIGHT_GRAY)
 				.setForegroundColor(Color.BLACK)
 				.setCreatedByText(APPLICATION_NAME)
-				.setCreatedBy(
-						forWrite ? "!core.change.account!write" : "!core.change.account!read")
+				.setCreatedBy(forWrite ? "!core.change.account!write" : "!core.change.account!read")
 				.setText(forWrite ? "書き込み用アカウントを変更しました。" : "読み込み用アカウントを変更しました。"));
 	}
 
@@ -223,8 +299,8 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onDisplayRequirement() {
-		if (configProperties.getBoolean("core.elnetw.danger_zone") &&
-				configProperties.getBoolean("gui.danger.displayReq.disable")) {
+		if (configProperties.getBoolean("core.elnetw.danger_zone")
+				&& configProperties.getBoolean("gui.danger.displayReq.disable")) {
 			return;
 		}
 
@@ -236,7 +312,7 @@ public class SimpleRenderer implements TabRenderer {
 				.setText("All data is from twitter")
 				.setIcon(ImageResource.getImgTwitterLogo())
 				.setUniqId("misc/displayRequirements")
-				.setDate(0x7fffffff_ffffffffL));
+				.setDate(DISPLAY_REQUIREMENT_PUBLISHED_DATE));
 	}
 
 	@Override
@@ -315,7 +391,8 @@ public class SimpleRenderer implements TabRenderer {
 					.setIcon(source)
 					.setText("ふぁぼやめられました: \"" + unfavoritedStatus.getText() + "\"")
 					.setUniqId(
-							"!unfav/" + source.getScreenName() + "/" + target.getScreenName() + "/" + unfavoritedStatus.getId()));
+							"!unfav/" + source.getScreenName() + "/" + target.getScreenName()
+									+ "/" + unfavoritedStatus.getId()));
 		} else if (source.getId() == actualUserId) {
 			TwitterStatus status = cacheManager.getCachedStatus(unfavoritedStatus.getId());
 			if (status != null) {
@@ -367,5 +444,14 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
+	}
+
+	/**
+	 * set focus owner
+	 *
+	 * @param focusOwner focus owner
+	 */
+	public void setFocusOwner(AbstractRenderObject focusOwner) {
+		this.focusOwner = focusOwner;
 	}
 }

@@ -95,12 +95,12 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public String getOAuth2Scope() {
+	public String getOAuth2InvalidateTokenURL() {
 		return null;
 	}
 
 	@Override
-	public String getOAuth2InvalidateTokenURL() {
+	public String getOAuth2Scope() {
 		return null;
 	}
 

@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 public class ArgParserTest {
 
 	private static <T> void assertArrayEmpty(T[] actual) {
-		assertArrayEquals(new Object[] {}, actual);
+		assertArrayEquals(new Object[]{}, actual);
 	}
 
 	private static void assertNoError(ParsedArguments arguments) {
@@ -54,7 +54,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertNull(arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[] {"fuga"}, arguments.getProcessArguments());
+		assertArrayEquals(new String[]{"fuga"}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -66,7 +66,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
+		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -80,7 +80,7 @@ public class ArgParserTest {
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertNull(arguments.getOptArg("--hoge"));
 		assertTrue(arguments.hasOpt("--fuga"));
-		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
+		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -92,7 +92,7 @@ public class ArgParserTest {
 		ParsedArguments arguments = parser.parse(a("--hoge fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertEquals("fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
+		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 
@@ -106,7 +106,7 @@ public class ArgParserTest {
 		assertTrue(arguments.hasOpt("--hoge"));
 		assertFalse(arguments.hasOpt("--fuga"));
 		assertEquals("--fuga", arguments.getOptArg("--hoge"));
-		assertArrayEquals(new String[] {}, arguments.getProcessArguments());
+		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
 		assertNoError(arguments);
 	}
 

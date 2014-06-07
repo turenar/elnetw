@@ -55,17 +55,45 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ImageCacher {
+	/**
+	 * fetch entry
+	 */
 	protected static class FetchEntry {
-		private final ImageEntry imageEntry;
-		private FetchEntry alternateEntry;
-		private URL url;
-		private ConnectionInfo connectionInfo;
-		private ImageSetter setter;
+		/**
+		 * image entry
+		 */
+		protected final ImageEntry imageEntry;
+		/**
+		 * alternate entry: this is from cache, that is from network...
+		 */
+		protected FetchEntry alternateEntry;
+		/**
+		 * url which fetch from
+		 */
+		protected URL url;
+		/**
+		 * connection information
+		 */
+		protected ConnectionInfo connectionInfo;
+		/**
+		 * image setter
+		 */
+		protected ImageSetter setter;
 
+		/**
+		 * インスタンスを生成する
+		 *
+		 * @param imageEntry エントリ
+		 */
 		public FetchEntry(ImageEntry imageEntry) {
 			this.imageEntry = imageEntry;
 		}
 
+		/**
+		 * 画像セッターを追加する
+		 *
+		 * @param setter セッター
+		 */
 		public synchronized void addSetter(ImageSetter setter) {
 			if (this.setter == null) {
 				this.setter = setter;
@@ -77,15 +105,29 @@ public class ImageCacher {
 			}
 		}
 
+		/**
+		 * 画像URL (通常ネットワークURL)
+		 *
+		 * @return 画像URL
+		 */
 		public String getImageUrl() {
 			return imageEntry.imageUrl;
 		}
 
+		/**
+		 * フェッチが終了したかどうか
+		 *
+		 * @return 終了したかどうか
+		 */
 		public boolean isFinished() {
 			return imageEntry.image != null;
 		}
 
-
+		/**
+		 * セッターを設定する
+		 *
+		 * @param setter セッター
+		 */
 		public synchronized void setSetter(ImageSetter setter) {
 			this.setter = setter;
 			if (alternateEntry != null) {
@@ -94,33 +136,74 @@ public class ImageCacher {
 		}
 	}
 
+	/**
+	 * 画像エントリ
+	 */
 	protected static class ImageEntry {
+		/**
+		 * 画像URL
+		 */
 		public final String imageUrl;
+		/**
+		 * 生データ
+		 */
 		public byte[] rawData;
+		/**
+		 * 画像
+		 */
 		public Image image;
+		/**
+		 * キャッシュファイルパス
+		 */
 		public Path cacheFile;
 
+		/**
+		 * インスタンスの生成
+		 *
+		 * @param imageUrl 画像URL
+		 */
 		public ImageEntry(String imageUrl) {
 			this.imageUrl = imageUrl;
 		}
 	}
 
+	/** エラー画像エントリ */
 	protected class ErrorImageEntry extends ImageEntry {
 		private final IOException ex;
 
-		public IOException getException() {
-			return ex;
-		}
-
+		/**
+		 * インスタンス生成
+		 *
+		 * @param url URL
+		 * @param ex  例外
+		 */
 		public ErrorImageEntry(URL url, IOException ex) {
 			super(url.toString());
 			this.ex = ex;
 		}
+
+		/**
+		 * 例外を取得する
+		 *
+		 * @return 例外
+		 */
+		public IOException getException() {
+			return ex;
+		}
 	}
 
+	/**
+	 * 画像を取得するためのジョブ
+	 */
 	protected class ImageFetcher implements ParallelRunnable, FetchEventHandler {
 		private FetchEntry entry;
 
+		/**
+		 * インスタンス生成
+		 *
+		 * @param entry フェッチエントリ
+		 * @throws InterruptedException コネクション確立中に割り込まれた
+		 */
 		public ImageFetcher(FetchEntry entry) throws InterruptedException {
 			this.entry = entry;
 			entry.connectionInfo = NetworkSupport.openConnection(entry.url, this);
@@ -137,7 +220,7 @@ public class ImageCacher {
 				int responseCode;
 				try {
 					responseCode = ((HttpURLConnection) connection).getResponseCode();
-					if (responseCode >= 400 && responseCode < 500) {
+					if (responseCode >= 400 && responseCode < 500) { // CS-IGNORE
 						// url is not local cache
 						cachedImages.put(entry.getImageUrl(), new ErrorImageEntry(url, e));
 						if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -177,9 +260,17 @@ public class ImageCacher {
 		}
 	}
 
+	/**
+	 * image flusher
+	 */
 	protected class ImageFlusher implements ParallelRunnable {
 		private ImageEntry entry;
 
+		/**
+		 * インスタンス生成
+		 *
+		 * @param entry エントリ
+		 */
 		public ImageFlusher(ImageEntry entry) {
 			this.entry = entry;
 		}
@@ -201,9 +292,12 @@ public class ImageCacher {
 					logger.warn("Write failed: {}", file, e);
 				}
 			}
-	}
+		}
 	}
 
+	/**
+	 * SHA1ハッシュ関数
+	 */
 	protected static final ThreadLocal<MessageDigest> shaHash = new ThreadLocal<MessageDigest>() {
 		@Override
 		protected MessageDigest initialValue() {
@@ -215,12 +309,18 @@ public class ImageCacher {
 		}
 	};
 
+	/**
+	 * byte[] -> hex string
+	 *
+	 * @param digest byte array
+	 * @return hex string
+	 */
 	protected static String toHexString(byte[] digest) {
 		int len = digest.length;
 		char[] chars = new char[len * 2];
 		int j = 0;
 		for (byte b : digest) {
-			int highBit = (b & 0xf0) >> 4;
+			int highBit = (b & 0xf0) >> 4; //CS-IGNORE
 			int lowBit = b & 0x0f;
 			if (highBit <= 9) {
 				chars[j++] = (char) (highBit + '0');
@@ -261,6 +361,7 @@ public class ImageCacher {
 	 * 画像を取得する。
 	 *
 	 * @param entry イメージエントリ
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	protected void fetchImage(FetchEntry entry) throws InterruptedException {
 		synchronized (entry) {
@@ -303,7 +404,7 @@ public class ImageCacher {
 			}
 			cacheFetchEntry.alternateEntry = fetchEntry;
 			fetchEntry = cacheFetchEntry;
-		}else{
+		} else {
 			logger.debug("Cache miss: {}", urlString);
 		}
 		return fetchEntry;
@@ -344,6 +445,7 @@ public class ImageCacher {
 
 	/**
 	 * 画像ファイル名を取得する。
+	 *
 	 * @param url URL
 	 * @return 画像ファイル名。まだキャッシュされていないときはnull。TODO 問答無用で取得させる。
 	 */
@@ -358,6 +460,7 @@ public class ImageCacher {
 	 *
 	 * @param user Twitterユーザー
 	 * @return ストレージ上の画像ファイル。存在しない場合はnull。
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	public File getImageFile(User user) throws InterruptedException {
 		return getImageFile(user.getProfileImageURLHttps());
@@ -370,6 +473,7 @@ public class ImageCacher {
 	 * @param label JLabelインスタンス
 	 * @param url   画像URL
 	 * @return キャッシュヒットしたかどうか
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	public boolean setImageIcon(JLabel label, URL url) throws InterruptedException {
 		return setImageIcon(new LabelImageSetter(label), url);
@@ -379,8 +483,9 @@ public class ImageCacher {
 	 * 画像を取得し、imageSetterを呼び出す。
 	 *
 	 * フェッチに失敗したときは{@link ImageSetter#onException(Exception, ConnectionInfo)}が呼び出される
+	 *
 	 * @param imageSetter 画像セッター
-	 * @param url URL
+	 * @param url         URL
 	 * @return キャッシュヒットしたかどうか
 	 * @throws InterruptedException 割り込まれた。
 	 */
@@ -410,11 +515,12 @@ public class ImageCacher {
 			}
 		}
 
-		if(imageEntry instanceof ErrorImageEntry){
+		if (imageEntry instanceof ErrorImageEntry) {
 			return false;
-		}else{
-		imageSetter.setImageRecursively(imageEntry.image);
-		return true;}
+		} else {
+			imageSetter.setImageRecursively(imageEntry.image);
+			return true;
+		}
 	}
 
 	/**
@@ -424,6 +530,7 @@ public class ImageCacher {
 	 * @param label JLabelインスタンス
 	 * @param user  Twitterユーザー
 	 * @return キャッシュヒットしたかどうか。エラーキャッシュされている時もtrueを返しますが、画像は設定されません
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	public boolean setImageIcon(JLabel label, User user) throws InterruptedException {
 		try {

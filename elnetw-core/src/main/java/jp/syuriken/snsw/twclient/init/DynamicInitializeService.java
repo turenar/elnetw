@@ -41,12 +41,21 @@ import org.slf4j.LoggerFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DynamicInitializeService extends InitializeService {
+	/**
+	 * Initializerに提供する初期化状況の実装
+	 */
 	protected class InitConditionImpl implements InitCondition {
 
 		private final InitializerInfoImpl initializerInfo;
 		private final boolean initializingPhase;
 		private InitializeException failException;
 
+		/**
+		 * インスタンス生成
+		 *
+		 * @param info                initializer情報
+		 * @param isInitializingPhase 起動フェーズかどうか
+		 */
 		protected InitConditionImpl(InitializerInfoImpl info, boolean isInitializingPhase) {
 			this.initializerInfo = info;
 			initializingPhase = isInitializingPhase;
@@ -62,6 +71,11 @@ public class DynamicInitializeService extends InitializeService {
 			return configuration;
 		}
 
+		/**
+		 * 例外を取得する
+		 *
+		 * @return 例外
+		 */
 		protected InitializeException getException() {
 			return failException;
 		}
@@ -87,7 +101,7 @@ public class DynamicInitializeService extends InitializeService {
 		}
 	}
 
-	/** store initializer's information */
+	/** store information of initializer */
 	protected class InitializerInfoImpl implements InitializerInfo {
 		private final Method initializer;
 		private final Initializer annotation;
@@ -226,6 +240,7 @@ public class DynamicInitializeService extends InitializeService {
 		/**
 		 * invoke initializer
 		 *
+		 * @param initializePhase 起動フェーズかどうか
 		 * @throws InitializeException exception occurred
 		 */
 		public void run(boolean initializePhase) throws InitializeException {
@@ -286,6 +301,7 @@ public class DynamicInitializeService extends InitializeService {
 			}
 		}
 
+		@Override
 		public String toString() {
 			return getName() + " (" + initializer.getDeclaringClass().getSimpleName() + "#" + initializer.getName()
 					+ ")";
@@ -298,6 +314,7 @@ public class DynamicInitializeService extends InitializeService {
 	 * register this to {@link InitializeService}.
 	 * If something is already registered, throw {@link IllegalStateException}.
 	 *
+	 * @param configuration configuration
 	 * @return this instance
 	 * @throws IllegalStateException something is already registered to InitializeService
 	 */
@@ -321,6 +338,11 @@ public class DynamicInitializeService extends InitializeService {
 	protected Stack<InitializerInfoImpl> uninitStack;
 	private HashSet<String> phaseSet;
 
+	/**
+	 * インスタンス生成
+	 *
+	 * @param configuration 設定
+	 */
 	protected DynamicInitializeService(ClientConfiguration configuration) {
 		this.configuration = configuration;
 		initializerInfoMap = new HashMap<>();
@@ -448,6 +470,11 @@ public class DynamicInitializeService extends InitializeService {
 		return this;
 	}
 
+	/**
+	 * nameを強制的に呼び出し済みとマークする
+	 *
+	 * @param name initializer名
+	 */
 	public void resolve(String name) {
 		if (initializedSet.contains(name)) {
 			return;
@@ -468,11 +495,16 @@ public class DynamicInitializeService extends InitializeService {
 		}
 	}
 
+	/**
+	 * 依存関係解決済みinitializerはどんどん起動させちゃおうね〜〜〜
+	 *
+	 * @throws InitializeException 例外
+	 */
 	protected void runResolvedInitializer() throws InitializeException {
 		while (!initQueue.isEmpty()) {
 			InitializerInfoImpl info = initQueue.poll();
 			if (logger.isTraceEnabled()) {
-				logger.trace(" {}{}:{}", (info.isSkip() ? "(skip)" : ""), info.getPhase(), info);
+				logger.trace(" {}{}:{}", (info.isSkip() ? "(skip)" : ""), info.getPhase(), info); // CS-IGNORE
 			}
 			info.run(true);
 			if (info.isUninitable()) {

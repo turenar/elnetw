@@ -65,7 +65,11 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		/** 抽出設定かどうか */
 		protected boolean isExtract;
 
-		/** 抽出設定かどうかを取得する */
+		/**
+		 * 抽出設定かどうかを取得する
+		 *
+		 * @return 抽出設定かどうか
+		 */
 		public boolean isExtractFilter() {
 			return isExtract;
 		}
@@ -195,6 +199,8 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		}
 	}
 
+	public static final int DEFAULT_FRAME_SIZE = 400;
+
 	private String propertyKey;
 	private ClientProperties properties;
 	private JTextArea filterEditTextArea;
@@ -207,10 +213,10 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	 * @param displayString 表示名
 	 * @param propertyKey   プロパティキー
 	 */
-	public FilterEditFrame(ClientConfiguration configuration, String displayString, String propertyKey) {
+	public FilterEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		properties = configuration.getConfigProperties();
+		properties = ClientConfiguration.getInstance().getConfigProperties();
 		initComponents(displayString);
 	}
 
@@ -282,7 +288,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		}
 
 		pack();
-		setSize(400, 400);
+		setSize(DEFAULT_FRAME_SIZE, DEFAULT_FRAME_SIZE);
 	}
 
 	@Override

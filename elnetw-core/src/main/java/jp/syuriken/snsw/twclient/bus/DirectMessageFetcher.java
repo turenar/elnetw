@@ -98,15 +98,13 @@ public class DirectMessageFetcher extends TwitterRunnable implements MessageChan
 			twitter = new TwitterFactory(
 					messageBus.getTwitterConfiguration(accountId)).getInstance();
 
-			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
-
-																				  @Override
-																				  public void run() {
-																					  configuration.addJob(JobQueue.Priority.LOW, DirectMessageFetcher.this);
-																				  }
-																			  }, 0, intervalOfDirectMessage,
-					TimeUnit.SECONDS
-			);
+			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
+					new Runnable() {
+						@Override
+						public void run() {
+							configuration.addJob(JobQueue.Priority.LOW, DirectMessageFetcher.this);
+						}
+					}, 0, intervalOfDirectMessage, TimeUnit.SECONDS);
 		}
 	}
 }

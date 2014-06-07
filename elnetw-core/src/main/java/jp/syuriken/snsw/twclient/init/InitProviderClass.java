@@ -28,15 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation shows Class has @{@link Initializer}.
- *
- * <p>Required: Methods with @{@link Initializer}</p>
- * <p>
- * Optional: Field with @{@link InitializerInstance}. If one field with @{@link InitializerInstance},
- * methods with @{@link Initializer} will be invoked with the field. If the field was omitted, methods must be static.
- * </p>
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * このクラスは{@link jp.syuriken.snsw.twclient.init.Initializer}を提供するクラスであることを示すアノテーション
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

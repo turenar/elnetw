@@ -74,7 +74,7 @@ public class ClientProperties extends Properties {
 		try {
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-			int ivLength = (src[0] & 0xff) + ((src[1] << 8) & 0xff00);
+			int ivLength = (src[0] & 0xff) + ((src[1] << 8) & 0xff00); // 無符号にするためにandを使っている
 			byte[] iv = Arrays.copyOfRange(src, 2, 2 + ivLength);
 			byte[] dat = Arrays.copyOfRange(src, 2 + ivLength, src.length);
 
@@ -83,7 +83,8 @@ public class ClientProperties extends Properties {
 
 			cipher.init(Cipher.DECRYPT_MODE, decryptKey, algorithmParameters);
 			return cipher.doFinal(dat);
-		} catch (IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException | NoSuchAlgorithmException | IOException e) {
+		} catch (IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException
+				| NoSuchAlgorithmException | IOException e) {
 			throw new RuntimeException(e);
 		} catch (BadPaddingException e) {
 			// BadPadding is because of InvalidKey
@@ -105,7 +106,8 @@ public class ClientProperties extends Properties {
 			System.arraycopy(enc, 0, ret, 2 + iv.length, enc.length);
 
 			return ret;
-		} catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException | IOException e) {
+		} catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException
+				| NoSuchPaddingException | IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -411,7 +413,8 @@ public class ClientProperties extends Properties {
 	 *
 	 * 書式：long
 	 *
-	 * @param key キー
+	 * @param key          キー
+	 * @param defaultValue デフォルト値
 	 * @return keyに関連付けられたlong
 	 */
 	public synchronized long getLong(String key, long defaultValue) {
@@ -643,7 +646,7 @@ public class ClientProperties extends Properties {
 	 * @param key  キー
 	 * @param font フォントインスタンス
 	 */
-	public synchronized void setFont(String key, Font font) throws IllegalArgumentException {
+	public synchronized void setFont(String key, Font font) {
 		setProperty(key, font.getName() + ',' + font.getSize() + ',' + font.getStyle());
 	}
 
@@ -674,7 +677,7 @@ public class ClientProperties extends Properties {
 	 * @param key        property key
 	 * @param value      property value
 	 * @param passphrase Passphrase
-	 * @throws InvalidKeyException
+	 * @throws InvalidKeyException 暗号キーがおかしい
 	 */
 	public synchronized void setPrivateString(String key, String value, String passphrase) throws InvalidKeyException {
 		setPrivateString(key, value, makeKey(passphrase));
@@ -687,7 +690,7 @@ public class ClientProperties extends Properties {
 	 * @param key        property key
 	 * @param value      property value
 	 * @param encryptKey Key for encryption. Use {@link #makeKey(String)}.
-	 * @throws InvalidKeyException
+	 * @throws InvalidKeyException 暗号キーがおかしい
 	 */
 	public synchronized void setPrivateString(String key, String value, Key encryptKey) throws InvalidKeyException {
 		byte[] bytes = value.getBytes(ClientConfiguration.UTF8_CHARSET);

@@ -96,9 +96,15 @@ public class ClientConfiguration {
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
+	/**
+	 * デフォルトフォントのプロパティ名
+	 */
 	public static final String PROPERTY_GUI_FONT_DEFAULT = "gui.font.default";
+	/**
+	 * UIフォントのプロパティ名
+	 */
 	public static final String PROPERTY_GUI_FONT_UI = "gui.font.ui";
-	private static ClientConfiguration INSTANCE;
+	private static ClientConfiguration singleton;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
 
@@ -118,20 +124,10 @@ public class ClientConfiguration {
 	 * @return ClientConfiguration インスタンス
 	 */
 	public static synchronized ClientConfiguration getInstance() {
-		if (INSTANCE == null) {
-			INSTANCE = new ClientConfiguration();
+		if (singleton == null) {
+			singleton = new ClientConfiguration();
 		}
-		return INSTANCE;
-	}
-
-	/**
-	 * テスト以外呼び出し禁止！
-	 *
-	 * @param conf インスタンス
-	 */
-	/*package*/
-	static void setInstance(ClientConfiguration conf) {
-		INSTANCE = conf;
+		return singleton;
 	}
 
 	/**
@@ -171,6 +167,16 @@ public class ClientConfiguration {
 			throw new IllegalArgumentException(
 					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
 		}
+	}
+
+	/**
+	 * テスト以外呼び出し禁止！
+	 *
+	 * @param conf インスタンス
+	 */
+	/*package*/
+	static void setInstance(ClientConfiguration conf) {
+		singleton = conf;
 	}
 
 	private final List<ClientTab> tabsList = new ArrayList<>();
@@ -349,10 +355,6 @@ public class ClientConfiguration {
 		return argParser;
 	}
 
-	/*package*/ void setArgParser(ArgParser argParser) {
-		this.argParser = argParser;
-	}
-
 	/**
 	 * キャッシュマネージャを取得する。
 	 *
@@ -362,11 +364,6 @@ public class ClientConfiguration {
 		return cacheManager;
 	}
 
-	/*package*/
-	synchronized void setCacheManager(CacheManager cacheManager) {
-		this.cacheManager = cacheManager;
-	}
-
 	/**
 	 * コンフィグビルダーを取得する。
 	 *
@@ -374,11 +371,6 @@ public class ClientConfiguration {
 	 */
 	public synchronized ConfigFrameBuilder getConfigBuilder() {
 		return configBuilder;
-	}
-
-	/*package*/
-	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
-		this.configBuilder = configBuilder;
 	}
 
 	/**
@@ -391,30 +383,12 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * デフォルト設定を格納するプロパティを設定する。
-	 *
-	 * @param configDefaultProperties the configDefaultProperties to set
-	 */
-	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
-		this.configDefaultProperties = configDefaultProperties;
-	}
-
-	/**
 	 * 現在のユーザー設定を格納するプロパティを取得する。
 	 *
 	 * @return the configProperties
 	 */
 	public synchronized ClientProperties getConfigProperties() {
 		return configProperties;
-	}
-
-	/**
-	 * 現在のユーザー設定を格納するプロパティを設定する。
-	 *
-	 * @param configProperties the configProperties to set
-	 */
-	public synchronized void setConfigProperties(ClientProperties configProperties) {
-		this.configProperties = configProperties;
 	}
 
 	/**
@@ -455,15 +429,20 @@ public class ClientConfiguration {
 		return accountId;
 	}
 
+	/**
+	 * launcherがライブラリを読み込むために使用したクラスローダー
+	 *
+	 * @return クラスローダー
+	 */
 	public synchronized ClassLoader getExtraClassLoader() {
 		return extraClassLoader;
 	}
 
-	/*package*/
-	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
-		this.extraClassLoader = extraClassLoader;
-	}
-
+	/**
+	 * グローバルで使用するフィルタを取得する
+	 *
+	 * @return フィルタ
+	 */
 	public MessageFilter[] getFilters() {
 		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
 	}
@@ -475,15 +454,6 @@ public class ClientConfiguration {
 	 */
 	public ClientFrameApi getFrameApi() {
 		return frameApi;
-	}
-
-	/**
-	 * FrameApiを設定する
-	 *
-	 * @param frameApi フレームAPI
-	 */
-	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
-		this.frameApi = frameApi;
 	}
 
 	/**
@@ -536,10 +506,6 @@ public class ClientConfiguration {
 		return imageCacher;
 	}
 
-	/*package*/void setImageCacher(ImageCacher imageCacher) {
-		this.imageCacher = imageCacher;
-	}
-
 	/**
 	 * ジョブキューを取得する。
 	 *
@@ -558,11 +524,6 @@ public class ClientConfiguration {
 		return messageBus;
 	}
 
-	/*package*/
-	synchronized void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
-	}
-
 	/**
 	 * 実行時引数から作られたParsedArgumentsを取得する
 	 *
@@ -570,10 +531,6 @@ public class ClientConfiguration {
 	 */
 	public ParsedArguments getParsedArguments() {
 		return parsedArguments;
-	}
-
-	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
-		this.parsedArguments = parsedArguments;
 	}
 
 	/**
@@ -585,11 +542,6 @@ public class ClientConfiguration {
 		return timer;
 	}
 
-	/*package*/
-	synchronized void setTimer(ScheduledExecutorService timer) {
-		this.timer = timer;
-	}
-
 	/**
 	 * TrayIconをかえす。nullの場合有り。
 	 *
@@ -597,15 +549,6 @@ public class ClientConfiguration {
 	 */
 	public synchronized TrayIcon getTrayIcon() {
 		return trayIcon;
-	}
-
-	/**
-	 * トレイアイコン
-	 *
-	 * @param trayIcon the trayIcon to set
-	 */
-	public synchronized void setTrayIcon(TrayIcon trayIcon) {
-		this.trayIcon = trayIcon;
 	}
 
 	/**
@@ -703,6 +646,11 @@ public class ClientConfiguration {
 		return utility;
 	}
 
+	/**
+	 * intentArgumentsを呼び出す
+	 *
+	 * @param intentArguments intent
+	 */
 	public void handleAction(IntentArguments intentArguments) {
 		ActionHandler actionHandler = getActionHandler(intentArguments);
 		if (actionHandler != null) {
@@ -745,15 +693,6 @@ public class ClientConfiguration {
 	 */
 	public boolean isInitializing() {
 		return isInitializing;
-	}
-
-	/**
-	 * 初期化中/初期TLロード中であるかを設定する
-	 *
-	 * @param isInitializing 初期化中かどうか。
-	 */
-	/*package*/void setInitializing(boolean isInitializing) {
-		this.isInitializing = isInitializing;
 	}
 
 	/**
@@ -942,8 +881,90 @@ public class ClientConfiguration {
 		return old;
 	}
 
+	/*package*/ void setArgParser(ArgParser argParser) {
+		this.argParser = argParser;
+	}
+
+	/*package*/
+	synchronized void setCacheManager(CacheManager cacheManager) {
+		this.cacheManager = cacheManager;
+	}
+
+	/*package*/
+	synchronized void setConfigBuilder(ConfigFrameBuilder configBuilder) {
+		this.configBuilder = configBuilder;
+	}
+
+	/**
+	 * デフォルト設定を格納するプロパティを設定する。
+	 *
+	 * @param configDefaultProperties the configDefaultProperties to set
+	 */
+	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
+		this.configDefaultProperties = configDefaultProperties;
+	}
+
+	/**
+	 * 現在のユーザー設定を格納するプロパティを設定する。
+	 *
+	 * @param configProperties the configProperties to set
+	 */
+	public synchronized void setConfigProperties(ClientProperties configProperties) {
+		this.configProperties = configProperties;
+	}
+
+	/*package*/
+	synchronized void setExtraClassLoader(ClassLoader extraClassLoader) {
+		this.extraClassLoader = extraClassLoader;
+	}
+
+	/**
+	 * FrameApiを設定する
+	 *
+	 * @param frameApi フレームAPI
+	 */
+	/*package*/void setFrameApi(TwitterClientFrame frameApi) {
+		this.frameApi = frameApi;
+	}
+
+	/*package*/void setImageCacher(ImageCacher imageCacher) {
+		this.imageCacher = imageCacher;
+	}
+
+	/**
+	 * 初期化中/初期TLロード中であるかを設定する
+	 *
+	 * @param isInitializing 初期化中かどうか。
+	 */
+	/*package*/void setInitializing(boolean isInitializing) {
+		this.isInitializing = isInitializing;
+	}
+
+	/*package*/
+	synchronized void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
+	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
+		this.parsedArguments = parsedArguments;
+	}
+
 	/*package*/void setPortabledConfiguration(boolean portable) {
 		portabledConfiguration = portable;
+	}
+
+	/*package*/
+	synchronized void setTimer(ScheduledExecutorService timer) {
+		this.timer = timer;
+	}
+
+	/**
+	 * トレイアイコン
+	 *
+	 * @param trayIcon the trayIcon to set
+	 */
+	public synchronized void setTrayIcon(TrayIcon trayIcon) {
+		this.trayIcon = trayIcon;
 	}
 
 	/**

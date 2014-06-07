@@ -52,6 +52,9 @@ public class NetworkSupport {
 
 	private static final int BUFFER_SIZE = 65536;
 	private static final Logger logger = LoggerFactory.getLogger(NetworkSupport.class);
+	/**
+	 * fetch event handler to do nothing
+	 */
 	public static final NullFetchEventHandler NULL_FETCH_EVENT_HANDLER = new NullFetchEventHandler();
 	private static final OkHttpClient httpClient = new OkHttpClient();
 
@@ -64,6 +67,7 @@ public class NetworkSupport {
 	 *
 	 * @param url URL
 	 * @return データ
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	public static byte[] fetchContents(URL url) throws InterruptedException {
 		return fetchContents(url, NULL_FETCH_EVENT_HANDLER);
@@ -75,12 +79,20 @@ public class NetworkSupport {
 	 * @param url     URL
 	 * @param handler ハンドラ
 	 * @return データ
+	 * @throws java.lang.InterruptedException interrupted
 	 */
 	public static byte[] fetchContents(URL url, FetchEventHandler handler) throws InterruptedException {
 		ConnectionInfo connectionInfo = openConnection(url, handler);
 		return connectionInfo == null ? null : fetchContents(connectionInfo);
 	}
 
+	/**
+	 * URLからデータを取得する
+	 *
+	 * @param info connection
+	 * @return データ
+	 * @throws java.lang.InterruptedException interrupted
+	 */
 	public static byte[] fetchContents(ConnectionInfo info) throws InterruptedException {
 		URLConnection connection = info.getConnection();
 		InputStream stream = null;
@@ -137,6 +149,14 @@ public class NetworkSupport {
 		}
 	}
 
+	/**
+	 * open connection
+	 *
+	 * @param url     url
+	 * @param handler handler
+	 * @return connection information
+	 * @throws InterruptedException interrupted
+	 */
 	public static ConnectionInfo openConnection(URL url, FetchEventHandler handler) throws InterruptedException {
 		URLConnection connection = null;
 		try {
@@ -153,5 +173,8 @@ public class NetworkSupport {
 			handler.onException(connection, e);
 			return null;
 		}
+	}
+
+	private NetworkSupport() {
 	}
 }

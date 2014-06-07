@@ -78,36 +78,54 @@ public class ArgTokenizer {
 		this.argv = argv;
 	}
 
+	/**
+	 * 引数を使用したとマークする。
+	 */
 	public void consumeArg() {
 		setArgConsumed(true);
 	}
 
+	/**
+	 * 引数を取得する
+	 *
+	 * @return 引数
+	 */
 	public String getArg() {
 		return arg;
 	}
 
+	/**
+	 * オプション名を取得する
+	 *
+	 * @return オプション名
+	 */
 	public String getOpt() {
 		return opt;
 	}
 
+	/**
+	 * 次の引数を処理する
+	 *
+	 * @return 次の引数があるかどうか
+	 */
 	public boolean next() {
-		if (argParsed) {
-			if (argConsumed) {
-				savedArg = null;
-				if (shouldShiftArg) {
+		if (argParsed) { // 最初のパースではない
+			if (argConsumed) { // 引数が処理された
+				savedArg = null; // 保存されたargは引数として処理された
+				if (shouldShiftArg) { // オプションと引数は別々の要素として渡されているからここで引数分シフトする必要がある
 					argIndex++;
 				}
 			}
 			if (savedArg == null) {
-				argIndex++;
+				argIndex++; // 保存されたargがないとき/引数が処理されたときはオプションもシフトする
 			}
 		}
 		String savedArg = this.savedArg;
-		if (argIndex >= argv.length) {
+		if (argIndex >= argv.length) { // すべてパースした
 			opt = null;
 			arg = null;
 			return false;
-		} else if (argParseFinished) {
+		} else if (argParseFinished) { // "--"を処理した
 			argParsed = false;
 			opt = null;
 			arg = argv[argIndex++];
@@ -166,6 +184,11 @@ public class ArgTokenizer {
 		return true;
 	}
 
+	/**
+	 * 引数が処理されたかどうかを指定する
+	 *
+	 * @param consumed 処理されたかどうか
+	 */
 	public void setArgConsumed(boolean consumed) {
 		if (opt != null && arg != null) {
 			argConsumed = consumed;

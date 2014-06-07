@@ -23,13 +23,10 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.Insets;
-import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -79,6 +76,7 @@ import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.LayeredLayoutManager;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,9 +86,6 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
 
 /**
  * elnetwのメインウィンドウ
@@ -375,7 +370,7 @@ import static java.lang.Math.max;
 				postBox.setText("");
 				updatePostLength();
 				inReplyToStatus = null;
-				tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
+				tweetLengthCalculator = defaultTweetLengthCalculator;
 			} finally {
 				try {
 					final TwitterClientFrame this$tcf = TwitterClientFrame.this;
@@ -495,12 +490,12 @@ import static java.lang.Math.max;
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(TwitterClientFrame.class);
 	/** デフォルトフォント */
-	public final Font DEFAULT_FONT;
+	public final Font defaultFont;
 	/** UIフォント */
-	public final Font UI_FONT;
+	public final Font uiFont;
 	/*package*/final transient ClientConfiguration configuration;
 	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
-	/*package*/final transient TweetLengthCalculator DEFAULT_TWEET_LENGTH_CALCULATOR =
+	/*package*/final transient TweetLengthCalculator defaultTweetLengthCalculator =
 			new DefaultTweetLengthCalculator(this);
 	/*package*/ Status inReplyToStatus = null;
 	/*package*/ JPanel editPanel;
@@ -524,7 +519,7 @@ import static java.lang.Math.max;
 	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ JLabel postLengthLabel;
 	protected transient ClientTab selectingTab;
-	/*package*/transient TweetLengthCalculator tweetLengthCalculator = DEFAULT_TWEET_LENGTH_CALCULATOR;
+	/*package*/transient TweetLengthCalculator tweetLengthCalculator = defaultTweetLengthCalculator;
 	/*package*/transient DefaultMouseListener tweetViewListener = new DefaultMouseListener();
 	/*package*/transient ClientTab tweetViewingTab;
 	/*package*/ JPanel operationPanelContainer;
@@ -547,8 +542,8 @@ import static java.lang.Math.max;
 		configuration.setFrameApi(this);
 
 		configProperties = configuration.getConfigProperties();
-		UI_FONT = configProperties.getFont("gui.font.ui");
-		DEFAULT_FONT = configProperties.getFont("gui.font.default");
+		uiFont = configProperties.getFont("gui.font.ui");
+		defaultFont = configProperties.getFont("gui.font.default");
 		initActionHandlerTable();
 
 		getLoginUser();
@@ -670,7 +665,7 @@ import static java.lang.Math.max;
 
 	@Override
 	public Font getDefaultFont() {
-		return DEFAULT_FONT;
+		return defaultFont;
 	}
 
 	private JPanel getEditPanel() {
@@ -740,7 +735,7 @@ import static java.lang.Math.max;
 			postBox = new javax.swing.JTextArea();
 			postBox.setColumns(20);
 			postBox.setRows(3);
-			postBox.setFont(UI_FONT);
+			postBox.setFont(uiFont);
 			postBox.addKeyListener(new KeyAdapter() {
 
 				@Override
@@ -770,7 +765,7 @@ import static java.lang.Math.max;
 		if (postLengthLabel == null) {
 			postLengthLabel = new JLabel();
 			postLengthLabel.setText("0");
-			postLengthLabel.setFont(UI_FONT);
+			postLengthLabel.setFont(uiFont);
 		}
 		return postLengthLabel;
 	}
@@ -878,7 +873,7 @@ import static java.lang.Math.max;
 			tweetViewEditorPane = new JEditorPane();
 			tweetViewEditorPane.setEditable(false);
 			tweetViewEditorPane.setContentType("text/html");
-			tweetViewEditorPane.setFont(UI_FONT);
+			tweetViewEditorPane.setFont(uiFont);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setEditorKit(new HTMLEditorKitExtension());
 			tweetViewEditorPane.setText(ClientConfiguration.APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
@@ -954,141 +949,7 @@ import static java.lang.Math.max;
 	private JLayeredPane getTweetViewTextLayeredPane() {
 		if (tweetViewTextLayeredPane == null) {
 			tweetViewTextLayeredPane = new JLayeredPane();
-			tweetViewTextLayeredPane.setLayout(new LayoutManager2() {
-
-				Dimension minimumSize;
-
-				Dimension prefferedSize;
-
-				Dimension maximumSize;
-
-				final Dimension MAXIMUM_SIZE = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
-
-
-				@Override
-				public void addLayoutComponent(Component comp, Object constraints) {
-					invalidateLayout();
-				}
-
-				@Override
-				public void addLayoutComponent(String name, Component comp) {
-					if (tweetViewTextLayeredPane != comp.getParent()) {
-						throw new IllegalArgumentException("parent is already setted");
-					}
-					invalidateLayout();
-				}
-
-				private void calculateLayout(Container parent) {
-					if (minimumSize != null && prefferedSize != null && maximumSize != null) {
-						return;
-					}
-					int minw = 0;
-					int minh = 0;
-					int prefw = 0;
-					int prefh = 0;
-					int maxw = 0;
-					int maxh = 0;
-					int count = parent.getComponentCount();
-					for (int i = 0; i < count; i++) {
-						Component component = parent.getComponent(i);
-						Dimension size = component.getMinimumSize();
-						minw = max(minw, size.width);
-						minh = max(minh, size.height);
-						size = component.getPreferredSize();
-						prefw = max(prefw, size.width);
-						prefh = max(prefh, size.height);
-						size = component.getMaximumSize();
-						maxw = max(maxw, size.width);
-						maxh = max(maxh, size.height);
-					}
-					minimumSize = new Dimension(minw, minh);
-					prefferedSize = new Dimension(prefw, prefh);
-					maximumSize = new Dimension(maxh, maxw);
-				}
-
-				@Override
-				public float getLayoutAlignmentX(Container target) {
-					return 0;
-				}
-
-				@Override
-				public float getLayoutAlignmentY(Container target) {
-					return 0;
-				}
-
-				private void invalidateLayout() {
-					minimumSize = null;
-					prefferedSize = null;
-					maximumSize = null;
-				}
-
-				@Override
-				public void invalidateLayout(Container target) {
-					invalidateLayout();
-				}
-
-				@Override
-				public void layoutContainer(Container parent) {
-					final Insets insets = parent.getInsets();
-					final Dimension size = parent.getSize();
-					final int width = size.width - insets.left - insets.right;
-					final int height = size.height - insets.top - insets.bottom;
-					final int count = parent.getComponentCount();
-					for (int i = 0; i < count; i++) {
-						Component comp = parent.getComponent(i);
-						Dimension prefSize = comp.getPreferredSize();
-						Dimension minSize = comp.getMinimumSize();
-						int compw;
-						int x;
-						int comph;
-						int y;
-
-						if (abs(comp.getAlignmentX() - Component.CENTER_ALIGNMENT) < .0000001) {
-							compw = width;
-							x = 0;
-						} else {
-							compw =
-									width < prefSize.width ? ((width > minSize.width) ? width : minSize.width)
-											: prefSize.width;
-							x = (int) ((width - compw) * comp.getAlignmentX());
-						}
-						if (abs(comp.getAlignmentY() - Component.CENTER_ALIGNMENT) < .0000001) {
-							comph = height;
-							y = 0;
-						} else {
-							comph =
-									height < prefSize.height ? ((height > minSize.height) ? height : minSize.height)
-											: prefSize.height;
-							y = (int) ((height - comph) * comp.getAlignmentY());
-						}
-						comp.setBounds(x, y, compw, comph);
-					}
-				}
-
-				@Override
-				public Dimension maximumLayoutSize(Container target) {
-					/*calculateLayout(target);
-					return maximumSize;*/
-					return MAXIMUM_SIZE;
-				}
-
-				@Override
-				public Dimension minimumLayoutSize(Container parent) {
-					calculateLayout(parent);
-					return minimumSize;
-				}
-
-				@Override
-				public Dimension preferredLayoutSize(Container parent) {
-					calculateLayout(parent);
-					return prefferedSize;
-				}
-
-				@Override
-				public void removeLayoutComponent(Component comp) {
-					invalidateLayout();
-				}
-			});
+			tweetViewTextLayeredPane.setLayout(new LayeredLayoutManager());
 			tweetViewTextLayeredPane.add(getTweetViewTextOverlayLabel(), JLayeredPane.MODAL_LAYER);
 			tweetViewTextLayeredPane.add(getTweetViewTextScrollPane(), JLayeredPane.DEFAULT_LAYER);
 		}
@@ -1154,7 +1015,7 @@ import static java.lang.Math.max;
 
 	@Override
 	public Font getUiFont() {
-		return UI_FONT;
+		return uiFont;
 	}
 
 	@Override
@@ -1308,7 +1169,7 @@ import static java.lang.Math.max;
 	@Override
 	public TweetLengthCalculator setTweetLengthCalculator(TweetLengthCalculator newCalculator) {
 		TweetLengthCalculator oldCalculator = tweetLengthCalculator;
-		tweetLengthCalculator = newCalculator == null ? DEFAULT_TWEET_LENGTH_CALCULATOR : newCalculator;
+		tweetLengthCalculator = newCalculator == null ? defaultTweetLengthCalculator : newCalculator;
 		return oldCalculator;
 	}
 

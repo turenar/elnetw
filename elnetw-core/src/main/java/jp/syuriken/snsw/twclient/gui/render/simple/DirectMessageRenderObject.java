@@ -47,6 +47,7 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_CURSOR_HAND;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirectMessageRenderObject extends EntitySupportRenderObject {
+	private static final Logger logger = LoggerFactory.getLogger(DirectMessageRenderObject.class);
 	private final DirectMessage directMessage;
 	private String uniqId;
 
@@ -92,21 +93,6 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	}
 
 	@Override
-	public void onEvent(String name, Object arg) {
-		super.onEvent(name, arg);
-		if (name.equals(ClientEventConstants.EVENT_CLICKED_USERICON)) {
-			try {
-				new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
-						.setVisible(true);
-			} catch (MalformedURLException e) {
-				logger.error("failed getting original profile image", e);
-			}
-		}
-	}
-
-	private static final Logger logger = LoggerFactory.getLogger(DirectMessageRenderObject.class);
-
-	@Override
 	public String getUniqId() {
 		return uniqId;
 	}
@@ -118,12 +104,26 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 		try {
 			renderer.getImageCacher().setImageIcon(componentUserIcon, directMessage.getSender());
 		} catch (InterruptedException e) {
-			logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+			logger.warn("Interrupted", e);
+			Thread.currentThread().interrupt();
 		}
 
 		componentSentBy = new JLabel(getShortenString(directMessage.getSenderScreenName(), CREATED_BY_MAX_LEN));
 		componentSentBy.setFont(renderer.getDefaultFont());
 
 		setStatusTextWithEntities(directMessage, directMessage.getText());
+	}
+
+	@Override
+	public void onEvent(String name, Object arg) {
+		super.onEvent(name, arg);
+		if (name.equals(ClientEventConstants.EVENT_CLICKED_USERICON)) {
+			try {
+				new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
+						.setVisible(true);
+			} catch (MalformedURLException e) {
+				logger.error("failed getting original profile image", e);
+			}
+		}
 	}
 }

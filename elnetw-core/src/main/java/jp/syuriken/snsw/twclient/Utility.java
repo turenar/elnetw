@@ -135,16 +135,16 @@ public class Utility {
 	 */
 	public static void addMessageNotifier(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
 		try {
-			messageNotifierClass.getMethod("checkUsable", ClientConfiguration.class);
+			messageNotifierClass.getMethod("checkUsable");
 		} catch (NoSuchMethodException e) {
 			throw new IllegalArgumentException(
-					"messageNotifierClass must implement static method 'checkUsable(ClientConfiguration'", e);
+					"messageNotifierClass must implement static method 'checkUsable()'", e);
 		}
 		try {
 			messageNotifierClass.getConstructor(
 					ClientConfiguration.class);
 		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException("messageNotifierClass must implement <init>(ClientConfiguration)", e);
+			throw new IllegalArgumentException("messageNotifierClass must implement <init>()", e);
 		}
 		synchronized (messageNotifiers) {
 			ListIterator<MessageNotifierEntry> listIterator = messageNotifiers.listIterator();
@@ -535,41 +535,33 @@ public class Utility {
 	 * browserを表示する。
 	 *
 	 * @param url 開くURL
-	 * @throws java.awt.HeadlessException GUIを使用できない
-	 * @throws InvocationTargetException  関数のinvokeに失敗 (Mac OS)
-	 * @throws IllegalAccessException     アクセスに失敗
-	 * @throws IllegalArgumentException   正しくない引数
-	 * @throws IOException                IOエラーが発生
-	 * @throws NoSuchMethodException      関数のinvokeに失敗 (Mac OS)
-	 * @throws SecurityException          セキュリティ例外
-	 * @throws ClassNotFoundException     クラスのinvokeに失敗 (Mac OS)
+	 * @throws java.awt.HeadlessException             GUIを使用できない
+	 * @throws java.lang.ReflectiveOperationException 関数のinvokeに失敗 (Mac OS)
+	 * @throws IllegalArgumentException               正しくない引数
+	 * @throws IOException                            IOエラーが発生
+	 * @throws SecurityException                      セキュリティ例外
 	 */
-	public void openBrowser(String url) throws Exception {
+	public void openBrowser(String url) throws IOException, ReflectiveOperationException {
 		detectOS();
-		try {
-			switch (ostype) {
-				case WINDOWS:
-					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
-					break;
-				case MAC:
-					Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
+		switch (ostype) {
+			case WINDOWS:
+				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
+				break;
+			case MAC:
+				Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
 
-					Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
-					openURL.invoke(null, url.trim());
-					break;
-				case OTHER:
-					String browser = detectBrowser();
-					Runtime.getRuntime().exec(new String[]{
-							browser,
-							url.trim()
-					});
-					break;
-				default:
-					break;
-			}
-		} catch (Exception ex) {
-			logger.warn("Failed opening browser", ex);
-			throw ex;
+				Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
+				openURL.invoke(null, url.trim());
+				break;
+			case OTHER:
+				String browser = detectBrowser();
+				Runtime.getRuntime().exec(new String[]{
+						browser,
+						url.trim()
+				});
+				break;
+			default:
+				break;
 		}
 	}
 

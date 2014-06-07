@@ -104,7 +104,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 			exString = ex.toString();
 		}
 		if (exString.length() > 256) {
-			exString = new StringBuilder().append(exString, 0, 254).append("..").toString();
+			exString = new StringBuilder().append(exString, 0, 256 - 2).append("..").toString();
 		}
 		componentStatusText.setText(exString);
 	}

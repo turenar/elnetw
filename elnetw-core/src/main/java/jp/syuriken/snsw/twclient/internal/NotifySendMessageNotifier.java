@@ -41,7 +41,7 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 	public static boolean checkUsable(ClientConfiguration configuration) {
 		if (Utility.getOstype() == Utility.OSType.OTHER) {
 			try {
-				if (Runtime.getRuntime().exec(new String[] {
+				if (Runtime.getRuntime().exec(new String[]{
 						"which",
 						"notify-send"
 				}).waitFor() == 0) {
@@ -56,19 +56,17 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 		return false;
 	}
 
-	public NotifySendMessageNotifier(ClientConfiguration configuration) {
-	}
 
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) throws IOException {
 		if (imageFile == null) {
-			Runtime.getRuntime().exec(new String[] {
+			Runtime.getRuntime().exec(new String[]{
 					"notify-send",
 					summary,
 					text
 			});
 		} else {
-			Runtime.getRuntime().exec(new String[] {
+			Runtime.getRuntime().exec(new String[]{
 					"notify-send",
 					"-i",
 					imageFile.getPath(),

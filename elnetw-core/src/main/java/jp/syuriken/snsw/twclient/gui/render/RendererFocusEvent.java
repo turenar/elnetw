@@ -35,6 +35,11 @@ public class RendererFocusEvent extends FocusEvent {
 		this.renderObject = renderObject;
 	}
 
+	/**
+	 * get render object
+	 *
+	 * @return render object
+	 */
 	public RenderObject getRenderObject() {
 		return renderObject;
 	}

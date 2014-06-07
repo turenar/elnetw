@@ -98,13 +98,13 @@ public class InListProperty implements FilterProperty {
 						listId = configuration.getTwitterForRead().showUserList(listOwner, slug).getId();
 						break;
 					} catch (TwitterException e) {
-						if (e.getStatusCode() >= 500) {
+						if (e.getStatusCode() >= 500) { // CS-IGNORE
 							life--;
 							if (life <= 0) {
 								throw new IllegalSyntaxException("[inlist] Could not retrieve ListInformation: @"
 										+ listOwner + "/" + slug, e);
 							}
-						} else if (e.getStatusCode() == 404) {
+						} else if (e.getStatusCode() == HttpResponseCode.NOT_FOUND) {
 							throw new IllegalSyntaxException("[inlist] Not Found list: @" + listOwner + "/" + slug);
 						}
 					}

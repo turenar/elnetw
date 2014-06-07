@@ -76,7 +76,7 @@ public class TeeFilter implements TabRenderer {
 			globalFilters[globalFilters.length - 1] = userFilter;
 			filters = globalFilters;
 		} else {
-			filters = new MessageFilter[] {userFilter};
+			filters = new MessageFilter[]{userFilter};
 		}
 	}
 

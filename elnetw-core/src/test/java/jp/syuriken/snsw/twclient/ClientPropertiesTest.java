@@ -245,17 +245,6 @@ public class ClientPropertiesTest {
 		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "$priv$0", "kill me baby"));
 	}
 
-	@Test(expected = InvalidKeyException.class)
-	public void testIllegalKey() throws InvalidKeyException {
-		ClientProperties clientProperties = new ClientProperties();
-		try {
-			clientProperties.setPrivateString("aaa", "abcdefg", "0xcafebabe");
-		} catch (InvalidKeyException e) {
-			throw new AssertionError(e);
-		}
-		clientProperties.getPrivateString("aaa", "Oxcafebaby");
-	}
-
 	@Test
 	public void testGetTime() throws Exception {
 		ClientProperties clientProperties = new ClientProperties();
@@ -288,6 +277,17 @@ public class ClientPropertiesTest {
 				clientProperties.getTime("extra", TimeUnit.MINUTES));
 		assertEquals(TimeUnit.HOURS.convert(7, TimeUnit.DAYS),
 				clientProperties.getTime("extra", TimeUnit.HOURS));
+	}
+
+	@Test(expected = InvalidKeyException.class)
+	public void testIllegalKey() throws InvalidKeyException {
+		ClientProperties clientProperties = new ClientProperties();
+		try {
+			clientProperties.setPrivateString("aaa", "abcdefg", "0xcafebabe");
+		} catch (InvalidKeyException e) {
+			throw new AssertionError(e);
+		}
+		clientProperties.getPrivateString("aaa", "Oxcafebaby");
 	}
 
 	@Test

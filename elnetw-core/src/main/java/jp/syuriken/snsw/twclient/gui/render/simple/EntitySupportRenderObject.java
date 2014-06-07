@@ -46,14 +46,26 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 	private static final Logger logger = LoggerFactory.getLogger(EntitySupportRenderObject.class);
 	protected HashMap<String, UrlInfo> urlInfoMap;
 
+	/**
+	 * インスタンス生成
+	 *
+	 * @param renderer レンダラ
+	 */
 	public EntitySupportRenderObject(SimpleRenderer renderer) {
 		super(renderer);
 	}
 
-	protected String getTweetViewText(EntitySupport status, String text) {
+	/**
+	 * ツイートビューに表示するテキストを取得する
+	 *
+	 * @param entitySupport エンティティ対応オブジェクト
+	 * @param text          テキスト
+	 * @return ツイートビューに表示するテキスト
+	 */
+	protected String getTweetViewText(EntitySupport entitySupport, String text) {
 		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
 
-		TweetEntity[] entities = sortEntities(status);
+		TweetEntity[] entities = sortEntities(entitySupport);
 		int offset = 0;
 		for (TweetEntity entity : entities) {
 			int start = entity.getStart();
@@ -131,10 +143,16 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 		renderer.onException(ex);
 	}
 
-	protected void setStatusTextWithEntities(EntitySupport status, String text) {
+	/**
+	 * リストに表示するのに適切なステータステキストを設定する
+	 *
+	 * @param entitySupport エンティティ対応オブジェクト
+	 * @param text          テキスト
+	 */
+	protected void setStatusTextWithEntities(EntitySupport entitySupport, String text) {
 		StringBuilder statusText = new StringBuilder(text);
 
-		URLEntity[] urlEntities = status.getURLEntities();
+		URLEntity[] urlEntities = entitySupport.getURLEntities();
 		if (urlEntities != null) {
 			urlInfoMap = new HashMap<>();
 			for (URLEntity entity : urlEntities) {
@@ -144,7 +162,7 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 				UrlResolverManager.async(entity.getExpandedURL(), this);
 			}
 		}
-		MediaEntity[] mediaEntities = status.getMediaEntities();
+		MediaEntity[] mediaEntities = entitySupport.getMediaEntities();
 		if (mediaEntities != null) {
 			for (URLEntity entity : mediaEntities) {
 				String entityText = entity.getText();

@@ -57,7 +57,10 @@ public class RenderPanel extends JPanel implements Comparable<RenderPanel> {
 		this.renderObject = renderObject;
 	}
 
-	/** 元になる情報が作成された日時で比較する。同じ場合はidを比較する。 */
+	/**
+	 * 元になる情報が作成された日時で比較する。同じ場合はidを比較する。
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int compareTo(RenderPanel o) {
 		int result = renderObject.getDate().compareTo(o.renderObject.getDate());

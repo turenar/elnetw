@@ -120,8 +120,8 @@ public class ScrollUtility {
 	/*package*/boolean isInside(JComponent component) {
 		Point viewPosition = scrollPane.getViewport().getViewPosition();
 		Rectangle bounds = translator.translate(component);
-		return (viewPosition.y <= bounds.y && viewPosition.y + scrollPane.getViewport().getHeight() >= bounds.y
-				+ bounds.height);
+		return viewPosition.y <= bounds.y
+				&& viewPosition.y + scrollPane.getViewport().getHeight() >= bounds.y + bounds.height;
 	}
 
 	private void momemtumTranslate(int vectorY) {

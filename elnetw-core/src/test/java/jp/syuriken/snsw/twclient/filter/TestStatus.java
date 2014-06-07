@@ -121,6 +121,11 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
+	public String getLang() {
+		return null;
+	}
+
+	@Override
 	public MediaEntity[] getMediaEntities() {
 		return null;
 	}
@@ -143,6 +148,11 @@ import twitter4j.UserMentionEntity;
 	@Override
 	public Status getRetweetedStatus() {
 		return retweetedStatus;
+	}
+
+	@Override
+	public Scopes getScopes() {
+		return null;
 	}
 
 	@Override
@@ -183,16 +193,6 @@ import twitter4j.UserMentionEntity;
 	@Override
 	public boolean isPossiblySensitive() {
 		return false;
-	}
-
-	@Override
-	public String getLang() {
-		return null;
-	}
-
-	@Override
-	public Scopes getScopes() {
-		return null;
 	}
 
 	@Override

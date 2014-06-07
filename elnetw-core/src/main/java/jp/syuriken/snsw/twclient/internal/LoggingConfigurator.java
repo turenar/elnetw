@@ -1,3 +1,24 @@
+/*
+ * The MIT License (MIT)
+ * Copyright (c) 2011-2014 Turenai Project
+ *
+ * Permission is hereby granted, free of charge,
+ *  to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation the rights to
+ *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ *  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package jp.syuriken.snsw.twclient.internal;
 
 import java.io.ByteArrayInputStream;
@@ -25,7 +46,7 @@ public class LoggingConfigurator {
 	 *
 	 * @param parsed ParsedArguments instance
 	 */
-	public static void setLogger(ParsedArguments parsed) {
+	public static void configureLogger(ParsedArguments parsed) {
 		new LoggingConfigurator(parsed).configure();
 	}
 
@@ -47,47 +68,47 @@ public class LoggingConfigurator {
 	private final ParsedArguments parsed;
 	private final StringBuilder builder;
 
-	public LoggingConfigurator(ParsedArguments parsed) {
+	private LoggingConfigurator(ParsedArguments parsed) {
 		this.parsed = parsed;
 		builder = new StringBuilder();
 	}
 
 	private void addAppenderConsole() {
 		builder.append(
-				"<appender name=\"FILE\" class=\"ch.qos.logback.core.FileAppender\">\n" +
-						"  <file>${elnetw.home}/log/elnetw-${bySecond}.log</file>\n" +
-						"  <encoder>\n" +
-						"    <Pattern>\n" +
-						"      %d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n\n" +
-						"    </Pattern>\n" +
-						"  </encoder>\n" +
-						"</appender>\n" +
-						"<appender name=\"ASYNC_FILE\" class=\"ch.qos.logback.classic.AsyncAppender\">\n" +
-						"  <appender-ref ref=\"FILE\" />\n" +
-						"  <discardingThreshold>0</discardingThreshold>\n" +
-						"</appender>"
+				"<appender name=\"FILE\" class=\"ch.qos.logback.core.FileAppender\">\n"
+						+ "  <file>${elnetw.home}/log/elnetw-${bySecond}.log</file>\n"
+						+ "  <encoder>\n"
+						+ "    <Pattern>\n"
+						+ "      %d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n\n"
+						+ "    </Pattern>\n"
+						+ "  </encoder>\n"
+						+ "</appender>\n"
+						+ "<appender name=\"ASYNC_FILE\" class=\"ch.qos.logback.classic.AsyncAppender\">\n"
+						+ "  <appender-ref ref=\"FILE\" />\n"
+						+ "  <discardingThreshold>0</discardingThreshold>\n"
+						+ "</appender>"
 		);
 	}
 
 	private void addAppenderFile() {
 		if (!parsed.hasOpt("--quiet")) {
 			builder.append(
-					"<appender name=\"STDOUT\" class=\"ch.qos.logback.core.ConsoleAppender\">\n" +
-							"  <Target>System.out</Target>\n" +
-							"  <encoder>\n" +
-							"    <Pattern>\n"
+					"<appender name=\"STDOUT\" class=\"ch.qos.logback.core.ConsoleAppender\">\n"
+							+ "  <Target>System.out</Target>\n"
+							+ "  <encoder>\n"
+							+ "    <Pattern>\n"
 			);
 			if (parsed.hasOpt("--color-log") || parsed.hasOpt("--debug")) {
 				builder.append(
-						"%yellow(%d{HH:mm:ss.SSS}) " +
-								"[%highlight(%-5level) %cyan(%-35.35logger{35}) %magenta(%12.12thread)] %msg%n%xEx"
+						"%yellow(%d{HH:mm:ss.SSS}) "
+								+ "[%highlight(%-5level) %cyan(%-35.35logger{35}) %magenta(%12.12thread)] %msg%n%xEx"
 				);
 			} else {
 				builder.append("%d{HH:mm:ss.SSS} [%-5level %-35logger{35}] %msg%n\n");
 			}
-			builder.append("    </Pattern>\n" +
-					"  </encoder>\n" +
-					"</appender>");
+			builder.append("    </Pattern>\n"
+					+ "  </encoder>\n"
+					+ "</appender>");
 		}
 	}
 
@@ -135,8 +156,8 @@ public class LoggingConfigurator {
 			case "QUIET":
 				return "OFF";
 			default:
-				throw new IllegalArgumentException("--log-level/--root-log-level <level>: " +
-						"level must be one of trace,all,debug,info,warn,error,none,off,quiet");
+				throw new IllegalArgumentException("--log-level/--root-log-level <level>: "
+						+ "level must be one of trace,all,debug,info,warn,error,none,off,quiet");
 		}
 	}
 
@@ -166,8 +187,8 @@ public class LoggingConfigurator {
 			case "QUIET":
 				return "OFF";
 			default:
-				throw new IllegalArgumentException("--log-level <level>: level must be one of trace,all,debug,info," +
-						"warn,error,none,off,quiet");
+				throw new IllegalArgumentException("--log-level <level>: level must be one of trace,all,debug,info,"
+						+ "warn,error,none,off,quiet");
 		}
 	}
 
@@ -185,15 +206,15 @@ public class LoggingConfigurator {
 
 	private void setLogLevel() {
 		builder.append(
-				"<logger name=\"jp.syuriken.snsw\">\n" +
-						"  <level value=\""
-		).append(getLogLevel(parsed.getOptArg("--log-level"))).append("\" />\n" +
-				"</logger>\n" +
+				"<logger name=\"jp.syuriken.snsw\">\n"
+						+ "  <level value=\""
+		).append(getLogLevel(parsed.getOptArg("--log-level"))).append("\" />\n"
+				+ "</logger>\n"
 				// root log level
-				"<root>\n" +
-				"  <level value=\"").append(getRootLogLevel()).append("\" />\n" +
-				"  <appender-ref ref=\"STDOUT\" />\n" +
-				"  <appender-ref ref=\"ASYNC_FILE\" />\n" +
-				"</root>");
+				+ "<root>\n"
+				+ "  <level value=\"").append(getRootLogLevel()).append("\" />\n"
+				+ "  <appender-ref ref=\"STDOUT\" />\n"
+				+ "  <appender-ref ref=\"ASYNC_FILE\" />\n"
+				+ "</root>");
 	}
 }

@@ -306,11 +306,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
-	public boolean isDefaultProfileImage() {
-		return defaultProfileImage;
-	}
-
-	@Override
 	public String getProfileBackgroundColor() {
 		return profileBackgroundColor;
 	}
@@ -450,6 +445,16 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	@Override
+	public boolean isDefaultProfile() {
+		return defaultProfile;
+	}
+
+	@Override
+	public boolean isDefaultProfileImage() {
+		return defaultProfileImage;
+	}
+
+	@Override
 	public boolean isFollowRequestSent() {
 		return isFollowRequestSent;
 	}
@@ -467,11 +472,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public boolean isProfileUseBackgroundImage() {
 		return profileUseBackgroundImage;
-	}
-
-	@Override
-	public boolean isDefaultProfile() {
-		return defaultProfile;
 	}
 
 	@Override

@@ -136,11 +136,6 @@ class TestUser implements User {
 	}
 
 	@Override
-	public boolean isDefaultProfileImage() {
-		return false;
-	}
-
-	@Override
 	public String getProfileBackgroundColor() {
 		return null;
 	}
@@ -261,6 +256,16 @@ class TestUser implements User {
 	}
 
 	@Override
+	public boolean isDefaultProfile() {
+		return false;
+	}
+
+	@Override
+	public boolean isDefaultProfileImage() {
+		return false;
+	}
+
+	@Override
 	public boolean isFollowRequestSent() {
 		return false;
 	}
@@ -277,11 +282,6 @@ class TestUser implements User {
 
 	@Override
 	public boolean isProfileUseBackgroundImage() {
-		return false;
-	}
-
-	@Override
-	public boolean isDefaultProfile() {
 		return false;
 	}
 

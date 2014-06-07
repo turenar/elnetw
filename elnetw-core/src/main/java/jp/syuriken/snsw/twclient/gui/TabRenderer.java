@@ -22,7 +22,6 @@
 package jp.syuriken.snsw.twclient.gui;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.User;
 
 /**
  * タブレンダラ
@@ -30,7 +29,13 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface TabRenderer extends ClientMessageListener {
+	/**
+	 * event id for reader account changed
+	 */
 	/*public static final*/ String READER_ACCOUNT_CHANGED = "account reader changed";
+	/**
+	 * event id for writer account changed
+	 */
 	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
 
 	/**

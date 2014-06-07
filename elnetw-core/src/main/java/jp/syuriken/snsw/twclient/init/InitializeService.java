@@ -130,6 +130,7 @@ public abstract class InitializeService {
 	 * @param instance instance to invoke instance-method
 	 * @param method   method object
 	 * @return this object
+	 * @throws java.lang.IllegalArgumentException method don't have @Initializer
 	 */
 	public abstract InitializeService register(Object instance, Method method) throws IllegalArgumentException;
 
@@ -140,6 +141,7 @@ public abstract class InitializeService {
 	 *
 	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
 	 * @return this object
+	 * @throws java.lang.IllegalArgumentException wrong class
 	 */
 	public abstract InitializeService register(Class<?> initClass) throws IllegalArgumentException;
 
@@ -166,7 +168,8 @@ public abstract class InitializeService {
 	 * wait for init-queue consumed
 	 *
 	 * @return this object
-	 * @throws IllegalStateException {@link #uninit()} is already called
+	 * @throws IllegalStateException                              {@link #uninit()} is already called
+	 * @throws jp.syuriken.snsw.twclient.init.InitializeException error in initializer
 	 */
 	public abstract InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException;
 }

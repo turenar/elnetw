@@ -42,6 +42,8 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MiscRenderObject extends AbstractRenderObject {
+	private static final Logger logger = LoggerFactory.getLogger(MiscRenderObject.class);
+
 	private static String getUserCreatedByText(User user) {
 		return "@" + user.getScreenName() + " (" + user.getName() + ")";
 	}
@@ -70,13 +72,13 @@ public class MiscRenderObject extends AbstractRenderObject {
 		getFrameApi().setTweetViewText(text, null, DO_NOTHING_WHEN_POINTED);
 	}
 
+	/**
+	 * get background color
+	 *
+	 * @return bg color
+	 */
 	public Color getBackgroundColor() {
 		return backgroundColor;
-	}
-
-	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
-		this.backgroundColor = backgroundColor;
-		return this;
 	}
 
 	@Override
@@ -89,38 +91,23 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return createdBy;
 	}
 
-	public MiscRenderObject setCreatedBy(User user) {
-		return setCreatedBy(user.getScreenName())
-				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
-	}
-
 	@Override
 	public Date getDate() {
 		return new Date(date);
 	}
 
-	public MiscRenderObject setDate(long date) {
-		this.date = date;
-		return this;
-	}
-
+	/**
+	 * get foreground color
+	 *
+	 * @return fg color
+	 */
 	public Color getForegroundColor() {
 		return foregroundColor;
-	}
-
-	public MiscRenderObject setForegroundColor(Color foregroundColor) {
-		this.foregroundColor = foregroundColor;
-		return this;
 	}
 
 	@Override
 	public String getUniqId() {
 		return uniqId;
-	}
-
-	public MiscRenderObject setUniqId(String uniqId) {
-		this.uniqId = uniqId;
-		return this;
 	}
 
 	@Override
@@ -129,6 +116,34 @@ public class MiscRenderObject extends AbstractRenderObject {
 		componentSentBy.setFont(renderer.getDefaultFont());
 	}
 
+	/**
+	 * set background color
+	 *
+	 * @param backgroundColor background color
+	 * @return this instance
+	 */
+	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
+		this.backgroundColor = backgroundColor;
+		return this;
+	}
+
+	/**
+	 * set created by from user
+	 *
+	 * @param user user
+	 * @return this instance
+	 */
+	public MiscRenderObject setCreatedBy(User user) {
+		return setCreatedBy(user.getScreenName())
+				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
+	}
+
+	/**
+	 * set created-by name
+	 *
+	 * @param createdBy createdBy name
+	 * @return this instance
+	 */
 	public MiscRenderObject setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 		if (longCreatedBy == null) {
@@ -137,33 +152,98 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return this;
 	}
 
+	/**
+	 * set created-by text
+	 *
+	 * @param createdBy createdBy text
+	 * @return this instance
+	 */
 	public MiscRenderObject setCreatedByText(String createdBy) {
 		return setCreatedByText(createdBy, createdBy);
 	}
 
+	/**
+	 * set created-by text
+	 *
+	 * @param createdBy     createdBy text
+	 * @param longCreatedBy createdBy text (not omitted)
+	 * @return this instance
+	 */
 	public MiscRenderObject setCreatedByText(String createdBy, String longCreatedBy) {
 		this.longCreatedBy = longCreatedBy;
 		componentSentBy.setText(getShortenString(createdBy, CREATED_BY_MAX_LEN));
 		return this;
 	}
 
+	/**
+	 * set published date
+	 *
+	 * @param date date
+	 * @return this instance
+	 */
+	public MiscRenderObject setDate(long date) {
+		this.date = date;
+		return this;
+	}
+
+	/**
+	 * set foreground color
+	 *
+	 * @param foregroundColor foreground color
+	 * @return this instance
+	 */
+	public MiscRenderObject setForegroundColor(Color foregroundColor) {
+		this.foregroundColor = foregroundColor;
+		return this;
+	}
+
+	/**
+	 * set createdBy icon from user
+	 *
+	 * @param user user
+	 * @return this instance
+	 */
 	public MiscRenderObject setIcon(User user) {
 		try {
 			renderer.getImageCacher().setImageIcon(componentUserIcon, user);
 		} catch (InterruptedException e) {
-			logger.warn("Interrupted",e);	Thread.currentThread().interrupt();
+			logger.warn("Interrupted", e);
+			Thread.currentThread().interrupt();
 		}
 		return this;
 	}
-private static final Logger logger= LoggerFactory.getLogger(MiscRenderObject.class);
+
+	/**
+	 * set createdBy icon
+	 *
+	 * @param icon icon
+	 * @return this instance
+	 */
 	public MiscRenderObject setIcon(ImageIcon icon) {
 		componentUserIcon.setIcon(icon);
 		return this;
 	}
 
+	/**
+	 * set text
+	 *
+	 * @param text text
+	 * @return this instance
+	 */
 	public MiscRenderObject setText(String text) {
 		this.text = text;
 		componentStatusText.setText(getShortenString(text, TEXT_MAX_LEN));
+		return this;
+	}
+
+	/**
+	 * set unique identifier
+	 *
+	 * @param uniqId identifier
+	 * @return this instance
+	 */
+	public MiscRenderObject setUniqId(String uniqId) {
+		this.uniqId = uniqId;
 		return this;
 	}
 }

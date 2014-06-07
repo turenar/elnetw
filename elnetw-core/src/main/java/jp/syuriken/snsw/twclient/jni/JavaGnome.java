@@ -34,20 +34,22 @@ import org.slf4j.LoggerFactory;
  */
 public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);
-	private static JavaGnome INSTANCE;
+	private static JavaGnome singleton;
 
 	public static synchronized JavaGnome getInstance() {
-		if (INSTANCE == null) {
-			INSTANCE = new JavaGnome();
+		if (singleton == null) {
+			singleton = new JavaGnome();
 		}
-		return INSTANCE;
+		return singleton;
 	}
 
-	private final ClassLoader extraClassLoader;
 	private final Class<?> versionClass;
 
-	public JavaGnome() {
-		extraClassLoader = ClientConfiguration.getInstance().getExtraClassLoader();
+	/**
+	 * インスタンスの生成
+	 */
+	private JavaGnome() {
+		ClassLoader extraClassLoader = ClientConfiguration.getInstance().getExtraClassLoader();
 
 		Class<?> versionClass1;
 		try {
@@ -59,6 +61,11 @@ public class JavaGnome {
 		versionClass = versionClass1;
 	}
 
+	/**
+	 * get java-gnome api version
+	 *
+	 * @return api version
+	 */
 	public String getApiVersion() {
 		if (versionClass == null) {
 			return null;
@@ -76,6 +83,11 @@ public class JavaGnome {
 		}
 	}
 
+	/**
+	 * get java-gnome version
+	 *
+	 * @return java-gnome version
+	 */
 	public String getVersion() {
 		if (versionClass == null) {
 			return null;
@@ -93,10 +105,20 @@ public class JavaGnome {
 		}
 	}
 
+	/**
+	 * get if function using java-gnome should be disabled
+	 *
+	 * @return should be disabled
+	 */
 	public boolean isDisabled() {
 		return Boolean.getBoolean("elnetw.java-gnome.disable");
 	}
 
+	/**
+	 * get if java-gnome is loaded
+	 *
+	 * @return if java-gnome is loaded
+	 */
 	public boolean isFound() {
 		return versionClass != null;
 	}

@@ -58,12 +58,12 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.EntitySupport;
@@ -95,7 +95,13 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	/*package*/static final int PADDING_OF_POSTLIST = 1;
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	/**
+	 * リストに表示するcreatedByのテキスト最大長
+	 */
 	public static final int CREATED_BY_MAX_LEN = 11;
+	/**
+	 * リストに表示するテキスト最大長
+	 */
 	public static final int TEXT_MAX_LEN = 255;
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRenderObject.class);
 
@@ -154,6 +160,12 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 	}
 
+	/**
+	 * entityたちを全部ソート
+	 *
+	 * @param status エンティティ対応クラスインスタンス
+	 * @return エンティティ配列 (start昇順)
+	 */
 	protected static TweetEntity[] sortEntities(EntitySupport status) {
 		int entitiesLen;
 		HashtagEntity[] hashtagEntities = status.getHashtagEntities();
@@ -188,16 +200,48 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return entities;
 	}
 
+	/**
+	 * レンダラ
+	 */
 	protected final SimpleRenderer renderer;
+	/**
+	 * レンターターゲット
+	 */
 	protected final RenderTarget target;
+	/**
+	 * 右クリックで表示するポップアップメニュー
+	 */
 	protected JPopupMenu popupMenu;
+	/**
+	 * コンポーネント
+	 */
 	protected RenderPanel linePanel;
+	/**
+	 * ユーザーアイコンコンポーネント
+	 */
 	protected JLabel componentUserIcon = new JLabel();
+	/**
+	 * 作成者コンポーネント
+	 */
 	protected JLabel componentSentBy = new JLabel();
+	/**
+	 * テキストコンポーネント
+	 */
 	protected JLabel componentStatusText = new JLabel();
+	/**
+	 * 前景色
+	 */
 	protected Color foregroundColor = Color.BLACK;
+	/**
+	 * 背景色
+	 */
 	protected Color backgroundColor = Color.WHITE;
 
+	/**
+	 * インスタンスの生成
+	 *
+	 * @param renderer レンダラ
+	 */
 	public AbstractRenderObject(SimpleRenderer renderer) {
 		this.target = renderer.getTarget();
 		this.renderer = renderer;
@@ -225,6 +269,12 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	public void focusLost(FocusEvent e) {
 	}
 
+	/**
+	 * menuTypeからポップアップメニューを作成する
+	 *
+	 * @param menuType メニュータイプ
+	 * @return ポップアップメニュー ({@link #popupMenu})
+	 */
 	protected JPopupMenu generatePopupMenu(String menuType) {
 		popupMenu.removeAll();
 
@@ -319,10 +369,20 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return linePanel;
 	}
 
+	/**
+	 * get {@link jp.syuriken.snsw.twclient.ClientProperties} instance
+	 *
+	 * @return getRenderer().getConfigProperties()
+	 */
 	public ClientProperties getConfigProperties() {
 		return renderer.getConfigProperties();
 	}
 
+	/**
+	 * get {@link jp.syuriken.snsw.twclient.ClientConfiguration} instance
+	 *
+	 * @return getRenderer().getConfiguration()
+	 */
 	public ClientConfiguration getConfiguration() {
 		return renderer.getConfiguration();
 	}
@@ -333,10 +393,20 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	@Override
 	public abstract Date getDate();
 
+	/**
+	 * get ClientFrameApi instance
+	 *
+	 * @return getConfiguration().getFrameApi()
+	 */
 	public ClientFrameApi getFrameApi() {
 		return renderer.getConfiguration().getFrameApi();
 	}
 
+	/**
+	 * get ImageCacher instance
+	 *
+	 * @return getRenderer().getImageCacher()
+	 */
 	protected ImageCacher getImageCacher() {
 		return renderer.getImageCacher();
 	}
@@ -353,10 +423,22 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		return intentArguments;
 	}
 
+	/**
+	 * popup menu type
+	 *
+	 * @return ポップアップメニュータイプ
+	 */
 	protected String getPopupMenuType() {
 		return "default";
 	}
 
+	/**
+	 * 最後に..を付けて長いテキストを省略する
+	 *
+	 * @param string テキスト
+	 * @param maxLen 最大長
+	 * @return maxLen以下の文字列
+	 */
 	protected String getShortenString(String string, int maxLen) {
 		if (string.length() > maxLen) {
 			string = string.substring(0, maxLen - 2) + "..";
@@ -367,6 +449,10 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	@Override
 	public abstract String getUniqId();
 
+	/**
+	 * コンポーネントの初期化。初めて{@link #getComponent()}が呼び出された時に呼び出される。
+	 * componentSentBy, componentStatusText, componentUserIconを初期化しよう。
+	 */
 	protected abstract void initComponents();
 
 	@Override

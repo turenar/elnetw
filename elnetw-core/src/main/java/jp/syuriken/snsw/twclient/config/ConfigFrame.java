@@ -60,6 +60,8 @@ public class ConfigFrame extends JFrame {
 		}
 	}
 
+	public static final int BASELINE_GROUP_PREF_SIZE = 24;
+
 	/*package*/static ConfigFrame openingFrame;
 	private static Object staticHolder = new Object();
 
@@ -85,21 +87,21 @@ public class ConfigFrame extends JFrame {
 		String group = "UNDEF";
 		String subgroup = "UNDEF";
 		JPanel tabContent = null;
-		JPanel subgroupPanel = null;
+		JPanel subgroupPanel;
 		GroupLayout layout = null;
 		SequentialGroup verticalGroup = null; // Parallel[K V]
 		ParallelGroup horizontalNameGroup = null;
 		ParallelGroup horizontalValueGroup = null;
 		ParallelGroup horizontalCombinedGroup = null;
 		for (Config config : configs) {
-			if (group.equals(config.getGroup()) == false) {
+			if (!group.equals(config.getGroup())) {
 				group = config.getGroup();
 				tabContent = new JPanel();
 				tabContent.setLayout(new BoxLayout(tabContent, BoxLayout.Y_AXIS));
 				subgroup = "UNDEF";
 				tabbedPane.add(group, new JScrollPane(tabContent));
 			}
-			if (subgroup == null ? config.getSubgroup() != null : subgroup.equals(config.getSubgroup()) == false) {
+			if (subgroup == null ? config.getSubgroup() != null : !subgroup.equals(config.getSubgroup())) {
 				subgroup = config.getSubgroup();
 				subgroupPanel = new JPanel();
 				layout = new GroupLayout(subgroupPanel);
@@ -128,14 +130,15 @@ public class ConfigFrame extends JFrame {
 					config.getType().getComponent(configKey,
 							configKey == null ? null : properties.getProperty(configKey), openingFrame);
 			valueComponent.setToolTipText(config.getHint());
-			if (config.getType().isPreferedAsMultiline()) {
+			if (config.getType().isPreferredAsMultiline()) {
 				verticalGroup.addGap(2, 2, 2).addComponent(label).addComponent(valueComponent);
 				horizontalCombinedGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE).addComponent(valueComponent, Alignment.CENTER);
 			} else {
 				verticalGroup.addGroup(
 						layout.createBaselineGroup(false, true).addComponent(label)
-								.addComponent(valueComponent, 24, 24, 24)
+								.addComponent(valueComponent, BASELINE_GROUP_PREF_SIZE,
+										BASELINE_GROUP_PREF_SIZE, BASELINE_GROUP_PREF_SIZE)
 				).addGap(2, 2, 2);
 				horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);

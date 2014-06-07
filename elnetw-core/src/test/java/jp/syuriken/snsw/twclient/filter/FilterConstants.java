@@ -142,7 +142,7 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	}
 
 	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
-	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[] {
+	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[]{
 			this
 	};
 	/** 最後にフィルタしようとしたオブジェクト */

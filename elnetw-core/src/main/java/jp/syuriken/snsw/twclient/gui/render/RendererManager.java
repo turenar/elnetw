@@ -26,11 +26,27 @@ import jp.syuriken.snsw.twclient.gui.render.simple.SimpleRenderer;
 
 /** Renderer Manager */
 public class RendererManager {
+	/**
+	 * new renderer instance
+	 *
+	 * @param accountId account id
+	 * @param target    render target
+	 * @return renderer instance
+	 */
 	public static TabRenderer get(String accountId, RenderTarget target) {
 		return new SimpleRenderer(accountId, target);
 	}
 
+	/**
+	 * utility method: get unique identifier for status
+	 *
+	 * @param status status
+	 * @return unique identifier
+	 */
 	public static String getStatusUniqId(long status) {
 		return "status/" + status;
+	}
+
+	private RendererManager() {
 	}
 }

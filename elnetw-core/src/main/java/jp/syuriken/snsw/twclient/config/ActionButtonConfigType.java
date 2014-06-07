@@ -40,7 +40,7 @@ public class ActionButtonConfigType implements ConfigType {
 
 	private final String buttonText;
 	/*package*/final String actionCommand;
-	private final ActionListener ACTION_LISTENER = new ActionListener() {
+	private final ActionListener actionListener = new ActionListener() {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -67,7 +67,7 @@ public class ActionButtonConfigType implements ConfigType {
 	public JComponent getComponent(String configKey, String nowValue, ConfigFrame listener) {
 		JButton button = new JButton(buttonText);
 		button.setActionCommand(actionCommand);
-		button.addActionListener(ACTION_LISTENER);
+		button.addActionListener(actionListener);
 		return button;
 	}
 
@@ -77,7 +77,7 @@ public class ActionButtonConfigType implements ConfigType {
 	}
 
 	@Override
-	public boolean isPreferedAsMultiline() {
+	public boolean isPreferredAsMultiline() {
 		return true;
 	}
 

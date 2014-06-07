@@ -110,7 +110,7 @@ public class IntegerConfigType implements ConfigType {
 	}
 
 	@Override
-	public boolean isPreferedAsMultiline() {
+	public boolean isPreferredAsMultiline() {
 		return false;
 	}
 

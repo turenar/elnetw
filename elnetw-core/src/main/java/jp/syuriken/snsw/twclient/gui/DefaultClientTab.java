@@ -56,7 +56,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
@@ -67,6 +66,7 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
+import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.JSONArray;
@@ -303,6 +303,14 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
+	/**
+	 * 行の最小高さ
+	 */
+	public static final int MIN_HEIGHT = 18;
+	/**
+	 * アイコン幅
+	 */
+	public static final int ICON_WIDTH = 64;
 	/** {@link jp.syuriken.snsw.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
 	/** SortedPostListPanelインスタンス */
@@ -319,11 +327,14 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
 	 */
 	protected final String uniqId;
+	/**
+	 * アカウントID
+	 */
 	protected final String accountId;
 	/** デフォルトフォント */
-	public final Font DEFAULT_FONT;
+	public final Font defaultFont;
 	/** UIフォント */
-	public final Font UI_FONT;
+	public final Font uiFont;
 	/** UI更新キュー */
 	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
 	/** inReplyTo呼び出しのスタック */
@@ -360,8 +371,17 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * </p>
 	 */
 	protected TabRenderer teeFilter;
+	/**
+	 * ポップアップメニューリスナ
+	 */
 	protected TweetPopupMenuListener tweetPopupMenuListener;
+	/**
+	 * 実際に描画処理・移譲を行うタブレンダラ
+	 */
 	protected TabRenderer actualRenderer;
+	/**
+	 * 選択しているポストへスクロールするべきかどうか
+	 */
 	protected boolean shouldBeScrollToPost;
 
 	/** インスタンスを生成する。 */
@@ -374,8 +394,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		sortedPostListPanel = new SortedPostListPanel();
 		accountId = "$reader";
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
-		UI_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
-		DEFAULT_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
+		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
+		defaultFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
 		init(configuration);
 	}
 
@@ -398,8 +418,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		}
 		this.accountId = accountId;
 		uniqId = serializedJson.getString("uniqId");
-		UI_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
-		DEFAULT_FONT = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
+		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
+		defaultFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
 		init(configuration);
 	}
 
@@ -457,7 +477,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	}
 
 	/**
-	 * 実際に描画するレンダラ。
+	 * 実際に描画を行うレンダラ
 	 *
 	 * @return レンダラ
 	 * @see #getRenderer()
@@ -475,6 +495,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		return getSortedPostListPanel();
 	}
 
+	/**
+	 * 描画処理をレンダラに行わせるクラスインスタンスを取得する
+	 *
+	 * @return インスタンス
+	 */
 	public abstract DelegateRenderer getDelegateRenderer();
 
 	/**
@@ -557,7 +582,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		return postListScrollPane;
 	}
 
-	/** このクラスではJSONが返されます。 */
+	/**
+	 * このクラスではJSONが返されます。
+	 *
+	 * @return JSON形式のデータ
+	 */
 	@Override
 	public String getSerializedData() {
 		try {
@@ -603,8 +632,8 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * @return ステータスデータ
 	 */
 	public RenderObject getStatus(long statusId) {
-		RenderPanel RenderPanel = statusMap.get(RendererManager.getStatusUniqId(statusId));
-		return RenderPanel == null ? null : RenderPanel.getRenderObject();
+		RenderPanel renderPanel = statusMap.get(RendererManager.getStatusUniqId(statusId));
+		return renderPanel == null ? null : renderPanel.getRenderObject();
 	}
 
 	@Override
@@ -634,9 +663,9 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
 		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
-		int height = Math.max(18, fontHeight);
+		int height = Math.max(MIN_HEIGHT, fontHeight);
 		linePanelSizeOfSentBy = new Dimension(str12width, height);
-		iconSize = new Dimension(64, height);
+		iconSize = new Dimension(ICON_WIDTH, height);
 		configuration.getTimer().scheduleWithFixedDelay(new PostListUpdater(),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
@@ -691,6 +720,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
+	/**
+	 * EDTで動かす
+	 *
+	 * @param runnable ジョブ
+	 */
 	protected void runInDispatcherThread(Runnable runnable) {
 		if (EventQueue.isDispatchThread()) {
 			runnable.run();
@@ -699,6 +733,9 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
+	/**
+	 * 選択しているポストへスクロールする
+	 */
 	protected void scrollToSelectingPost() {
 		if (selectingPost == null) {
 			return;

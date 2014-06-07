@@ -51,24 +51,24 @@ public class HTMLFactoryDelegator extends HTMLFactory {
 		 */
 		public ParagraphViewDelegator(View view) {
 			super(view.getElement());
-			setInsets((short) -10, (short) 0, (short) -10, (short) 0); // CAUTION: ignore rule
+			setInsets((short) -10, (short) 0, (short) -10, (short) 0); // CAUTION: ignore rule // CS-IGNORE
 			setPropertiesFromAttributes();
 		}
 
 		@Override
 		public AttributeSet getAttributes() {
 			AttributeSet attributes = super.getAttributes();
-			if (attributes instanceof MutableAttributeSet == false) {
+			if (!(attributes instanceof MutableAttributeSet)) {
 				attributes = new SimpleAttributeSet(attributes);
 			}
-			StyleConstants.setLineSpacing((MutableAttributeSet) attributes, -0.25f); // CAUTION: ignore rule
+			StyleConstants.setLineSpacing((MutableAttributeSet) attributes, -0.25f); // CAUTION: ignore rule //CS-IGNORE
 			return attributes;
 		}
 
 		@Override
 		public int getHeight() {
 			return super.getHeight() - 20;
-		}
+		} //CS-IGNORE
 	}
 
 	@Override

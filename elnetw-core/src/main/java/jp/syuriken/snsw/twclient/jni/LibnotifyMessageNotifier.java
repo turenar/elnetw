@@ -57,7 +57,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 				Boolean isGtkInitialized = (Boolean) gtkClass.getMethod("isInitialized").invoke(null);
 				if (!isGtkInitialized) { // if(!Gtk.isInitialized){
 					// Gtk.init(new String[]{});
-					gtkClass.getMethod("init", String[].class).invoke(null, (Object) new String[] {});
+					gtkClass.getMethod("init", String[].class).invoke(null, (Object) new String[]{});
 				}
 				Class<?> notifyClass = Class.forName("org.gnome.notify.Notify", true, extraClassLoader);
 				Boolean isNotifyInitialized = (Boolean) notifyClass.getMethod("isInitialized").invoke(null);
@@ -85,10 +85,13 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 
 	private final Class<?> notificationClass;
 
-	public LibnotifyMessageNotifier(ClientConfiguration configuration) {
+	/**
+	 * インスタンスの生成
+	 */
+	public LibnotifyMessageNotifier() {
 		try {
 			notificationClass = Class.forName("org.gnome.notify.Notification", true,
-					configuration.getExtraClassLoader());
+					ClientConfiguration.getInstance().getExtraClassLoader());
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
@@ -104,14 +107,10 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 			Object notification = constructor.newInstance(summary, text, imageFilePath);
 
 			notificationClass.getMethod("show").invoke(notification);
-		} catch (InstantiationException e) {
-			logger.error("#sendNotify", e);
-		} catch (IllegalAccessException e) {
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
 			logger.error("#sendNotify", e);
 		} catch (InvocationTargetException e) {
 			logger.error("#sendNotify", e.getCause());
-		} catch (NoSuchMethodException e) {
-			logger.error("#sendNotify", e);
 		}
 	}
 }

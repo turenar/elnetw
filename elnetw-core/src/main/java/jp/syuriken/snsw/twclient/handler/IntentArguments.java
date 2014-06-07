@@ -129,17 +129,6 @@ public class IntentArguments implements Cloneable {
 	}
 
 	/**
-	 * アクション名を指定する。
-	 *
-	 * @param name アクション名
-	 * @return このIntentArguments自身
-	 */
-	public IntentArguments setIntentName(String name) {
-		intentName = name;
-		return this;
-	}
-
-	/**
 	 * delegate for {@link jp.syuriken.snsw.twclient.ClientConfiguration#handleAction(IntentArguments)}
 	 */
 	public void invoke() {
@@ -158,6 +147,17 @@ public class IntentArguments implements Cloneable {
 			extraArgs = new HashMap<>();
 		}
 		extraArgs.put(name, value);
+		return this;
+	}
+
+	/**
+	 * アクション名を指定する。
+	 *
+	 * @param name アクション名
+	 * @return このIntentArguments自身
+	 */
+	public IntentArguments setIntentName(String name) {
+		intentName = name;
 		return this;
 	}
 

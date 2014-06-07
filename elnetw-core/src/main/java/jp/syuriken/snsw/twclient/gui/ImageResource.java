@@ -33,15 +33,10 @@ import javax.swing.ImageIcon;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public final class ImageResource {
-
 	private static final ImageIcon IMG_FAV_OFF;
-
 	private static final ImageIcon IMG_FAV_ON;
-
 	private static final ImageIcon IMG_FAV_HOVER;
-
 	private static final ImageIcon IMG_TWITTER_LOGO;
-
 	private static final URL URL_IMAGE_FILE_ICON;
 
 	static {
@@ -65,28 +60,51 @@ public final class ImageResource {
 		URL_IMAGE_FILE_ICON = classLoader.getResource("jp/syuriken/snsw/twclient/img/img_icon.png");
 	}
 
-	/** ふぁぼの星 (フォーカスが当たっている時用) 32x32 */
+	/**
+	 * ふぁぼの星 (フォーカスが当たっている時用) 32x32
+	 *
+	 * @return ふぁぼの星 (フォーカスが当たっている時用) 32x32
+	 */
 	public static ImageIcon getImgFavHover() {
 		return IMG_FAV_HOVER;
 	}
 
-	/** ふぁぼの星 (ふぁぼされていない時用) 32x32 */
+	/**
+	 * ふぁぼの星 (ふぁぼされていない時用) 32x32
+	 *
+	 * @return ふぁぼの星 (ふぁぼされていない時用) 32x32
+	 */
 	public static ImageIcon getImgFavOff() {
 		return IMG_FAV_OFF;
 	}
 
-	/** ふぁぼの星 (ふぁぼされている時用) 32x32 */
+	/**
+	 * ふぁぼの星 (ふぁぼされている時用) 32x32
+	 *
+	 * @return ふぁぼの星 (ふぁぼされている時用) 32x32
+	 */
 	public static ImageIcon getImgFavOn() {
 		return IMG_FAV_ON;
 	}
 
-	/** Twitterのロゴ (青背景に白) */
+	/**
+	 * Twitterのロゴ (青背景に白)
+	 *
+	 * @return Twitterのロゴ (青背景に白)
+	 */
 	public static ImageIcon getImgTwitterLogo() {
 		return IMG_TWITTER_LOGO;
 	}
 
-	/** 画像ファイルアイコンURL */
+	/**
+	 * 画像ファイルアイコンURL
+	 *
+	 * @return 画像ファイルアイコンURL
+	 */
 	public static URL getUrlImageFileIcon() {
 		return URL_IMAGE_FILE_ICON;
+	}
+
+	private ImageResource() {
 	}
 }

@@ -369,7 +369,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		try {
 			getImageCacher().setImageIcon(componentUserIcon, status.getUser());
 		} catch (InterruptedException e) {
-			logger.warn("Interrupted",e);
+			logger.warn("Interrupted", e);
 			Thread.currentThread().interrupt();
 		}
 		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
@@ -417,8 +417,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 				break;
 			case REQUEST_COPY_URL: {
 				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
-				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/" +
-						status.getId();
+				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/"
+						+ status.getId();
 				copyToClipboard(url);
 			}
 			break;
@@ -435,8 +435,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 			case REQUEST_BROWSER_PERMALINK:
 			case EVENT_CLICKED_CREATED_AT: {
 				Status status = this.status.isRetweet() ? this.status.getRetweetedStatus() : this.status;
-				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/" +
-						status.getId();
+				String url = "https://twitter.com/" + status.getUser().getScreenName() + "/status/"
+						+ status.getId();
 				openBrowser(url);
 			}
 			break;

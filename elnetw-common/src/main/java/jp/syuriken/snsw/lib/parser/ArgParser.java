@@ -52,7 +52,13 @@ public class ArgParser {
 		return longOptName.startsWith("--") ? longOptName : ("--" + longOptName);
 	}
 
+	/**
+	 * オプション情報を格納するマップ
+	 */
 	protected final HashMap<String, OptionConfig> optionInfoMap;
+	/**
+	 * 短いオプションKと長いオプションVを多:1で対応付けるマップ
+	 */
 	protected final HashMap<String, String> shortOptMap;
 	/**
 	 * 未知のオプションを無視するかどうか
@@ -78,6 +84,14 @@ public class ArgParser {
 		return addLongOpt(longOptName, type, false);
 	}
 
+	/**
+	 * 長いオプションをパース対象として追加する。
+	 *
+	 * @param longOptName 長いオプション名
+	 * @param type        オプションタイプ
+	 * @param multiple    複数指定可能かどうか。falseのときオプションに対する引数等は最後の一つしか保存されない
+	 * @return このインスタンス
+	 */
 	public ArgParser addLongOpt(String longOptName, OptionType type, boolean multiple) {
 		optionInfoMap.put(getLongOptName(longOptName), new OptionConfig(type, multiple));
 		return this;
@@ -118,19 +132,11 @@ public class ArgParser {
 
 	/**
 	 * 未知のオプションを無視するかどうかを取得する
+	 *
+	 * @return 未知のオプションを無視するかどうか
 	 */
 	public boolean isIgnoreUnknownOption() {
 		return ignoreUnknownOption;
-	}
-
-	/**
-	 * 未知のオプションを無視するかどうかを設定する
-	 *
-	 * @param ignoreUnknownOption 無視するかどうか
-	 */
-	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
-		this.ignoreUnknownOption = ignoreUnknownOption;
-		return this;
 	}
 
 	/**
@@ -200,5 +206,16 @@ public class ArgParser {
 			}
 		}
 		return parsed;
+	}
+
+	/**
+	 * 未知のオプションを無視するかどうかを設定する
+	 *
+	 * @param ignoreUnknownOption 無視するかどうか
+	 * @return このインスタンス
+	 */
+	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
+		this.ignoreUnknownOption = ignoreUnknownOption;
+		return this;
 	}
 }

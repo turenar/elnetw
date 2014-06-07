@@ -198,17 +198,20 @@ public class TwitterClientMain {
 
 	/** 設定ファイル名 */
 	protected static final String CONFIG_FILE_NAME = "elnetw.cfg";
-	public static final int JOBWORKER_JOIN_TIMEOUT = 32;
+	private static final int JOBWORKER_JOIN_TIMEOUT = 32;
+	/**
+	 * abi version for communicating between launcher and TwitterClient Main
+	 */
 	public static final int LAUNCHER_ABI_VERSION = 1;
 	@InitializerInstance
-	private static volatile TwitterClientMain SINGLETON;
+	private static volatile TwitterClientMain singleton;
 
 	public static synchronized TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
-		if (SINGLETON != null) {
+		if (singleton != null) {
 			throw new IllegalStateException("another instance always seems to be running");
 		}
-		SINGLETON = new TwitterClientMain(args, classLoader);
-		return SINGLETON;
+		singleton = new TwitterClientMain(args, classLoader);
+		return singleton;
 	}
 
 	/**
@@ -231,16 +234,16 @@ public class TwitterClientMain {
 
 	/** 終了する。 */
 	public static synchronized void quit() {
-		if (SINGLETON == null) {
+		if (singleton == null) {
 			throw new IllegalStateException("no instance running!");
 		}
-		SINGLETON.isInterrupted = true;
-		SINGLETON.MAIN_THREAD.interrupt();
+		singleton.isInterrupted = true;
+		singleton.mainThread.interrupt();
 	}
 
 	private final ClassLoader classLoader;
 	/** for interruption */
-	private final Thread MAIN_THREAD;
+	private final Thread mainThread;
 	/** スレッドホルダ */
 	protected final Object threadHolder = new Object();
 	private final ArgParser parser;
@@ -264,7 +267,7 @@ public class TwitterClientMain {
 	 */
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
 		this.classLoader = classLoader;
-		MAIN_THREAD = Thread.currentThread();
+		mainThread = Thread.currentThread();
 		parser = new ArgParser();
 		parser.addLongOpt("--debug", OptionType.NO_ARGUMENT)
 				.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT)
@@ -293,7 +296,7 @@ public class TwitterClientMain {
 	@Initializer(name = "gui/config/filter", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
-				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator(configuration));
+				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
 	}
 
 	@Initializer(name = "clean/log", phase = "poststart")
@@ -578,7 +581,7 @@ public class TwitterClientMain {
 		}
 
 		setHomeProperty();
-		LoggingConfigurator.setLogger(parsedArguments);
+		LoggingConfigurator.configureLogger(parsedArguments);
 		logger = LoggerFactory.getLogger(TwitterClientMain.class);
 
 		for (Iterator<String> errorMessages = parsedArguments.getErrorMessageIterator(); errorMessages.hasNext(); ) {
@@ -747,7 +750,7 @@ public class TwitterClientMain {
 
 	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
 	public void setMessageChannelFactory() {
-		messageBus.addVirtualChannel("my/timeline", new String[] {"stream/user", "statuses/timeline"});
+		messageBus.addVirtualChannel("my/timeline", new String[]{"stream/user", "statuses/timeline"});
 		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
 		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());

@@ -115,7 +115,7 @@ public class UserFilterTest {
 	public void testOnFavorite() {
 		tearUp();
 		try {
-			Status[] succStatuses = new Status[] {
+			Status[] succStatuses = new Status[]{
 					new TestStatus(0, null, -1),
 					new TestStatus(0, new TestStatus(0, null, -1), -1)
 			};
@@ -124,7 +124,7 @@ public class UserFilterTest {
 				assertTrue(userFilter.onFavorite(new TestUser(1), new TestUser(0), status));
 				assertTrue(userFilter.onFavorite(new TestUser(0), new TestUser(1), status));
 			}
-			Status[] failStatuses = new Status[] {
+			Status[] failStatuses = new Status[]{
 					new TestStatus(1, null, -1),
 					new TestStatus(0, null, 1),
 					new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -158,7 +158,7 @@ public class UserFilterTest {
 	public void testOnRetweet() {
 		tearUp();
 		try {
-			Status[] succStatuses = new Status[] {
+			Status[] succStatuses = new Status[]{
 					new TestStatus(0, null, -1),
 					new TestStatus(0, new TestStatus(0, null, -1), -1)
 			};
@@ -167,7 +167,7 @@ public class UserFilterTest {
 				assertTrue(userFilter.onRetweet(new TestUser(1), new TestUser(0), status));
 				assertTrue(userFilter.onRetweet(new TestUser(0), new TestUser(1), status));
 			}
-			Status[] failStatuses = new Status[] {
+			Status[] failStatuses = new Status[]{
 					new TestStatus(1, null, -1),
 					new TestStatus(0, null, 1),
 					new TestStatus(0, new TestStatus(1, null, -1), -1),
@@ -207,7 +207,7 @@ public class UserFilterTest {
 	public void testOnUnfavorite() {
 		tearUp();
 		try {
-			Status[] succStatuses = new Status[] {
+			Status[] succStatuses = new Status[]{
 					new TestStatus(0, null, -1),
 					new TestStatus(0, new TestStatus(0, null, -1), -1)
 			};
@@ -216,7 +216,7 @@ public class UserFilterTest {
 				assertTrue(userFilter.onUnfavorite(new TestUser(1), new TestUser(0), status));
 				assertTrue(userFilter.onUnfavorite(new TestUser(0), new TestUser(1), status));
 			}
-			Status[] failStatuses = new Status[] {
+			Status[] failStatuses = new Status[]{
 					new TestStatus(1, null, -1),
 					new TestStatus(0, null, 1),
 					new TestStatus(0, new TestStatus(1, null, -1), -1),

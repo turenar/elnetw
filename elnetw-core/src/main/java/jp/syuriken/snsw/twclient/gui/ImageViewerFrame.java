@@ -74,6 +74,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 	}
 
+	/**
+	 * イメージフェッチハンドラ
+	 */
 	protected class ImageFetcher implements ParallelRunnable, FetchEventHandler {
 		private final Logger logger = LoggerFactory.getLogger(ImageFetcher.class);
 		private final URL url;
@@ -123,7 +126,8 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 					if (imageIcon.getIconHeight() < 0) {
 						updateImageLabel("画像のロードに失敗したもよう");
 					} else {
-						ImageViewerFrame.this.image = Utility.createBufferedImage(image, new MediaTracker(ImageViewerFrame.this));
+						ImageViewerFrame.this.image = Utility.createBufferedImage(image,
+								new MediaTracker(ImageViewerFrame.this));
 						checkImageSize();
 						EventQueue.invokeLater(new Runnable() {
 							@Override
@@ -169,6 +173,10 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
 	private static final long serialVersionUID = 8816712425087567400L;
+	/**
+	 * minimum image size
+	 */
+	public static final int MIN_IMAGE_SIZE = 64;
 	private final URL url;
 	private int resizeScaleFactor;
 	private transient MouseListener zoomMouseListener = new MouseAdapter() {
@@ -204,6 +212,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 				.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI).deriveFont(Font.BOLD);
 	}
 
+	/**
+	 * ディスプレイサイズに合うように画像の縮尺を変更する
+	 */
 	protected void checkImageSize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int height = screenSize.height;
@@ -291,13 +302,13 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		int width = getWidth();
 		int height = getHeight();
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		if (width < 64) {
-			width = 64;
+		if (width < MIN_IMAGE_SIZE) {
+			width = MIN_IMAGE_SIZE;
 		} else if (width > screenSize.width) {
 			width = screenSize.width;
 		}
-		if (height < 64) {
-			height = 64;
+		if (height < MIN_IMAGE_SIZE) {
+			height = MIN_IMAGE_SIZE;
 		} else if (height > screenSize.height) {
 			height = screenSize.height;
 		}

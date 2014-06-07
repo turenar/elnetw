@@ -308,6 +308,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 * valuesの内容をこのパネルに追加する
 	 *
 	 * @param values RenderPanelのLinkedList
+	 * @return added panels count
 	 */
 	public synchronized int add(LinkedList<RenderPanel> values) {
 		Bucket bucket = this.bucket;
@@ -378,8 +379,8 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 					// I already values.first should be added into branch
 					branch.add(panel, insertPos);
 					size++;
-				} while (!(values.isEmpty() || checkOverTime(limitTime)) &&
-						compareDate(values.peek(), lastOfBranch) >= 0);
+				} while (!(values.isEmpty() || checkOverTime(limitTime))
+						&& compareDate(values.peek(), lastOfBranch) >= 0);
 				int componentCount = branch.getComponentCount();
 
 				boolean panelAppendFlag = componentCount > (leafSize << 1);
@@ -419,6 +420,11 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		}
 	}
 
+	/**
+	 * create new panel
+	 *
+	 * @return panel
+	 */
 	protected JPanel createPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -520,6 +526,11 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		return panel != null && panel.requestFocusInWindow();
 	}
 
+	/**
+	 * 最後のコンポーネントをフォーカスする
+	 *
+	 * @return フォーカス変更が失敗すると保証されるとき false; 成功すると思われるときは true
+	 */
 	public boolean requestFocusLastComponent() {
 		JPanel lastBranch = branches.getLast();
 		if (lastBranch != null) {
@@ -545,8 +556,8 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 			}
 			Component[] components = branch.getComponents();
 			for (int i = 0; i < components.length - 1; i++) {
-				RenderPanel RenderPanel = (RenderPanel) components[i];
-				if (compareDate(panel, RenderPanel) == 0) {
+				RenderPanel renderPanel = (RenderPanel) components[i];
+				if (compareDate(panel, renderPanel) == 0) {
 					return components[i + 1].requestFocusInWindow();
 				}
 			}
@@ -571,8 +582,8 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 			}
 			Component[] components = previous.getComponents();
 			for (int i = components.length - 1; i > 0; i--) {
-				RenderPanel RenderPanel = (RenderPanel) components[i];
-				if (compareDate(panel, RenderPanel) == 0) {
+				RenderPanel renderPanel = (RenderPanel) components[i];
+				if (compareDate(panel, renderPanel) == 0) {
 					return components[i - 1].requestFocusInWindow();
 				}
 			}

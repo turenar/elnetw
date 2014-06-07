@@ -55,7 +55,8 @@ public class OAuthHelper {
 	 * AccessTokenを取得するために、Twitterのoauthページを開き、PINコードを入力させる。
 	 *
 	 * @return アクセストークンが設定されたTwitterオブジェクト。キャンセルされたときはnullを返す。
-	 * @throws TwitterException リクエストトークンが取得できない。メッセージダイアログは表示される。
+	 * @throws TwitterException                           リクエストトークンが取得できない。メッセージダイアログは表示される。
+	 * @throws java.util.concurrent.CancellationException user cancelled
 	 */
 	public Twitter show() throws CancellationException, TwitterException {
 		String message = null;

@@ -26,19 +26,36 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import twitter4j.Status;
 
+/**
+ * abstract action handler which uses status argument
+ */
 public abstract class StatusActionHandlerBase implements ActionHandler {
 
 	protected final ClientConfiguration configuration;
 
+	/**
+	 * init
+	 */
 	public StatusActionHandlerBase() {
 		configuration = ClientConfiguration.getInstance();
 	}
 
+	/**
+	 * get login user id
+	 *
+	 * @return user id
+	 */
 	protected long getLoginUserId() {
 		return Long.parseLong(configuration.getAccountIdForRead());
 	}
 
-	protected Status getStatus(IntentArguments arguments) throws IllegalArgumentException {
+	/**
+	 * get status from intent arguments
+	 *
+	 * @param arguments arguments
+	 * @return status or null
+	 */
+	protected Status getStatus(IntentArguments arguments) {
 		RenderObject renderObject = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA,
 				RenderObject.class);
 		Status status = null;
@@ -56,6 +73,11 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 	}
 
 
+	/**
+	 * throw illegal argument
+	 *
+	 * @throws IllegalArgumentException error
+	 */
 	protected void throwIllegalArgument() throws IllegalArgumentException {
 		throw new IllegalArgumentException(
 				"Specify arg `status`(Status) or `" + ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA

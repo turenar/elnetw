@@ -93,8 +93,8 @@ public class ConsumerTokenConfigType implements ConfigType {
 
 		public JLabel getComponentDescriptionLabel() {
 			if (componentDescriptionLabel == null) {
-				componentDescriptionLabel = new JLabel("コンシューマーキーを設定した後は、再認証を行わないと" +
-						"既存アカウントには反映されません。");
+				componentDescriptionLabel = new JLabel("コンシューマーキーを設定した後は、再認証を行わないと"
+						+ "既存アカウントには反映されません。");
 			}
 			return componentDescriptionLabel;
 		}
@@ -170,7 +170,7 @@ public class ConsumerTokenConfigType implements ConfigType {
 	}
 
 	@Override
-	public boolean isPreferedAsMultiline() {
+	public boolean isPreferredAsMultiline() {
 		return true;
 	}
 

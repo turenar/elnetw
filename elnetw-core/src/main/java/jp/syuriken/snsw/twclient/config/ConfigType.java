@@ -53,7 +53,7 @@ public interface ConfigType {
 	 *
 	 * @return 複数行にしてもらいときはtrue
 	 */
-	boolean isPreferedAsMultiline();
+	boolean isPreferredAsMultiline();
 
 	/**
 	 * 正しいあたいかどうかを判定する

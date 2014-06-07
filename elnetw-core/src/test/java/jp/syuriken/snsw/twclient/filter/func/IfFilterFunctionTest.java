@@ -49,7 +49,7 @@ public class IfFilterFunctionTest extends FilterConstants {
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond, boolean falseCond) throws IllegalSyntaxException {
-		IfFilterFunction ifFilterFunction = new IfFilterFunction("if", new FilterDispatcherBase[] {
+		IfFilterFunction ifFilterFunction = new IfFilterFunction("if", new FilterDispatcherBase[]{
 				expr ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				trueCond ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				falseCond ? TRUE_DISPATCHER : FALSE_DISPATCHER
@@ -62,7 +62,7 @@ public class IfFilterFunctionTest extends FilterConstants {
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond) throws IllegalSyntaxException {
-		IfFilterFunction ifFilterFunction = new IfFilterFunction("if", new FilterDispatcherBase[] {
+		IfFilterFunction ifFilterFunction = new IfFilterFunction("if", new FilterDispatcherBase[]{
 				expr ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				trueCond ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 		});
@@ -77,7 +77,7 @@ public class IfFilterFunctionTest extends FilterConstants {
 	@Test
 	public void testConstructor() {
 		try {
-			new IfFilterFunction("if", new FilterDispatcherBase[] {});
+			new IfFilterFunction("if", new FilterDispatcherBase[]{});
 			fail("childの個数を無視したよう");
 		} catch (IllegalSyntaxException e) {
 			// do nothing

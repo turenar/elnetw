@@ -200,13 +200,6 @@ public interface MessageFilter extends ClientEventConstants {
 
 
 	boolean onTrackLimitationNotice(int numberOfLimitedStatuses);
-	/**
-	 * フォロー解除をフィルタ
-	 * @param source       フォロー解除元
-	 * @param unfollowedUser フォロー解除先
-	 * @return true=フィルタ中止, false=続行
-	 */
-	boolean onUnfollow(User source, User unfollowedUser);
 
 	/**
 	 * ブロックを解除したことをフィルタ
@@ -226,6 +219,15 @@ public interface MessageFilter extends ClientEventConstants {
 	 * @return true=フィルタ中止, false=続行
 	 */
 	boolean onUnfavorite(User source, User target, Status unfavoritedStatus);
+
+	/**
+	 * フォロー解除をフィルタ
+	 *
+	 * @param source         フォロー解除元
+	 * @param unfollowedUser フォロー解除先
+	 * @return true=フィルタ中止, false=続行
+	 */
+	boolean onUnfollow(User source, User unfollowedUser);
 
 	/**
 	 * リスト作成をフィルタ
