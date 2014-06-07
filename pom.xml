@@ -219,7 +219,7 @@
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<effort>Max</effort>
 					<sourceEncoding>${file.encoding}</sourceEncoding>
-					<includeTests>true</includeTests>
+					<includeTests>false</includeTests>
 					<xmlOutput>true</xmlOutput>
 				</configuration>
 			</plugin>
