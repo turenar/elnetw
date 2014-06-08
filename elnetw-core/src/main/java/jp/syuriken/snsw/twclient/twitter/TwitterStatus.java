@@ -106,7 +106,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private int favoriteCount;
 	private String lang;
 	private SymbolEntity[] symbolEntities;
-	private Scopes scopes;
+	private transient Scopes scopes;
 
 	/**
 	 * インスタンスを生成する。

@@ -61,7 +61,7 @@ public abstract class AbstractImageSetter implements ImageSetter {
 	}
 
 	@Override
-	public void setNext(ImageSetter next) {
+	public synchronized void setNext(ImageSetter next) {
 		this.next = next;
 	}
 }

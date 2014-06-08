@@ -105,6 +105,10 @@ public class ImageCacher {
 			}
 		}
 
+		public synchronized FetchEntry getAlternateEntry() {
+			return alternateEntry;
+		}
+
 		/**
 		 * 画像URL (通常ネットワークURL)
 		 *
@@ -112,6 +116,13 @@ public class ImageCacher {
 		 */
 		public String getImageUrl() {
 			return imageEntry.imageUrl;
+		}
+
+		/**
+		 *  get setter
+		 */
+		public synchronized ImageSetter getSetter() {
+			return setter;
 		}
 
 		/**
@@ -235,8 +246,8 @@ public class ImageCacher {
 			} else {
 				logger.warn("Error while fetching: {}", url, e);
 			}
-			if (entry.alternateEntry != null) {
-				entry = entry.alternateEntry;
+			if (entry.getAlternateEntry() != null) {
+				entry = entry.getAlternateEntry();
 				configuration.addJob(this);
 			}
 		}
@@ -249,7 +260,7 @@ public class ImageCacher {
 		public void run() {
 			try {
 				fetchImage(entry);
-				ImageSetter setter = entry.setter;
+				ImageSetter setter = entry.getSetter();
 				if (setter != null) {
 					setter.setImageRecursively(entry.imageEntry.image);
 				}
