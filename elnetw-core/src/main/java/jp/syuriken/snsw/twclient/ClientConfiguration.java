@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.lib.parser.ArgParser;
@@ -182,11 +184,18 @@ public class ClientConfiguration {
 	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
-	private final transient JobQueue jobQueue = new JobQueue();
 	private final Logger logger = LoggerFactory.getLogger(ClientConfiguration.class);
+	private final ScheduledExecutorService supervisorTimer = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "supervisor");
+		}
+	});
+	private transient JobQueue jobQueue = new JobQueue();
 	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
-	/*package*/ ClientProperties configProperties;
-	/*package*/ ClientProperties configDefaultProperties;
+	/** for test implementations, do not mark as 'final' */
+	/*package*//*final*/ ClientProperties configProperties;
+	/*package*//*final*/ ClientProperties configDefaultProperties;
 	/*package*/ ConcurrentHashMap<String, Twitter> cachedTwitterInstances = new ConcurrentHashMap<>();
 	private volatile TrayIcon trayIcon;
 	private TwitterClientFrame frameApi;
@@ -206,6 +215,8 @@ public class ClientConfiguration {
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
+		configDefaultProperties = new ClientProperties();
+		configProperties = new ClientProperties(configDefaultProperties);
 	}
 
 	/**
@@ -531,6 +542,21 @@ public class ClientConfiguration {
 	 */
 	public ParsedArguments getParsedArguments() {
 		return parsedArguments;
+	}
+
+	/**
+	 * スーパーバイザースレッドを返す。これは普通のスレッドが使うべきではない。具体的には、
+	 * <ul>
+	 * <li>JobQueueを使うジョブは禁止</li>
+	 * <li>JobQueueでデッドロックが起こっても特に問題がないものの使用も禁止</li>
+	 * <li>何か定期的に高い信頼度 (保証はできない) で監視する必要があるもの</li>
+	 * </ul>
+	 * の使用に限る。
+	 *
+	 * @return スーパーバイザースレッド
+	 */
+	public ScheduledExecutorService getSupervisorTimer() {
+		return supervisorTimer;
 	}
 
 	/**

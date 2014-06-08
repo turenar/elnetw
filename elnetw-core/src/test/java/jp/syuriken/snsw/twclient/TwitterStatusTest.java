@@ -49,7 +49,7 @@ import static org.junit.Assert.*;
  */
 public class TwitterStatusTest {
 
-	private static final class ClientConfigurationExtension extends ClientConfiguration {
+	private static final class ClientConfigurationExtension extends ClientConfigurationTestImpl {
 		@Override
 		public CacheManager getCacheManager() {
 			return new CacheManager(this) {
@@ -164,41 +164,46 @@ public class TwitterStatusTest {
 	 */
 	@Test
 	public void testTwitterStatus() throws Throwable {
-		ClientConfiguration configuration = new ClientConfigurationExtension();
-		ClientConfiguration.setInstance(configuration);
-		ClientProperties clientProperties = new ClientProperties();
-		clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
-				"UTF-8"));
-		configuration.setConfigProperties(clientProperties);
-		for (TestObj test : tests) {
-			Status status = registerJSONObject(TwitterObjectFactory.createStatus(test.json), test.json);
-			status = new TwitterStatus(status);
-			if (status.isRetweet()) {
-				status = status.getRetweetedStatus();
-			}
-			assertEquals(test.text, status.getText());
+		ClientConfigurationTestImpl configuration = new ClientConfigurationExtension();
+		configuration.setGlobalInstance();
+		try {
+			ClientConfiguration.setInstance(configuration);
+			ClientProperties clientProperties = new ClientProperties();
+			clientProperties.load(new InputStreamReader(TwitterStatusTest.class.getResourceAsStream("config.properties"),
+					"UTF-8"));
+			configuration.setConfigProperties(clientProperties);
+			for (TestObj test : tests) {
+				Status status = registerJSONObject(TwitterObjectFactory.createStatus(test.json), test.json);
+				status = new TwitterStatus(status);
+				if (status.isRetweet()) {
+					status = status.getRetweetedStatus();
+				}
+				assertEquals(test.text, status.getText());
 
-			int i = 0;
-			Object[] entities;
-			entities = status.getHashtagEntities();
-			if (entities != null) {
-				for (Object entity : entities) {
-					assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+				int i = 0;
+				Object[] entities;
+				entities = status.getHashtagEntities();
+				if (entities != null) {
+					for (Object entity : entities) {
+						assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+					}
 				}
-			}
-			entities = status.getUserMentionEntities();
-			if (entities != null) {
-				for (Object entity : entities) {
-					assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+				entities = status.getUserMentionEntities();
+				if (entities != null) {
+					for (Object entity : entities) {
+						assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+					}
 				}
-			}
-			entities = status.getURLEntities();
-			if (entities != null) {
-				for (Object entity : entities) {
-					assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+				entities = status.getURLEntities();
+				if (entities != null) {
+					for (Object entity : entities) {
+						assertEquals(test.entity.get(i++), getEntityText(status.getText(), entity));
+					}
 				}
+				assertTrue(i == test.entity.size());
 			}
-			assertTrue(i == test.entity.size());
+		} finally {
+			configuration.clearGlobalInstance();
 		}
 	}
 }

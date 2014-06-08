@@ -83,7 +83,7 @@ public class LoggingConfigurator {
 						+ "    </Pattern>\n"
 						+ "  </encoder>\n"
 						+ "</appender>\n"
-						+ "<appender name=\"ASYNC_FILE\" class=\"ch.qos.logback.classic.AsyncAppender\">\n"
+						+ "<appender name=\"ASYNC_FILE\" class=\"jp.syuriken.snsw.twclient.internal.AsyncAppender\">\n"
 						+ "  <appender-ref ref=\"FILE\" />\n"
 						+ "  <discardingThreshold>0</discardingThreshold>\n"
 						+ "</appender>"

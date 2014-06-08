@@ -22,6 +22,7 @@
 package jp.syuriken.snsw.twclient;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -132,6 +133,38 @@ public class JobQueueTest {
 		}
 	}
 
+	private static class JobQueueTestImpl extends JobQueue {
+		public JobQueueTestImpl() {
+			coreThreadPoolSize = 1;
+			maximumThreadPoolSize = 1;
+			execWorkerThreshold = 100;
+			keepAliveTime = 100;
+			longAliveThreshold = 100;
+		}
+
+		@Override
+		protected void initProperties() {
+		}
+	}
+
+	private static class SimpleJob implements ParallelRunnable {
+		private final AtomicInteger callCount;
+
+		public SimpleJob(AtomicInteger callCount) {
+			this.callCount = callCount;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// do nothing
+			}
+			callCount.incrementAndGet();
+		}
+	}
+
 	public static class TestRunnable implements Runnable {
 		public final int value;
 
@@ -144,6 +177,32 @@ public class JobQueueTest {
 		}
 	}
 
+	private static class WorkerChecker implements ParallelRunnable {
+		private final AtomicInteger callCount;
+		private final int expectedWorkerCount;
+		private final AssertionHandler handler;
+		private final JobQueueTestImpl jobQueue;
+
+		public WorkerChecker(AtomicInteger callCount, int expectedWorkerCount, AssertionHandler handler,
+				JobQueueTestImpl jobQueue) {
+			this.callCount = callCount;
+			this.expectedWorkerCount = expectedWorkerCount;
+			this.handler = handler;
+			this.jobQueue = jobQueue;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// do nothing
+			}
+			callCount.incrementAndGet();
+			handler.assertEquals(expectedWorkerCount, jobQueue.getWorkerCount());
+		}
+	}
+
 	public static final int COUNT_PER_THREAD = 10000;
 	public static final int THREADS_COUNT = 100;
 
@@ -151,10 +210,17 @@ public class JobQueueTest {
 		return (byte) (i % 16);
 	}
 
+	private void shutdownQueue(JobQueue jobQueue) throws InterruptedException {
+		while (!jobQueue.shutdownNow(1000)) {
+			jobQueue.shutdown();
+		}
+	}
+
 	@Test
 	public void testAddJob() throws Exception {
-		JobQueue jobQueue = new JobQueue();
-		jobQueue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+		JobQueue jobQueue = new JobQueueTestImpl();
+		// out-dated
+		//jobQueue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
 
 		jobQueue.addJob(new TestRunnable(0));
 		assertEquals(1, jobQueue.size());
@@ -173,8 +239,9 @@ public class JobQueueTest {
 
 	@Test
 	public void testAddJobParallel() throws Exception {
-		JobQueue queue = new JobQueue();
-		queue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+		JobQueue queue = new JobQueueTestImpl();
+		//queue.setJobWorkerThread(this); // do not run jobs automatically in JobQueue#addJob
+
 		// add into queue
 		CountDownLatch latch = new CountDownLatch(THREADS_COUNT);
 		synchronized (queue) {
@@ -205,21 +272,144 @@ public class JobQueueTest {
 		assertEquals(0, queue.size());
 	}
 
+	@Test
+	public void testGetCoreThreadPoolSize() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(1, jobQueue.getCoreThreadPoolSize());
+		jobQueue.setCoreThreadPoolSize(4);
+		assertEquals(4, jobQueue.getCoreThreadPoolSize());
+	}
+
+	@Test
+	public void testGetExecWorkerThreshold() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(100, jobQueue.getExecWorkerThreshold());
+		jobQueue.setExecWorkerThreshold(4);
+		assertEquals(4, jobQueue.getExecWorkerThreshold());
+	}
+
+	@Test
+	public void testGetKeepAliveTime() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(100, jobQueue.getKeepAliveTime());
+		jobQueue.setKeepAliveTime(4);
+		assertEquals(4, jobQueue.getKeepAliveTime());
+	}
+
+	@Test
+	public void testGetLongAliveThreshold() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(100, jobQueue.getLongAliveThreshold());
+		jobQueue.setLongAliveThreshold(4);
+		assertEquals(4, jobQueue.getLongAliveThreshold());
+	}
+
+	@Test
+	public void testGetMaxThreadPoolSize() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(1, jobQueue.getMaximumThreadPoolSize());
+		jobQueue.setMaximumThreadPoolSize(4);
+		assertEquals(4, jobQueue.getMaximumThreadPoolSize());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalCoreThreadPoolSize() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setCoreThreadPoolSize(0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalExecWorkerThreshold() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setExecWorkerThreshold(0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalKeepAliveTime() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setKeepAliveTime(-1);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalLongAliveThreshold() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setLongAliveThreshold(0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalMaximumThreadPoolSize() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setMaximumThreadPoolSize(0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testIllegalMaximumThreadPoolSizeLessThanCore() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.setCoreThreadPoolSize(4);
+		jobQueue.setMaximumThreadPoolSize(1);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalPriority0() {
-		new JobQueue().addJob((byte) -1, new TestRunnable(0));
+		new JobQueueTestImpl().addJob((byte) -1, new TestRunnable(0));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalPriority1() {
-		new JobQueue().addJob((byte) 127, new TestRunnable(0));
+		new JobQueueTestImpl().addJob((byte) 127, new TestRunnable(0));
 	}
 
 	@Test
 	public void testIsEmpty() throws Exception {
-		JobQueue jobQueue = new JobQueue();
+		JobQueue jobQueue = new JobQueueTestImpl();
 		assertTrue(jobQueue.isEmpty());
 		assertEquals(0, jobQueue.size());
+	}
+
+	@Test
+	public void testKeepAlive() throws Throwable {
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		final AtomicInteger callCount = new AtomicInteger();
+		final AssertionHandler handler = new AssertionHandler();
+
+		Runnable job = new SimpleJob(callCount);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		Runnable workerChecker = new WorkerChecker(callCount, 4, handler, jobQueue);
+		jobQueue.addJob(workerChecker);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.setCoreThreadPoolSize(2);
+		jobQueue.setMaximumThreadPoolSize(4);
+		jobQueue.setKeepAliveTime(1);
+		jobQueue.setExecWorkerThreshold(1);
+		assertEquals(201, jobQueue.size());
+		assertEquals(1, jobQueue.getWorkerCount());
+		assertEquals(0, callCount.get());
+		jobQueue.startWorker();
+
+		for (int i = 0; i < 10; i++) {
+			jobQueue.addJob(job); // start additional worker
+		}
+
+		do {
+			Thread.sleep(10); // wait for all jobs consumed
+		} while (jobQueue.size() != 0);
+
+		Thread.sleep(100); // wait for worker timeout
+
+		assertEquals(0, jobQueue.size());
+		assertEquals(2, jobQueue.getWorkerCount());
+		assertEquals(211, callCount.get());
+		shutdownQueue(jobQueue);
+		handler.check();
+		assertEquals(0, jobQueue.size());
+		assertEquals(0, jobQueue.getWorkerCount());
+		assertEquals(211, callCount.get());
 	}
 
 	@Test
@@ -312,5 +502,149 @@ public class JobQueueTest {
 		}
 		assertEquals(THREADS_COUNT * COUNT_PER_THREAD, total);
 		assertEquals(0, queue.size());
+	}
+
+	@Test
+	public void testMultipleWorkerForCoreThread() throws Throwable {
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		final AtomicInteger callCount = new AtomicInteger();
+		final AssertionHandler handler = new AssertionHandler();
+
+		Runnable job = new SimpleJob(callCount);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.addJob(new WorkerChecker(callCount, 4, handler, jobQueue));
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.setCoreThreadPoolSize(4);
+		assertEquals(201, jobQueue.size());
+		assertEquals(1, jobQueue.getWorkerCount());
+		assertEquals(0, callCount.get());
+		jobQueue.startWorker();
+
+		for (int i = 0; i < 10; i++) {
+			jobQueue.addJob(job); // start additional worker
+		}
+
+		shutdownQueue(jobQueue);
+		handler.check();
+		assertEquals(0, jobQueue.size());
+		assertEquals(0, jobQueue.getWorkerCount());
+		assertEquals(211, callCount.get());
+	}
+
+	@Test
+	public void testMultipleWorkerForDoNotAddExtraThread() throws Throwable {
+		// do not run extra thread (threadCount = coreThreadCount)
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		final AtomicInteger callCount = new AtomicInteger();
+		final AssertionHandler handler = new AssertionHandler();
+
+		Runnable job = new SimpleJob(callCount);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.addJob(new WorkerChecker(callCount, 2, handler, jobQueue));
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.setCoreThreadPoolSize(2);
+		jobQueue.setMaximumThreadPoolSize(4);
+		jobQueue.setExecWorkerThreshold(10000);
+		assertEquals(201, jobQueue.size());
+		assertEquals(1, jobQueue.getWorkerCount());
+		assertEquals(0, callCount.get());
+		jobQueue.startWorker();
+
+		for (int i = 0; i < 10; i++) {
+			jobQueue.addJob(job); // start additional worker
+		}
+
+		shutdownQueue(jobQueue);
+		handler.check();
+		assertEquals(0, jobQueue.size());
+		assertEquals(0, jobQueue.getWorkerCount());
+		assertEquals(211, callCount.get());
+	}
+
+	@Test
+	public void testMultipleWorkerForMaxThread() throws Throwable {
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		final AtomicInteger callCount = new AtomicInteger();
+		final AssertionHandler handler = new AssertionHandler();
+
+		Runnable job = new SimpleJob(callCount);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.addJob(new WorkerChecker(callCount, 4, handler, jobQueue));
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.setCoreThreadPoolSize(2);
+		jobQueue.setMaximumThreadPoolSize(4);
+		jobQueue.setExecWorkerThreshold(1);
+		assertEquals(201, jobQueue.size());
+		assertEquals(1, jobQueue.getWorkerCount());
+		assertEquals(0, callCount.get());
+		jobQueue.startWorker();
+
+		for (int i = 0; i < 10; i++) {
+			jobQueue.addJob(job); // start additional worker
+		}
+
+		shutdownQueue(jobQueue);
+		handler.check();
+		assertEquals(0, jobQueue.size());
+		assertEquals(0, jobQueue.getWorkerCount());
+		assertEquals(211, callCount.get());
+	}
+
+	@Test
+	public void testShutdownWithNotStarted() throws Exception {
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		jobQueue.addJob(new TestRunnable(0));
+		jobQueue.addJob(new TestRunnable(1));
+		jobQueue.addJob(new TestRunnable(2));
+
+		assertEquals(3, jobQueue.size());
+
+		jobQueue.shutdown();
+		assertEquals(0, jobQueue.size());
+	}
+
+	@Test
+	public void testSingleWorker() throws Throwable {
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		final AtomicInteger callCount = new AtomicInteger();
+		final AssertionHandler handler = new AssertionHandler();
+
+		Runnable job = new SimpleJob(callCount);
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(job);
+		}
+
+		jobQueue.addJob(new WorkerChecker(callCount, 1, handler, jobQueue));
+
+		assertEquals(101, jobQueue.size());
+		assertEquals(1, jobQueue.getWorkerCount());
+		assertEquals(0, callCount.get());
+		jobQueue.startWorker();
+		for (int i = 0; i < 10; i++) {
+			jobQueue.addJob(job);
+		}
+		shutdownQueue(jobQueue);
+		handler.check();
+		assertEquals(0, jobQueue.size());
+		assertEquals(0, jobQueue.getWorkerCount());
+		assertEquals(111, callCount.get());
 	}
 }

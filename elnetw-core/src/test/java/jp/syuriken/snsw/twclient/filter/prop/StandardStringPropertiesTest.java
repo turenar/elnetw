@@ -22,9 +22,9 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  */
 public class StandardStringPropertiesTest extends FilterConstants {
 
-	private static ClientConfiguration configuration;
+	private static ClientConfigurationTestImpl configuration;
 
 	/**
 	 * テスト前に呼ばれる関数
@@ -51,9 +51,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	 */
 	@BeforeClass
 	public static void tearUpClass() throws Exception {
-		Constructor<ClientConfiguration> constructor = ClientConfiguration.class.getDeclaredConstructor(); // テスト用メソッド
-		constructor.setAccessible(true);
-		configuration = constructor.newInstance();
+		configuration = new ClientConfigurationTestImpl();
 		ClientProperties defaultProperties = new ClientProperties();
 
 		InputStream resourceStream = null;
@@ -90,7 +88,12 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterClient() throws IllegalSyntaxException {
-		assertTrue(testEqual("client", "TweetDeck", STATUS_5));
+		configuration.setGlobalInstance();
+		try {
+			assertTrue(testEqual("client", "TweetDeck", STATUS_5));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/**
@@ -100,22 +103,30 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterText() throws IllegalSyntaxException {
-		assertFalse(testEqual("text", "*@ture7*", STATUS_1));
-		assertTrue(testEqual("text", "*@ture7*", STATUS_2));
-		assertTrue(testEqual("text", "*@ture7*", STATUS_3));
-		assertFalse(testEqual("text", "*@ture7*", STATUS_4));
+		configuration.setGlobalInstance();
+		try {
+			assertFalse(testEqual("text", "*@ture7*", STATUS_1));
+			assertTrue(testEqual("text", "*@ture7*", STATUS_2));
+			assertTrue(testEqual("text", "*@ture7*", STATUS_3));
+			assertFalse(testEqual("text", "*@ture7*", STATUS_4));
 
-		assertTrue(testEqual("text", DM_1.getText(), DM_1));
+			assertTrue(testEqual("text", DM_1.getText(), DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 
 	/** 無知の名前に対するテスト */
 	@Test
 	public void testFilterUnknownName() {
+		configuration.setGlobalInstance();
 		try {
 			new StandardStringProperties(configuration, "unknown unknown", "", "");
 			fail("prop nameを無視してるかな？");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
+		} finally {
+			configuration.clearGlobalInstance();
 		}
 	}
 
@@ -126,12 +137,17 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	 */
 	@Test
 	public void testFilterUser() throws IllegalSyntaxException {
-		assertFalse(testEqual("user", "*ture*", STATUS_1));
-		assertTrue(testEqual("user", "*ture*", STATUS_2));
-		assertTrue(testEqual("user", "*ture*", STATUS_3));
-		assertFalse(testEqual("user", "*ture*", STATUS_4));
+		configuration.setGlobalInstance();
+		try {
+			assertFalse(testEqual("user", "*ture*", STATUS_1));
+			assertTrue(testEqual("user", "*ture*", STATUS_2));
+			assertTrue(testEqual("user", "*ture*", STATUS_3));
+			assertFalse(testEqual("user", "*ture*", STATUS_4));
 
-		assertFalse(testEqual("user", "*ture*", DM_1));
-		assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
+			assertFalse(testEqual("user", "*ture*", DM_1));
+			assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
 	}
 }
