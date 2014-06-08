@@ -134,6 +134,10 @@ public class ImageCacher {
 			return imageEntry.image != null;
 		}
 
+		public void setAlternateEntry(FetchEntry alternateEntry) {
+			this.alternateEntry = alternateEntry;
+		}
+
 		/**
 		 * セッターを設定する
 		 *
@@ -413,7 +417,7 @@ public class ImageCacher {
 			} catch (MalformedURLException e) {
 				throw new AssertionError(e);
 			}
-			cacheFetchEntry.alternateEntry = fetchEntry;
+			cacheFetchEntry.setAlternateEntry(fetchEntry);
 			fetchEntry = cacheFetchEntry;
 		} else {
 			logger.debug("Cache miss: {}", urlString);

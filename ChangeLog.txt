@@ -13,6 +13,8 @@ Version 0.1-alpha6
 	+ Show Retweeted-Via (issue #31)
 	+ Log level can be set with --log-level (issue #34)
 	+ Open connection as early as possible with spdy
+	+ Wake up only worker main thread if SingleTaskJob is registered
+	+ JobQueue may work with ondemand started threads
 	* Fix JobQueue priority wrong handling
 	* Fix NPE in UserInfoTab with tabs restored
 	* Fix unexpected scroll bar appearing in ImageViewerFrame

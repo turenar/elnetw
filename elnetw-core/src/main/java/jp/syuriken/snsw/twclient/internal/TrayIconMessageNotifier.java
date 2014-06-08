@@ -53,11 +53,9 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 
 	/**
 	 * インスタンスを生成する。
-	 *
-	 * @param configuration 設定
 	 */
-	public TrayIconMessageNotifier(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	public TrayIconMessageNotifier() {
+		this.configuration = ClientConfiguration.getInstance();
 		trayIcon = configuration.getTrayIcon();
 	}
 

@@ -143,8 +143,7 @@ public class Utility {
 					"messageNotifierClass must implement static method 'checkUsable()'", e);
 		}
 		try {
-			messageNotifierClass.getConstructor(
-					ClientConfiguration.class);
+			messageNotifierClass.getConstructor();
 		} catch (NoSuchMethodException e) {
 			throw new IllegalArgumentException("messageNotifierClass must implement <init>()", e);
 		}
