@@ -39,7 +39,7 @@ import jp.syuriken.snsw.twclient.ParallelRunnable;
  */
 public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnable {
 
-	public static boolean checkUsable(ClientConfiguration configuration) {
+	public static boolean checkUsable() {
 		return !GraphicsEnvironment.isHeadless();
 	}
 

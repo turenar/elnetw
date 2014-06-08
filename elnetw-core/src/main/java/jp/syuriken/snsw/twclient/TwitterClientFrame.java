@@ -1105,9 +1105,10 @@ import twitter4j.User;
 
 		setJMenuBar(getClientMenuBar());
 		Dimension size = configProperties.getDimension("gui.main.size");
-		if (size != null) {
+		if (size == null) {
+			setSize(800, 600);
+		} else {
 			setSize(size);
-			// setSize(500, 500);
 		}
 	}
 

@@ -144,7 +144,7 @@ import twitter4j.auth.AccessToken;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterClientMain {
+public final class TwitterClientMain {
 
 	private static class LogFileVisitor extends SimpleFileVisitor<Path> {
 		private final TreeSet<Path> logFileSet;
@@ -247,19 +247,20 @@ public class TwitterClientMain {
 	/** for interruption */
 	private final Thread mainThread;
 	/** スレッドホルダ */
-	protected final Object threadHolder = new Object();
+	private final Object threadHolder = new Object();
 	private final ArgParser parser;
 	private final ParsedArguments parsedArguments;
 	/** 設定 */
-	protected ClientConfiguration configuration;
+	private ClientConfiguration configuration;
 	/** 設定データ */
-	protected ClientProperties configProperties;
+	private ClientProperties configProperties;
 	private Logger logger;
-	protected JobQueue jobQueue;
-	protected boolean debugMode;
-	protected boolean portable;
-	protected MessageBus messageBus;
-	protected TwitterClientFrame frame;
+
+	private JobQueue jobQueue;
+	private boolean debugMode;
+	private boolean portable;
+	private MessageBus messageBus;
+	private TwitterClientFrame frame;
 	private boolean isInterrupted;
 	private DeadlockMonitor deadlockMonitor;
 
@@ -288,6 +289,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * init client tab factories
+	 */
 	@Initializer(name = "gui/tab/init-factory", phase = "init")
 	public void addClientTabConstructor() {
 		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
@@ -296,12 +300,18 @@ public class TwitterClientMain {
 		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
 	}
 
+	/**
+	 * set configurator of filter
+	 */
 	@Initializer(name = "gui/config/filter", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
 				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
 	}
 
+	/**
+	 * clean log files
+	 */
 	@Initializer(name = "clean/log", phase = "poststart")
 	public void cleanLogFile() {
 		String appHome = System.getProperty("elnetw.home");
@@ -340,10 +350,13 @@ public class TwitterClientMain {
 		try {
 			Files.walkFileTree(userIconCacheDir, new CacheCleanerVisitor());
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.warn("error while cleaning image cache");
 		}
 	}
 
+	/**
+	 * init action handlers
+	 */
 	@Initializer(name = "actionHandler", phase = "init")
 	public void initActionHandlerTable() {
 		configuration.addActionHandler("reply", new ReplyActionHandler());
@@ -372,16 +385,25 @@ public class TwitterClientMain {
 		configuration.addActionHandler("<elnetw>.gui.render.simple.RenderObjectHandler", new RenderObjectHandler());
 	}
 
+	/**
+	 * init cache manager
+	 */
 	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
 	public void initCacheManager() {
 		configuration.setCacheManager(new CacheManager(configuration));
 	}
 
+	/**
+	 * init config builder
+	 */
 	@Initializer(name = "gui/config/builder", phase = "preinit")
 	public void initConfigBuilder() {
 		configuration.setConfigBuilder(new ConfigFrameBuilder(configuration));
 	}
 
+	/**
+	 * init configurator
+	 */
 	@Initializer(name = "gui/config/core", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
@@ -413,6 +435,9 @@ public class TwitterClientMain {
 						new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
 	}
 
+	/**
+	 * init filter functions
+	 */
 	@Initializer(name = "filter/func", phase = "preinit")
 	public void initFilterFunctions() {
 		FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
@@ -424,6 +449,9 @@ public class TwitterClientMain {
 		FilterCompiler.putFilterFunction("if", IfFilterFunction.getFactory());
 	}
 
+	/**
+	 * init filter properties
+	 */
 	@Initializer(name = "filter/prop", phase = "preinit")
 	public void initFilterProperties() {
 		Constructor<? extends FilterProperty> properties;
@@ -447,11 +475,17 @@ public class TwitterClientMain {
 		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
 	}
 
+	/**
+	 * init frame
+	 */
 	@Initializer(name = "gui/main", dependencies = {"cache", "accountId"}, phase = "init")
 	public void initFrame() {
 		frame = new TwitterClientFrame(configuration);
 	}
 
+	/**
+	 * init image cacher
+	 */
 	@Initializer(name = "cache/image", dependencies = "config", phase = "init")
 	public void initImageCacher() {
 		configuration.setImageCacher(new ImageCacher());
@@ -515,6 +549,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * init url provider
+	 */
 	@Initializer(name = "urlProvider", phase = "init")
 	public void initUrlProviders() {
 		UrlResolverManager.addMediaProvider("\\.(jpe?g|png|gif)", new NullMediaResolver(true));
@@ -524,11 +561,17 @@ public class TwitterClientMain {
 				new XpathMediaResolver("id('post_image')/@src"));
 	}
 
+	/**
+	 * send initialized message to message bus
+	 */
 	@Initializer(name = "bus/init", dependencies = "gui/tab/restore", phase = "prestart")
 	public void realConnectMessageBus() {
 		messageBus.onInitialized();
 	}
 
+	/**
+	 * restore tabs
+	 */
 	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
 			phase = "prestart")
 	public void recoverClientTabs() {
@@ -570,6 +613,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * queue log flusher by notifying property changed
+	 */
 	@Initializer(name = "log/flush", dependencies = {"timer", "config/default", "config"}, phase = "earlyinit")
 	public void registerLogFlusher() {
 		configProperties.firePropertyChanged(AsyncAppender.PROPERTY_FLUSH_INTERVAL, null, null);
@@ -649,6 +695,9 @@ public class TwitterClientMain {
 		return getResultMap(0, false);
 	}
 
+	/**
+	 * set account id
+	 */
 	@Initializer(name = "accountId", dependencies = "config", phase = "earlyinit")
 	public void setAccountId() {
 		String defaultAccountId = configuration.getDefaultAccountId();
@@ -656,10 +705,14 @@ public class TwitterClientMain {
 		configuration.setAccountIdForWrite(defaultAccountId);
 	}
 
-
+	/**
+	 * set config properties
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "config", dependencies = "config/default", phase = "earlyinit")
-	public void setConfigProperties(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void setConfigProperties(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			configProperties = configuration.getConfigProperties();
 			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
 			configProperties.setStoreFile(configFile);
@@ -680,6 +733,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * set default config properties
+	 */
 	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")
 	public void setDefaultConfigProperties() {
 		ClientProperties defaultConfig = configuration.getConfigDefaultProperties();
@@ -696,6 +752,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * set default exception handler
+	 */
 	@Initializer(name = "internal-setDefaultExceptionHandler", phase = "earlyinit")
 	public void setDefaultExceptionHandler() {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -707,20 +766,26 @@ public class TwitterClientMain {
 		});
 	}
 
+	/**
+	 * set default global filter
+	 */
 	@Initializer(name = "filter/global", dependencies = "config", phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
+	/**
+	 * set elnetw home and cache directory properties
+	 */
 	private void setHomeProperty() {
 		String appHomeDir = System.getProperty("elnetw.home");
 		String cacheDir = System.getProperty("elnetw.cache.dir");
 		// do not use Utility: it initializes logger!
 		if (System.getProperty("os.name").contains("Windows")) {
 			appHomeDir = appHomeDir == null ? System.getenv("APPDATA") : appHomeDir;
-			cacheDir = ((cacheDir == null) ? (System.getProperty("java.io.tmpdir") + "/elnetw/cache") : cacheDir);
+			cacheDir = cacheDir == null ? System.getProperty("java.io.tmpdir") + "/elnetw/cache" : cacheDir;
 		} else {
-			appHomeDir = ((appHomeDir == null) ? (System.getProperty("user.home") + "/.elnetw") : appHomeDir);
+			appHomeDir = appHomeDir == null ? System.getProperty("user.home") + "/.elnetw" : appHomeDir;
 			cacheDir = cacheDir == null ? System.getProperty("user.home") + "/.cache/elnetw" : cacheDir;
 			Path cacheDirPath = new File(cacheDir).toPath();
 			Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
@@ -739,15 +804,23 @@ public class TwitterClientMain {
 		System.setProperty("elnetw.cache.dir", cacheDir);
 	}
 
+	/**
+	 * notify initialize phase finished
+	 */
 	@Initializer(name = "internal/finish-initPhase", dependencies = "gui/main/show", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
 		messageBus.onInitialized();
 	}
 
+	/**
+	 * init message bus
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "bus", dependencies = {"jobqueue", "config"}, phase = "preinit")
-	public void setMessageBus(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void setMessageBus(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			messageBus = new MessageBus();
 			configuration.setMessageBus(messageBus);
 		} else {
@@ -755,6 +828,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * init message bus channel factories
+	 */
 	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
 	public void setMessageChannelFactory() {
 		messageBus.addVirtualChannel("my/timeline", new String[]{"stream/user", "statuses/timeline"});
@@ -765,6 +841,9 @@ public class TwitterClientMain {
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 	}
 
+	/**
+	 * set message notifiers candidates
+	 */
 	@Initializer(name = "internal/notifier", phase = "prestart")
 	public void setMessageNotifiersCandidate() {
 		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
@@ -772,14 +851,22 @@ public class TwitterClientMain {
 		Utility.addMessageNotifier(0, TrayIconMessageNotifier.class);
 	}
 
+	/**
+	 * set portable configuration property
+	 */
 	@Initializer(name = "internal/portableConfig", phase = "earlyinit")
 	public void setPortabledConfigDir() {
 		configuration.setPortabledConfiguration(portable);
 	}
 
+	/**
+	 * init timer
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "timer", phase = "earlyinit")
-	public void setTimer(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void setTimer(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			configuration.setTimer(new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
 				@Override
 				public Thread newThread(@Nonnull Runnable r) {
@@ -800,9 +887,14 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * show tray icon
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "gui/tray/show", dependencies = "gui/tray", phase = "start")
-	public void setTrayIcon(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void setTrayIcon(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			if (SystemTray.isSupported()) {
 				try {
 					SystemTray.getSystemTray().add(configuration.getTrayIcon());
@@ -817,6 +909,9 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * init tray icon
+	 */
 	@Initializer(name = "gui/tray", phase = "prestart")
 	public void setTrayIcon() {
 		try {
@@ -827,9 +922,14 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * show main window
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "gui/main/show", dependencies = {"gui/main", "gui/tab/restore"}, phase = "start")
-	public void showFrame(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void showFrame(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			java.awt.EventQueue.invokeLater(new Runnable() {
 
 				@Override
@@ -855,6 +955,11 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * start deadlock monitor
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "jobqueue/monitor/deadlock", dependencies = {"timer", "jobqueue"})
 	public void startDeadlockMonitor(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
@@ -864,9 +969,14 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * start job worker thread
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "jobqueue", dependencies = "config", phase = "earlyinit")
-	public void startJobWorkerThread(InitCondition cond) {
-		if (cond.isInitializingPhase()) {
+	public void startJobWorkerThread(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
 			jobQueue = configuration.getJobQueue();
 			jobQueue.startWorker();
 		} else {
@@ -954,12 +1064,18 @@ public class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * update configuration to v1
+	 */
 	@Initializer(name = "config/update/v1", dependencies = "config/update/v0", phase = "earlyinit")
 	public void updateConfigToV1() {
 		logger.info("Updating config to v1");
 		configProperties.setProperty("cfg.version", "1");
 	}
 
+	/**
+	 * update configuration to v2
+	 */
 	@Initializer(name = "config/update/v2", dependencies = "config/update/v1", phase = "earlyinit")
 	public void updateConfigToV2() {
 		logger.info("Updating config to v2");

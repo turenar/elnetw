@@ -67,8 +67,8 @@ public class HTMLFactoryDelegator extends HTMLFactory {
 
 		@Override
 		public int getHeight() {
-			return super.getHeight() - 20;
-		} //CS-IGNORE
+			return super.getHeight() - 20; //CS-IGNORE
+		}
 	}
 
 	@Override

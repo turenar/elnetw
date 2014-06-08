@@ -33,6 +33,9 @@ import jp.syuriken.snsw.twclient.JobQueue;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class AsyncAppender extends AsyncAppenderBase<ILoggingEvent> {
+	/**
+	 * high priority flusher. this stores queued flag
+	 */
 	protected class HighPriorityWorker extends Worker {
 		public volatile AtomicBoolean isQueued = new AtomicBoolean();
 
@@ -43,6 +46,9 @@ public class AsyncAppender extends AsyncAppenderBase<ILoggingEvent> {
 		}
 	}
 
+	/**
+	 * high priority worker singleton
+	 */
 	protected HighPriorityWorker highPriorityWorker = new HighPriorityWorker();
 
 	@Override

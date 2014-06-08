@@ -124,7 +124,13 @@ public class UrlResolverManager {
 		}
 	}
 
-	public static MediaUrlResolver getProvider(String url) {
+	/**
+	 * get resolver for url
+	 *
+	 * @param url url
+	 * @return resolver
+	 */
+	public static MediaUrlResolver getResolver(String url) {
 		mediaResolversLock.readLock().lock();
 		try {
 			for (int i = mediaResolvers.size() - 1; i >= 0; i--) {
@@ -145,6 +151,9 @@ public class UrlResolverManager {
 	 *
 	 * @param url URL
 	 * @return 解決されたURL情報。nullの可能性あり。
+	 * @throws IllegalArgumentException urlとして正しくない
+	 * @throws InterruptedException     スレッドをブロックを必要とする処理中に割り込まれた
+	 * @throws IOException              解決中にIO例外が発生した
 	 */
 	public static UrlInfo getUrl(String url) throws IllegalArgumentException, InterruptedException, IOException {
 		UrlInfo oldUrl = null;
@@ -159,14 +168,14 @@ public class UrlResolverManager {
 				if (!cachedUrl.shouldRecursive() || cachedUrl.getResolvedUrl().equals(processingUrl)) {
 					return cachedUrl; // avoid inf-loop
 				}
-				// resolvedUrlは解決できる可能性がある (=前回の解決時にエラー落ち？) 場合はそれをもとに
-				// 解決を再開する。
+				// resolvedUrlは解決できる可能性がある場合 (=前回の解決時にエラー落ち？)
+				// それをもとに解決を再開する。
 				oldUrl = cachedUrl;
 				processingUrl = cachedUrl.getResolvedUrl();
 				continue;
 			}
 			// 解決してくれそうなクラスを取得する。
-			MediaUrlResolver provider = getProvider(url);
+			MediaUrlResolver provider = getResolver(url);
 			if (provider == null) {
 				// 解決できそうもないよ
 				return oldUrl;
@@ -191,5 +200,8 @@ public class UrlResolverManager {
 				oldUrl = resolvedUrl;
 			}
 		}
+	}
+
+	private UrlResolverManager() {
 	}
 }

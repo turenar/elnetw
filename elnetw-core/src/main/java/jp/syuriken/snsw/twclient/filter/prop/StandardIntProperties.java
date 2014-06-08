@@ -22,6 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.prop;
 
 import java.lang.reflect.Constructor;
+import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.FilterOperator;
@@ -125,7 +126,9 @@ public class StandardIntProperties implements FilterProperty {
 			case PROPERTY_ID_RT_COUNT:
 				return false; // DM is not supported
 			case PROPERTY_ID_TIMEDIFF:
-				target = (System.currentTimeMillis() - directMessage.getCreatedAt().getTime()) / 1000;
+				target = TimeUnit.MILLISECONDS.convert(
+						System.currentTimeMillis() - directMessage.getCreatedAt().getTime(),
+						TimeUnit.SECONDS);
 				break;
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");
@@ -150,7 +153,8 @@ public class StandardIntProperties implements FilterProperty {
 				target = status.getRetweetCount();
 				break;
 			case PROPERTY_ID_TIMEDIFF:
-				target = (System.currentTimeMillis() - status.getCreatedAt().getTime()) / 1000;
+				target = TimeUnit.MILLISECONDS.convert(System.currentTimeMillis() - status.getCreatedAt().getTime(),
+						TimeUnit.SECONDS);
 				break;
 			default:
 				throw new AssertionError("StandardIntProperties: 予期しないpropertyId");

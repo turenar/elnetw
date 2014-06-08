@@ -55,11 +55,16 @@ import jp.syuriken.snsw.twclient.ParallelRunnable;
 /**
  * Async Appender for slf4j/logback. Original source code is derived from logback
  *
+ * @param <E> usually ILoggingEvent
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implements AppenderAttachable<E>, PropertyChangeListener {
+public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
+		implements AppenderAttachable<E>, PropertyChangeListener {
 
+	/**
+	 * timed worker
+	 */
 	protected class TimerWorker implements Runnable {
 		private ClientConfiguration configuration = ClientConfiguration.getInstance();
 
@@ -73,6 +78,9 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		}
 	}
 
+	/**
+	 * default flusher
+	 */
 	protected class Worker implements ParallelRunnable {
 		public void run() {
 			flush();
@@ -83,17 +91,52 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 * The default buffer size.
 	 */
 	public static final int DEFAULT_QUEUE_SIZE = 256;
+	/**
+	 * property name of flush interval
+	 */
 	public static final String PROPERTY_FLUSH_INTERVAL = "core.logger.flush_interval";
+	/**
+	 * undefined stub
+	 */
 	protected static final int UNDEFINED = -1;
+	/**
+	 * queue size
+	 */
 	protected int queueSize = DEFAULT_QUEUE_SIZE;
+	/**
+	 * discarding threshold
+	 */
 	protected int discardingThreshold = UNDEFINED;
-	AppenderAttachableImpl<E> aai = new AppenderAttachableImpl<>();
-	BlockingQueue<E> blockingQueue;
+	/**
+	 * appender-ref
+	 */
+	protected AppenderAttachableImpl<E> aai = new AppenderAttachableImpl<>();
+	/**
+	 * logging event queue
+	 */
+	protected BlockingQueue<E> blockingQueue;
+	/**
+	 * appender-ref count
+	 */
 	protected int appenderCount = 0;
+	/**
+	 * flusher instance
+	 */
 	protected Worker worker = new Worker();
+	/**
+	 * timed flusher instance
+	 */
 	protected TimerWorker timerWorker = new TimerWorker();
+	/**
+	 * timed flusher canceller
+	 */
 	private ScheduledFuture<?> timerWorkerFuture;
 
+	/**
+	 * add appender
+	 *
+	 * @param newAppender new appender
+	 */
 	public void addAppender(Appender<E> newAppender) {
 		if (appenderCount == 0) {
 			appenderCount++;
@@ -114,18 +157,24 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		put(eventObject);
 	}
 
+	@Override
 	public void detachAndStopAllAppenders() {
 		aai.detachAndStopAllAppenders();
 	}
 
+	@Override
 	public boolean detachAppender(Appender<E> eAppender) {
 		return aai.detachAppender(eAppender);
 	}
 
+	@Override
 	public boolean detachAppender(String name) {
 		return aai.detachAppender(name);
 	}
 
+	/**
+	 * flush all queue
+	 */
 	public void flush() {
 		while (true) {
 			E e = blockingQueue.poll();
@@ -136,10 +185,16 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		}
 	}
 
+	@Override
 	public Appender<E> getAppender(String name) {
 		return aai.getAppender(name);
 	}
 
+	/**
+	 * get discarding threshold
+	 *
+	 * @return discarding threshold
+	 */
 	public int getDiscardingThreshold() {
 		return discardingThreshold;
 	}
@@ -153,6 +208,11 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		return blockingQueue.size();
 	}
 
+	/**
+	 * get queue size
+	 *
+	 * @return queue size
+	 */
 	public int getQueueSize() {
 		return queueSize;
 	}
@@ -167,6 +227,7 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		return blockingQueue.remainingCapacity();
 	}
 
+	@Override
 	public boolean isAttached(Appender<E> eAppender) {
 		return aai.isAttached(eAppender);
 	}
@@ -188,10 +249,16 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		return false;
 	}
 
+	/**
+	 * get if queue remaining capacity is larger than discarding threshold
+	 *
+	 * @return should be discard
+	 */
 	private boolean isQueueBelowDiscardingThreshold() {
-		return (blockingQueue.remainingCapacity() < discardingThreshold);
+		return blockingQueue.remainingCapacity() < discardingThreshold;
 	}
 
+	@Override
 	public Iterator<Appender<E>> iteratorForAppenders() {
 		return aai.iteratorForAppenders();
 	}
@@ -213,7 +280,8 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 			}
 			ClientConfiguration configuration = ClientConfiguration.getInstance();
 			long interval = configuration.getConfigProperties().getTime(PROPERTY_FLUSH_INTERVAL);
-			timerWorkerFuture = configuration.getTimer().scheduleWithFixedDelay(timerWorker, interval, interval, TimeUnit.MILLISECONDS);
+			timerWorkerFuture = configuration.getTimer()
+					.scheduleWithFixedDelay(timerWorker, interval, interval, TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -225,10 +293,20 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 		}
 	}
 
+	/**
+	 * set discarding threshold
+	 *
+	 * @param discardingThreshold discarding threshold
+	 */
 	public void setDiscardingThreshold(int discardingThreshold) {
 		this.discardingThreshold = discardingThreshold;
 	}
 
+	/**
+	 * set queue size
+	 *
+	 * @param queueSize queue size
+	 */
 	public void setQueueSize(int queueSize) {
 		this.queueSize = queueSize;
 	}
@@ -269,8 +347,8 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 			return;
 		}
 
-		// mark this appender as stopped so that Worker can also processPriorToRemoval if it is invoking aii.appendLoopOnAppenders
-		// and sub-appenders consume the interruption
+		// mark this appender as stopped so that Worker can also processPriorToRemoval
+		// if it is invoking aii.appendLoopOnAppenders and sub-appenders consume the interruption
 		super.stop();
 
 		flush();

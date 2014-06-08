@@ -205,7 +205,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return ((Status) obj).getId() == id;
 	}
 
-	/** -1を返します ((このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)) */
+	/**
+	 * -1を返します ((このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない))
+	 *
+	 * @return -1
+	 */
 	@Override
 	public int getAccessLevel() {
 		return -1;
@@ -301,7 +305,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return place;
 	}
 
-	/** nullを返します。(このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない) */
+	/**
+	 * nullを返します。(このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
+	 *
+	 * @return null
+	 */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
 		return null;

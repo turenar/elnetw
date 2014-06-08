@@ -298,6 +298,12 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return configuration;
 	}
 
+	/**
+	 * get virtual url for intent
+	 *
+	 * @param intentArguments intent
+	 * @return virtual url
+	 */
 	protected String getCommandUrl(IntentArguments intentArguments) {
 		String url = "http://command/?id=" + (nextUrlId++);
 		urlIntentMap.put(url, intentArguments);
@@ -387,7 +393,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 		return muteCheckBox;
 	}
 
-	public JComponent getComponentOperationBox() {
+	private JComponent getComponentOperationBox() {
 		if (componentOperationBox == null) {
 			componentOperationBox = new JButton("その他▼");
 			componentOperationBox.setFont(operationFont);
@@ -510,9 +516,9 @@ public class UserInfoFrameTab extends DefaultClientTab {
 							.addGroup(layout.createSequentialGroup()
 									.addComponent(getComponentTwitterLogo(), 16, 16, 16)
 									.addComponent(getComponentUserName(), 64, GroupLayout.DEFAULT_SIZE,
-											PREFERRED_SIZE).addGap(4, 128, 128)
+											Short.MAX_VALUE).addGap(4, 128, 128)
 									.addComponent(getComponentLocation(), 64, GroupLayout.DEFAULT_SIZE,
-											GroupLayout.DEFAULT_SIZE))
+											Short.MAX_VALUE))
 							.addComponent(getComponentUserURL())
 							.addComponent(getComponentBio(), 64, PREFERRED_SIZE, Short.MAX_VALUE)));
 		}

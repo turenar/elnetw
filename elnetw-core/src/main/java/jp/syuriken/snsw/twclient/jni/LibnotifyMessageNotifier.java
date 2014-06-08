@@ -40,13 +40,13 @@ import org.slf4j.LoggerFactory;
 public class LibnotifyMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(LibnotifyMessageNotifier.class);
 
-	public static final boolean checkUsable(ClientConfiguration configuration) {
+	public static boolean checkUsable() {
 		JavaGnome javaGnome = JavaGnome.getInstance();
 		if (javaGnome.isDisabled()) {
 			logger.info("Skip java-gnome notify system");
 			return false;
 		} else if (Utility.getOstype() == Utility.OSType.OTHER) {
-			ClassLoader extraClassLoader = configuration.getExtraClassLoader();
+			ClassLoader extraClassLoader = ClientConfiguration.getInstance().getExtraClassLoader();
 			if (!javaGnome.isFound()) {
 				return false;
 			}

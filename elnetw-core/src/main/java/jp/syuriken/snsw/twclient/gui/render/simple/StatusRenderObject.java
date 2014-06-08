@@ -66,8 +66,10 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.UNDERLINE;
  */
 public class StatusRenderObject extends EntitySupportRenderObject {
 
-	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(32, 32);
+	public static final int OP_BUTTON_SIZE = 32;
+	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(OP_BUTTON_SIZE, OP_BUTTON_SIZE);
 	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
+	private static final Dimension OPERATION_GROUP_PANEL_SIZE = new Dimension(76, 76);
 	private final long userId;
 	private final TwitterStatus status;
 	private final String uniqId;
@@ -77,6 +79,13 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 	private JPanel tweetViewOperationPanel;
 	private JLabel tweetViewOtherButton;
 
+	/**
+	 * インスタンスの生成
+	 *
+	 * @param userId   ユーザーID
+	 * @param status   ステータス
+	 * @param renderer レンダラ
+	 */
 	public StatusRenderObject(long userId, Status status, SimpleRenderer renderer) {
 		super(renderer);
 		this.userId = userId;
@@ -230,23 +239,23 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 	protected JPanel getTweetViewOperationPanel() {
 		if (tweetViewOperationPanel == null) {
 			tweetViewOperationPanel = new JPanel();
-			tweetViewOperationPanel.setPreferredSize(new Dimension(76, 76));
-			tweetViewOperationPanel.setMinimumSize(new Dimension(76, 76));
+			tweetViewOperationPanel.setPreferredSize(OPERATION_GROUP_PANEL_SIZE);
+			tweetViewOperationPanel.setMinimumSize(OPERATION_GROUP_PANEL_SIZE);
 			GroupLayout layout = new GroupLayout(tweetViewOperationPanel);
 			layout.setHorizontalGroup(layout.createParallelGroup()
 					.addGroup(layout.createSequentialGroup()
-							.addComponent(getTweetViewReplyButton(), 32, 32, 32)
-							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+							.addComponent(getTweetViewReplyButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)
+							.addComponent(getTweetViewRetweetButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE))
 					.addGroup(layout.createSequentialGroup()
-							.addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+							.addComponent(getTweetViewFavoriteButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)
+							.addComponent(getTweetViewOtherButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)));
 			layout.setVerticalGroup(layout.createSequentialGroup()
 					.addGroup(layout.createParallelGroup()
-							.addComponent(getTweetViewReplyButton(), 32, 32, 32)
-							.addComponent(getTweetViewRetweetButton(), 32, 32, 32))
+							.addComponent(getTweetViewReplyButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)
+							.addComponent(getTweetViewRetweetButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE))
 					.addGroup(layout.createParallelGroup()
-							.addComponent(getTweetViewFavoriteButton(), 32, 32, 32)
-							.addComponent(getTweetViewOtherButton(), 32, 32, 32)));
+							.addComponent(getTweetViewFavoriteButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)
+							.addComponent(getTweetViewOtherButton(), OP_BUTTON_SIZE, OP_BUTTON_SIZE, OP_BUTTON_SIZE)));
 		}
 		return tweetViewOperationPanel;
 	}
@@ -350,6 +359,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		getConfiguration().handleAction(intentArguments);
 	}
 
+	@Override
 	protected void initComponents() {
 		Status twitterStatus = this.status;
 

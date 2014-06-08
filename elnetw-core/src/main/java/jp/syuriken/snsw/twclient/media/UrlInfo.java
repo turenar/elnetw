@@ -75,6 +75,7 @@ public class UrlInfo {
 
 	@Override
 	public String toString() {
-		return "UrlInfo {resolvedUrl=" + resolvedUrl + ",shouldRecursive=" + shouldRecursive + ",isMediaFile=" + isMediaFile + "}";
+		return "UrlInfo {resolvedUrl=" + resolvedUrl + ",shouldRecursive=" + shouldRecursive
+				+ ",isMediaFile=" + isMediaFile + "}";
 	}
 }

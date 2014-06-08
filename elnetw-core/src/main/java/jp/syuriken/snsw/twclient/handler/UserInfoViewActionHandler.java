@@ -121,7 +121,8 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 					user = status.getUser();
 				} else {
 					throw new IllegalArgumentException(
-							"[userinfo AH] must call as userinfo!screenName=<screenName> or must renderObject.basedObject is Status");
+							"[userinfo AH] must call as userinfo!screenName=<screenName>"
+									+ " or must renderObject.basedObject is Status");
 				}
 			} else {
 				user = new UserFetcher(screenName).getUser();

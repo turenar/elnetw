@@ -220,8 +220,8 @@ public class InListProperty implements FilterProperty {
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return isEqual == ((Arrays.binarySearch(userIdsFollowedByList, directMessage.getSenderId()) >= 0) ? true : //
-				(Arrays.binarySearch(userIdsFollowedByList, directMessage.getRecipientId()) >= 0));
+		return isEqual == ((Arrays.binarySearch(userIdsFollowedByList, directMessage.getSenderId()) >= 0)
+				|| (Arrays.binarySearch(userIdsFollowedByList, directMessage.getRecipientId()) >= 0));
 	}
 
 	@Override

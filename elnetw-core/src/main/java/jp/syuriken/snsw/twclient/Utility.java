@@ -112,6 +112,8 @@ public class Utility {
 			"epiphany",
 			"mozilla"
 	};
+	public static final int VISIBLE_CHAR_CODE_MIN = 0x20;
+	public static final int VISIBLE_CHAR_CODE_MAX = 0x7e;
 	private static volatile OSType ostype;
 	private static KVEntry[] privacyEntries;
 	/** DateFormatを管理する */
@@ -186,6 +188,14 @@ public class Utility {
 		return new Color(newr, newg, newb, target.getAlpha());
 	}
 
+	/**
+	 * create buffered image from image
+	 *
+	 * @param image   original image
+	 * @param tracker image tracker
+	 * @return buffered image
+	 * @throws InterruptedException
+	 */
 	public static BufferedImage createBufferedImage(Image image, MediaTracker tracker) throws InterruptedException {
 		if (image instanceof BufferedImage) {
 			return (BufferedImage) image;
@@ -267,6 +277,12 @@ public class Utility {
 		}
 	}
 
+	/**
+	 * get intent argument from action command
+	 *
+	 * @param actionCommand {name} [! {arg} [=value] ; [ {arg} [=value] [; ...]]]
+	 * @return intent argument
+	 */
 	public static IntentArguments getIntentArguments(String actionCommand) {
 		int argSeparatorIndex = actionCommand.indexOf('!');
 		IntentArguments intentArguments = new IntentArguments(
@@ -437,7 +453,8 @@ public class Utility {
 		}
 		int keyCode = e.getKeyChar();
 		String key;
-		if (keyCode != KeyEvent.CHAR_UNDEFINED && keyCode >= 0x20 && keyCode <= 0x7e) {
+		if (keyCode != KeyEvent.CHAR_UNDEFINED
+				&& keyCode >= VISIBLE_CHAR_CODE_MIN && keyCode <= VISIBLE_CHAR_CODE_MAX) {
 			key = getKeyNameByChar(keyCode);
 		} else {
 			keyCode = e.getKeyCode();

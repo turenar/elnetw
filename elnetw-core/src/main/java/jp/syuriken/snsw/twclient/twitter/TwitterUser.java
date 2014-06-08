@@ -165,8 +165,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		Status status = originalUser.getStatus();
 		JSONObject statusJsonObject;
 		try {
-			statusJsonObject = jsonObject == null ? null :
-					(jsonObject.isNull("status") ? null : jsonObject.getJSONObject("status"));
+			statusJsonObject = jsonObject == null ? null
+					: (jsonObject.isNull("status") ? null : jsonObject.getJSONObject("status"));
 		} catch (JSONException e) {
 			logger.error("Cannot parse json", e);
 			throw new RuntimeException(e);
@@ -208,7 +208,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return ((User) obj).getId() == id;
 	}
 
-	/** -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない) */
+	/**
+	 * -1を返す (このクラスのインスタンスはキャッシュされるため、一時的なデータは保存しない)
+	 *
+	 * @return -1
+	 */
 	@Override
 	public int getAccessLevel() {
 		return -1;
@@ -331,10 +335,20 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/ipad" : null;
 	}
 
+	/**
+	 * get large profile banner url
+	 *
+	 * @return url
+	 */
 	public String getProfileBannerLargeURL() {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/1500x500" : null;
 	}
 
+	/**
+	 * get medium profile banner url
+	 *
+	 * @return url
+	 */
 	public String getProfileBannerMediumURL() {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/600x200" : null;
 	}
@@ -354,6 +368,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/web_retina" : null;
 	}
 
+	/**
+	 * get small profile banner url
+	 *
+	 * @return url
+	 */
 	public String getProfileBannerSmallURL() {
 		return profileBannerImageUrl != null ? profileBannerImageUrl + "/300x100" : null;
 	}
@@ -393,7 +412,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return profileTextColor;
 	}
 
-	/** nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない) */
+	/**
+	 * nullを返す (このクラスのインスタンスはキャッシュされるため一時的なデータは保存しない)
+	 *
+	 * @return null
+	 */
 	@Override
 	public RateLimitStatus getRateLimitStatus() {
 		return null;
@@ -514,6 +537,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	 * このユーザーのプロフィールを指定したユーザーのプロフィールでアップデートする
 	 *
 	 * @param user 新しい情報が含まれたユーザー
+	 * @return this instance
 	 * @throws IllegalArgumentException このユーザーのIDと指定したユーザーのIDが一致しない
 	 */
 	public TwitterUser updateUser(User user) throws IllegalArgumentException {

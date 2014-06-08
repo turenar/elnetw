@@ -25,9 +25,13 @@ public class DeadlockMonitor implements Runnable {
 	public DeadlockMonitor() {
 		ClientConfiguration configuration = ClientConfiguration.getInstance();
 		long intervalTime = configuration.getConfigProperties().getTime("core.supervisor.deadlock.monitor_interval");
-		scheduledFuture = configuration.getSupervisorTimer().scheduleWithFixedDelay(this, 0, intervalTime, TimeUnit.MILLISECONDS);
+		scheduledFuture = configuration.getSupervisorTimer()
+				.scheduleWithFixedDelay(this, 0, intervalTime, TimeUnit.MILLISECONDS);
 	}
 
+	/**
+	 * stop deadlock monitor
+	 */
 	public void cancel() {
 		scheduledFuture.cancel(false);
 	}
@@ -36,7 +40,8 @@ public class DeadlockMonitor implements Runnable {
 	public synchronized void run() {
 		try {
 			Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
-			for (Iterator<Map.Entry<Thread, StackTraceElement[]>> iterator = stackTraces.entrySet().iterator(); iterator.hasNext(); ) {
+			for (Iterator<Map.Entry<Thread, StackTraceElement[]>> iterator = stackTraces.entrySet().iterator();
+				 iterator.hasNext(); ) {
 				Map.Entry<Thread, StackTraceElement[]> threadEntry = iterator.next();
 				Thread thread = threadEntry.getKey();
 				if (thread.getState() == Thread.State.BLOCKED) {

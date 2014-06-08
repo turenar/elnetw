@@ -24,7 +24,6 @@ package jp.syuriken.snsw.twclient.internal;
 import java.io.File;
 import java.io.IOException;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.MessageNotifier;
 import jp.syuriken.snsw.twclient.Utility;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class NotifySendMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(NotifySendMessageNotifier.class);
 
-	public static boolean checkUsable(ClientConfiguration configuration) {
+	public static boolean checkUsable() {
 		if (Utility.getOstype() == Utility.OSType.OTHER) {
 			try {
 				if (Runtime.getRuntime().exec(new String[]{

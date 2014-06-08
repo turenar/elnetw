@@ -85,7 +85,7 @@ public class LoggingConfigurator {
 						+ "</appender>\n"
 						+ "<appender name=\"ASYNC_FILE\" class=\"jp.syuriken.snsw.twclient.internal.AsyncAppender\">\n"
 						+ "  <appender-ref ref=\"FILE\" />\n"
-						+ "  <discardingThreshold>0</discardingThreshold>\n"
+						+ "  <discardingThreshold>10</discardingThreshold>\n"
 						+ "</appender>"
 		);
 	}

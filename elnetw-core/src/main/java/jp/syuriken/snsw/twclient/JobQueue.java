@@ -498,7 +498,7 @@ public class JobQueue {
 	 *
 	 * @param jobWorkerThread worker thread
 	 * @param state           expected state
-	 *                        @return if worker termination logic is succeeded
+	 * @return if worker termination logic is succeeded
 	 */
 	protected boolean finishWorker(JobWorkerThread jobWorkerThread, int state) {
 		synchronized (this) {

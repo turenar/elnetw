@@ -42,7 +42,13 @@ import twitter4j.UserMentionEntity;
  */
 public class UserFilter extends MessageFilterAdapter implements PropertyChangeListener {
 
+	/**
+	 * property name for global filter
+	 */
 	public static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
+	/**
+	 * property name for user ids
+	 */
 	public static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 	private final ClientConfiguration configuration;
 	private final Logger logger = LoggerFactory.getLogger(UserFilter.class);
@@ -51,7 +57,11 @@ public class UserFilter extends MessageFilterAdapter implements PropertyChangeLi
 	private FilterDispatcherBase query;
 
 
-	/** インスタンスを生成する。 */
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param filterPropertyName filter property name
+	 */
 	public UserFilter(String filterPropertyName) {
 		this.filterPropertyName = filterPropertyName;
 		this.configuration = ClientConfiguration.getInstance();
