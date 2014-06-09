@@ -157,8 +157,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		profileBannerImageUrl = profileBannerURL == null ? null : profileBannerURL.substring(0, profileBannerURL.length() - 4);
 		descriptionURLEntities = originalUser.getDescriptionURLEntities();
 		urlEntity = originalUser.getURLEntity();
-		defaultProfile = originalUser.isDefaultProfile();
-		defaultProfileImage = originalUser.isDefaultProfileImage();
 
 		json = jsonObject == null ? null : jsonObject.toString();
 
@@ -465,16 +463,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public boolean isContributorsEnabled() {
 		return isContributorsEnabled;
-	}
-
-	@Override
-	public boolean isDefaultProfile() {
-		return defaultProfile;
-	}
-
-	@Override
-	public boolean isDefaultProfileImage() {
-		return defaultProfileImage;
 	}
 
 	@Override

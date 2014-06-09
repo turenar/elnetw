@@ -256,16 +256,6 @@ class TestUser implements User {
 	}
 
 	@Override
-	public boolean isDefaultProfile() {
-		return false;
-	}
-
-	@Override
-	public boolean isDefaultProfileImage() {
-		return false;
-	}
-
-	@Override
 	public boolean isFollowRequestSent() {
 		return false;
 	}
