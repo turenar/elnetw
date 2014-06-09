@@ -148,19 +148,6 @@
 		<testOutputDirectory>target/test</testOutputDirectory>
 		<defaultGoal>test</defaultGoal>
 		<directory>target</directory>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>jp.syuriken.snsw.launcher.TwitterClientLauncher</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-		</plugins>
 		<extensions>
 			<extension>
 				<groupId>jp.syuriken.snsw</groupId>
