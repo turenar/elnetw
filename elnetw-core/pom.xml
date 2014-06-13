@@ -94,8 +94,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.twitter</groupId>
-			<artifactId>twitter-text</artifactId>
-			<version>1.6.1</version>
+			<artifactId>twitter-text-regex</artifactId>
+			<version>1.9.2-SNAPSHOT</version>
 		</dependency>
 		<!-- flag: ignore-packaging -->
 		<dependency>
