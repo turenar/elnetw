@@ -1,4 +1,4 @@
-Version 0.1-beta1
+Version 0.1-beta1 (Fri Jun 13 21:57:19 JST 2014)
 
 	+ elnetw.cfg supports <time><unit> (ex. 4s 5m 6h) partially
 	+ -Delnetw.home, -Delnetw.cache.dir changes application directory
