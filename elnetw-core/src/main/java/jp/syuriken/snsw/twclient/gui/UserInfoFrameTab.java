@@ -144,6 +144,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private ImageIcon imageIcon;
 	private int nextUrlId = 0;
 	private JComponent componentOperationBox;
+	private JMenuItem showHeaderItem;
 
 	/**
 	 * インスタンスを生成する。
@@ -399,7 +400,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 			componentOperationBox.setFont(operationFont);
 			componentOperationBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 			final JPopupMenu jPopupMenu = new JPopupMenu();
-			JMenuItem showHeaderItem = new JMenuItem("ヘッダーを表示");
+			showHeaderItem = new JMenuItem("ヘッダーを表示");
 			showHeaderItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -410,9 +411,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 					}
 				}
 			});
-			if (user.getProfileBannerLargeURL() == null) {
-				showHeaderItem.setEnabled(false);
-			}
+
 			jPopupMenu.add(showHeaderItem);
 			jPopupMenu.add(getComponentMuteCheckBox());
 			componentOperationBox.addMouseListener(new MouseAdapter() {
@@ -488,11 +487,6 @@ public class UserInfoFrameTab extends DefaultClientTab {
 	private BackgroundImagePanel getComponentUserInfo() {
 		if (componentUserInfoPanel == null) {
 			componentUserInfoPanel = new BackgroundImagePanel();
-			String bannerURL = user.getProfileBannerLargeURL();
-			if (bannerURL != null) {
-				componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
-				componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
-			}
 			GroupLayout layout = new GroupLayout(componentUserInfoPanel);
 			componentUserInfoPanel.setLayout(layout);
 			layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -699,6 +693,14 @@ public class UserInfoFrameTab extends DefaultClientTab {
 					componentMuteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
 				} else {
 					componentMuteCheckBox.setEnabled(true);
+				}
+
+				String bannerURL = user.getProfileBannerLargeURL();
+				if (bannerURL != null) {
+					componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
+					componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
+				}else{
+					showHeaderItem.setEnabled(false);
 				}
 			}
 		});
