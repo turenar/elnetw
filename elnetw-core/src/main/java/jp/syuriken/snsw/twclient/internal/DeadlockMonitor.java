@@ -59,7 +59,9 @@ public class DeadlockMonitor implements Runnable {
 				}
 			}
 			blockedThreadEntry = stackTraces;
-			logger.debug("blocked threads={}", blockedThreadEntry);
+			if (!blockedThreadEntry.isEmpty()) {
+				logger.debug("blocked threads={}", blockedThreadEntry);
+			}
 		} catch (Throwable e) {
 			logger.error("error", e);
 		}
