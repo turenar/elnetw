@@ -88,7 +88,7 @@ public final class VersionInfo {
 	 * @return described version
 	 */
 	public static String getDescribedVersion() {
-		return getString("git.build-version");
+		return getString("pom.uniqueVersion");
 	}
 
 	private static String getString(String key) {

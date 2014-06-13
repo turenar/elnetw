@@ -53,6 +53,7 @@ import twitter4j.UserMentionEntity;
 public class TwitterStatus implements Status, TwitterExtendedObject {
 	private static final long serialVersionUID = -188757917578787367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
+	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
 
 	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
@@ -168,7 +169,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (!(originalStatus instanceof TwitterStatus)) {
 			if (!(retweetedStatus == null || retweetedStatus instanceof TwitterStatus)) {
-				CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
+				CacheManager cacheManager = configuration.getCacheManager();
 				TwitterStatus cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
 				if (cachedStatus == null) {
 					TwitterStatus status = new TwitterStatus(retweetedStatus, getRetweetJSONObject(jsonObject));
@@ -215,12 +216,12 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return -1;
 	}
 
-	private User getCachedUser(User user) {
+	private static User getCachedUser(User user) {
 		if (user instanceof TwitterUser) {
 			return user;
 		}
 
-		CacheManager cacheManager = ClientConfiguration.getInstance().getCacheManager();
+		CacheManager cacheManager = configuration.getCacheManager();
 		User cachedUser = cacheManager.getCachedUser(user.getId());
 		if (cachedUser == null) {
 			TwitterUser twitterUser = new TwitterUser(user);
