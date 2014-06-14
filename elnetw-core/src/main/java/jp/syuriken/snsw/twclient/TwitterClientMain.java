@@ -698,7 +698,7 @@ public final class TwitterClientMain {
 	/**
 	 * set account id
 	 */
-	@Initializer(name = "accountId", dependencies = "config", phase = "earlyinit")
+	@Initializer(name = "accountId", dependencies = {"config", "accesstoken"}, phase = "earlyinit")
 	public void setAccountId() {
 		String defaultAccountId = configuration.getDefaultAccountId();
 		configuration.setAccountIdForRead(defaultAccountId);
