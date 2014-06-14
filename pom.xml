@@ -5,7 +5,7 @@
 
 	<groupId>jp.syuriken.snsw</groupId>
 	<artifactId>elnetw</artifactId>
-	<version>0.1-beta2</version>
+	<version>0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>elnetw, the twitter client</name>
 	<description>Elnetw: Twitter Client for HITOBASHIRA</description>
