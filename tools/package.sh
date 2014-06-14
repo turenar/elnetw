@@ -70,8 +70,18 @@ function do_package() {
 	fi
 
 	_mvn package $(if_bool $_mode_sign -Psign) -DdescribedVersion=${__described}
+	
+	_debug "> re-package tar.gz as zip"
+	cd elnetw-launcher/target
+	mkdir package.sh.tmp
+	cd package.sh.tmp
+	__filename=../elnetw-*-bin.tar.gz
+	tar -zxf ../elnetw-*-bin.tar.gz
+	zip -q -r ${__filename%.tar.gz}.zip *
+	cd ../../..
 	_debug "> saving binary package..."
 	mv elnetw-launcher/target/elnetw-*-bin.tar.gz ${PROJECT_DIR}/elnetw-bin-${__described}.tar.gz
+	mv elnetw-launcher/target/elnetw-*-bin.zip ${PROJECT_DIR}/elnetw-bin-${__described}.zip
 	
 	test_bool $_opt_sandbox && leave_sandbox
 }

@@ -11,6 +11,9 @@ elnetw.cfg
 /tools/log
 /tools/.classpath.cache
 
+# For tools/package.sh
+/elnetw-bin-*
+
 # For Maven
 /elnetw-*/target
 /target
