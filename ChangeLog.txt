@@ -1,4 +1,4 @@
-Version 0.1-beta2
+Version 0.1-beta2 (2014年  6月 14日 土曜日 10:12:14 JST)
 
 	* Fix not launchable in Windows
 
