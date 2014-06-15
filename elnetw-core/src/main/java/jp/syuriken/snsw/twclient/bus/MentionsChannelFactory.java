@@ -22,13 +22,13 @@
 package jp.syuriken.snsw.twclient.bus;
 
 /**
- * {@link StreamFetcher}のファクトリークラス
+ * {@link MentionsChannel}のためのファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StreamFetcherFactory implements MessageChannelFactory {
+public class MentionsChannelFactory implements MessageChannelFactory {
 	@Override
 	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new StreamFetcher(messageBus, accountId);
+		return new MentionsChannel(messageBus, accountId);
 	}
 }

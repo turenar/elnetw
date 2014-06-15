@@ -38,7 +38,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
@@ -61,12 +60,13 @@ import javax.swing.UIManager;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.OptionType;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
-import jp.syuriken.snsw.twclient.bus.DirectMessageFetcherFactory;
-import jp.syuriken.snsw.twclient.bus.MentionsFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.StreamFetcherFactory;
-import jp.syuriken.snsw.twclient.bus.TimelineFetcherFactory;
+import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
+import jp.syuriken.snsw.twclient.bus.TimelineChannelFactory;
+import jp.syuriken.snsw.twclient.bus.VirtualChannelFactory;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
@@ -787,16 +787,6 @@ public final class TwitterClientMain {
 		} else {
 			appHomeDir = appHomeDir == null ? System.getProperty("user.home") + "/.elnetw" : appHomeDir;
 			cacheDir = cacheDir == null ? System.getProperty("user.home") + "/.cache/elnetw" : cacheDir;
-			Path cacheDirPath = new File(cacheDir).toPath();
-			Path cacheLinkPath = new File(appHomeDir, "cache").toPath();
-			if (!Files.exists(cacheLinkPath, LinkOption.NOFOLLOW_LINKS)) {
-				try {
-					Files.createSymbolicLink(cacheLinkPath, cacheDirPath);
-				} catch (IOException e) {
-					System.err.println(
-							"[core] failed symbolic link from '" + appHomeDir + "'/cache to '" + cacheDir + "'");
-				}
-			}
 		}
 		tryMkdir(appHomeDir);
 		tryMkdir(cacheDir);
@@ -833,12 +823,13 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
 	public void setMessageChannelFactory() {
-		messageBus.addVirtualChannel("my/timeline", new String[]{"stream/user", "statuses/timeline"});
-		messageBus.addChannelFactory("stream/user", new StreamFetcherFactory());
-		messageBus.addChannelFactory("statuses/timeline", new TimelineFetcherFactory());
-		messageBus.addChannelFactory("statuses/mentions", new MentionsFetcherFactory());
-		messageBus.addChannelFactory("direct_messages", new DirectMessageFetcherFactory());
+		messageBus.addChannelFactory("my/timeline", new VirtualChannelFactory("stream/user", "statuses/timeline"));
+		messageBus.addChannelFactory("stream/user", new TwitterStreamChannelFactory());
+		messageBus.addChannelFactory("statuses/timeline", new TimelineChannelFactory());
+		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
+		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
+		messageBus.addChannelFactory("error",NullMessageChannelFactory.INSTANCE);
 	}
 
 	/**

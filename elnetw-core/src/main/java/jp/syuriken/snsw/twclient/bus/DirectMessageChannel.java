@@ -43,9 +43,9 @@ import twitter4j.TwitterFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DirectMessageFetcher extends TwitterRunnable implements MessageChannel {
+public class DirectMessageChannel extends TwitterRunnable implements MessageChannel {
 
-	private static final Logger logger = LoggerFactory.getLogger(TimelineFetcher.class);
+	private static final Logger logger = LoggerFactory.getLogger(TimelineChannel.class);
 	private final ClientConfiguration configuration;
 	private final int intervalOfDirectMessage;
 	private final ClientProperties configProperties;
@@ -55,7 +55,7 @@ public class DirectMessageFetcher extends TwitterRunnable implements MessageChan
 	private volatile ScheduledFuture<?> scheduledFuture;
 	private volatile Twitter twitter;
 
-	public DirectMessageFetcher(MessageBus messageBus, String accountId) {
+	public DirectMessageChannel(MessageBus messageBus, String accountId) {
 		this.messageBus = messageBus;
 		this.accountId = accountId;
 		listeners = messageBus.getListeners(accountId, "direct_messages");
@@ -102,7 +102,7 @@ public class DirectMessageFetcher extends TwitterRunnable implements MessageChan
 					new Runnable() {
 						@Override
 						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, DirectMessageFetcher.this);
+							configuration.addJob(JobQueue.Priority.LOW, DirectMessageChannel.this);
 						}
 					}, 0, intervalOfDirectMessage, TimeUnit.SECONDS);
 		}

@@ -78,8 +78,6 @@ public class MessageBus {
 	}
 
 	/*package*/final ClientConfiguration configuration;
-	/** {String=path, String[]=paths} */
-	protected HashMap<String, String[]> virtualPathMap = new HashMap<>();
 	/** {String=notifierName, MessageChannelFactory=channelFactory} */
 	protected HashMap<String, MessageChannelFactory> channelMap = new HashMap<>();
 	/** {String=path, MessageChannel=channel} */
@@ -112,17 +110,6 @@ public class MessageBus {
 		return channelMap.put(notifierName, factory);
 	}
 
-	/**
-	 * add virtual notifiers
-	 *
-	 * @param virtualPath notifier name (like &quot;my/timeline&quot;)
-	 * @param notifiers   child notifiers (like &quot;stream/user&quot;, &quot;rest/timeline&quot;)
-	 * @return old virtual notifiers
-	 */
-	public synchronized String[] addVirtualChannel(String virtualPath, String[] notifiers) {
-		return virtualPathMap.put(virtualPath, notifiers);
-	}
-
 	/** お掃除する */
 	public synchronized void cleanUp() {
 		Collection<MessageChannel> entries = pathMap.values();
@@ -149,40 +136,36 @@ public class MessageBus {
 		}
 		messageListeners.add(listener);
 
-		String[] virtualPaths = virtualPathMap.get(notifierName);
-		if (virtualPaths != null) {
-			for (String virtualPath : virtualPaths) {
-				establish(accountId, virtualPath, listener);
-			}
-		} else {
-			MessageChannel messageChannel = pathMap.get(path);
-			// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
-			if (!accountId.equals(ALL_ACCOUNT_ID) && (messageChannel == null)) {
-				MessageChannelFactory factory = channelMap.get(notifierName);
-				if (factory == null) {
-					if (!notifierName.endsWith("all")) {
-						logger.warn("MessageChannel `{}' is not found.", notifierName);
-					}
-					return false;
+		MessageChannel messageChannel = pathMap.get(path);
+		boolean ret = true;
+		// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
+		if (!accountId.equals(ALL_ACCOUNT_ID) && (messageChannel == null)) {
+			MessageChannelFactory factory = channelMap.get(notifierName);
+			if (factory == null) {
+				if (!notifierName.endsWith("all")) {
+					logger.warn("MessageChannel `{}' is not found.", notifierName);
 				}
-				messageChannel = factory.getInstance(this, accountId, notifierName);
-				pathMap.put(path, messageChannel);
-
-				messageChannel.connect();
-				if (isInitialized) {
-					messageChannel.realConnect();
-				}
+				factory = NullMessageChannelFactory.INSTANCE;
+				ret = false;
 			}
-			ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
-			if (userListeners == null) {
-				userListeners = new ArrayList<>();
-				userListenerMap.put(accountId, userListeners);
-			}
-			userListeners.add(messageChannel);
+			messageChannel = factory.getInstance(this, accountId, notifierName);
+			pathMap.put(path, messageChannel);
 
-			modifiedCount.incrementAndGet();
+			messageChannel.connect();
+			if (isInitialized) {
+				messageChannel.realConnect();
+			}
 		}
-		return true;
+
+		ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
+		if (userListeners == null) {
+			userListeners = new ArrayList<>();
+			userListenerMap.put(accountId, userListeners);
+		}
+		userListeners.add(messageChannel);
+
+		modifiedCount.incrementAndGet();
+		return ret;
 	}
 
 	/**

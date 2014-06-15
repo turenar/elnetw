@@ -22,13 +22,13 @@
 package jp.syuriken.snsw.twclient.bus;
 
 /**
- * {@link TimelineFetcher}のファクトリークラス
+ * {@link TwitterStreamChannel}のファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TimelineFetcherFactory implements MessageChannelFactory {
+public class TwitterStreamChannelFactory implements MessageChannelFactory {
 	@Override
 	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new TimelineFetcher(messageBus, accountId);
+		return new TwitterStreamChannel(messageBus, accountId);
 	}
 }

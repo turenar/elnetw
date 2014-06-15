@@ -21,14 +21,33 @@
 
 package jp.syuriken.snsw.twclient.bus;
 
+import jp.syuriken.snsw.twclient.ClientMessageListener;
+import twitter4j.TwitterStream;
+import twitter4j.TwitterStreamFactory;
+
 /**
- * {@link DirectMessageFetcher}のためのファクトリークラス
+ * virtual channel: publish specified channel
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DirectMessageFetcherFactory implements MessageChannelFactory {
+public class VirtualChannel implements MessageChannel {
+
+	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
+		ClientMessageListener listener = messageBus.getListeners(accountId, to);
+		for (String s : from) {
+			messageBus.establish(accountId,s, listener);
+		}
+	}
+
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new DirectMessageFetcher(messageBus, accountId);
+	public synchronized void connect() {
+	}
+
+	@Override
+	public synchronized void disconnect() {
+	}
+
+	@Override
+	public void realConnect() {
 	}
 }
