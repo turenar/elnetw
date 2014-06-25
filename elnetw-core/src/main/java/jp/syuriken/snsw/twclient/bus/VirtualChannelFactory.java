@@ -27,15 +27,14 @@ package jp.syuriken.snsw.twclient.bus;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class VirtualChannelFactory implements MessageChannelFactory {
-	private String from;
 	private String[] to;
 
-	public VirtualChannelFactory(String from, String...to){
-		this.from = from;
+	public VirtualChannelFactory(String... to) {
 		this.to = to;
 	}
+
 	@Override
 	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new VirtualChannel(messageBus, accountId,from, to);
+		return new VirtualChannel(messageBus, accountId, path, to);
 	}
 }
