@@ -86,7 +86,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UserInfoFrameTab extends DefaultClientTab {
+public class UserInfoFrameTab extends AbstractClientTab {
 
 	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
 
@@ -699,7 +699,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				if (bannerURL != null) {
 					componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
 					componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
-				}else{
+				} else {
 					showHeaderItem.setEnabled(false);
 				}
 			}

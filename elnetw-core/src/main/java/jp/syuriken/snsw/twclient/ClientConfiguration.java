@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -209,7 +208,7 @@ public class ClientConfiguration {
 	private volatile CacheManager cacheManager;
 	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
-	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
+	private MessageFilter messageFilters = null;
 	private ParsedArguments parsedArguments;
 	private ArgParser argParser;
 
@@ -236,7 +235,11 @@ public class ClientConfiguration {
 	 * @param filter フィルター
 	 */
 	public void addFilter(MessageFilter filter) {
-		messageFilters.add(filter);
+		if (messageFilters == null) {
+			messageFilters = filter;
+		} else {
+			messageFilters.addChild(filter);
+		}
 	}
 
 	/**
@@ -453,9 +456,11 @@ public class ClientConfiguration {
 	 * グローバルで使用するフィルタを取得する
 	 *
 	 * @return フィルタ
+	 * @throws java.lang.CloneNotSupportedException at least one of message filter doesn't support clone
+	 *                                              (this should be not happened)
 	 */
-	public MessageFilter[] getFilters() {
-		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
+	public MessageFilter getFilters() throws CloneNotSupportedException {
+		return messageFilters.clone();
 	}
 
 	/**

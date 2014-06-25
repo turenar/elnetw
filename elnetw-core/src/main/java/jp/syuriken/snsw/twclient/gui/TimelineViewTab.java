@@ -41,7 +41,7 @@ import twitter4j.User;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TimelineViewTab extends DefaultClientTab implements RenderTarget {
+public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 
 	/*package*/ static final Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
 	private static final String TAB_ID = "timeline";

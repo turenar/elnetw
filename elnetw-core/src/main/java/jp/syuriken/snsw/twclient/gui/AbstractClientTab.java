@@ -57,6 +57,7 @@ import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.filter.TeeFilter;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
@@ -80,13 +81,23 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public abstract class DefaultClientTab implements ClientTab, RenderTarget {
+public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	/**
 	 * 標準レンダラに移譲するレンダラ。
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public abstract class DelegateRenderer extends ClientMessageAdapter implements TabRenderer {
+		@Override
+		public void addChild(MessageFilter filter) throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public final MessageFilter clone() throws CloneNotSupportedException { // CS-IGNORE
+			throw new CloneNotSupportedException();
+		}
+
 		private void focusUserNearestEntry(boolean prev) {
 			if (selectingPost == null) {
 				getSortedPostListPanel().requestFocusInWindow();
@@ -100,6 +111,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 					}
 				}
 			}
+		}
+
+		@Override
+		public MessageFilter getChild() throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
 		}
 
 		/**
@@ -208,6 +224,11 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 		public void onDisplayRequirement() {
 			actualRenderer.onDisplayRequirement();
 		}
+
+		@Override
+		public void setChild(MessageFilter child) throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	/**
@@ -219,7 +240,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 
 		@Override
 		public void run() {
-			final DefaultClientTab this$dct = DefaultClientTab.this; // Suppress Warning of FindBugs
+			final AbstractClientTab this$dct = AbstractClientTab.this; // Suppress Warning of FindBugs
 			EventQueue.invokeLater(new Runnable() {
 
 				@Override
@@ -319,7 +340,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected final ClientConfiguration configuration;
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
-	/*package*/final Logger logger = LoggerFactory.getLogger(DefaultClientTab.class);
+	/*package*/final Logger logger = LoggerFactory.getLogger(AbstractClientTab.class);
 	/** {@link jp.syuriken.snsw.twclient.ClientProperties} */
 	protected final ClientProperties configProperties;
 	/**
@@ -385,7 +406,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	protected boolean shouldBeScrollToPost;
 
 	/** インスタンスを生成する。 */
-	protected DefaultClientTab() {
+	protected AbstractClientTab() {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
@@ -405,7 +426,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの形式が正しくないか必要とするキーが存在しない
 	 */
-	protected DefaultClientTab(JSONObject serializedJson) throws JSONException {
+	protected AbstractClientTab(JSONObject serializedJson) throws JSONException {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
@@ -429,7 +450,7 @@ public abstract class DefaultClientTab implements ClientTab, RenderTarget {
 	 * @param serializedJson シリアル化されたJSON
 	 * @throws JSONException JSONの復号化中に例外
 	 */
-	protected DefaultClientTab(String serializedJson) throws JSONException {
+	protected AbstractClientTab(String serializedJson) throws JSONException {
 		this(new JSONObject(serializedJson));
 	}
 

@@ -22,13 +22,14 @@
 package jp.syuriken.snsw.twclient.gui;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.filter.MessageFilter;
 
 /**
  * タブレンダラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface TabRenderer extends ClientMessageListener {
+public interface TabRenderer extends ClientMessageListener, MessageFilter {
 	/**
 	 * event id for reader account changed
 	 */
@@ -37,14 +38,6 @@ public interface TabRenderer extends ClientMessageListener {
 	 * event id for writer account changed
 	 */
 	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
-
-	/**
-	 * render account changed message.
-	 *
-	 * {@inheritDoc}
-	 */
-	@Override
-	void onChangeAccount(boolean forWrite);
 
 	/**
 	 * render for display requirements

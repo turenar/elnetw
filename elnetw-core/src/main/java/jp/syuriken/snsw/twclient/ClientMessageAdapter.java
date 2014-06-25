@@ -91,7 +91,7 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	}
 
 	@Override
-	public void onStallWarning(StallWarning arg0) {
+	public void onStallWarning(StallWarning stallWarning) {
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import javax.swing.JLabel;
 import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
@@ -107,6 +108,16 @@ public class SimpleRenderer implements TabRenderer {
 		iconSize = new Dimension(ICON_WIDTH, height);
 	}
 
+	@Override
+	public void addChild(MessageFilter filter) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public final SimpleRenderer clone() throws CloneNotSupportedException { // CS-IGNORE
+		throw new CloneNotSupportedException();
+	}
+
 	/**
 	 * fire focus event
 	 *
@@ -120,6 +131,11 @@ public class SimpleRenderer implements TabRenderer {
 	private long getActualUserId() {
 		actualUserId = configuration.getMessageBus().getActualUser(userId);
 		return actualUserId;
+	}
+
+	@Override
+	public MessageFilter getChild() throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -444,6 +460,11 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
+	}
+
+	@Override
+	public void setChild(MessageFilter child) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
 	}
 
 	/**

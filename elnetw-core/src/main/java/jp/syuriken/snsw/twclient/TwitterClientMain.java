@@ -64,8 +64,8 @@ import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
 import jp.syuriken.snsw.twclient.bus.TimelineChannelFactory;
+import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
 import jp.syuriken.snsw.twclient.bus.VirtualChannelFactory;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
@@ -75,8 +75,9 @@ import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
 import jp.syuriken.snsw.twclient.filter.FilterProperty;
+import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.UserFilter;
+import jp.syuriken.snsw.twclient.filter.QueryFilter;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.IfFilterFunction;
@@ -771,7 +772,8 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/global", dependencies = "config", phase = "init")
 	public void setDefaultFilter() {
-		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
+		configuration.addFilter(new GlobalUserIdFilter());
+		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 	}
 
 	/**
@@ -829,7 +831,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
-		messageBus.addChannelFactory("error",NullMessageChannelFactory.INSTANCE);
+		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
 
 	/**
@@ -988,10 +990,14 @@ public final class TwitterClientMain {
 		}
 	}
 
-	/** OAuthアクセストークンの取得を試す */
+	/**
+	 * OAuthアクセストークンの取得を試す
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
-	public void tryGetOAuthAccessToken(InitCondition cond) {
-		if (!cond.isInitializingPhase()) {
+	public void tryGetOAuthAccessToken(InitCondition condition) {
+		if (!condition.isInitializingPhase()) {
 			return;
 		}
 
@@ -1008,7 +1014,7 @@ public final class TwitterClientMain {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
-						cond.setFailStatus("OAuth failed: canceled", -1);
+						condition.setFailStatus("OAuth failed: canceled", -1);
 						return;
 					}
 				} else {
@@ -1016,7 +1022,7 @@ public final class TwitterClientMain {
 					break;
 				}
 			} catch (TwitterException e) {
-				cond.setFailStatus("error", 1);
+				condition.setFailStatus("error", 1);
 				return;
 			}
 		} while (true);
