@@ -29,6 +29,7 @@ import java.awt.event.FocusEvent;
 
 import javax.swing.JLabel;
 
+import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.CacheManager;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
@@ -81,6 +82,7 @@ public class SimpleRenderer implements TabRenderer {
 	private final String userId;
 	private volatile long actualUserId;
 	private AbstractRenderObject focusOwner;
+	protected LongHashSet statusSet = new LongHashSet();
 
 	/**
 	 * init
@@ -383,7 +385,9 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onStatus(Status status) {
-		renderTarget.addStatus(new StatusRenderObject(actualUserId, status, this));
+		if (statusSet.add(status.getId())) {
+			renderTarget.addStatus(new StatusRenderObject(actualUserId, status, this));
+		}
 	}
 
 	@Override

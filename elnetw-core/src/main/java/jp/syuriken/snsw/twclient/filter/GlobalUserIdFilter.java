@@ -25,6 +25,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.TreeSet;
 
+import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 	public static final String PROPERTY_KEY_FILTER_IDS = "core.filter.user.ids";
 	private final ClientConfiguration configuration;
 	private final Logger logger = LoggerFactory.getLogger(GlobalUserIdFilter.class);
-	private volatile TreeSet<Long> filterIds;
+	private volatile LongHashSet filterIds;
 
 
 	/**
@@ -51,7 +52,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 	public GlobalUserIdFilter() {
 		this.configuration = ClientConfiguration.getInstance();
 		configuration.getConfigProperties().addPropertyChangedListener(this);
-		filterIds = new TreeSet<>();
+		filterIds = new LongHashSet();
 		initFilterIds();
 	}
 
@@ -64,7 +65,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 		if (idsString == null) {
 			return;
 		}
-		TreeSet<Long> filterIds = new TreeSet<>();
+		LongHashSet filterIds = new LongHashSet();
 		for (int offset = 0; offset < idsString.length(); ) {
 			int end = idsString.indexOf(' ', offset);
 			if (end < 0) {
