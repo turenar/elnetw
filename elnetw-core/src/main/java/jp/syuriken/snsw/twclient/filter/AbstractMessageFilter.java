@@ -283,6 +283,6 @@ public abstract class AbstractMessageFilter extends MessageFilterAdapter {
 
 	@Override
 	public String toString() {
-		return getClass() + "{child=" + child.toString() + "}";
+		return getClass().getName() + "{child=" + child + "}";
 	}
 }

@@ -60,6 +60,7 @@ import javax.swing.UIManager;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.OptionType;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
+import jp.syuriken.snsw.twclient.bus.BlockingUsersChannelFactory;
 import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
@@ -78,6 +79,7 @@ import jp.syuriken.snsw.twclient.filter.FilterProperty;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.QueryFilter;
+import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
 import jp.syuriken.snsw.twclient.filter.func.IfFilterFunction;
@@ -770,10 +772,11 @@ public final class TwitterClientMain {
 	/**
 	 * set default global filter
 	 */
-	@Initializer(name = "filter/global", dependencies = "config", phase = "init")
+	@Initializer(name = "filter/global", dependencies = {"config", "bus/factory"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
 		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
+		configuration.addFilter(new BlockingUserFilter());
 	}
 
 	/**
@@ -823,13 +826,14 @@ public final class TwitterClientMain {
 	/**
 	 * init message bus channel factories
 	 */
-	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
+	@Initializer(name = "bus/factory", dependencies = {"bus", "cache"}, phase = "init")
 	public void setMessageChannelFactory() {
 		messageBus.addChannelFactory("my/timeline", new VirtualChannelFactory("stream/user", "statuses/timeline"));
 		messageBus.addChannelFactory("stream/user", new TwitterStreamChannelFactory());
 		messageBus.addChannelFactory("statuses/timeline", new TimelineChannelFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
+		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
