@@ -507,7 +507,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	 */
 	public synchronized boolean remove(RenderPanel value) {
 		for (JPanel container : branches) {
-			if (compareDate((RenderPanel) container.getComponent(container.getComponentCount() - 1), value) < 0) {
+			if (compareDate((RenderPanel) container.getComponent(container.getComponentCount() - 1), value) <= 0) {
 				container.remove(value);
 				size--;
 				return true;
