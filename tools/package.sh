@@ -38,7 +38,7 @@ function prepare_release() {
 	fi
 
 	_debug "> updating changelog..."
-	sed -i -e '1s/$/ ('"$(date)"')/' ChangeLog.txt
+	sed -i -e '1s/$/ ('"$(LC_ALL=C LANG=C date)"')/' ChangeLog.txt
 	rewrite_package_version ${_release_ver}
 
 	_mvn clean
@@ -268,8 +268,27 @@ function parse_args() {
 
 	test_bool $__mode_selected || die "--package or --release is required"
 	if test_bool $_mode_release; then
-		if test -z "$_release_ver" -o -z "$_release_newver"; then
-			die "'--release' option requires '--release-version' and '--new-version'"
+		if test -z "$_release_ver"; then
+			local __ignore __version __date
+			# check changelog
+			# Version <version> (<date>)
+			IFS=' ()' read __ignore __version __ignore __date < ChangeLog.txt
+			if test -n "${__date}"; then
+				die "automatic release version detection failed: seems to be already released"
+			fi
+			echo "Use ${__version} as releasing version"
+			_release_ver="${__version}"
+		fi
+		if test -z "$_release_newver"; then
+			local __pom_version __new_version
+			__pom_version=$(grep '<version>' pom.xml | head -n1 | sed -e '1s@.\+<version>\(.\+\)</version>@\1@')
+			echo -n "Input new snapshot version [$__pom_version]> "
+			read __new_version
+			if test -z ${__new_version}; then
+				_release_newver=${__pom_version}
+			else
+				_release_newver=${__new_version}
+			fi
 		fi
 	fi
 }
