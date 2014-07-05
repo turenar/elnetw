@@ -36,6 +36,7 @@ import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.gui.render.RendererFocusEvent;
@@ -274,10 +275,14 @@ public class SimpleRenderer implements TabRenderer {
 			case TabRenderer.WRITER_ACCOUNT_CHANGED:
 				getActualUserId();
 				break;
+			case TabRenderer.RENDER_SHOW_OBJECT:
+				renderTarget.addStatus(MiscRenderObject.getInstance(this, (MessageRenderBase) arg));
+				break;
+			case TabRenderer.RENDER_DELETE_OBJECT:
+				renderTarget.removeStatus((String) arg);
 			default:
 				// do nothing
 		}
-
 	}
 
 	@Override

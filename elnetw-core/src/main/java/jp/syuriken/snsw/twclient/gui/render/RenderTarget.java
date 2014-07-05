@@ -49,4 +49,11 @@ public interface RenderTarget {
 	 * @param renderObject rendered object removal requested
 	 */
 	void removeStatus(RenderObject renderObject);
+
+	/**
+	 * request to remove status
+	 *
+	 * @param uniqueId rendered object id removal requested
+	 */
+	void removeStatus(String uniqueId);
 }

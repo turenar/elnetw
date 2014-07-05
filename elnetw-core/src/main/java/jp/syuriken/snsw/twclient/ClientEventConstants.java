@@ -94,4 +94,20 @@ public interface ClientEventConstants {
 	 * (thread: Swing Event Dispatcher Thread; arg: {@link java.awt.event.MouseEvent})
 	 */
 	/*public static final*/ String EVENT_CLICKED_USERICON = "event usericon clicked";
+	/**
+	 * arg をリストに表示させる
+	 *
+	 * (arg: {@link jp.syuriken.snsw.twclient.gui.render.MessageRenderBase}
+	 */
+	/*public static final*/ String RENDER_SHOW_OBJECT = "render show object";
+	/**
+	 * arg をリストから削除する
+	 *
+	 * (arg: RenderObject uniqueId)
+	 */
+	/*public static final*/ String RENDER_DELETE_OBJECT = "render delete object";
+	/**
+	 * UserInterfaceの初期化。時間のかかるフィルタの進捗表示などに。
+	 */
+	/*public static final*/ String INIT_UI = "init ui";
 }

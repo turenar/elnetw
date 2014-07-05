@@ -201,13 +201,13 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	}
 
 	/**
-	 * レンダラ
-	 */
-	protected final SimpleRenderer renderer;
-	/**
 	 * レンターターゲット
 	 */
 	protected final RenderTarget target;
+	/**
+	 * レンダラ
+	 */
+	protected SimpleRenderer renderer;
 	/**
 	 * 右クリックで表示するポップアップメニュー
 	 */

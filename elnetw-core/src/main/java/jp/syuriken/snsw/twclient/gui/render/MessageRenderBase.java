@@ -19,77 +19,45 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui.render.simple;
+package jp.syuriken.snsw.twclient.gui.render;
 
 import java.awt.Color;
-import java.awt.event.FocusEvent;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
-import jp.syuriken.snsw.twclient.Utility;
-import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import twitter4j.User;
 
-import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
-
 /**
- * Render object for misc events
+ * message render object.
+ *
+ * publish: {@link jp.syuriken.snsw.twclient.gui.TabRenderer}.onClientMessage(
+ * {@link jp.syuriken.snsw.twclient.ClientEventConstants}.RENDER_SHOW_OBJECT, this)
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MiscRenderObject extends AbstractRenderObject {
-	private static final Logger logger = LoggerFactory.getLogger(MiscRenderObject.class);
-
-	public static MiscRenderObject getInstance(SimpleRenderer renderer, MessageRenderBase obj) {
-		MiscRenderObject renderObject = new MiscRenderObject(renderer, obj.getBasedObject());
-		renderObject.setBackgroundColor(obj.getBackgroundColor());
-		renderObject.setForegroundColor(obj.getForegroundColor());
-		renderObject.setCreatedBy(obj.getCreatedBy());
-		renderObject.setCreatedByText(obj.getCreatedBy(), obj.getLongCreatedBy());
-		renderObject.setDate(obj.getDate().getTime());
-		renderObject.setIcon(obj.getIcon());
-		renderObject.setUniqId(obj.getUniqId());
-		renderObject.setText(obj.getText());
-		return renderObject;
-	}
+public class MessageRenderBase {
 
 	private static String getUserCreatedByText(User user) {
 		return "@" + user.getScreenName() + " (" + user.getName() + ")";
 	}
 
 	private final Object base;
+	private String createdById;
 	private String createdBy;
 	private String longCreatedBy;
 	private long date;
 	private String uniqId;
 	private String text;
+	private Color backgroundColor;
+	private Color foregroundColor;
+	private ImageIcon icon;
 
-	/**
-	 * instance
-	 *
-	 * @param renderer renderer
-	 * @param base     based object
-	 */
-	public MiscRenderObject(SimpleRenderer renderer, Object base) {
-		super(renderer);
+	public MessageRenderBase(Object base) {
 		this.base = base;
 		date = System.currentTimeMillis();
 		uniqId = "!stub/" + date + "/" + ThreadLocalRandom.current().nextInt();
-	}
-
-	@Override
-	public void focusGained(FocusEvent e) {
-		super.focusGained(e);
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,
-				DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewText(text, null, DO_NOTHING_WHEN_POINTED);
 	}
 
 	/**
@@ -101,17 +69,38 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return backgroundColor;
 	}
 
-	@Override
+	/**
+	 * get based object
+	 *
+	 * @return based object (nullable)
+	 */
 	public Object getBasedObject() {
 		return base;
 	}
 
-	@Override
+	/**
+	 * get created by
+	 *
+	 * @return created by
+	 */
 	public String getCreatedBy() {
 		return createdBy;
 	}
 
-	@Override
+	/**
+	 * get created by ID (sometimes starts "!")
+	 *
+	 * @return created by ID
+	 */
+	public String getCreatedById() {
+		return createdById;
+	}
+
+	/**
+	 * get message creation date
+	 *
+	 * @return date
+	 */
 	public Date getDate() {
 		return new Date(date);
 	}
@@ -125,15 +114,40 @@ public class MiscRenderObject extends AbstractRenderObject {
 		return foregroundColor;
 	}
 
-	@Override
-	public String getUniqId() {
-		return uniqId;
+	/**
+	 * get icon
+	 *
+	 * @return created by icon
+	 */
+	public ImageIcon getIcon() {
+		return icon;
 	}
 
-	@Override
-	protected void initComponents() {
-		componentUserIcon.setHorizontalAlignment(JLabel.CENTER);
-		componentSentBy.setFont(renderer.getDefaultFont());
+	/**
+	 * get created by for tweet pane
+	 *
+	 * @return created by for tweet pane
+	 */
+	public String getLongCreatedBy() {
+		return longCreatedBy;
+	}
+
+	/**
+	 * get message text
+	 *
+	 * @return text
+	 */
+	public String getText() {
+		return text;
+	}
+
+	/**
+	 * get unique id
+	 *
+	 * @return unique id
+	 */
+	public String getUniqId() {
+		return uniqId;
 	}
 
 	/**
@@ -142,7 +156,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param backgroundColor background color
 	 * @return this instance
 	 */
-	public MiscRenderObject setBackgroundColor(Color backgroundColor) {
+	public MessageRenderBase setBackgroundColor(Color backgroundColor) {
 		this.backgroundColor = backgroundColor;
 		return this;
 	}
@@ -153,19 +167,19 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param user user
 	 * @return this instance
 	 */
-	public MiscRenderObject setCreatedBy(User user) {
-		return setCreatedBy(user.getScreenName())
+	public MessageRenderBase setCreatedById(User user) {
+		return setCreatedById(user.getScreenName())
 				.setCreatedByText(user.getScreenName(), getUserCreatedByText(user));
 	}
 
 	/**
-	 * set created-by name
+	 * set created-by id
 	 *
-	 * @param createdBy createdBy name
+	 * @param createdBy createdById name
 	 * @return this instance
 	 */
-	public MiscRenderObject setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
+	public MessageRenderBase setCreatedById(String createdBy) {
+		this.createdById = createdBy;
 		if (longCreatedBy == null) {
 			setCreatedByText(createdBy);
 		}
@@ -178,7 +192,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param createdBy createdBy text
 	 * @return this instance
 	 */
-	public MiscRenderObject setCreatedByText(String createdBy) {
+	public MessageRenderBase setCreatedByText(String createdBy) {
 		return setCreatedByText(createdBy, createdBy);
 	}
 
@@ -189,9 +203,9 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param longCreatedBy createdBy text (not omitted)
 	 * @return this instance
 	 */
-	public MiscRenderObject setCreatedByText(String createdBy, String longCreatedBy) {
+	public MessageRenderBase setCreatedByText(String createdBy, String longCreatedBy) {
+		this.createdBy = createdBy;
 		this.longCreatedBy = longCreatedBy;
-		componentSentBy.setText(getShortenString(createdBy, CREATED_BY_MAX_LEN));
 		return this;
 	}
 
@@ -201,7 +215,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param date date
 	 * @return this instance
 	 */
-	public MiscRenderObject setDate(long date) {
+	public MessageRenderBase setDate(long date) {
 		this.date = date;
 		return this;
 	}
@@ -212,35 +226,19 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param foregroundColor foreground color
 	 * @return this instance
 	 */
-	public MiscRenderObject setForegroundColor(Color foregroundColor) {
+	public MessageRenderBase setForegroundColor(Color foregroundColor) {
 		this.foregroundColor = foregroundColor;
 		return this;
 	}
 
 	/**
-	 * set createdBy icon from user
-	 *
-	 * @param user user
-	 * @return this instance
-	 */
-	public MiscRenderObject setIcon(User user) {
-		try {
-			renderer.getImageCacher().setImageIcon(componentUserIcon, user);
-		} catch (InterruptedException e) {
-			logger.warn("Interrupted", e);
-			Thread.currentThread().interrupt();
-		}
-		return this;
-	}
-
-	/**
-	 * set createdBy icon
+	 * set createdById icon
 	 *
 	 * @param icon icon
 	 * @return this instance
 	 */
-	public MiscRenderObject setIcon(ImageIcon icon) {
-		componentUserIcon.setIcon(icon);
+	public MessageRenderBase setIcon(ImageIcon icon) {
+		this.icon = icon;
 		return this;
 	}
 
@@ -250,9 +248,8 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param text text
 	 * @return this instance
 	 */
-	public MiscRenderObject setText(String text) {
+	public MessageRenderBase setText(String text) {
 		this.text = text;
-		componentStatusText.setText(getShortenString(text, TEXT_MAX_LEN));
 		return this;
 	}
 
@@ -262,8 +259,9 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 * @param uniqId identifier
 	 * @return this instance
 	 */
-	public MiscRenderObject setUniqId(String uniqId) {
+	public MessageRenderBase setUniqId(String uniqId) {
 		this.uniqId = uniqId;
 		return this;
 	}
+
 }

@@ -26,8 +26,6 @@ import java.util.Date;
 import javax.annotation.Nonnull;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jp.syuriken.snsw.twclient.CacheManager;
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.JSONException;
@@ -90,7 +88,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private String location;
 	private String name;
 	private String screenName;
-	private Status status;
 	private int statusesCount;
 	private String url;
 	private String profileBackgroundImageUrl;
@@ -159,26 +156,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		urlEntity = originalUser.getURLEntity();
 
 		json = jsonObject == null ? null : jsonObject.toString();
-
-		Status status = originalUser.getStatus();
-		JSONObject statusJsonObject;
-		try {
-			statusJsonObject = jsonObject == null ? null
-					: (jsonObject.isNull("status") ? null : jsonObject.getJSONObject("status"));
-		} catch (JSONException e) {
-			logger.error("Cannot parse json", e);
-			throw new RuntimeException(e);
-		}
-		if (!(status == null || status instanceof TwitterStatus)) {
-			ClientConfiguration configuration = ClientConfiguration.getInstance();
-			CacheManager cacheManager = configuration.getCacheManager();
-			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
-			if (cachedStatus == null) {
-				TwitterStatus twitterStatus = new TwitterStatus(status, statusJsonObject, this);
-				status = cacheManager.getCachedStatus(twitterStatus);
-			}
-		}
-		this.status = status;
 	}
 
 	@Override
@@ -425,9 +402,14 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return screenName;
 	}
 
+	/**
+	 * this class returns always null. This is workaround Twitter#getUser().getStatus().getUser()==null
+	 *
+	 * @return null
+	 */
 	@Override
 	public Status getStatus() {
-		return status;
+		return null;
 	}
 
 	@Override
@@ -546,7 +528,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		profileImageUrlHttps = user.getProfileImageURLHttps();
 		isProtected = user.isProtected();
 		screenName = user.getScreenName();
-		status = user.getStatus();
 		statusesCount = user.getStatusesCount();
 		url = user.getURL();
 		return this;

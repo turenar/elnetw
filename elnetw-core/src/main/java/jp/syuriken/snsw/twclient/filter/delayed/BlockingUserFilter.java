@@ -21,11 +21,16 @@
 
 package jp.syuriken.snsw.twclient.filter.delayed;
 
+import java.awt.Color;
+import java.awt.EventQueue;
+
 import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
+import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.filter.AbstractMessageFilter;
+import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
 import twitter4j.User;
 
 /**
@@ -35,13 +40,17 @@ import twitter4j.User;
  */
 public class BlockingUserFilter extends DelayedFilter {
 
+	private static final String FILTER_BLOCKING_USER_WAIT_MESSAGE = "!filter/blockingUser/waitMessage";
 	private final ClientConfiguration configuration;
+	private boolean isGlobal;
 	private LongHashSet longHashSet = new LongHashSet();
 
 	/**
 	 * instance
+	 * @param isGlobal is this global filter?
 	 */
-	public BlockingUserFilter() {
+	public BlockingUserFilter(boolean isGlobal) {
+		this.isGlobal = isGlobal;
 		configuration = ClientConfiguration.getInstance();
 		init();
 	}
@@ -49,6 +58,7 @@ public class BlockingUserFilter extends DelayedFilter {
 	@Override
 	public AbstractMessageFilter clone() throws CloneNotSupportedException {
 		BlockingUserFilter clone = (BlockingUserFilter) super.clone();
+		clone.isGlobal = false;
 		clone.init();
 		return clone;
 	}
@@ -62,17 +72,51 @@ public class BlockingUserFilter extends DelayedFilter {
 	 * for constructor and clone
 	 */
 	private void init() {
-		configuration.getMessageBus().establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", new ClientMessageAdapter() {
-			@Override
-			public void onBlock(User source, User blockedUser) {
-				start();
-				longHashSet.add(blockedUser.getId());
-			}
+		if (!isGlobal) {
+			configuration.getMessageBus().establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", new ClientMessageAdapter() {
+				@Override
+				public void onBlock(User source, User blockedUser) {
+					longHashSet.add(blockedUser.getId());
+				}
 
-			@Override
-			public void onUnblock(User source, User unblockedUser) {
-				longHashSet.add(unblockedUser.getId());
-			}
-		});
+				@Override
+				public void onClientMessage(String name, Object arg) {
+					switch (name) {
+						case BlockingUsersChannel.BLOCKING_FETCH_FINISHED_ID:
+							EventQueue.invokeLater(
+									new Runnable() {
+										@Override
+										public void run() {
+											child.onClientMessage(RENDER_DELETE_OBJECT, FILTER_BLOCKING_USER_WAIT_MESSAGE);
+										}
+									}
+							);
+							start();
+					}
+				}
+
+				@Override
+				public void onUnblock(User source, User unblockedUser) {
+					longHashSet.add(unblockedUser.getId());
+				}
+			});
+		}
+	}
+
+	@Override
+	public void onClientMessage(String name, Object arg) {
+		switch (name) { // CS-IGNORE
+			case INIT_UI:
+				MessageRenderBase renderBase = new MessageRenderBase(null)
+						.setBackgroundColor(Color.GRAY)
+						.setCreatedById("filter")
+						.setCreatedById("!filter/blockingUser")
+						.setCreatedByText("BlockingUserFilter")
+						.setText("ブロック中のユーザーを取得中です。しばらくお待ちください。")
+						.setUniqId(FILTER_BLOCKING_USER_WAIT_MESSAGE);
+				child.onClientMessage(RENDER_SHOW_OBJECT, renderBase);
+				break;
+		}
+		super.onClientMessage(name, arg);
 	}
 }

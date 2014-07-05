@@ -55,6 +55,23 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
 
+	private static User getCachedUser(User user) {
+		if (user instanceof TwitterUser) {
+			return user;
+		}
+
+		CacheManager cacheManager = configuration.getCacheManager();
+		User cachedUser = cacheManager.getCachedUser(user.getId());
+		if (cachedUser == null) {
+			TwitterUser twitterUser = new TwitterUser(user);
+			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
+			if (cachedUser == null) {
+				cachedUser = twitterUser;
+			}
+		}
+		return cachedUser;
+	}
+
 	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
 		String json = TwitterObjectFactory.getRawJSON(originalStatus);
@@ -216,23 +233,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return -1;
 	}
 
-	private static User getCachedUser(User user) {
-		if (user instanceof TwitterUser) {
-			return user;
-		}
-
-		CacheManager cacheManager = configuration.getCacheManager();
-		User cachedUser = cacheManager.getCachedUser(user.getId());
-		if (cachedUser == null) {
-			TwitterUser twitterUser = new TwitterUser(user);
-			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
-			if (cachedUser == null) {
-				cachedUser = twitterUser;
-			}
-		}
-		return cachedUser;
-	}
-
 	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
 	public long[] getContributors() {
@@ -375,30 +375,12 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	/**
-	 * ふぁぼられたかを設定する
-	 *
-	 * @param favorited ふぁぼられたかどうか
-	 */
-	public void setFavorited(boolean favorited) {
-		this.favorited = favorited;
-	}
-
-	/**
 	 * このステータスが起動時に読み込まれたものかどうかを調べる
 	 *
 	 * @return 起動時に読み込まれたならtrue
 	 */
 	public boolean isLoadedInitialization() {
 		return loadedInitialization;
-	}
-
-	/**
-	 * このステータスは起動時に読み込まれたものです
-	 *
-	 * @param loadedInitialization 起動時に読み込まれたならtrue
-	 */
-	public void setLoadedInitialization(boolean loadedInitialization) {
-		this.loadedInitialization = loadedInitialization;
 	}
 
 	@Override
@@ -421,6 +403,29 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return retweetedByMe;
 	}
 
+	@Override
+	public boolean isTruncated() {
+		return isTruncated;
+	}
+
+	/**
+	 * ふぁぼられたかを設定する
+	 *
+	 * @param favorited ふぁぼられたかどうか
+	 */
+	public void setFavorited(boolean favorited) {
+		this.favorited = favorited;
+	}
+
+	/**
+	 * このステータスは起動時に読み込まれたものです
+	 *
+	 * @param loadedInitialization 起動時に読み込まれたならtrue
+	 */
+	public void setLoadedInitialization(boolean loadedInitialization) {
+		this.loadedInitialization = loadedInitialization;
+	}
+
 	/**
 	 * ユーザーがリツイートしたかどうかを設定する
 	 *
@@ -430,12 +435,13 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		this.retweetedByMe = retweetedByMe;
 	}
 
-	@Override
-	public boolean isTruncated() {
-		return isTruncated;
-	}
-
-	public TwitterStatus update(Status status) {
+	/**
+	 * update this by status
+	 *
+	 * @param status new status object
+	 * @return this
+	 */
+	public synchronized TwitterStatus update(Status status) {
 		favorited = status.isFavorited();
 		retweetedByMe = status.isRetweetedByMe();
 		urlEntities = status.getURLEntities();

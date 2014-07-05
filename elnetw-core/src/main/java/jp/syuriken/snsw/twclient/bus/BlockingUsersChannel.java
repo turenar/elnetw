@@ -40,6 +40,11 @@ import twitter4j.User;
  */
 public class BlockingUsersChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
 
+	/**
+	 * client message name when fetching blocking users is over
+	 */
+	public static final String BLOCKING_FETCH_FINISHED_ID
+			= "jp.syuriken.snsw.twclient.bus.BlockingUserChannel BlockingFetchFinished";
 	private final ClientConfiguration configuration;
 	private final ClientMessageListener listeners;
 	private final MessageBus messageBus;
@@ -52,6 +57,7 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	 *
 	 * @param messageBus スケジューラー
 	 * @param accountId  アカウントID (long)
+	 *                   @param path bus path
 	 */
 	public BlockingUsersChannel(MessageBus messageBus, String accountId, String path) {
 		this.messageBus = messageBus;
@@ -72,6 +78,7 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 			}
 			cursor = blocksIDs.getNextCursor();
 		} while (blocksIDs.hasNext());
+		listeners.onClientMessage(BLOCKING_FETCH_FINISHED_ID, null);
 	}
 
 	@Override

@@ -776,7 +776,7 @@ public final class TwitterClientMain {
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
 		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
-		configuration.addFilter(new BlockingUserFilter());
+		configuration.addFilter(new BlockingUserFilter(true));
 	}
 
 	/**

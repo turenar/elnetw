@@ -53,6 +53,7 @@ import javax.swing.event.PopupMenuListener;
 
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientProperties;
@@ -217,6 +218,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 					if (selectingPost != null) {
 						selectingPost.onEvent(name, arg);
 					}
+					actualRenderer.onClientMessage(name, arg);
 			}
 		}
 
@@ -564,6 +566,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	public TabRenderer getRenderer() {
 		if (teeFilter == null) {
 			teeFilter = new TeeFilter(uniqId, getDelegateRenderer());
+			teeFilter.onClientMessage(ClientEventConstants.INIT_UI, null);
 		}
 		return teeFilter;
 	}
@@ -735,7 +738,17 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 */
 	@Override
 	public void removeStatus(RenderObject renderObject) {
-		RenderPanel panel = statusMap.remove(renderObject.getUniqId());
+		removeStatus(renderObject.getUniqId());
+	}
+
+	/**
+	 * ステータスを削除する
+	 *
+	 * @param uniqId Unique ID
+	 */
+	@Override
+	public void removeStatus(String uniqId) {
+		RenderPanel panel = statusMap.remove(uniqId);
 		if (panel != null) {
 			getSortedPostListPanel().remove(panel);
 		}
