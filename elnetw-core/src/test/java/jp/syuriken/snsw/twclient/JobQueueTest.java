@@ -385,7 +385,7 @@ public class JobQueueTest {
 
 		jobQueue.setCoreThreadPoolSize(2);
 		jobQueue.setMaximumThreadPoolSize(4);
-		jobQueue.setKeepAliveTime(1);
+		jobQueue.setKeepAliveTime(2);
 		jobQueue.setExecWorkerThreshold(1);
 		assertEquals(201, jobQueue.size());
 		assertEquals(1, jobQueue.getWorkerCount());
@@ -395,13 +395,11 @@ public class JobQueueTest {
 		for (int i = 0; i < 10; i++) {
 			jobQueue.addJob(job); // start additional worker
 		}
-
 		do {
-			Thread.sleep(10); // wait for all jobs consumed
+			Thread.sleep(2); // wait for all jobs consumed
 		} while (jobQueue.size() != 0);
 
-		Thread.sleep(100); // wait for worker timeout
-
+		Thread.sleep(5); // wait for worker timeout
 		assertEquals(0, jobQueue.size());
 		assertEquals(2, jobQueue.getWorkerCount());
 		assertEquals(211, callCount.get());
