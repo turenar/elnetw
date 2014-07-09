@@ -24,6 +24,7 @@ package jp.syuriken.snsw.twclient.bus.blocking;
 import java.util.LinkedList;
 
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
+import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
 import twitter4j.User;
 
 /**
@@ -32,6 +33,7 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TestListener extends ClientMessageAdapter {
+	public static final String BLOCKING_FETCH_FINISHED_MSG = "clientMessage#BLOCKING_FETCH_FINISHED";
 	private LinkedList<Object[]> calledLog = new LinkedList<>();
 
 	private void call(Object... args) {
@@ -41,6 +43,13 @@ public class TestListener extends ClientMessageAdapter {
 	@Override
 	public void onBlock(User source, User blockedUser) {
 		call("block", source, blockedUser);
+	}
+
+	@Override
+	public void onClientMessage(String name, Object arg) {
+		if (name.equals(BlockingUsersChannel.BLOCKING_FETCH_FINISHED_ID)) {
+			call(BLOCKING_FETCH_FINISHED_MSG);
+		}
 	}
 
 	@Override

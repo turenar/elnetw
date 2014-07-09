@@ -32,6 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import twitter4j.User;
 
+import static jp.syuriken.snsw.twclient.bus.blocking.TestListener.BLOCKING_FETCH_FINISHED_MSG;
 import static org.junit.Assert.*;
 
 public class BlockingUsersChannelTest {
@@ -61,12 +62,14 @@ public class BlockingUsersChannelTest {
 			messageBus.onInitialized();
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, alice.popLog());
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, alice.popLog());
+			assertArrayEquals(new Object[]{BLOCKING_FETCH_FINISHED_MSG}, alice.popLog());
 			assertNull(alice.popLog());
 
 			TestListener betty = new TestListener();
 			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", betty);
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, betty.popLog());
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, betty.popLog());
+			assertArrayEquals(new Object[]{BLOCKING_FETCH_FINISHED_MSG}, betty.popLog());
 			assertNull(betty.popLog());
 
 			ClientMessageListener publisher = testChannelFactory.getInstance().getListeners();
@@ -83,6 +86,7 @@ public class BlockingUsersChannelTest {
 			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", chris);
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, chris.popLog());
 			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(4L)}, chris.popLog());
+			assertArrayEquals(new Object[]{BLOCKING_FETCH_FINISHED_MSG}, chris.popLog());
 			assertNull(chris.popLog());
 		} finally {
 			configuration.clearGlobalInstance();
@@ -98,21 +102,22 @@ public class BlockingUsersChannelTest {
 			messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelTestFactory());
 			TestChannelFactory factory = new TestChannelFactory();
 			messageBus.addChannelFactory("stream/user", factory);
-			TestListener listener = new TestListener();
-			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", listener);
-			assertNull(listener.popLog());
+			TestListener alice = new TestListener();
+			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", alice);
+			assertNull(alice.popLog());
 
 			messageBus.onInitialized();
-			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, listener.popLog());
-			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, listener.popLog());
-			assertNull(listener.popLog());
+			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, alice.popLog());
+			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, alice.popLog());
+			assertArrayEquals(new Object[]{BLOCKING_FETCH_FINISHED_MSG}, alice.popLog());
+			assertNull(alice.popLog());
 
 			ClientMessageListener publisher = factory.getInstance().getListeners();
 			publisher.onBlock(getUser(1L), getUser(4L));
 			publisher.onUnblock(getUser(1L), getUser(2L));
-			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(4L)}, listener.popLog());
-			assertArrayEquals(new Object[]{"unblock", getUser(1L), getUser(2L)}, listener.popLog());
-			assertNull(listener.popLog());
+			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(4L)}, alice.popLog());
+			assertArrayEquals(new Object[]{"unblock", getUser(1L), getUser(2L)}, alice.popLog());
+			assertNull(alice.popLog());
 		} finally {
 			configuration.clearGlobalInstance();
 		}
@@ -126,14 +131,15 @@ public class BlockingUsersChannelTest {
 			MessageBus messageBus = new TestMessageBus();
 			messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelTestFactory());
 			messageBus.addChannelFactory("stream/user", new TestChannelFactory());
-			TestListener listener = new TestListener();
-			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", listener);
-			assertNull(listener.popLog());
+			TestListener alice = new TestListener();
+			messageBus.establish(MessageBus.READER_ACCOUNT_ID, "users/blocking", alice);
+			assertNull(alice.popLog());
 
 			messageBus.onInitialized();
-			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, listener.popLog());
-			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, listener.popLog());
-			assertNull(listener.popLog());
+			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(2L)}, alice.popLog());
+			assertArrayEquals(new Object[]{"block", getUser(1L), getUser(3L)}, alice.popLog());
+			assertArrayEquals(new Object[]{BLOCKING_FETCH_FINISHED_MSG}, alice.popLog());
+			assertNull(alice.popLog());
 		} finally {
 			configuration.clearGlobalInstance();
 		}

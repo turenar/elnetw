@@ -143,6 +143,7 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 				for (User blockingUser : blockingUsers) {
 					listener.onBlock(actualUser, blockingUser);
 				}
+				listener.onClientMessage(BLOCKING_FETCH_FINISHED_ID, null);
 			}
 		}
 	}
