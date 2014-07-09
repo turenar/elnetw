@@ -21,10 +21,11 @@
 
 package jp.syuriken.snsw.twclient.config;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 /**
  * 真偽値を設定するタイプ。JCheckBoxを使用
@@ -37,10 +38,9 @@ public class BooleanConfigType implements ConfigType {
 	public JComponent getComponent(final String configKey, String nowValue, final ConfigFrame listener) {
 		final JCheckBox checkBox = new JCheckBox();
 		checkBox.setSelected(Boolean.parseBoolean(nowValue));
-		checkBox.addChangeListener(new ChangeListener() {
-
+		checkBox.addActionListener(new ActionListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				listener.setValue(configKey, String.valueOf(checkBox.isSelected()));
 			}
 		});
@@ -49,7 +49,7 @@ public class BooleanConfigType implements ConfigType {
 
 	@Override
 	public String getValue(JComponent component) {
-		if (component instanceof JCheckBox == false) {
+		if (!(component instanceof JCheckBox)) {
 			throw new AssertionError();
 		}
 		return String.valueOf(((JCheckBox) component).isSelected());

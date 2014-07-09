@@ -309,6 +309,9 @@ public final class TwitterClientMain {
 	@Initializer(name = "gui/config/filter", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
+				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
+						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
+						new BooleanConfigType())
 				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
 	}
 

@@ -38,9 +38,9 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
@@ -134,7 +134,7 @@ public class ClientProperties extends Properties {
 	}
 
 	/** リスナの配列 */
-	protected transient ArrayList<PropertyChangeListener> listeners;
+	protected transient CopyOnWriteArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
 	protected File storeFile;
 
@@ -150,7 +150,7 @@ public class ClientProperties extends Properties {
 	 */
 	public ClientProperties(Properties defaults) {
 		super(defaults);
-		listeners = new ArrayList<>();
+		listeners = new CopyOnWriteArrayList<>();
 	}
 
 	/**
@@ -567,7 +567,7 @@ public class ClientProperties extends Properties {
 
 	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		listeners = new ArrayList<>();
+		listeners = new CopyOnWriteArrayList<>();
 	}
 
 	@Override
@@ -704,9 +704,9 @@ public class ClientProperties extends Properties {
 	 */
 	@Override
 	public synchronized Object setProperty(String key, String newValue) {
-		String oldValue = getProperty(key);
+		String oldValue = (String) super.setProperty(key, newValue);
 		firePropertyChanged(key, oldValue, newValue);
-		return super.setProperty(key, newValue);
+		return oldValue;
 	}
 
 	/**

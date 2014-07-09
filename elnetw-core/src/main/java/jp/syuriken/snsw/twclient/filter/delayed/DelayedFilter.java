@@ -24,6 +24,8 @@ package jp.syuriken.snsw.twclient.filter.delayed;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import jp.syuriken.snsw.twclient.filter.AbstractMessageFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -36,6 +38,7 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class DelayedFilter extends AbstractMessageFilter {
+	private static Logger logger = LoggerFactory.getLogger(DelayedFilter.class);
 	/**
 	 * delayed message queue
 	 */
@@ -224,9 +227,18 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 	 * stop message delaying
 	 */
 	protected synchronized void start() {
+		logger.info("stop message delaying");
 		isStarted = true;
 		while (!filteringQueue.isEmpty()) {
 			filteringQueue.poll().run();
 		}
+	}
+
+	/**
+	 * start message delaying
+	 */
+	protected synchronized void stop() {
+		logger.info("start message delaying");
+		isStarted = false;
 	}
 }

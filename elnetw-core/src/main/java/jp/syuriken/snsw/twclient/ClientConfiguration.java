@@ -105,6 +105,10 @@ public class ClientConfiguration {
 	 * UIフォントのプロパティ名
 	 */
 	public static final String PROPERTY_GUI_FONT_UI = "gui.font.ui";
+	/**
+	 * ブロック中のユーザーをミュートするかどうか
+	 */
+	public static final String PROPERTY_BLOCKING_USER_MUTE_ENABLED = "core.mute.blocking";
 	private static ClientConfiguration singleton;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
