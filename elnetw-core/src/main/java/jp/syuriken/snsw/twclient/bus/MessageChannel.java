@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.twclient.bus;
 
+import jp.syuriken.snsw.twclient.ClientMessageListener;
+
 /**
  * Twitterからデータを取得して他のハンドラに渡すためのインターフェース
  *
@@ -50,6 +52,13 @@ public interface MessageChannel {
 	 * </p>
 	 */
 	void disconnect();
+
+	/**
+	 * 新しく接続された
+	 *
+	 * @param listener リスナ
+	 */
+	void establish(ClientMessageListener listener);
 
 	/**
 	 * このDataFetcherが使用されるので、データの取得を開始してください。

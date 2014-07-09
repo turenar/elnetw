@@ -138,7 +138,11 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	}
 
 	private static Status loadStatus(String fileName) throws TwitterException, IOException {
-		return TwitterObjectFactory.createStatus(loadFromFile(fileName));
+		return (Status) TwitterObjectFactory.createObject(loadFromFile(fileName));
+	}
+
+	public static void registerJson() {
+		// do nothing because static initializer may do
 	}
 
 	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */

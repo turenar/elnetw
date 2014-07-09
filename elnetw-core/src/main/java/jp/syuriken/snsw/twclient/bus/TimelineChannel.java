@@ -90,6 +90,10 @@ public class TimelineChannel extends TwitterRunnable implements MessageChannel {
 	}
 
 	@Override
+	public void establish(ClientMessageListener listener) {
+	}
+
+	@Override
 	protected void onException(TwitterException ex) {
 		listeners.onException(ex);
 	}

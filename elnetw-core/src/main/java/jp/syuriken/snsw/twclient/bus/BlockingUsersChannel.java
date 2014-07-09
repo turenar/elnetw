@@ -21,7 +21,10 @@
 
 package jp.syuriken.snsw.twclient.bus;
 
+import java.util.ArrayList;
+
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
@@ -34,11 +37,31 @@ import twitter4j.TwitterFactory;
 import twitter4j.User;
 
 /**
- * ブロック中のユーザーを取得するDataFetcher
+ * ブロック中のユーザーを取得するDataFetcher。establish対応。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class BlockingUsersChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
+
+	private class BlockingUserDispatcher extends ClientMessageAdapter {
+		@Override
+		public void onBlock(User source, User blockedUser) {
+
+			synchronized (blockingUsers) {
+				blockingUsers.add(TwitterUser.getInstance(blockedUser));
+			}
+			listeners.onBlock(source, blockedUser);
+		}
+
+		@Override
+		public void onUnblock(User source, User unblockedUser) {
+			synchronized (blockingUsers) {
+				blockingUsers.remove(TwitterUser.getInstance(unblockedUser));
+			}
+			listeners.onUnblock(source, unblockedUser);
+		}
+	}
+
 
 	/**
 	 * client message name when fetching blocking users is over
@@ -46,18 +69,37 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	public static final String BLOCKING_FETCH_FINISHED_ID
 			= "jp.syuriken.snsw.twclient.bus.BlockingUserChannel BlockingFetchFinished";
 	private final ClientConfiguration configuration;
-	private final ClientMessageListener listeners;
-	private final MessageBus messageBus;
-	private final String accountId;
-	private volatile Twitter twitter;
-	private TwitterUser actualUser;
+	/**
+	 * dispatch to
+	 */
+	protected final ClientMessageListener listeners;
+	/**
+	 * message bus
+	 */
+	protected final MessageBus messageBus;
+	/**
+	 * account id (String)
+	 */
+	protected final String accountId;
+	/**
+	 * twitter instance: init in realConnect
+	 */
+	protected volatile Twitter twitter;
+	/**
+	 * actual user: init in connect from accountId
+	 */
+	protected volatile TwitterUser actualUser;
+	/**
+	 * blocking users list: operations must be synchronized
+	 */
+	protected volatile ArrayList<TwitterUser> blockingUsers = null;
 
 	/**
 	 * インスタンスを生成する
 	 *
 	 * @param messageBus スケジューラー
 	 * @param accountId  アカウントID (long)
-	 *                   @param path bus path
+	 * @param path       bus path
 	 */
 	public BlockingUsersChannel(MessageBus messageBus, String accountId, String path) {
 		this.messageBus = messageBus;
@@ -65,29 +107,51 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 		listeners = messageBus.getListeners(accountId, path);
 
 		configuration = ClientConfiguration.getInstance();
+		messageBus.establish(accountId, "stream/user", new BlockingUserDispatcher());
 	}
 
 	@Override
 	protected void access() throws TwitterException {
 		long cursor = -1;
+		ArrayList<TwitterUser> blockingSet = new ArrayList<>();
 		PagableResponseList<User> blocksIDs;
 		do {
 			blocksIDs = twitter.getBlocksList(cursor);
 			for (User blockingUser : blocksIDs) {
+				blockingSet.add(TwitterUser.getInstance(blockingUser));
 				listeners.onBlock(actualUser, blockingUser);
 			}
 			cursor = blocksIDs.getNextCursor();
 		} while (blocksIDs.hasNext());
+		blockingUsers = blockingSet;
 		listeners.onClientMessage(BLOCKING_FETCH_FINISHED_ID, null);
 	}
 
 	@Override
 	public void connect() {
-		actualUser = configuration.getCacheManager().getUser(messageBus.getActualUser(accountId));
+		initActualUser();
 	}
 
 	@Override
 	public synchronized void disconnect() {
+	}
+
+	@Override
+	public void establish(ClientMessageListener listener) {
+		if (blockingUsers != null) {
+			synchronized (blockingUsers) {
+				for (User blockingUser : blockingUsers) {
+					listener.onBlock(actualUser, blockingUser);
+				}
+			}
+		}
+	}
+
+	/**
+	 * init actual user
+	 */
+	protected void initActualUser() {
+		actualUser = configuration.getCacheManager().getUser(messageBus.getActualUser(accountId));
 	}
 
 	@Override

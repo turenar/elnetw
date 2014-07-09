@@ -26,10 +26,11 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
 /**
  * virtual channel: publish specified channel
  *
+ * <p>establish messageには対応していない</p>
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class VirtualChannel implements MessageChannel {
-
 	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
 		ClientMessageListener listener = messageBus.getListeners(accountId, to);
 		for (String s : from) {
@@ -43,6 +44,10 @@ public class VirtualChannel implements MessageChannel {
 
 	@Override
 	public synchronized void disconnect() {
+	}
+
+	@Override
+	public void establish(ClientMessageListener listener) {
 	}
 
 	@Override

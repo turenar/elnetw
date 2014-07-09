@@ -19,54 +19,36 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.blocking;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
+import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
+import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
+import jp.syuriken.snsw.twclient.internal.NullUser;
+import twitter4j.PagableResponseList;
+import twitter4j.TwitterException;
+import twitter4j.User;
 
 /**
- * ストリームからデータを取得するDataFetcher
+ * twitter implementation for BlockingUsersChannelTest
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStreamChannel implements MessageChannel {
-	private final String accountId;
-	private final ClientMessageListener listener;
-	private final MessageBus messageBus;
-	private volatile TwitterStream stream;
+public class BlockingUsersTwitterImpl extends AbstractTwitter {
 
-	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
-		this.messageBus = messageBus;
-		this.accountId = accountId;
-		listener = messageBus.getListeners(accountId, "stream/user");
+	@Override
+	public PagableResponseList<User> getBlocksList() throws TwitterException {
+		return getBlocksList(-1L);
 	}
 
 	@Override
-	public synchronized void connect() {
-		if (stream == null) {
-			stream = new TwitterStreamFactory(
-					messageBus.getTwitterConfiguration(accountId)).getInstance();
-			stream.addConnectionLifeCycleListener(listener);
-			stream.addListener(listener);
-			stream.user();
+	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
+		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
+		if (cursor == -1) {
+			list.setNextCursor(1L);
+			list.add(new NullUser(2L));
+		} else if (cursor == 1) {
+			list.add(new NullUser(3L));
 		}
-	}
-
-	@Override
-	public synchronized void disconnect() {
-		if (stream != null) {
-			stream.shutdown();
-			stream = null;
-		}
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
-		// #connect() works.
+		return list;
 	}
 }

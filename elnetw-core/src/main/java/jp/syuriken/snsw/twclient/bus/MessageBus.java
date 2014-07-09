@@ -157,6 +157,8 @@ public class MessageBus {
 			}
 		}
 
+		messageChannel.establish(listener);
+
 		ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
 		if (userListeners == null) {
 			userListeners = new ArrayList<>();

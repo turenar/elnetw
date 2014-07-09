@@ -19,54 +19,39 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.blocking;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
+import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.internal.NullUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
 /**
- * ストリームからデータを取得するDataFetcher
+ * test channel for BlockingUsersChannelTest
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStreamChannel implements MessageChannel {
-	private final String accountId;
-	private final ClientMessageListener listener;
-	private final MessageBus messageBus;
-	private volatile TwitterStream stream;
-
-	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
-		this.messageBus = messageBus;
-		this.accountId = accountId;
-		listener = messageBus.getListeners(accountId, "stream/user");
+public class BlockingUsersChannelTestImpl extends BlockingUsersChannel {
+	/**
+	 * インスタンスを生成する
+	 *
+	 * @param messageBus スケジューラー
+	 * @param accountId  アカウントID (long)
+	 * @param path       bus path
+	 */
+	public BlockingUsersChannelTestImpl(MessageBus messageBus, String accountId, String path) {
+		super(messageBus, accountId, path);
 	}
 
 	@Override
-	public synchronized void connect() {
-		if (stream == null) {
-			stream = new TwitterStreamFactory(
-					messageBus.getTwitterConfiguration(accountId)).getInstance();
-			stream.addConnectionLifeCycleListener(listener);
-			stream.addListener(listener);
-			stream.user();
-		}
+	protected void initActualUser() {
+		NullUser nullUser = new NullUser(1L);
+		actualUser = new TwitterUser(nullUser);
 	}
 
 	@Override
-	public synchronized void disconnect() {
-		if (stream != null) {
-			stream.shutdown();
-			stream = null;
-		}
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
-		// #connect() works.
+	public synchronized void realConnect() {
+		twitter = new BlockingUsersTwitterImpl();
+		run();
 	}
 }

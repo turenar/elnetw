@@ -19,54 +19,53 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.impl;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
+import java.util.ArrayList;
+
+import twitter4j.PagableResponseList;
+import twitter4j.RateLimitStatus;
+import twitter4j.User;
 
 /**
- * ストリームからデータを取得するDataFetcher
+ * Pagable Response List implementation for test methods
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStreamChannel implements MessageChannel {
-	private final String accountId;
-	private final ClientMessageListener listener;
-	private final MessageBus messageBus;
-	private volatile TwitterStream stream;
+public class UserPagableResponseListImpl extends ArrayList<User> implements PagableResponseList<User> {
+	private long nextCursor = -1L;
 
-	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
-		this.messageBus = messageBus;
-		this.accountId = accountId;
-		listener = messageBus.getListeners(accountId, "stream/user");
+	@Override
+	public int getAccessLevel() {
+		return 0;
 	}
 
 	@Override
-	public synchronized void connect() {
-		if (stream == null) {
-			stream = new TwitterStreamFactory(
-					messageBus.getTwitterConfiguration(accountId)).getInstance();
-			stream.addConnectionLifeCycleListener(listener);
-			stream.addListener(listener);
-			stream.user();
-		}
+	public long getNextCursor() {
+		return nextCursor;
 	}
 
 	@Override
-	public synchronized void disconnect() {
-		if (stream != null) {
-			stream.shutdown();
-			stream = null;
-		}
+	public long getPreviousCursor() {
+		return 0;
 	}
 
 	@Override
-	public void establish(ClientMessageListener listener) {
+	public RateLimitStatus getRateLimitStatus() {
+		return null;
 	}
 
 	@Override
-	public void realConnect() {
-		// #connect() works.
+	public boolean hasNext() {
+		return nextCursor != -1L;
+	}
+
+	@Override
+	public boolean hasPrevious() {
+		return false;
+	}
+
+	public void setNextCursor(long nextCursor) {
+		this.nextCursor = nextCursor;
 	}
 }

@@ -21,6 +21,9 @@
 
 package jp.syuriken.snsw.twclient;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -35,9 +38,29 @@ import twitter4j.Twitter;
 public class ClientConfigurationTestImpl extends ClientConfiguration {
 	private static final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
 
+	public ClientConfigurationTestImpl() {
+		ClientProperties defaultConfig = getConfigDefaultProperties();
+		try {
+			InputStream stream = TwitterClientMain.class.getResourceAsStream("config.properties");
+			if (stream == null) {
+				throw new AssertionError("リソース(default) config.properties を読み込めません");
+			} else {
+				InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+				defaultConfig.load(reader);
+			}
+		} catch (IOException e) {
+			throw new AssertionError("デフォルト設定が読み込めません", e);
+		}
+	}
+
 	public void clearGlobalInstance() {
 		ClientConfiguration.setInstance(null);
 		reentrantLock.readLock().unlock();
+	}
+
+	@Override
+	public synchronized CacheManager getCacheManager() {
+		return new CacheManager(this);
 	}
 
 	@Override

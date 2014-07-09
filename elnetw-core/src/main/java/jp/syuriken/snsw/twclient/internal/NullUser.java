@@ -23,6 +23,8 @@ package jp.syuriken.snsw.twclient.internal;
 
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.URLEntity;
@@ -40,16 +42,32 @@ public class NullUser implements User {
 
 	/** 使いまわし用のインスタンス */
 	public static final NullUser INSTANCE = new NullUser();
+	private final long userId;
 
+	/**
+	 * instance. userId=-1L
+	 */
+	public NullUser() {
+		this(-1L);
+	}
+
+	/**
+	 * instance.
+	 *
+	 * @param userId userId: should be negative number because avoid conflict?
+	 */
+	public NullUser(long userId) {
+		this.userId = userId;
+	}
 
 	@Override
-	public int compareTo(User o) {
-		return 0;
+	public int compareTo(@Nonnull User o) {
+		return (int) (userId - o.getId());
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof NullUser;
+		return obj instanceof NullUser && ((NullUser) obj).getId() == getId();
 	}
 
 	@Override
@@ -99,7 +117,7 @@ public class NullUser implements User {
 
 	@Override
 	public long getId() {
-		return -1;
+		return userId;
 	}
 
 	@Override
