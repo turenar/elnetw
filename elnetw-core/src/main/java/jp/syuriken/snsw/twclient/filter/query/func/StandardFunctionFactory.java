@@ -19,40 +19,45 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory;
 
 /**
- * 何もしないフィルタ
+ * factory for jp.syuriken.snsw.twclient.filter.query.func.*
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullFilter implements FilterDispatcherBase {
+public final class StandardFunctionFactory implements QueryFunctionFactory {
 
-	private static final FilterDispatcherBase instance = new NullFilter();
+	public static final StandardFunctionFactory SINGLETON = new StandardFunctionFactory();
 
-	/**
-	 * 唯一インスタンスを取得する。
-	 *
-	 * @return インスタンス
-	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
+	private StandardFunctionFactory() {
 	}
 
 	@Override
-	public boolean filter(DirectMessage directMessage) {
-		return false;
-	}
-
-	@Override
-	public boolean filter(Status status) {
-		return false;
+	public FilterDispatcherBase getInstance(String name,
+			FilterDispatcherBase[] children) throws IllegalSyntaxException {
+		switch (name) {
+			case "and":
+				return new AndQueryFunction(name, children);
+			case "extract":
+				return new ExtractQueryFunction(name, children);
+			case "if":
+				return new IfQueryFunction(name, children);
+			case "inrt":
+				return new InRetweetQueryFunction(name, children);
+			case "not":
+				return new NotQueryFunction(name, children);
+			case "exactly_one_of":
+			case "one_of":
+				return new OneOfQueryFunction(name, children);
+			case "or":
+				return new OrQueryFunction(name, children);
+			default:
+				throw new IllegalSyntaxException("function<" + name + "> is not found in StandardFunction");
+		}
 	}
 }

@@ -19,40 +19,46 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-/**
- * 何もしないフィルタ
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public class NullFilter implements FilterDispatcherBase {
 
-	private static final FilterDispatcherBase instance = new NullFilter();
+/** extract: {@link jp.syuriken.snsw.twclient.filter.FilterEditFrame}用 */
+public class ExtractQueryFunction implements QueryFunction {
+	private final FilterDispatcherBase child;
 
 	/**
-	 * 唯一インスタンスを取得する。
+	 * インスタンスを生成する。
 	 *
-	 * @return インスタンス
+	 * @param functionName 関数名
+	 * @param child        子要素の配列
+	 * @throws IllegalSyntaxException エラー
 	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
+	public ExtractQueryFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+		int length = child.length;
+		if (length == 0) {
+			this.child = null;
+		} else if (length == 1) {
+			this.child = child[0];
+		} else {
+			throw new IllegalSyntaxException("func<" + functionName + "> の引数は一つでなければなりません");
+		}
 	}
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return false;
+		FilterDispatcherBase child = this.child;
+		return child == null || !child.filter(directMessage);
 	}
 
 	@Override
 	public boolean filter(Status status) {
-		return false;
+		FilterDispatcherBase child = this.child;
+		return child == null || !child.filter(status);
 	}
 }

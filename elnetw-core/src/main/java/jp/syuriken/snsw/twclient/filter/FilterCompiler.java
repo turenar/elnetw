@@ -22,13 +22,14 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import java.io.StringReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Scanner;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory;
+import jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
@@ -74,27 +75,24 @@ public class FilterCompiler implements FilterParserVisitor {
 		}
 	}
 
-	/** constructor ( FilterDispatcherBase ) */
-	protected static final HashMap<String, Constructor<? extends FilterFunction>> filterFunctionFactories =
-			new HashMap<String, Constructor<? extends FilterFunction>>();
+	/** constructor ( FilterDispatcherBase[] ) */
+	protected static final HashMap<String, QueryFunctionFactory> filterFunctionFactories = new HashMap<>();
 	/** constructor ( String, String, String) */
-	protected static final HashMap<String, Constructor<? extends FilterProperty>> filterPropertyFactories =
-			new HashMap<String, Constructor<? extends FilterProperty>>();
+	protected static final HashMap<String, QueryPropertyFactory> filterPropertyFactories = new HashMap<>();
 
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
 	 *
-	 * @param configuration 設定
-	 * @param query         クエリ
+	 * @param query クエリ
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public static FilterDispatcherBase getCompiledObject(ClientConfiguration configuration, String query)
+	public static FilterDispatcherBase getCompiledObject(String query)
 			throws IllegalSyntaxException {
-		FilterCompiler filterCompiler = new FilterCompiler(configuration);
+		FilterCompiler filterCompiler = new FilterCompiler();
 		try {
 			return (FilterDispatcherBase) tokenize(query).jjtAccept(filterCompiler, null);
-		} catch (TokenMgrError e) {
+		} catch (TokenMgrError | ParseException e) {
 			throw new IllegalSyntaxException(e.getLocalizedMessage(), e);
 		} catch (WrappedException e) {
 			Throwable cause = e.getCause();
@@ -103,8 +101,6 @@ public class FilterCompiler implements FilterParserVisitor {
 			} else {
 				throw e;
 			}
-		} catch (ParseException e) {
-			throw new IllegalSyntaxException(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -112,9 +108,9 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * 指定した名前のフィルタ関数を取得する
 	 *
 	 * @param functionName 関数名
-	 * @return {@link FilterFunction} の ({@link String}, {@link FilterDispatcherBase}) コンストラクタ
+	 * @return {@link jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory}
 	 */
-	public static Constructor<? extends FilterFunction> getFilterFunction(String functionName) {
+	public static QueryFunctionFactory getFilterFunction(String functionName) {
 		return filterFunctionFactories.get(functionName);
 	}
 
@@ -122,9 +118,9 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * フィルタプロパティを追加する
 	 *
 	 * @param propertyName プロパティ名
-	 * @return {@link FilterProperty} の ({@link String}, {@link String}, {@link String})コンストラクタ
+	 * @return {@link jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory}
 	 */
-	public static Constructor<? extends FilterProperty> getFilterProperty(String propertyName) {
+	public static QueryPropertyFactory getFilterProperty(String propertyName) {
 		return filterPropertyFactories.get(propertyName);
 	}
 
@@ -140,10 +136,8 @@ public class FilterCompiler implements FilterParserVisitor {
 			String query = scanner.nextLine();
 			try {
 				FilterCompiler.tokenize(query).dump("");
-				FilterCompiler.getCompiledObject(null, query);
-			} catch (IllegalSyntaxException e) {
-				e.printStackTrace();
-			} catch (ParseException e) {
+				FilterCompiler.getCompiledObject(query);
+			} catch (IllegalSyntaxException | ParseException e) {
 				e.printStackTrace();
 			}
 			System.out.print("> ");
@@ -154,31 +148,22 @@ public class FilterCompiler implements FilterParserVisitor {
 	 * フィルタ関数を追加する
 	 *
 	 * @param functionName 関数名
-	 * @param constructor  ({@link String}, {@link FilterDispatcherBase})コンストラクタ
-	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
+	 * @param factory      {@link jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory}
+	 * @return 前関数名に結び付けられていたファクトリ。結び付けられていない場合はnull
 	 */
-	public static Constructor<? extends FilterFunction> putFilterFunction(String functionName,
-			Constructor<? extends FilterFunction> constructor) {
-		return filterFunctionFactories.put(functionName, constructor);
+	public static QueryFunctionFactory putFilterFunction(String functionName, QueryFunctionFactory factory) {
+		return filterFunctionFactories.put(functionName, factory);
 	}
 
 	/**
 	 * フィルタプロパティを追加する
 	 *
 	 * @param propertyName プロパティ名
-	 * @param constructor  ({@link String}, {@link String}, {@link Object})コンストラクタ
-	 * @return 前関数名に結び付けられていたコンストラクタ。結び付けられていない場合はnull
+	 * @param factory      {@link jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory}
+	 * @return 前関数名に結び付けられていたファクトリ。結び付けられていない場合はnull
 	 */
-	public static Constructor<? extends FilterProperty> putFilterProperty(String propertyName,
-			Constructor<? extends FilterProperty> constructor) {
-		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		if (parameterTypes[0] == ClientConfiguration.class && parameterTypes[1] == String.class
-				&& parameterTypes[2] == String.class && parameterTypes[3] == Object.class) {
-			return filterPropertyFactories.put(propertyName, constructor);
-		} else {
-			throw new IllegalArgumentException(
-					"FilterProperty's constructor must be (ClientConfiguration, String, String, Object)");
-		}
+	public static QueryPropertyFactory putFilterProperty(String propertyName, QueryPropertyFactory factory) {
+		return filterPropertyFactories.put(propertyName, factory);
 	}
 
 	/**
@@ -196,8 +181,8 @@ public class FilterCompiler implements FilterParserVisitor {
 	private ClientConfiguration configuration;
 
 
-	private FilterCompiler(ClientConfiguration configuration) {
-		this.configuration = configuration;
+	private FilterCompiler() {
+		this.configuration = ClientConfiguration.getInstance();
 	}
 
 	@Override
@@ -205,31 +190,20 @@ public class FilterCompiler implements FilterParserVisitor {
 		int childrenCount = node.jjtGetNumChildren();
 
 		String functionName = (String) node.jjtGetValue();
-		Constructor<? extends FilterFunction> factory = filterFunctionFactories.get(functionName);
-		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
-					+ ">は見つかりません"));
-		}
+		QueryFunctionFactory factory = filterFunctionFactories.get(functionName);
 
+		if (factory == null) {
+			throw new WrappedException(new IllegalSyntaxException("<" + functionName + ">は見つかりません。"));
+		}
 		FilterDispatcherBase[] args = new FilterDispatcherBase[childrenCount];
 		for (int i = 0; i < childrenCount; i++) {
 			args[i] = (FilterDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
 		}
 
 		try {
-			return factory.newInstance(functionName, args);
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			throw new WrappedException(cause);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
-					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (InstantiationException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
-					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: function<" + functionName
-					+ ">に関連付けられたConstructorは正しくありません", e);
+			return factory.getInstance(functionName, args);
+		} catch (IllegalSyntaxException e) {
+			throw new WrappedException(e);
 		}
 	}
 
@@ -239,7 +213,7 @@ public class FilterCompiler implements FilterParserVisitor {
 
 		String propertyName = (String) node.jjtGetValue();
 
-		Constructor<? extends FilterProperty> factory = getFilterProperty(propertyName);
+		QueryPropertyFactory factory = getFilterProperty(propertyName);
 		if (factory == null) {
 			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + propertyName + ">は見つかりません。"));
 		}
@@ -251,19 +225,9 @@ public class FilterCompiler implements FilterParserVisitor {
 		String propertyOperator = propertyData.operator;
 		Object value = propertyData.value;
 		try {
-			return factory.newInstance(configuration, propertyName, propertyOperator, value);
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			throw new WrappedException(cause);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
-					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (InstantiationException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
-					+ ">に関連付けられたConstructorは正しくありません", e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException("フィルタのコンパイル中にエラーが発生しました: property<" + propertyName
-					+ ">に関連付けられたConstructorは正しくありません", e);
+			return factory.getInstance(propertyName, propertyOperator, value);
+		} catch (IllegalSyntaxException e) {
+			throw new WrappedException(e);
 		}
 	}
 
@@ -289,12 +253,16 @@ public class FilterCompiler implements FilterParserVisitor {
 			}
 			value = str.toString();
 		} else { // Boolean or Long
-			if (valueStr.equals("true")) {
-				value = Boolean.TRUE;
-			} else if (valueStr.equals("false")) {
-				value = Boolean.FALSE;
-			} else {
-				value = Long.valueOf(valueStr);
+			switch (valueStr) {
+				case "true":
+					value = Boolean.TRUE;
+					break;
+				case "false":
+					value = Boolean.FALSE;
+					break;
+				default:
+					value = Long.valueOf(valueStr);
+					break;
 			}
 		}
 		propertyData.value = value;

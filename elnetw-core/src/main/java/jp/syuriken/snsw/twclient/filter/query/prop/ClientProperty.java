@@ -19,40 +19,39 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.prop;
 
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * 何もしないフィルタ
+ * status.getSource
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullFilter implements FilterDispatcherBase {
-
-	private static final FilterDispatcherBase instance = new NullFilter();
+public class ClientProperty extends AbstractStringArgProperty {
 
 	/**
-	 * 唯一インスタンスを取得する。
+	 * インスタンスを生成する。
 	 *
-	 * @return インスタンス
+	 * @param name     プロパティ名
+	 * @param operator 演算子文字列。ない場合は null。
+	 * @param value    比較する値。ない場合は null。
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
-	}
-
-	@Override
-	public boolean filter(DirectMessage directMessage) {
-		return false;
+	public ClientProperty(String name, String operator, Object value)
+			throws IllegalSyntaxException {
+		super(name, operator, value);
 	}
 
 	@Override
-	public boolean filter(Status status) {
-		return false;
+	protected String getPropertyValue(Status status) {
+		return status.getSource();
+	}
+
+	@Override
+	protected String getPropertyValue(DirectMessage directMessage) {
+		return "DirectMessage";
 	}
 }

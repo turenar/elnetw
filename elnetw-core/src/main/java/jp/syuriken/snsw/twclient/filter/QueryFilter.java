@@ -26,6 +26,7 @@ import java.beans.PropertyChangeListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -74,7 +75,7 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 			this.query = NullFilter.getInstance();
 		} else {
 			try {
-				this.query = FilterCompiler.getCompiledObject(configuration, query);
+				this.query = FilterCompiler.getCompiledObject(query);
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
 				this.query = NullFilter.getInstance();

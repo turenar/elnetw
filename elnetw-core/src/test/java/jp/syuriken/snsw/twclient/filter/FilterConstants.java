@@ -25,6 +25,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.TwitterException;

@@ -19,40 +19,55 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * 何もしないフィルタ
+ * すべてマッチするかどうかを判断するフィルタクラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullFilter implements FilterDispatcherBase {
-
-	private static final FilterDispatcherBase instance = new NullFilter();
+public class AndQueryFunction implements QueryFunction {
+	private FilterDispatcherBase[] child;
 
 	/**
-	 * 唯一インスタンスを取得する。
+	 * インスタンスを生成する。
 	 *
-	 * @return インスタンス
+	 * @param functionName 関数名
+	 * @param child        子要素の配列
+	 * @throws IllegalSyntaxException エラー
 	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
+	@SuppressFBWarnings("EI_EXPOSE_REP2")
+	public AndQueryFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+		if (child.length == 0) {
+			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");
+		}
+		this.child = child;
 	}
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return false;
+		for (FilterDispatcherBase operator : child) {
+			if (!operator.filter(directMessage)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
 	public boolean filter(Status status) {
-		return false;
+		for (FilterDispatcherBase operator : child) {
+			if (!operator.filter(status)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

@@ -19,40 +19,53 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
-/**
- * 何もしないフィルタ
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public class NullFilter implements FilterDispatcherBase {
+/** 'if' filter function: if(expr, trueCond [, falseCond]) */
+public class IfQueryFunction implements QueryFunction {
 
-	private static final FilterDispatcherBase instance = new NullFilter();
+	private final FilterDispatcherBase trueCond;
+	private final FilterDispatcherBase falseCond;
+	private FilterDispatcherBase expr;
 
 	/**
-	 * 唯一インスタンスを取得する。
+	 * インスタンスを生成する。
 	 *
-	 * @return インスタンス
+	 * @param name  関数名
+	 * @param child 子要素
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException エラー
 	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
+	public IfQueryFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+		int len = child.length;
+		if (len < 2 || len > 3) {
+			throw new IllegalSyntaxException("func<" + name + "> の引数は2つまたは3つでなければなりません");
+		}
+		this.expr = child[0];
+		this.trueCond = child[1];
+		this.falseCond = len == 3 ? child[2] : null;
 	}
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return false;
+		if (expr.filter(directMessage)) {
+			return trueCond.filter(directMessage);
+		} else {
+			return falseCond != null && falseCond.filter(directMessage);
+		}
 	}
 
 	@Override
 	public boolean filter(Status status) {
-		return false;
+		if (expr.filter(status)) {
+			return trueCond.filter(status);
+		} else {
+			return falseCond != null && falseCond.filter(status);
+		}
 	}
 }

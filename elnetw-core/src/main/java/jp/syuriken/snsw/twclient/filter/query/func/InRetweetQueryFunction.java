@@ -19,40 +19,44 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * 何もしないフィルタ
+ * RTを対象にするクラス。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullFilter implements FilterDispatcherBase {
+public class InRetweetQueryFunction implements QueryFunction {
+	private FilterDispatcherBase child;
 
-	private static final FilterDispatcherBase instance = new NullFilter();
 
 	/**
-	 * 唯一インスタンスを取得する。
+	 * インスタンスを生成する。
 	 *
-	 * @return インスタンス
+	 * @param name  関数名
+	 * @param child 子要素
+	 * @throws IllegalSyntaxException エラー
 	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
+	public InRetweetQueryFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+		if (child.length != 1) {
+			throw new IllegalSyntaxException("func<" + name + "> の引数は一つでなければなりません");
+		}
+		this.child = child[0];
 	}
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		return false;
+		return child.filter(directMessage); // DM is not supported retweet
 	}
 
 	@Override
 	public boolean filter(Status status) {
-		return false;
+		return child.filter(status.isRetweet() ? status.getRetweetedStatus() : status);
 	}
 }

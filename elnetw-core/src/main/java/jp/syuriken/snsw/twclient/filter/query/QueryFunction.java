@@ -19,40 +19,15 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query;
 
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 
 /**
- * 何もしないフィルタ
+ * フィルターするかどうかを判断するクラス。
+ * trueでフィルター→TLには現れなくなる
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullFilter implements FilterDispatcherBase {
+public interface QueryFunction extends FilterDispatcherBase {
 
-	private static final FilterDispatcherBase instance = new NullFilter();
-
-	/**
-	 * 唯一インスタンスを取得する。
-	 *
-	 * @return インスタンス
-	 */
-	public static FilterDispatcherBase getInstance() {
-		return instance;
-	}
-
-	private NullFilter() {
-	}
-
-	@Override
-	public boolean filter(DirectMessage directMessage) {
-		return false;
-	}
-
-	@Override
-	public boolean filter(Status status) {
-		return false;
-	}
 }
