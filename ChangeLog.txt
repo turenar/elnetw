@@ -1,3 +1,7 @@
+Version 0.1-rc1
+	* Fix SPLP#remove() sometimes don't work
+	* Fix StandardBooleanProperties often ignored operator
+
 Version 0.1-beta2 (2014年  6月 14日 土曜日 10:12:14 JST)
 
 	* Fix not launchable in Windows
