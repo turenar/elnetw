@@ -115,7 +115,7 @@ public class StandardBooleanProperties implements FilterProperty {
 		}
 		if (value == null || value instanceof Boolean) {
 			// value 処理
-			if ((operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT) == false) {
+			if (!(operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT)) {
 				if (value == null) {
 					throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
 				} else {
@@ -134,10 +134,12 @@ public class StandardBooleanProperties implements FilterProperty {
 		boolean target;
 		switch (propertyId) {
 			case PROPERTY_ID_DM:
-				return true;
+				target = true;
+				break;
 			case PROPERTY_ID_STATUS:
 			case PROPERTY_ID_RETWEETED:
-				return false;
+				target = false;
+				break;
 			case PROPERTY_ID_MINE:
 				target = configuration.isMyAccount(directMessage.getSenderId());
 				break;
@@ -158,9 +160,11 @@ public class StandardBooleanProperties implements FilterProperty {
 		boolean target;
 		switch (propertyId) {
 			case PROPERTY_ID_DM:
-				return false;
+				target = false;
+				break;
 			case PROPERTY_ID_STATUS:
-				return true;
+				target = true;
+				break;
 			case PROPERTY_ID_RETWEETED:
 				target = status.isRetweet();
 				break;
