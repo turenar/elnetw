@@ -85,7 +85,7 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 
 	@Override
 	public void onDirectMessage(DirectMessage message) {
-		if (query.filter(message)) {
+		if (!query.filter(message)) {
 			child.onDirectMessage(message);
 		}
 	}
