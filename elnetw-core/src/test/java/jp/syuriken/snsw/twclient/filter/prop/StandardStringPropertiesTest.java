@@ -90,7 +90,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 	public void testFilterClient() throws IllegalSyntaxException {
 		configuration.setGlobalInstance();
 		try {
-			assertTrue(testEqual("client", "TweetDeck", STATUS_5));
+			assertTrue(testEqual("client", "*elnetw*", STATUS_5));
 		} finally {
 			configuration.clearGlobalInstance();
 		}
@@ -144,7 +144,7 @@ public class StandardStringPropertiesTest extends FilterConstants {
 			assertTrue(testEqual("user", "*ture*", STATUS_3));
 			assertFalse(testEqual("user", "*ture*", STATUS_4));
 
-			assertFalse(testEqual("user", "*ture*", DM_1));
+			assertTrue(testEqual("user", "*ture*", DM_1));
 			assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
 		} finally {
 			configuration.clearGlobalInstance();
