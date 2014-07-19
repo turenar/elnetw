@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
@@ -81,12 +80,16 @@ import jp.syuriken.snsw.twclient.filter.QueryFilter;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
 import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
-import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
-import jp.syuriken.snsw.twclient.gui.MentionViewTab;
-import jp.syuriken.snsw.twclient.gui.TimelineViewTab;
-import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.gui.render.simple.RenderObjectHandler;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.DirectMessageViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.MentionViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.TimelineViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.factory.DirectMessageViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.MentionViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.TimelineViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.UserInfoViewTabFactory;
 import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.DoNothingActionHandler;
@@ -287,10 +290,10 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "gui/tab/init-factory", phase = "init")
 	public void addClientTabConstructor() {
-		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
-		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
-		ClientConfiguration.putClientTabConstructor("directmessage", DirectMessageViewTab.class);
-		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
+		ClientConfiguration.putClientTabConstructor("timeline", new TimelineViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("mention", new MentionViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("directmessage", new DirectMessageViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("userinfo", new UserInfoViewTabFactory());
 	}
 
 	/**
@@ -602,21 +605,12 @@ public final class TwitterClientMain {
 				int separatorPosition = tabIdentifier.indexOf(':');
 				String tabId = tabIdentifier.substring(0, separatorPosition);
 				String uniqId = tabIdentifier.substring(separatorPosition + 1);
-				Constructor<? extends ClientTab> tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
+				ClientTabFactory tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
 				if (tabConstructor == null) {
 					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
 				} else {
-					try {
-						ClientTab tab = tabConstructor.newInstance(
-								configProperties.getProperty("gui.tabs.data." + uniqId));
-						configuration.addFrameTab(tab);
-					} catch (IllegalArgumentException | InstantiationException e) {
-						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
-					} catch (IllegalAccessException e) {
-						logger.error("タブが復元できません: 正しくないアクセス指定子です。tabId=" + tabId, e);
-					} catch (InvocationTargetException e) {
-						logger.error("タブが復元できません: 初期化中にエラーが発生しました。tabId=" + tabId, e);
-					}
+					ClientTab tab = tabConstructor.getInstance(tabId, uniqId);
+					configuration.addFrameTab(tab);
 				}
 			}
 		}
@@ -1091,5 +1085,15 @@ public final class TwitterClientMain {
 					configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
 		}
 		configProperties.setProperty("cfg.version", "2");
+	}
+
+	/**
+	 * update configuration to v3
+	 */
+	@Initializer(name = "config/update/v3", dependencies = "config/update/v2", phase = "earlyinit")
+	public void updateConfigToV3() {
+		logger.info("Updating config to v3");
+		configProperties.removePrefixed("gui.tabs");
+		configProperties.setProperty("cfg.version", "3");
 	}
 }

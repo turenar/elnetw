@@ -32,7 +32,7 @@ import twitter4j.User;
 /**
  * message render object.
  *
- * publish: {@link jp.syuriken.snsw.twclient.gui.TabRenderer}.onClientMessage(
+ * publish: {@link jp.syuriken.snsw.twclient.gui.tab.TabRenderer}.onClientMessage(
  * {@link jp.syuriken.snsw.twclient.ClientEventConstants}.RENDER_SHOW_OBJECT, this)
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)

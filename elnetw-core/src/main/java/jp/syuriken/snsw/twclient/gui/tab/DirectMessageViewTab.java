@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import javax.swing.Icon;
 
@@ -27,8 +27,6 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import twitter4j.DirectMessage;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 
 /**
  * ダイレクトメッセージを表示するタブ
@@ -69,13 +67,10 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param data 保存されたデータ
-	 * @throws JSONException          JSON例外
-	 * @throws IllegalSyntaxException クエリエラー
+	 * @param uniqId unique identifier
 	 */
-	public DirectMessageViewTab(String data) throws JSONException,
-			IllegalSyntaxException {
-		super(data);
+	public DirectMessageViewTab(String uniqId) {
+		super(uniqId);
 		configuration.getMessageBus().establish("$reader", "direct_messages", getRenderer());
 		configuration.getMessageBus().establish("$reader", "stream/user", getRenderer());
 	}
@@ -119,11 +114,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	@Override
 	public Icon getIcon() {
 		return null; // TODO
-	}
-
-	@Override
-	protected Object getSerializedExtendedData() {
-		return JSONObject.NULL;
 	}
 
 	@Override

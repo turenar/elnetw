@@ -19,34 +19,20 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui.render;
+package jp.syuriken.snsw.twclient.gui.tab.factory;
 
-import jp.syuriken.snsw.twclient.gui.render.simple.SimpleRenderer;
-import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
 
-/** Renderer Manager */
-public class RendererManager {
-	/**
-	 * new renderer instance
-	 *
-	 * @param accountId account id
-	 * @param target    render target
-	 * @return renderer instance
-	 */
-	public static TabRenderer get(String accountId, RenderTarget target) {
-		return new SimpleRenderer(accountId, target);
-	}
-
-	/**
-	 * utility method: get unique identifier for status
-	 *
-	 * @param status status
-	 * @return unique identifier
-	 */
-	public static String getStatusUniqId(long status) {
-		return "status/" + status;
-	}
-
-	private RendererManager() {
+/**
+ * factory for UserInfoViewTab
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
+public class UserInfoViewTabFactory implements ClientTabFactory {
+	@Override
+	public ClientTab getInstance(String tabId, String uniqId) {
+		return new UserInfoFrameTab(uniqId);
 	}
 }

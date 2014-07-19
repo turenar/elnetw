@@ -22,7 +22,7 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.gui.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

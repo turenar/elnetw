@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import java.awt.Component;
 
@@ -34,6 +34,11 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
  * @see AbstractClientTab
  */
 public interface ClientTab {
+
+	/**
+	 * TabClosed Event
+	 */
+	void close();
 
 	/** タブが選択された */
 	void focusGained();
@@ -54,13 +59,6 @@ public interface ClientTab {
 	 * @return レンダラ
 	 */
 	TabRenderer getRenderer();
-
-	/**
-	 * このデータ文字列を使ってあとで復帰できるようなデータ文字列を取得する。javaの直列化機能を使う必要はありません。
-	 *
-	 * @return データ文字列
-	 */
-	String getSerializedData();
 
 	/**
 	 * タブで表示するコンポーネントを取得する
@@ -123,4 +121,9 @@ public interface ClientTab {
 
 	/** タブとして表示できる状態となったことを通知するメソッド */
 	void initTimeline();
+
+	/**
+	 * Application exiting. serialize your data.
+	 */
+	void serialize();
 }

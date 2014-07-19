@@ -39,6 +39,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -574,6 +575,16 @@ public class ClientProperties extends Properties {
 	public synchronized Object remove(Object key) {
 		firePropertyChanged((String) key, getProperty((String) key), null);
 		return super.remove(key);
+	}
+
+	public synchronized void removePrefixed(String prefix) {
+		for (Iterator<Object> iterator = keySet().iterator(); iterator.hasNext(); ) {
+			Object key = iterator.next();
+			String keyStr = (String) key;
+			if (keyStr.startsWith(prefix)) {
+				iterator.remove();
+			}
+		}
 	}
 
 	/**

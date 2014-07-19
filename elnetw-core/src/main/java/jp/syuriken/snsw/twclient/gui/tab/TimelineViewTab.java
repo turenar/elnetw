@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import java.awt.EventQueue;
 
@@ -30,8 +30,6 @@ import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
@@ -103,11 +101,10 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param data 保存されたデータ
-	 * @throws JSONException JSON例外
+	 * @param uniqId unique identifier
 	 */
-	public TimelineViewTab(String data) throws JSONException {
-		super(data);
+	public TimelineViewTab(String uniqId) {
+		super(uniqId);
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
@@ -150,11 +147,6 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	@Override
 	public Icon getIcon() {
 		return null; // TODO
-	}
-
-	@Override
-	protected Object getSerializedExtendedData() {
-		return JSONObject.NULL;
 	}
 
 	@Override

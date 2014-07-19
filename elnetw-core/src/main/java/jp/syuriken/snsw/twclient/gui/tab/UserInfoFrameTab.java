@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -63,7 +63,9 @@ import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.gui.BackgroundImagePanel;
+import jp.syuriken.snsw.twclient.gui.ImageResource;
+import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
@@ -73,8 +75,6 @@ import jp.syuriken.snsw.twclient.net.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -149,14 +149,11 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param jsonObject 設定が格納されたJSONオブジェクト
-	 * @throws JSONException          JSON例外
-	 * @throws IllegalSyntaxException クエリエラー
+	 * @param uniqId unique identifier
 	 */
-	public UserInfoFrameTab(JSONObject jsonObject) throws JSONException,
-			IllegalSyntaxException {
-		super(jsonObject);
-		final long userId = jsonObject.getJSONObject("extended").getLong("userId");
+	public UserInfoFrameTab(String uniqId) {
+		super(uniqId);
+		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
 
 		configuration.addJob(new TwitterRunnable() {
 			@Override
@@ -177,18 +174,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			}
 		});
 		urlIntentMap = new HashMap<>();
-	}
-
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param jsonString シリアル化されたデータ
-	 * @throws twitter4j.JSONException                                 JSON例外
-	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException クエリエラー
-	 */
-	public UserInfoFrameTab(String jsonString) throws JSONException,
-			IllegalSyntaxException {
-		this(new JSONObject(jsonString));
 	}
 
 	/**
@@ -560,11 +545,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	}
 
 	@Override
-	protected Object getSerializedExtendedData() throws JSONException {
-		return new JSONObject().put("userId", user.getId());
-	}
-
-	@Override
 	public JComponent getTabComponent() {
 		if (tabComponent == null) {
 			tabComponent = new JPanel();
@@ -612,6 +592,12 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	public void initTimeline() {
 		// use other way for display requirements...
 		//super.initTimeline();
+	}
+
+	@Override
+	public void serialize() {
+		super.serialize();
+		configProperties.setLong(getPropertyPrefix() + ".targetUserId", user.getId());
 	}
 
 	/*package*/ void setUser(final TwitterUser user) {
