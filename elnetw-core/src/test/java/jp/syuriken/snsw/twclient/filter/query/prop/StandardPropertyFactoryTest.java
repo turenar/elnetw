@@ -22,6 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.query.prop;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
@@ -54,14 +55,14 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 		configuration = new ClientConfigurationTestImpl();
 		ClientProperties defaultProperties = new ClientProperties();
 
-		InputStream resourceStream = null;
+		InputStream stream = null;
 		try {
-			resourceStream =
-					ClientConfiguration.class.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties");
-			defaultProperties.load(resourceStream);
+			stream = ClientConfiguration.class.getResourceAsStream("/jp/syuriken/snsw/twclient/config.properties");
+			InputStreamReader reader = new InputStreamReader(stream, ClientConfiguration.UTF8_CHARSET);
+			defaultProperties.load(reader);
 		} finally {
-			if (resourceStream != null) {
-				resourceStream.close();
+			if (stream != null) {
+				stream.close();
 			}
 		}
 

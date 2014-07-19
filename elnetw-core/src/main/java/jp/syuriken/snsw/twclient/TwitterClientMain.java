@@ -39,6 +39,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -134,6 +135,8 @@ import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
+
+import static jp.syuriken.snsw.twclient.ClientConfiguration.UTF8_CHARSET;
 
 /**
  * 実際に起動するランチャ
@@ -717,13 +720,12 @@ public final class TwitterClientMain {
 	public void setConfigProperties(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			configProperties = configuration.getConfigProperties();
-			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-			configProperties.setStoreFile(configFile);
-			if (configFile.exists()) {
+			Path configPath = Paths.get(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+			configProperties.setStoreFile(configPath);
+			if (Files.exists(configPath)) {
 				logger.debug(CONFIG_FILE_NAME + " is found.");
 				try {
-					InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
-					configProperties.load(reader);
+					configProperties.load(Files.newBufferedReader(configPath, UTF8_CHARSET));
 				} catch (IOException e) {
 					logger.warn("設定ファイルの読み込み中にエラー", e);
 				}
