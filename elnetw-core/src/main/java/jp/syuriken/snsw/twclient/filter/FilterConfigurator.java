@@ -36,6 +36,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.config.ConfigFrame;
 import jp.syuriken.snsw.twclient.config.ConfigType;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.FilterEditFrame;
 
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
@@ -116,7 +117,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 
 	private JComboBox<KVItem> getComponentFilterChooser() {
 		if (filterChooser == null) {
-			filterChooser = new JComboBox<KVItem>();
+			filterChooser = new JComboBox<>();
 			filterChooser.addItem(new KVItem("(グローバル)", "core.filter._global"));
 
 			int count = configuration.getFrameTabCount();

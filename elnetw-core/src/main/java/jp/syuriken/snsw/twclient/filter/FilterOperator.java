@@ -24,6 +24,7 @@ package jp.syuriken.snsw.twclient.filter;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
@@ -139,7 +140,11 @@ public enum FilterOperator {
 			throw new IllegalSyntaxException("string演算子には値が必要です");
 		}
 		if (value.length() >= 1 && value.charAt(0) == '/') {
-			return Pattern.compile(value.substring(1));
+			try {
+				return Pattern.compile(value.substring(1));
+			} catch (PatternSyntaxException e) {
+				throw new IllegalSyntaxException(e);
+			}
 		} else {
 			return value;
 		}
@@ -161,7 +166,7 @@ public enum FilterOperator {
 			case IS:
 				return target;
 			case IS_NOT:
-				return target == false;
+				return !target;
 			case EQ:
 				return target == value;
 			case NE:

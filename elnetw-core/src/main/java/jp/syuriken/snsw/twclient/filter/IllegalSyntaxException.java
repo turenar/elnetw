@@ -47,4 +47,13 @@ public class IllegalSyntaxException extends Exception {
 	public IllegalSyntaxException(String message, Throwable cause) {
 		super(message, cause);
 	}
+
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param cause この例外クラスが作られる原因となった {@link Throwable}
+	 */
+	public IllegalSyntaxException(Throwable cause) {
+		super(cause);
+	}
 }

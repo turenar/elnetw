@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.gui;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -33,6 +33,8 @@ import javax.swing.JTextArea;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.filter.FilterCompiler;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.Node;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
@@ -312,10 +314,17 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 				stringBuilder.insert(0, "extract(");
 				stringBuilder.append(')');
 			}
-			properties.setProperty(propertyKey, stringBuilder.toString());
+			String query = stringBuilder.toString();
+			// test compilable? (for regex test)
+			FilterCompiler.getCompiledObject(query);
+
+			properties.setProperty(propertyKey, query);
 			dispose();
 		} catch (ParseException ex) {
 			JOptionPane.showMessageDialog(this, "正しくない文法のクエリです。\n" + ex.getLocalizedMessage());
+		} catch (IllegalSyntaxException ex) {
+			JOptionPane.showMessageDialog(this,
+					"フィルターとしてコンパイルできませんでした。\n" + ex.getLocalizedMessage());
 		}
 	}
 

@@ -28,7 +28,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 
-/** extract: {@link jp.syuriken.snsw.twclient.filter.FilterEditFrame}用 */
+/** extract: {@link jp.syuriken.snsw.twclient.gui.FilterEditFrame}用 */
 public class ExtractQueryFunction implements QueryFunction {
 	private final FilterDispatcherBase child;
 
