@@ -19,58 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus.factory;
 
-import java.awt.Image;
-
-import jp.syuriken.snsw.twclient.internal.ConnectionInfo;
+import jp.syuriken.snsw.twclient.bus.DirectMessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
 
 /**
- * ImageSetter: 画像を取得したあとのハンドラ。通常、AbstractImageSetterをextendsするのがいいと思います。
+ * {@link jp.syuriken.snsw.twclient.bus.DirectMessageChannel}のためのファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface ImageSetter {
-	/**
-	 * 子にImageSetterを追加する。順番はあまり関係ない。
-	 *
-	 * @param setter イメージセッター。null不可。
-	 */
-	void addSetter(ImageSetter setter);
-
-	/**
-	 * 次のImageSetter。
-	 *
-	 * @return ImageSetterインスタンス or null
-	 */
-	ImageSetter next();
-
-	/**
-	 * 例外が発生した。
-	 *
-	 * @param e              例外
-	 * @param connectionInfo コネクション情報
-	 */
-	void onException(Exception e, ConnectionInfo connectionInfo);
-
-	/**
-	 * このImageSetterのみに画像を設定する。JLabelのsetImageなど。
-	 *
-	 * @param image イメージ
-	 */
-	void setImage(Image image);
-
-	/**
-	 * 子ImageSetterを含めて画像を設定する。
-	 *
-	 * @param image イメージ
-	 */
-	void setImageRecursively(Image image);
-
-	/**
-	 * 子setterを設定する。
-	 *
-	 * @param next 子setter
-	 */
-	void setNext(ImageSetter next);
+public class DirectMessageChannelFactory implements MessageChannelFactory {
+	@Override
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+		return new DirectMessageChannel(messageBus, accountId);
+	}
 }

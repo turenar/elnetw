@@ -19,16 +19,24 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.factory;
+
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.NullMessageChannel;
 
 /**
- * {@link jp.syuriken.snsw.twclient.bus.BlockingUsersChannel}のためのファクトリークラス
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * null message channel factory
  */
-public class BlockingUsersChannelFactory implements MessageChannelFactory {
+public class NullMessageChannelFactory implements MessageChannelFactory {
+	public static final MessageChannelFactory INSTANCE = new NullMessageChannelFactory();
+
+	private NullMessageChannelFactory() {
+	}
+
 	@Override
 	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new BlockingUsersChannel(messageBus, accountId, path);
+		return NullMessageChannel.INSTANCE;
 	}
 }

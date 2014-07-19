@@ -19,16 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
-
 /**
- * {@link TimelineChannel}のファクトリークラス
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * Message Bus Channel Factories: Factory class for MessageChannel
  */
-public class TimelineChannelFactory implements MessageChannelFactory {
-	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new TimelineChannel(messageBus, accountId);
-	}
-}
+package jp.syuriken.snsw.twclient.bus.factory;

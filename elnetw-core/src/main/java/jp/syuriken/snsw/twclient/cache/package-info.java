@@ -19,16 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
-
 /**
- * {@link MentionsChannel}のためのファクトリークラス
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * cache data
  */
-public class MentionsChannelFactory implements MessageChannelFactory {
-	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return new MentionsChannel(messageBus, accountId);
-	}
-}
+package jp.syuriken.snsw.twclient.cache;

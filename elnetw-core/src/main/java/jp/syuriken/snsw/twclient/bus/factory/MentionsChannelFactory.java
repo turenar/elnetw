@@ -19,32 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.bus.factory;
 
-import java.awt.Image;
-
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-
-import jp.syuriken.snsw.twclient.AnimationCanceledImageObserver;
+import jp.syuriken.snsw.twclient.bus.MentionsChannel;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
 
 /**
- * LabelImageSetter: ImageSetterのJLabel対応版。
+ * {@link jp.syuriken.snsw.twclient.bus.MentionsChannel}のためのファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class LabelImageSetter extends AbstractImageSetter {
-	private JLabel label;
-
-	public LabelImageSetter(JLabel label) {
-		this.label = label;
-	}
-
+public class MentionsChannelFactory implements MessageChannelFactory {
 	@Override
-	public void setImage(Image image) {
-		ImageIcon icon = new ImageIcon(image);
-		icon.setImageObserver(AnimationCanceledImageObserver.SINGLETON);
-		label.setIcon(icon);
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+		return new MentionsChannel(messageBus, accountId);
 	}
-
 }

@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.net;
+package jp.syuriken.snsw.twclient.cache;
 
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -119,7 +119,7 @@ public class ImageCacher {
 		}
 
 		/**
-		 *  get setter
+		 * get setter
 		 */
 		public synchronized ImageSetter getSetter() {
 			return setter;

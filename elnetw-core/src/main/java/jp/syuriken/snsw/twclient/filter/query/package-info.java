@@ -19,19 +19,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
-
 /**
- * null message channel factory
+ * query filter: flexible filtering system
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullMessageChannelFactory implements MessageChannelFactory {
-	public static final MessageChannelFactory INSTANCE = new NullMessageChannelFactory();
-
-	private NullMessageChannelFactory() {
-	}
-
-	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
-		return NullMessageChannel.INSTANCE;
-	}
-}
+package jp.syuriken.snsw.twclient.filter.query;
