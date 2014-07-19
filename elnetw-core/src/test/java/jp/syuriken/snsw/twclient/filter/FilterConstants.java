@@ -23,8 +23,8 @@ package jp.syuriken.snsw.twclient.filter;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -72,13 +72,13 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	 */
 	public static final Status STATUS_1;
 	/**
-	 * &#64;ture7s による 2012年7月11日18:01JST 投稿
-	 * 「てす &#64;ture7 &#64;ture7s」
+	 * &#64;ture7n による投稿
+	 * 「てす &#64;ture7 &#64;ture7n」
 	 */
 	public static final Status STATUS_2;
 	/**
-	 * &#64;ture7s による 2012年7月11日18:02JST 投稿
-	 * 「&#64;ture7s てす ‪#てす‬ http://example.com」
+	 * &#64;ture7n による投稿
+	 * 「&#64;ture7n てす ‪#てす‬ http://example.com」
 	 */
 	public static final Status STATUS_3;
 	/** API Documentに記述されているリツイートされたStatusのテスト用データ */
@@ -91,9 +91,9 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	static {
 		try {
 			STATUS_1 = loadStatus("222564698627907584.json");
-			STATUS_2 = loadStatus("222978973305544704.json");
-			STATUS_3 = loadStatus("222979122341752833.json");
-			STATUS_4 = loadStatus("21947795900469248.json");
+			STATUS_2 = loadStatus("490396681007951873.json");
+			STATUS_3 = loadStatus("490396828781666304.json");
+			STATUS_4 = loadStatus("465231779159228416.json");
 			STATUS_5 = loadStatus("st_test.json");
 			DM_1 = loadDirectMessage("dm.json");
 		} catch (TwitterException | IOException e) {
@@ -126,14 +126,10 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			stream = new BufferedInputStream(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
 			byte[] buf = new byte[65536];
 			int len = stream.read(buf);
-			return new String(buf, 0, len, Charset.forName("utf8"));
+			return new String(buf, 0, len, ClientConfiguration.UTF8_CHARSET);
 		} finally {
 			if (stream != null) {
-				try {
 					stream.close();
-				} catch (IOException e) {
-					throw new AssertionError(e);
-				}
 			}
 		}
 	}

@@ -72,29 +72,29 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 		configuration.setConfigProperties(properties);
 	}
 
-	private static boolean testEqual(String propName, String target, DirectMessage directMessage)
+	public static boolean testEqual(String propName, String target, DirectMessage directMessage)
 			throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(directMessage);
 	}
 
-	private static boolean testEqual(String propName, String target, Status status) throws IllegalSyntaxException {
+	public static boolean testEqual(String propName, String target, Status status) throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(status);
 	}
 
-	private static boolean testEqual(String propName, long target, DirectMessage directMessage)
+	public static boolean testEqual(String propName, long target, DirectMessage directMessage)
 			throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(directMessage);
 	}
 
-	private static boolean testEqual(String propName, long target, Status status) throws IllegalSyntaxException {
+	public static boolean testEqual(String propName, long target, Status status) throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(status);
 	}
 
-	private static boolean testIs(String propName, DirectMessage directMessage) throws IllegalSyntaxException {
+	public static boolean testIs(String propName, DirectMessage directMessage) throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, "?", false).filter(directMessage);
 	}
 
-	private static boolean testIs(String propName, Status status) throws IllegalSyntaxException {
+	public static boolean testIs(String propName, Status status) throws IllegalSyntaxException {
 		return StandardPropertyFactory.SINGLETON.getInstance(propName, "?", false).filter(status);
 	}
 
@@ -107,7 +107,7 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 	public void testFilterClient() throws IllegalSyntaxException {
 		configuration.setGlobalInstance();
 		try {
-			assertTrue(testEqual("client", "*TweetDeck*", STATUS_5));
+			assertTrue(testEqual("client", "*elnetw*", STATUS_5));
 		} finally {
 			configuration.clearGlobalInstance();
 		}
@@ -129,6 +129,50 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 			assertFalse(testIs("dm", STATUS_5));
 
 			assertTrue(testIs("dm", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
+	}
+
+	/**
+	 * has_hashtag のテスト
+	 *
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterHasHashtag() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
+			assertFalse(testEqual("has_hashtag", "てす", STATUS_1));
+			assertFalse(testEqual("has_hashtag", "てす", STATUS_2));
+			assertTrue(testEqual("has_hashtag", "てす", STATUS_3));
+			assertFalse(testEqual("has_hashtag", "#てす", STATUS_3));
+			assertFalse(testEqual("has_hashtag", "てす", STATUS_4));
+			assertFalse(testEqual("has_hashtag", "てす", STATUS_5));
+
+			assertFalse(testEqual("has_hashtag", "てす", DM_1));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
+	}
+
+	/**
+	 * has_url のテスト
+	 *
+	 * @throws IllegalSyntaxException エラー
+	 */
+	@Test
+	public void testFilterHasUrl() throws IllegalSyntaxException {
+		configuration.setGlobalInstance();
+		try {
+			assertFalse(testEqual("has_url", "http://example.com", STATUS_1));
+			assertFalse(testEqual("has_url", "http://example.com", STATUS_2));
+			assertTrue(testEqual("has_url", "http://example.com", STATUS_3));
+			assertFalse(testEqual("has_url", "*t.co*", STATUS_3));
+			assertFalse(testEqual("has_url", "http://example.com", STATUS_4));
+			assertFalse(testEqual("has_url", "http://example.com", STATUS_5));
+
+			assertFalse(testEqual("has_url", "*t.co*", DM_1));
 		} finally {
 			configuration.clearGlobalInstance();
 		}
@@ -303,7 +347,7 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 			assertTrue(testEqual("user", "*ture*", STATUS_3));
 			assertFalse(testEqual("user", "*ture*", STATUS_4));
 
-			assertFalse(testEqual("user", "*ture*", DM_1));
+			assertTrue(testEqual("user", "*ture*", DM_1));
 			assertTrue(testEqual("user", DM_1.getSenderScreenName(), DM_1));
 		} finally {
 			configuration.clearGlobalInstance();
