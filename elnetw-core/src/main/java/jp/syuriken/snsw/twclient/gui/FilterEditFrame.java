@@ -305,19 +305,24 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	public void windowClosing(WindowEvent e) {
 		setExtendedState(NORMAL);
 		try {
-			QueryTokenStart tokenStart = FilterCompiler.tokenize(getComponentFilterEditTextArea().getText());
-			StringBuilder stringBuilder = new StringBuilder();
+			String queryText = getComponentFilterEditTextArea().getText().trim();
+			String query;
+			if (queryText.isEmpty()) {
+				query = "";
+			} else {
+				QueryTokenStart tokenStart = FilterCompiler.tokenize(queryText);
+				StringBuilder stringBuilder = new StringBuilder();
 
-			tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
+				tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
 
-			if (getComponentExtractOption().isSelected()) {
-				stringBuilder.insert(0, "extract(");
-				stringBuilder.append(')');
+				if (getComponentExtractOption().isSelected()) {
+					stringBuilder.insert(0, "extract(");
+					stringBuilder.append(')');
+				}
+				query = stringBuilder.toString();
+				// test compilable? (for regex test)
+				FilterCompiler.getCompiledObject(query);
 			}
-			String query = stringBuilder.toString();
-			// test compilable? (for regex test)
-			FilterCompiler.getCompiledObject(query);
-
 			properties.setProperty(propertyKey, query);
 			dispose();
 		} catch (ParseException ex) {
