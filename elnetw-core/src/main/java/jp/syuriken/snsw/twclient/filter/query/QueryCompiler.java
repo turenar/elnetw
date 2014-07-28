@@ -185,10 +185,10 @@ public class QueryCompiler implements FilterParserVisitor {
 		int childrenCount = node.jjtGetNumChildren();
 
 		String functionName = ((String) node.jjtGetValue()).toLowerCase(Locale.ENGLISH);
-		QueryFunctionFactory factory = filterFunctionFactories.get(functionName);
+		QueryFunctionFactory factory = getFilterFunction(functionName);
 
 		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("<" + functionName + ">は見つかりません。"));
+			throw new WrappedException(new IllegalSyntaxException("func<" + functionName + ">は見つかりません。"));
 		}
 		QueryDispatcherBase[] args = new QueryDispatcherBase[childrenCount];
 		for (int i = 0; i < childrenCount; i++) {
