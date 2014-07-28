@@ -456,32 +456,41 @@ public final class TwitterClientMain {
 		FilterCompiler.putFilterProperty("user_id", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("in_reply_to", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("in_reply_to_userid", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("inreplyto", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("send_to", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("sendto", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("rtcount", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("timediff", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("mine", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("my_tweet", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("my_dm", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("protected", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_protected", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("isprotected", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("verified", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_verified", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("isverified", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("status", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_status", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("isstatus", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("dm", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("directmessage", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("direct_message", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_dm", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("isdm", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_directmessage", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("is_direct_message", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("isdirectmessage", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("user", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("author", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("screen_name", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("screenname", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("text", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("client", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("in_list", StandardPropertyFactory.SINGLETON);
-
+		FilterCompiler.putFilterProperty("has_hashtag", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("hashashtag", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("has_url", StandardPropertyFactory.SINGLETON);
+		FilterCompiler.putFilterProperty("hasurl", StandardPropertyFactory.SINGLETON);
 	}
 
 	/**

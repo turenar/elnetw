@@ -21,8 +21,6 @@
 
 package jp.syuriken.snsw.twclient.filter.query.prop;
 
-import java.util.Locale;
-
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryProperty;
 import jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory;
@@ -40,7 +38,6 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 
 	@Override
 	public QueryProperty getInstance(String name, String operator, Object value) throws IllegalSyntaxException {
-		name = name.toLowerCase(Locale.ENGLISH);
 		switch (name) {
 			case "userid":
 			case "user_id":

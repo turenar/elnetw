@@ -24,9 +24,9 @@ package jp.syuriken.snsw.twclient.filter;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Scanner;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory;
 import jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory;
@@ -178,18 +178,15 @@ public class FilterCompiler implements FilterParserVisitor {
 		return filterParser.Start();
 	}
 
-	private ClientConfiguration configuration;
-
 
 	private FilterCompiler() {
-		this.configuration = ClientConfiguration.getInstance();
 	}
 
 	@Override
 	public Object visit(QueryTokenFunction node, Object data) {
 		int childrenCount = node.jjtGetNumChildren();
 
-		String functionName = (String) node.jjtGetValue();
+		String functionName = ((String) node.jjtGetValue()).toLowerCase(Locale.ENGLISH);
 		QueryFunctionFactory factory = filterFunctionFactories.get(functionName);
 
 		if (factory == null) {
@@ -211,7 +208,7 @@ public class FilterCompiler implements FilterParserVisitor {
 	public Object visit(QueryTokenProperty node, Object data) {
 		PropertyData propertyData = new PropertyData();
 
-		String propertyName = (String) node.jjtGetValue();
+		String propertyName = ((String) node.jjtGetValue()).toLowerCase(Locale.ENGLISH);
 
 		QueryPropertyFactory factory = getFilterProperty(propertyName);
 		if (factory == null) {
