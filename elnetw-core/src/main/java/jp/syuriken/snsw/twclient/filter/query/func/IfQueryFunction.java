@@ -22,7 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -30,9 +30,9 @@ import twitter4j.Status;
 /** 'if' filter function: if(expr, trueCond [, falseCond]) */
 public class IfQueryFunction implements QueryFunction {
 
-	private final FilterDispatcherBase trueCond;
-	private final FilterDispatcherBase falseCond;
-	private FilterDispatcherBase expr;
+	private final QueryDispatcherBase trueCond;
+	private final QueryDispatcherBase falseCond;
+	private QueryDispatcherBase expr;
 
 	/**
 	 * インスタンスを生成する。
@@ -41,7 +41,7 @@ public class IfQueryFunction implements QueryFunction {
 	 * @param child 子要素
 	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException エラー
 	 */
-	public IfQueryFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+	public IfQueryFunction(String name, QueryDispatcherBase[] child) throws IllegalSyntaxException {
 		int len = child.length;
 		if (len < 2 || len > 3) {
 			throw new IllegalSyntaxException("func<" + name + "> の引数は2つまたは3つでなければなりません");

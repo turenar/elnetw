@@ -21,8 +21,8 @@
 
 package jp.syuriken.snsw.twclient.filter.query.prop;
 
-import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.QueryOperator;
 import jp.syuriken.snsw.twclient.filter.query.QueryProperty;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -36,7 +36,7 @@ public abstract class AbstractStringArgProperty implements QueryProperty {
 	/**
 	 * operator
 	 */
-	protected final FilterOperator operatorType;
+	protected final QueryOperator operatorType;
 	/**
 	 * operator value
 	 */
@@ -55,14 +55,14 @@ public abstract class AbstractStringArgProperty implements QueryProperty {
 		if (operator == null) {
 			throw new IllegalSyntaxException("[" + name + "] string演算子が必要です");
 		}
-		operatorType = FilterOperator.compileOperatorString(operator);
+		operatorType = QueryOperator.compileOperatorString(operator);
 		if (operatorType == null) {
 			throw new IllegalSyntaxException("[" + name + "] 正しくないstring演算子です: " + operator);
 		}
 		// value 処理
 		if (value instanceof String) {
 
-			this.value = FilterOperator.compileValueString((String) value);
+			this.value = QueryOperator.compileValueString((String) value);
 		} else {
 			throw new IllegalSyntaxException("[" + name + "] 正しくないstring値です: " + operator);
 		}

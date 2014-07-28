@@ -19,19 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public enum FilterOperator {
+public enum QueryOperator {
 	/** 比較演算子 == */
 	EQ,
 	/** 比較演算子 != */
@@ -55,7 +57,7 @@ public enum FilterOperator {
 	 * @param operator 演算子文字列
 	 * @return 演算子
 	 */
-	public static FilterOperator compileOperatorBool(String operator) {
+	public static QueryOperator compileOperatorBool(String operator) {
 		if (operator == null) {
 			return IS;
 		}
@@ -83,25 +85,25 @@ public enum FilterOperator {
 	 * @param operator 演算子文字列
 	 * @return 演算子
 	 */
-	public static FilterOperator compileOperatorInt(String operator) {
+	public static QueryOperator compileOperatorInt(String operator) {
 
 		switch (operator) {
 			case ":":
 			case "=":
 			case "==":
-				return FilterOperator.EQ;
+				return QueryOperator.EQ;
 			case "!":
 			case "!=":
 			case "!:":
-				return FilterOperator.NE;
+				return QueryOperator.NE;
 			case ">":
-				return FilterOperator.GT;
+				return QueryOperator.GT;
 			case ">=":
-				return FilterOperator.GTE;
+				return QueryOperator.GTE;
 			case "<":
-				return FilterOperator.LT;
+				return QueryOperator.LT;
 			case "<=":
-				return FilterOperator.LTE;
+				return QueryOperator.LTE;
 			default:
 				return null;
 		}
@@ -113,16 +115,16 @@ public enum FilterOperator {
 	 * @param operator string演算子文字列
 	 * @return 演算子
 	 */
-	public static FilterOperator compileOperatorString(String operator) {
+	public static QueryOperator compileOperatorString(String operator) {
 		switch (operator) {
 			case ":":
 			case "=":
 			case "==":
-				return FilterOperator.EQ;
+				return QueryOperator.EQ;
 			case "!":
 			case "!=":
 			case "!:":
-				return FilterOperator.NE;
+				return QueryOperator.NE;
 			default:
 				return null;
 		}
@@ -133,7 +135,7 @@ public enum FilterOperator {
 	 *
 	 * @param value 値
 	 * @return {@link #compare(String, Object)} に渡すことのできるObject
-	 * @throws IllegalSyntaxException ぬるぽ→ガッ
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException ぬるぽ→ガッ
 	 */
 	public static Object compileValueString(String value) throws IllegalSyntaxException {
 		if (value == null) {
@@ -150,7 +152,7 @@ public enum FilterOperator {
 		}
 	}
 
-	private FilterOperator() {
+	private QueryOperator() {
 	}
 
 	/**

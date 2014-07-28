@@ -21,8 +21,8 @@
 
 package jp.syuriken.snsw.twclient.filter.query.prop;
 
-import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.QueryOperator;
 import jp.syuriken.snsw.twclient.filter.query.QueryProperty;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -36,7 +36,7 @@ public abstract class AbstractBoolArgProperty implements QueryProperty {
 	/**
 	 * operator
 	 */
-	protected final FilterOperator operatorType;
+	protected final QueryOperator operatorType;
 	/**
 	 * operator value
 	 */
@@ -53,13 +53,13 @@ public abstract class AbstractBoolArgProperty implements QueryProperty {
 	public AbstractBoolArgProperty(String name, String operator, Object value) throws IllegalSyntaxException {
 		// operator 処理
 		if (operator == null) {
-			operatorType = FilterOperator.IS;
+			operatorType = QueryOperator.IS;
 		} else {
-			operatorType = FilterOperator.compileOperatorBool(operator);
+			operatorType = QueryOperator.compileOperatorBool(operator);
 		}
 		if (value == null || value instanceof Boolean) {
 			// value 処理
-			if (!(operatorType == FilterOperator.IS || operatorType == FilterOperator.IS_NOT)) {
+			if (!(operatorType == QueryOperator.IS || operatorType == QueryOperator.IS_NOT)) {
 				if (value == null) {
 					throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
 				} else {

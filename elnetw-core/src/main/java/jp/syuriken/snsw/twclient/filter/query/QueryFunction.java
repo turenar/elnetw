@@ -28,6 +28,6 @@ package jp.syuriken.snsw.twclient.filter.query;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface QueryFunction extends FilterDispatcherBase {
+public interface QueryFunction extends QueryDispatcherBase {
 
 }

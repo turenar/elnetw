@@ -23,7 +23,7 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -49,7 +49,7 @@ public class IfQueryFunctionTest extends FilterConstants {
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond, boolean falseCond) throws IllegalSyntaxException {
-		IfQueryFunction ifFilterFunction = new IfQueryFunction("if", new FilterDispatcherBase[]{
+		IfQueryFunction ifFilterFunction = new IfQueryFunction("if", new QueryDispatcherBase[]{
 				expr ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				trueCond ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				falseCond ? TRUE_DISPATCHER : FALSE_DISPATCHER
@@ -62,7 +62,7 @@ public class IfQueryFunctionTest extends FilterConstants {
 	}
 
 	private void test1(Object obj, boolean expr, boolean trueCond) throws IllegalSyntaxException {
-		IfQueryFunction ifFilterFunction = new IfQueryFunction("if", new FilterDispatcherBase[]{
+		IfQueryFunction ifFilterFunction = new IfQueryFunction("if", new QueryDispatcherBase[]{
 				expr ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 				trueCond ? TRUE_DISPATCHER : FALSE_DISPATCHER,
 		});
@@ -77,13 +77,13 @@ public class IfQueryFunctionTest extends FilterConstants {
 	@Test
 	public void testConstructor() {
 		try {
-			new IfQueryFunction("if", new FilterDispatcherBase[]{});
+			new IfQueryFunction("if", new QueryDispatcherBase[]{});
 			fail("childの個数を無視したよう");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
 		}
 
-		FilterDispatcherBase[] arr = new FilterDispatcherBase[4];
+		QueryDispatcherBase[] arr = new QueryDispatcherBase[4];
 		try {
 			new IfQueryFunction("if", arr);
 			fail("childの個数を無視したよう");

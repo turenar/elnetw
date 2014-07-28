@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 入力 → {@link jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
+ * 入力 → {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

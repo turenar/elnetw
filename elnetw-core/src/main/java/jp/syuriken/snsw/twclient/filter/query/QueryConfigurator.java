@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -36,14 +36,14 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.config.ConfigFrame;
 import jp.syuriken.snsw.twclient.config.ConfigType;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
-import jp.syuriken.snsw.twclient.gui.FilterEditFrame;
+import jp.syuriken.snsw.twclient.gui.QueryEditFrame;
 
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FilterConfigurator implements ConfigType, ActionListener {
+public class QueryConfigurator implements ConfigType, ActionListener {
 
 	/**
 	 * {@link #displayString}と {@link #propertyKey}を格納するだけのクラス
@@ -81,7 +81,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 
 
 	/** インスタンスを生成する。 */
-	public FilterConfigurator() {
+	public QueryConfigurator() {
 		this.configuration = ClientConfiguration.getInstance();
 	}
 
@@ -89,7 +89,7 @@ public class FilterConfigurator implements ConfigType, ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		JComboBox<KVItem> componentFilterChooser = getComponentFilterChooser();
 		KVItem kvItem = (KVItem) componentFilterChooser.getSelectedItem();
-		FilterEditFrame editFrame = new FilterEditFrame(kvItem.displayString, kvItem.propertyKey);
+		QueryEditFrame editFrame = new QueryEditFrame(kvItem.displayString, kvItem.propertyKey);
 		editFrame.setVisible(true);
 		editFrame.toFront();
 	}

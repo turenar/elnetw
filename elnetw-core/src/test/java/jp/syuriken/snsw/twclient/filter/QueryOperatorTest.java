@@ -24,35 +24,36 @@ package jp.syuriken.snsw.twclient.filter;
 import java.util.regex.Pattern;
 
 import com.twitter.Regex;
+import jp.syuriken.snsw.twclient.filter.query.QueryOperator;
 import org.junit.Test;
 
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.EQ;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.GT;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.GTE;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.IS;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.IS_NOT;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.LT;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.LTE;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.NE;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.compileOperatorBool;
-import static jp.syuriken.snsw.twclient.filter.FilterOperator.compileOperatorInt;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.EQ;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.GT;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.GTE;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.IS;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.IS_NOT;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.LT;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.LTE;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.NE;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.compileOperatorBool;
+import static jp.syuriken.snsw.twclient.filter.query.QueryOperator.compileOperatorInt;
 import static org.junit.Assert.*;
 
 /**
- * {@link FilterOperator}のためのテスト
+ * {@link jp.syuriken.snsw.twclient.filter.query.QueryOperator}のためのテスト
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FilterOperatorTest {
+public class QueryOperatorTest {
 
 	private void check(boolean expected, String haystack, String needle) throws RuntimeException,
 			IllegalSyntaxException {
-		assertTrue(expected == EQ.compare(haystack, FilterOperator.compileValueString(needle)));
-		assertFalse(expected == NE.compare(haystack, FilterOperator.compileValueString(needle)));
+		assertTrue(expected == EQ.compare(haystack, QueryOperator.compileValueString(needle)));
+		assertFalse(expected == NE.compare(haystack, QueryOperator.compileValueString(needle)));
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 完全一致
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -68,7 +69,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 先頭一致
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -84,7 +85,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 末尾一致
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -100,7 +101,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 部分一致
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -116,7 +117,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 正規表現
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -134,7 +135,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compare(String, Object)} のためのテスト・メソッド
+	 * {@link QueryOperator#compare(String, Object)} のためのテスト・メソッド
 	 * 予期しない演算子
 	 *
 	 * @throws IllegalSyntaxException エラー
@@ -181,18 +182,18 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compileValueString(String)} のためのテスト・メソッド
+	 * {@link QueryOperator#compileValueString(String)} のためのテスト・メソッド
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@Test
 	public void compileValueString() throws IllegalSyntaxException {
-		assertTrue(FilterOperator.compileValueString("") instanceof String);
-		assertTrue(FilterOperator.compileValueString("aiueo") instanceof String);
-		assertTrue(FilterOperator.compileValueString("/.+") instanceof Pattern);
+		assertTrue(QueryOperator.compileValueString("") instanceof String);
+		assertTrue(QueryOperator.compileValueString("aiueo") instanceof String);
+		assertTrue(QueryOperator.compileValueString("/.+") instanceof Pattern);
 	}
 
-	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(boolean, boolean)} のためのテスト・メソッド。 */
+	/** {@link QueryOperator#compare(boolean, boolean)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompareBooleanBoolean() {
 		assertFalse(IS.compare(false, false));
@@ -238,7 +239,7 @@ public class FilterOperatorTest {
 		}
 	}
 
-	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compare(long, long)} のためのテスト・メソッド。 */
+	/** {@link QueryOperator#compare(long, long)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompareLongLong() {
 		assertFalse(EQ.compare(100, -200));
@@ -261,7 +262,7 @@ public class FilterOperatorTest {
 		assertTrue(GTE.compare(0, 0));
 	}
 
-	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorBool(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link QueryOperator#compileOperatorBool(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompileOperatorBool() {
 		assertEquals(compileOperatorBool("?"), IS);
@@ -278,7 +279,7 @@ public class FilterOperatorTest {
 		assertNull(compileOperatorBool(">="));
 	}
 
-	/** {@link jp.syuriken.snsw.twclient.filter.FilterOperator#compileOperatorInt(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link QueryOperator#compileOperatorInt(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testCompileOperatorInt() {
 		assertEquals(compileOperatorInt(":"), EQ);
@@ -295,7 +296,7 @@ public class FilterOperatorTest {
 	}
 
 	/**
-	 * {@link FilterOperator#compileValueBool(java.lang.String, java.lang.String)} のためのテスト・メソッド。
+	 * {@link QueryOperator#compileValueBool(java.lang.String, java.lang.String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 */

@@ -22,7 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory;
 
 /**
@@ -38,8 +38,8 @@ public final class StandardFunctionFactory implements QueryFunctionFactory {
 	}
 
 	@Override
-	public FilterDispatcherBase getInstance(String name,
-			FilterDispatcherBase[] children) throws IllegalSyntaxException {
+	public QueryDispatcherBase getInstance(String name,
+			QueryDispatcherBase[] children) throws IllegalSyntaxException {
 		switch (name) {
 			case "and":
 				return new AndQueryFunction(name, children);

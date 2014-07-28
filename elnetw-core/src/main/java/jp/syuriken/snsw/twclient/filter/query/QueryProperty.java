@@ -26,5 +26,5 @@ package jp.syuriken.snsw.twclient.filter.query;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface QueryProperty extends FilterDispatcherBase {
+public interface QueryProperty extends QueryDispatcherBase {
 }

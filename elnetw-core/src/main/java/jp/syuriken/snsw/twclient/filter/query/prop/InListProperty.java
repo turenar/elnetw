@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
-import jp.syuriken.snsw.twclient.filter.FilterOperator;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.QueryOperator;
 import jp.syuriken.snsw.twclient.filter.query.QueryProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,7 +187,7 @@ public class InListProperty implements QueryProperty {
 		if (!(value instanceof String)) {
 			throw new IllegalSyntaxException("[in_list] valueは文字列であるべきです");
 		}
-		isEqual = FilterOperator.compileOperatorString(operatorStr) == FilterOperator.EQ;
+		isEqual = QueryOperator.compileOperatorString(operatorStr) == QueryOperator.EQ;
 
 		listIdentifier = (String) value;
 		listFetcher = new UserFollewedByListFetcher(listIdentifier);

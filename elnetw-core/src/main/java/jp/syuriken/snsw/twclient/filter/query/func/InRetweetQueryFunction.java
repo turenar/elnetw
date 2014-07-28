@@ -22,7 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -33,7 +33,7 @@ import twitter4j.Status;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class InRetweetQueryFunction implements QueryFunction {
-	private FilterDispatcherBase child;
+	private QueryDispatcherBase child;
 
 
 	/**
@@ -43,7 +43,7 @@ public class InRetweetQueryFunction implements QueryFunction {
 	 * @param child 子要素
 	 * @throws IllegalSyntaxException エラー
 	 */
-	public InRetweetQueryFunction(String name, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+	public InRetweetQueryFunction(String name, QueryDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length != 1) {
 			throw new IllegalSyntaxException("func<" + name + "> の引数は一つでなければなりません");
 		}

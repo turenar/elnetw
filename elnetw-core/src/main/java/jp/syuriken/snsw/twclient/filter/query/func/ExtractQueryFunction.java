@@ -22,15 +22,15 @@
 package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 
-/** extract: {@link jp.syuriken.snsw.twclient.gui.FilterEditFrame}用 */
+/** extract: {@link jp.syuriken.snsw.twclient.gui.QueryEditFrame}用 */
 public class ExtractQueryFunction implements QueryFunction {
-	private final FilterDispatcherBase child;
+	private final QueryDispatcherBase child;
 
 	/**
 	 * インスタンスを生成する。
@@ -39,7 +39,7 @@ public class ExtractQueryFunction implements QueryFunction {
 	 * @param child        子要素の配列
 	 * @throws IllegalSyntaxException エラー
 	 */
-	public ExtractQueryFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+	public ExtractQueryFunction(String functionName, QueryDispatcherBase[] child) throws IllegalSyntaxException {
 		int length = child.length;
 		if (length == 0) {
 			this.child = null;
@@ -52,13 +52,13 @@ public class ExtractQueryFunction implements QueryFunction {
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		FilterDispatcherBase child = this.child;
+		QueryDispatcherBase child = this.child;
 		return child == null || !child.filter(directMessage);
 	}
 
 	@Override
 	public boolean filter(Status status) {
-		FilterDispatcherBase child = this.child;
+		QueryDispatcherBase child = this.child;
 		return child == null || !child.filter(status);
 	}
 }

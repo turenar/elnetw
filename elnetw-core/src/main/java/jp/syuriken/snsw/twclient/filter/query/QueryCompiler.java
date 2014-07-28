@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.query;
 
 import java.io.StringReader;
 import java.nio.charset.Charset;
@@ -27,9 +27,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
-import jp.syuriken.snsw.twclient.filter.query.QueryFunctionFactory;
-import jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
@@ -47,7 +45,7 @@ import jp.syuriken.snsw.twclient.filter.tokenizer.TokenMgrError;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FilterCompiler implements FilterParserVisitor {
+public class QueryCompiler implements FilterParserVisitor {
 
 	/** プロパティのデータを格納するクラス */
 	protected static class PropertyData {
@@ -75,7 +73,7 @@ public class FilterCompiler implements FilterParserVisitor {
 		}
 	}
 
-	/** constructor ( FilterDispatcherBase[] ) */
+	/** constructor ( QueryDispatcherBase[] ) */
 	protected static final HashMap<String, QueryFunctionFactory> filterFunctionFactories = new HashMap<>();
 	/** constructor ( String, String, String) */
 	protected static final HashMap<String, QueryPropertyFactory> filterPropertyFactories = new HashMap<>();
@@ -85,13 +83,13 @@ public class FilterCompiler implements FilterParserVisitor {
 	 *
 	 * @param query クエリ
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
-	 * @throws IllegalSyntaxException 正しくない文法のクエリ
+	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public static FilterDispatcherBase getCompiledObject(String query)
+	public static QueryDispatcherBase getCompiledObject(String query)
 			throws IllegalSyntaxException {
-		FilterCompiler filterCompiler = new FilterCompiler();
+		QueryCompiler queryCompiler = new QueryCompiler();
 		try {
-			return (FilterDispatcherBase) tokenize(query).jjtAccept(filterCompiler, null);
+			return (QueryDispatcherBase) tokenize(query).jjtAccept(queryCompiler, null);
 		} catch (TokenMgrError | ParseException e) {
 			throw new IllegalSyntaxException(e.getLocalizedMessage(), e);
 		} catch (WrappedException e) {
@@ -135,8 +133,8 @@ public class FilterCompiler implements FilterParserVisitor {
 		while (scanner.hasNextLine()) {
 			String query = scanner.nextLine();
 			try {
-				FilterCompiler.tokenize(query).dump("");
-				FilterCompiler.getCompiledObject(query);
+				QueryCompiler.tokenize(query).dump("");
+				QueryCompiler.getCompiledObject(query);
 			} catch (IllegalSyntaxException | ParseException e) {
 				e.printStackTrace();
 			}
@@ -179,7 +177,7 @@ public class FilterCompiler implements FilterParserVisitor {
 	}
 
 
-	private FilterCompiler() {
+	private QueryCompiler() {
 	}
 
 	@Override
@@ -192,9 +190,9 @@ public class FilterCompiler implements FilterParserVisitor {
 		if (factory == null) {
 			throw new WrappedException(new IllegalSyntaxException("<" + functionName + ">は見つかりません。"));
 		}
-		FilterDispatcherBase[] args = new FilterDispatcherBase[childrenCount];
+		QueryDispatcherBase[] args = new QueryDispatcherBase[childrenCount];
 		for (int i = 0; i < childrenCount; i++) {
-			args[i] = (FilterDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
+			args[i] = (QueryDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
 		}
 
 		try {
@@ -267,13 +265,13 @@ public class FilterCompiler implements FilterParserVisitor {
 	}
 
 	@Override
-	public FilterDispatcherBase visit(QueryTokenQuery node, Object data) {
-		return (FilterDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
+	public QueryDispatcherBase visit(QueryTokenQuery node, Object data) {
+		return (QueryDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
 	@Override
-	public FilterDispatcherBase visit(QueryTokenStart node, Object data) {
-		return (FilterDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
+	public QueryDispatcherBase visit(QueryTokenStart node, Object data) {
+		return (QueryDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
 	@Override

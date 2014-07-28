@@ -29,5 +29,5 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface QueryFunctionFactory {
-	FilterDispatcherBase getInstance(String name, FilterDispatcherBase[] children) throws IllegalSyntaxException;
+	QueryDispatcherBase getInstance(String name, QueryDispatcherBase[] children) throws IllegalSyntaxException;
 }

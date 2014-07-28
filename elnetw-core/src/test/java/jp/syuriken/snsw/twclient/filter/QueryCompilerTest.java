@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
@@ -44,11 +45,11 @@ import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstan
 import static org.junit.Assert.*;
 
 /**
- * {@link FilterCompiler} のためのテスト・クラス
+ * {@link jp.syuriken.snsw.twclient.filter.query.QueryCompiler} のためのテスト・クラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FilterCompilerTest implements FilterParserVisitor {
+public class QueryCompilerTest implements FilterParserVisitor {
 
 	private static class FunctionEndVirtualNode extends SimpleNode {
 
@@ -79,37 +80,37 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link jp.syuriken.snsw.twclient.filter.query.QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken1WithPropertyNameOnly() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize(" hoge ");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize(" hoge ");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertNoValidToken(list);
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken2WithPropertyOperator() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize("hoge:");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize("hoge:");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" \t    \nhoge \n\t: ");
-		list = new LinkedList<SimpleNode>();
+		node = QueryCompiler.tokenize(" \t    \nhoge \n\t: ");
+		list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
@@ -117,22 +118,22 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken3WithPropertyComparedWithString() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize("hoge:\"aaaa\"");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize("hoge:\"aaaa\"");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertToken(list, JJTPROPERTYVALUE, "\"aaaa\"");
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize("hoge:\" \"");
+		node = QueryCompiler.tokenize("hoge:\" \"");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
@@ -141,36 +142,36 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken4WithPropertyComparedWithInt() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize("hoge:1234");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize("hoge:1234");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize("hoge== 1234");
+		node = QueryCompiler.tokenize("hoge== 1234");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "==");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize("hoge != 1234");
+		node = QueryCompiler.tokenize("hoge != 1234");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "!=");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" hoge <= 1234 ");
+		node = QueryCompiler.tokenize(" hoge <= 1234 ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "<=");
@@ -179,15 +180,15 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken5WithFunction() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize(" hoge (  ) ");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize(" hoge (  ) ");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertTokenFuncEnd(list);
@@ -195,22 +196,22 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken6WithDeepFunction() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize(" hoge ( fuga ) ");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize(" hoge ( fuga ) ");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTPROPERTY, "fuga");
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" hoge ( fuga ?) ");
+		node = QueryCompiler.tokenize(" hoge ( fuga ?) ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTPROPERTY, "fuga");
@@ -218,7 +219,7 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" hoge ( fuga == 1234) ");
+		node = QueryCompiler.tokenize(" hoge ( fuga == 1234) ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTPROPERTY, "fuga");
@@ -227,7 +228,7 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" hoge ( hoge ( ) ) ");
+		node = QueryCompiler.tokenize(" hoge ( hoge ( ) ) ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTFUNCTION, "hoge");
@@ -237,15 +238,15 @@ public class FilterCompilerTest implements FilterParserVisitor {
 	}
 
 	/**
-	 * {@link jp.syuriken.snsw.twclient.filter.FilterCompiler#tokenize(String)} のためのテスト・メソッド。
+	 * {@link QueryCompiler#tokenize(String)} のためのテスト・メソッド。
 	 *
 	 * @throws IllegalSyntaxException エラー
 	 * @throws ParseException         パース例外
 	 */
 	@Test
 	public void testNextToken7WithFunctionSeparator() throws IllegalSyntaxException, ParseException {
-		QueryTokenStart node = FilterCompiler.tokenize(" hoge ( fuga?, fuga ) ");
-		LinkedList<SimpleNode> list = new LinkedList<SimpleNode>();
+		QueryTokenStart node = QueryCompiler.tokenize(" hoge ( fuga?, fuga ) ");
+		LinkedList<SimpleNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTPROPERTY, "fuga");
@@ -254,7 +255,7 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize(" hoge ( fuga?, hoge(fuga\n==9876, fuga\t??  ) ) ");
+		node = QueryCompiler.tokenize(" hoge ( fuga?, hoge(fuga\n==9876, fuga\t??  ) ) ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "hoge");
 		assertToken(list, JJTPROPERTY, "fuga");
@@ -269,7 +270,7 @@ public class FilterCompilerTest implements FilterParserVisitor {
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 
-		node = FilterCompiler.tokenize("a(b?, c(d\n==9876, e\t??, f(g:\" \\\" \", h:\" \\'\\n\\\\ \")  ), k? ) ");
+		node = QueryCompiler.tokenize("a(b?, c(d\n==9876, e\t??, f(g:\" \\\" \", h:\" \\'\\n\\\\ \")  ), k? ) ");
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "a");
 		assertToken(list, JJTPROPERTY, "b");

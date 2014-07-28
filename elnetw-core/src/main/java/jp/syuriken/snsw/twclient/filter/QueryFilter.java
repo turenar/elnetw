@@ -26,7 +26,8 @@ import java.beans.PropertyChangeListener;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -49,7 +50,7 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 	private final ClientConfiguration configuration;
 	private final ClientProperties configProperties;
 	private final String queryPropertyKey;
-	private volatile FilterDispatcherBase query;
+	private volatile QueryDispatcherBase query;
 
 	public QueryFilter(String queryPropertyKey) {
 		this.queryPropertyKey = queryPropertyKey;
@@ -72,13 +73,13 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 	private void initFilterQueries() {
 		String query = configProperties.getProperty(queryPropertyKey);
 		if (query == null || query.trim().isEmpty()) {
-			this.query = NullFilter.getInstance();
+			this.query = NullQueryDispatcher.getInstance();
 		} else {
 			try {
-				this.query = FilterCompiler.getCompiledObject(query);
+				this.query = QueryCompiler.getCompiledObject(query);
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
-				this.query = NullFilter.getInstance();
+				this.query = NullQueryDispatcher.getInstance();
 			}
 		}
 	}

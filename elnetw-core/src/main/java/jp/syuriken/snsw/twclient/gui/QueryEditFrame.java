@@ -33,8 +33,8 @@ import javax.swing.JTextArea;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.filter.FilterCompiler;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.Node;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
@@ -57,7 +57,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @SuppressWarnings("serial")
-public class FilterEditFrame extends JFrame implements WindowListener {
+public class QueryEditFrame extends JFrame implements WindowListener {
 
 	/** クエリを見やすくするフォーマッタ */
 	protected static class FilterQueryFormatter implements FilterParserVisitor {
@@ -215,7 +215,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 	 * @param displayString 表示名
 	 * @param propertyKey   プロパティキー
 	 */
-	public FilterEditFrame(String displayString, String propertyKey) {
+	public QueryEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		properties = ClientConfiguration.getInstance().getConfigProperties();
@@ -274,7 +274,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 		if (filterQuery != null) {
 			StringBuilder stringBuilder = new StringBuilder(filterQuery.length());
 			try {
-				QueryTokenStart tokenStart = FilterCompiler.tokenize(filterQuery);
+				QueryTokenStart tokenStart = QueryCompiler.tokenize(filterQuery);
 				FilterQueryFormatter queryFormatter = new FilterQueryFormatter();
 				tokenStart.jjtAccept(queryFormatter, stringBuilder);
 				if (queryFormatter.isExtractFilter()) {
@@ -310,7 +310,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 			if (queryText.isEmpty()) {
 				query = "";
 			} else {
-				QueryTokenStart tokenStart = FilterCompiler.tokenize(queryText);
+				QueryTokenStart tokenStart = QueryCompiler.tokenize(queryText);
 				StringBuilder stringBuilder = new StringBuilder();
 
 				tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
@@ -321,7 +321,7 @@ public class FilterEditFrame extends JFrame implements WindowListener {
 				}
 				query = stringBuilder.toString();
 				// test compilable? (for regex test)
-				FilterCompiler.getCompiledObject(query);
+				QueryCompiler.getCompiledObject(query);
 			}
 			properties.setProperty(propertyKey, query);
 			dispose();
