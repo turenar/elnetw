@@ -22,8 +22,6 @@
 package jp.syuriken.snsw.twclient.bus;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 
 /**
  * virtual channel: publish specified channel
@@ -35,7 +33,7 @@ public class VirtualChannel implements MessageChannel {
 	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
 		ClientMessageListener listener = messageBus.getListeners(accountId, to);
 		for (String s : from) {
-			messageBus.establish(accountId,s, listener);
+			messageBus.establish(accountId, s, listener);
 		}
 	}
 
