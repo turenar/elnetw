@@ -25,6 +25,7 @@ import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,15 +35,19 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
@@ -64,8 +69,8 @@ import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
 import jp.syuriken.snsw.twclient.bus.TimelineChannelFactory;
+import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
 import jp.syuriken.snsw.twclient.bus.VirtualChannelFactory;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
@@ -138,6 +143,9 @@ import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * 実際に起動するランチャ
@@ -263,6 +271,7 @@ public final class TwitterClientMain {
 	private TwitterClientFrame frame;
 	private boolean isInterrupted;
 	private DeadlockMonitor deadlockMonitor;
+	private FileLock configFileLock;
 
 	/**
 	 * インスタンスを生成する。
@@ -673,6 +682,10 @@ public final class TwitterClientMain {
 			logger.error("failed initialization", e);
 			return getResultMap(e.getExitCode(), true);
 		}
+		if (!initializeService.isInitialized("gui/main/show")) {
+			logger.error("failed initialization. MainWindow is not shown");
+			return getResultMap(1, true);
+		}
 		logger.info("Initialized");
 
 		synchronized (threadHolder) {
@@ -714,12 +727,27 @@ public final class TwitterClientMain {
 	public void setConfigProperties(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			configProperties = configuration.getConfigProperties();
-			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-			configProperties.setStoreFile(configFile);
-			if (configFile.exists()) {
+
+			try {
+				Path lockPath = Paths.get(configuration.getConfigRootDir(), CONFIG_FILE_NAME + ".lock");
+				FileChannel channel = FileChannel.open(lockPath, EnumSet.of(CREATE, WRITE));
+				configFileLock = channel.tryLock();
+				if (configFileLock == null) {
+					JOptionPane.showMessageDialog(null, "同じ設定ディレクトリからの多重起動を検知しました。終了します。\n\n"
+									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+					condition.setFailStatus("MultiInstanceRunning", 1);
+					return;
+				}
+			} catch (IOException e) {
+				logger.warn("Lock failed", e);
+			}
+
+			Path configPath = Paths.get(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+			configProperties.setStorePath(configPath);
+			if (Files.exists(configPath)) {
 				logger.debug(CONFIG_FILE_NAME + " is found.");
-				try {
-					InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+				try (BufferedReader reader = Files.newBufferedReader(configPath, ClientConfiguration.UTF8_CHARSET)) {
 					configProperties.load(reader);
 				} catch (IOException e) {
 					logger.warn("設定ファイルの読み込み中にエラー", e);
@@ -730,6 +758,13 @@ public final class TwitterClientMain {
 			InitializeService.getService().provideInitializer("config/update/v" + configVersion, true);
 		} else {
 			configProperties.store();
+			if (configFileLock != null) {
+				try {
+					configFileLock.release();
+				} catch (IOException e) {
+					logger.warn("Unlock failed", e);
+				}
+			}
 		}
 	}
 
@@ -829,7 +864,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
-		messageBus.addChannelFactory("error",NullMessageChannelFactory.INSTANCE);
+		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
 
 	/**

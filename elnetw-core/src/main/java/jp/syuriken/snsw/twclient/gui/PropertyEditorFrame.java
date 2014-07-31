@@ -129,7 +129,7 @@ public class PropertyEditorFrame extends JFrame {
 		defaultProperties.setProperty("default", "default?");
 		defaultProperties.setProperty("int", "is the value");
 		ClientProperties clientProperties = new ClientProperties(defaultProperties);
-		clientProperties.setStoreFile(File.createTempFile("elnetw-test", ".prop"));
+		clientProperties.setStorePath(File.createTempFile("elnetw-test", ".prop"));
 		clientProperties.setProperty("123", "456");
 		clientProperties.setProperty("default", "entire");
 		clientProperties.setProperty("abc", "def");

@@ -26,11 +26,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -52,6 +52,8 @@ import javax.crypto.spec.SecretKeySpec;
 import net.iharder.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static jp.syuriken.snsw.twclient.ClientConfiguration.UTF8_CHARSET;
 
 /**
  * 登録済みのリスナに変更を通知できるプロパティーリストです。
@@ -127,7 +129,7 @@ public class ClientProperties extends Properties {
 		} catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException(e);
 		}
-		messageDigest.update(passphrase.getBytes(ClientConfiguration.UTF8_CHARSET));
+		messageDigest.update(passphrase.getBytes(UTF8_CHARSET));
 		byte[] digest = messageDigest.digest();
 		byte[] keyBytes = Arrays.copyOf(digest, KEY_BIT / 8);
 		return new SecretKeySpec(keyBytes, "AES");
@@ -136,7 +138,7 @@ public class ClientProperties extends Properties {
 	/** リスナの配列 */
 	protected transient ArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
-	protected File storeFile;
+	protected Path storePath;
 
 	/** インスタンスを生成する。 */
 	public ClientProperties() {
@@ -178,7 +180,7 @@ public class ClientProperties extends Properties {
 			if (!listeners.equals(c.listeners)) {
 				return false;
 			}
-			if (!storeFile.equals(c.storeFile)) {
+			if (!storePath.equals(c.storePath)) {
 				return false;
 			}
 		}
@@ -476,7 +478,7 @@ public class ClientProperties extends Properties {
 			value = value.substring(ENCRYPT_HEADER.length(), value.length() - ENCRYPT_FOOTER.length());
 			try {
 				byte[] decrypted = decrypt(Base64.decode(value), decryptKey);
-				return new String(decrypted, ClientConfiguration.UTF8_CHARSET);
+				return new String(decrypted, UTF8_CHARSET);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -504,7 +506,7 @@ public class ClientProperties extends Properties {
 			Key decryptKey = makeKey(passphrase);
 			try {
 				byte[] decrypted = decrypt(Base64.decode(value), decryptKey);
-				return new String(decrypted, ClientConfiguration.UTF8_CHARSET);
+				return new String(decrypted, UTF8_CHARSET);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -561,7 +563,7 @@ public class ClientProperties extends Properties {
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
 		hashCode += 19 * listeners.hashCode();
-		hashCode += 19 * storeFile.hashCode();
+		hashCode += 19 * storePath.hashCode();
 		return hashCode;
 	}
 
@@ -693,7 +695,7 @@ public class ClientProperties extends Properties {
 	 * @throws InvalidKeyException 暗号キーがおかしい
 	 */
 	public synchronized void setPrivateString(String key, String value, Key encryptKey) throws InvalidKeyException {
-		byte[] bytes = value.getBytes(ClientConfiguration.UTF8_CHARSET);
+		byte[] bytes = value.getBytes(UTF8_CHARSET);
 		String encoded = Base64.encodeBytes(encrypt(bytes, encryptKey));
 		setProperty(key, ENCRYPT_HEADER + encoded + ENCRYPT_FOOTER);
 	}
@@ -712,10 +714,10 @@ public class ClientProperties extends Properties {
 	/**
 	 * デフォルトの保存先のファイルを設定する。
 	 *
-	 * @param storeFile デフォルトの保存先のファイル
+	 * @param storePath デフォルトの保存先のファイル
 	 */
-	public synchronized void setStoreFile(File storeFile) {
-		this.storeFile = storeFile;
+	public synchronized void setStorePath(Path storePath) {
+		this.storePath = storePath;
 	}
 
 	/**
@@ -769,30 +771,10 @@ public class ClientProperties extends Properties {
 	 * @param comments ファイルのコメント
 	 */
 	public synchronized void store(String comments) {
-		FileOutputStream stream = null;
-		OutputStreamWriter writer = null;
-		try {
-			stream = new FileOutputStream(storeFile);
-			writer = new OutputStreamWriter(stream, "UTF-8");
+		try (BufferedWriter writer = Files.newBufferedWriter(storePath, UTF8_CHARSET)) {
 			store(writer, comments);
 		} catch (IOException e) {
 			logger.warn("Propertiesファイルの保存中にエラー", e);
-		} finally {
-			if (writer != null) {
-				try {
-					writer.flush();
-					writer.close();
-				} catch (IOException e) {
-					logger.warn("Propertiesファイルのクローズ中にエラー", e);
-				}
-			} else if (stream != null) { // writer.close()によりstreamは自動的に閉じられる
-				try {
-					stream.flush();
-					stream.close();
-				} catch (IOException e) {
-					logger.warn("Propertiesファイルのクローズ中にエラー", e);
-				}
-			}
 		}
 	}
 }

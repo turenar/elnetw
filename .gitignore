@@ -4,6 +4,7 @@
 *.patch
 *.tmp
 *~
+*.lock
 
 elnetw.cfg
 
