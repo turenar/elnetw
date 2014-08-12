@@ -45,6 +45,7 @@ import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.net.ImageCacher;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -215,6 +216,7 @@ public class ClientConfiguration {
 	private MessageFilter messageFilters = null;
 	private ParsedArguments parsedArguments;
 	private ArgParser argParser;
+	private CacheStorage cacheStorage;
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
@@ -380,6 +382,10 @@ public class ClientConfiguration {
 	 */
 	public synchronized CacheManager getCacheManager() {
 		return cacheManager;
+	}
+
+	public synchronized CacheStorage getCacheStorage() {
+		return cacheStorage;
 	}
 
 	/**
@@ -923,6 +929,11 @@ public class ClientConfiguration {
 	/*package*/
 	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
+	}
+
+	/*package*/
+	synchronized void setCacheStorage(CacheStorage cacheStorage) {
+		this.cacheStorage = cacheStorage;
 	}
 
 	/*package*/

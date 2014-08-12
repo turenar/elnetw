@@ -40,6 +40,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -126,6 +127,7 @@ import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
 import jp.syuriken.snsw.twclient.net.ImageCacher;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -256,6 +258,7 @@ public final class TwitterClientMain {
 	private TwitterClientFrame frame;
 	private boolean isInterrupted;
 	private DeadlockMonitor deadlockMonitor;
+	private CacheStorage cacheStorage;
 
 	/**
 	 * インスタンスを生成する。
@@ -390,6 +393,26 @@ public final class TwitterClientMain {
 	}
 
 	/**
+	 * init cache storage
+	 *
+	 * @param condition init condition
+	 */
+	@Initializer(name = "cache/db", dependencies = "config", phase = "preinit")
+	public void initCacheStorage(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			Path dbPath = Paths.get(System.getProperty("elnetw.cache.dir"), "cache.db");
+			cacheStorage = new CacheStorage(dbPath);
+			configuration.setCacheStorage(cacheStorage);
+		} else {
+			try {
+				cacheStorage.store();
+			} catch (IOException e) {
+				logger.error("Error occurred while storing database", e);
+			}
+		}
+	}
+
+	/**
 	 * init config builder
 	 */
 	@Initializer(name = "gui/config/builder", phase = "preinit")
@@ -481,7 +504,6 @@ public final class TwitterClientMain {
 		FilterCompiler.putFilterProperty("text", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("client", StandardPropertyFactory.SINGLETON);
 		FilterCompiler.putFilterProperty("in_list", StandardPropertyFactory.SINGLETON);
-
 	}
 
 	/**
@@ -819,7 +841,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "bus", dependencies = {"jobqueue", "config"}, phase = "preinit")
+	@Initializer(name = "bus", dependencies = {"jobqueue", "config", "cache/db"}, phase = "preinit")
 	public void setMessageBus(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			messageBus = new MessageBus();

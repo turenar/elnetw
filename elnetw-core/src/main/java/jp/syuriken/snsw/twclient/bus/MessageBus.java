@@ -25,7 +25,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,8 +38,12 @@ import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
+import jp.syuriken.snsw.twclient.storage.DirEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.MediaEntity;
+import twitter4j.RateLimitStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
@@ -48,11 +55,154 @@ import twitter4j.conf.Configuration;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MessageBus {
+	private static class ApiConfigurationImpl implements TwitterAPIConfiguration {
+
+		private static class SizeImpl implements MediaEntity.Size {
+
+			private final int width;
+			private final int height;
+			private final int resize;
+
+			public SizeImpl(int width, int height, int resize) {
+				this.width = width;
+				this.height = height;
+				this.resize = resize;
+			}
+
+			@Override
+			public int getHeight() {
+				return height;
+			}
+
+			@Override
+			public int getResize() {
+				return resize;
+			}
+
+			@Override
+			public int getWidth() {
+				return width;
+			}
+		}
+
+		private int charactersReservedPerMedia;
+		private int maxMediaPerUpload;
+		private String[] nonUsernamePathArray;
+		private int photoSizeLimit;
+		private Map<Integer, MediaEntity.Size> photoSizes;
+		private int shortUrlLength;
+		private int shortUrlLengthHttps;
+
+		public ApiConfigurationImpl(DirEntry cacheStorage) {
+			charactersReservedPerMedia = cacheStorage.readInt("charactersReservedPerMedia");
+			maxMediaPerUpload = cacheStorage.readInt("maxMediaPerUpload");
+			List<String> nonUsernamePaths = cacheStorage.readStringList("nonUsernamePaths");
+			nonUsernamePathArray = nonUsernamePaths.toArray(new String[nonUsernamePaths.size()]);
+
+			photoSizeLimit = cacheStorage.readInt("photoSizeLimit");
+			DirEntry photoSizeEntries = cacheStorage.getDirEntry("photoSizes");
+			photoSizes = new HashMap<>();
+			for (Iterator<String> traverse = photoSizeEntries.traverse(); traverse.hasNext(); ) {
+				DirEntry photoSizeEntry = photoSizeEntries.getDirEntry(traverse.next());
+				int type = photoSizeEntry.readInt("type");
+				int width = photoSizeEntry.readInt("width");
+				int height = photoSizeEntry.readInt("height");
+				int resize = photoSizeEntry.readInt("resize");
+				SizeImpl size = new SizeImpl(width, height, resize);
+				photoSizes.put(type, size);
+			}
+
+			shortUrlLength = cacheStorage.readInt("shortURLLength");
+			shortUrlLengthHttps = cacheStorage.readInt("shortURLLengthHttps");
+		}
+
+		@Override
+		public int getAccessLevel() {
+			return 0;
+		}
+
+		@Override
+		public int getCharactersReservedPerMedia() {
+			return charactersReservedPerMedia;
+		}
+
+		@Override
+		public int getMaxMediaPerUpload() {
+			return maxMediaPerUpload;
+		}
+
+		@Override
+		public String[] getNonUsernamePaths() {
+			return nonUsernamePathArray;
+		}
+
+		@Override
+		public int getPhotoSizeLimit() {
+			return photoSizeLimit;
+		}
+
+		@Override
+		public Map<Integer, MediaEntity.Size> getPhotoSizes() {
+			return null;
+		}
+
+		@Override
+		public RateLimitStatus getRateLimitStatus() {
+			return null;
+		}
+
+		@Override
+		public int getShortURLLength() {
+			return shortUrlLength;
+		}
+
+		@Override
+		public int getShortURLLengthHttps() {
+			return shortUrlLengthHttps;
+		}
+
+		public void update(TwitterAPIConfiguration apiConfiguration) {
+			charactersReservedPerMedia = apiConfiguration.getCharactersReservedPerMedia();
+			maxMediaPerUpload = apiConfiguration.getMaxMediaPerUpload();
+			nonUsernamePathArray = apiConfiguration.getNonUsernamePaths();
+			photoSizeLimit = apiConfiguration.getPhotoSizeLimit();
+			photoSizes = apiConfiguration.getPhotoSizes();
+			shortUrlLength = apiConfiguration.getShortURLLength();
+			shortUrlLengthHttps = apiConfiguration.getShortURLLengthHttps();
+		}
+	}
+
 	private final class ApiConfigurationFetcher extends TwitterRunnable implements ParallelRunnable {
 
 		@Override
 		protected void access() throws TwitterException {
-			apiConfiguration = twitterForRead.getAPIConfiguration();
+			TwitterAPIConfiguration conf = twitterForRead.getAPIConfiguration();
+			if (apiConfiguration instanceof ApiConfigurationImpl) {
+				((ApiConfigurationImpl) apiConfiguration).update(conf);
+			} else {
+				apiConfiguration = conf;
+			}
+			DirEntry storage = configuration.getCacheStorage().mkdir(CACHE_PATH_API_CONF, true);
+			storage.writeInt("charactersReservedPerMedia", conf.getCharactersReservedPerMedia());
+			storage.writeInt("maxMediaPerUpload", conf.getMaxMediaPerUpload());
+			storage.writeList("nonUsernamePaths", (Object[]) conf.getNonUsernamePaths());
+			storage.writeInt("photoSizeLimit", conf.getPhotoSizeLimit());
+
+			storage.rmdir("photoSizes", true);
+			DirEntry photoSizeEntries = storage.mkdir("photoSizes");
+			Map<Integer, MediaEntity.Size> photoSizes = conf.getPhotoSizes();
+			for (Map.Entry<Integer, MediaEntity.Size> entry : photoSizes.entrySet()) {
+				DirEntry photoSizeEntry = photoSizeEntries.mkdir(entry.getKey().toString());
+				MediaEntity.Size size = entry.getValue();
+				photoSizeEntry.writeInt("type", entry.getKey());
+				photoSizeEntry.writeInt("width", size.getWidth());
+				photoSizeEntry.writeInt("height", size.getHeight());
+				photoSizeEntry.writeInt("resize", size.getResize());
+			}
+
+			storage.writeInt("shortURLLength", conf.getShortURLLength());
+			storage.writeInt("shortURLLengthHttps", conf.getShortURLLengthHttps());
+			storage.writeLong(CACHE_PATH_API_CONF_MODIFIED, System.currentTimeMillis());
 		}
 	}
 
@@ -69,6 +219,9 @@ public class MessageBus {
 	 * virtual account id for all account
 	 */
 	public static final String ALL_ACCOUNT_ID = "$all";
+	public static final String CACHE_PATH_API_CONF = "/conf/twitter/api";
+	public static final String CACHE_PATH_API_CONF_MODIFIED = "/conf/twitter/api/modifiedTime";
+	public static final int API_CONF_CACHE_TIME = 1000 * 60 * 60 * 24;
 
 	private static String getAppended(StringBuilder builder, String appendedString) {
 		int oldLength = builder.length();
@@ -360,6 +513,17 @@ public class MessageBus {
 	}
 
 	private void scheduleGettingTwitterApiConfiguration() {
-		configuration.addJob(new ApiConfigurationFetcher());
+		CacheStorage cacheStorage = configuration.getCacheStorage();
+		if (cacheStorage.isDirEntry(CACHE_PATH_API_CONF)) {
+			apiConfiguration = new ApiConfigurationImpl(cacheStorage.getDirEntry(CACHE_PATH_API_CONF));
+			long modifiedTime = cacheStorage.readLong(CACHE_PATH_API_CONF_MODIFIED, -1L);
+			if (modifiedTime + API_CONF_CACHE_TIME < System.currentTimeMillis()) {
+				configuration.addJob(new ApiConfigurationFetcher());
+			} else {
+				logger.info("api configuration cache hit");
+			}
+		} else {
+			configuration.addJob(new ApiConfigurationFetcher());
+		}
 	}
 }
