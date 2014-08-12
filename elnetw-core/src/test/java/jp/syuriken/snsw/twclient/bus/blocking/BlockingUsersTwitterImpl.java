@@ -34,7 +34,6 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class BlockingUsersTwitterImpl extends AbstractTwitter {
-
 	@Override
 	public PagableResponseList<User> getBlocksList() throws TwitterException {
 		return getBlocksList(-1L);

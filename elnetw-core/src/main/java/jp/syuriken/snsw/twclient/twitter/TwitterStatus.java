@@ -108,6 +108,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private String lang;
 	private SymbolEntity[] symbolEntities;
 	private transient Scopes scopes;
+	private MediaEntity[] extendedMediaEntities;
 
 	/**
 	 * インスタンスを生成する。
@@ -165,6 +166,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		lang = originalStatus.getLang();
 		symbolEntities = originalStatus.getSymbolEntities();
 		scopes = originalStatus.getScopes();
+		extendedMediaEntities = originalStatus.getExtendedMediaEntities();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (!(originalStatus instanceof TwitterStatus)) {
@@ -230,6 +232,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public long getCurrentUserRetweetId() {
 		return currentUserRetweetId;
+	}
+
+	@Override
+	public MediaEntity[] getExtendedMediaEntities() {
+		return extendedMediaEntities;
 	}
 
 	@Override

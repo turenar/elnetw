@@ -86,6 +86,11 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
+	public MediaEntity[] getExtendedMediaEntities() {
+		return new MediaEntity[0];
+	}
+
+	@Override
 	public int getFavoriteCount() {
 		return 0;
 	}

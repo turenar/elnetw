@@ -45,13 +45,13 @@ import twitter4j.RateLimitStatusListener;
 import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
-import twitter4j.SimilarPlaces;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Trends;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.UploadedMedia;
 import twitter4j.User;
 import twitter4j.UserList;
 import twitter4j.api.DirectMessagesResources;
@@ -121,8 +121,12 @@ public abstract class AbstractTwitter implements Twitter {
 	}
 
 	@Override
-	public Place createPlace(String name, String containedWithin, String token, GeoLocation location,
-			String streetAddress) throws TwitterException {
+	public User createMute(long userId) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public User createMute(String screenName) throws TwitterException {
 		return null;
 	}
 
@@ -230,6 +234,16 @@ public abstract class AbstractTwitter implements Twitter {
 
 	@Override
 	public User destroyFriendship(String screenName) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public User destroyMute(long userId) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public User destroyMute(String screenName) throws TwitterException {
 		return null;
 	}
 
@@ -442,6 +456,16 @@ public abstract class AbstractTwitter implements Twitter {
 	}
 
 	@Override
+	public IDs getFollowersIDs(long userId, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public IDs getFollowersIDs(String screenName, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
 	public IDs getFollowersIDs(long cursor) throws TwitterException {
 		return null;
 	}
@@ -453,6 +477,18 @@ public abstract class AbstractTwitter implements Twitter {
 
 	@Override
 	public IDs getFollowersIDs(String screenName, long cursor) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFollowersList(long userId, long cursor, int count, boolean skipStatus,
+			boolean includeUserEntities) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFollowersList(String screenName, long cursor, int count, boolean skipStatus,
+			boolean includeUserEntities) throws TwitterException {
 		return null;
 	}
 
@@ -480,6 +516,16 @@ public abstract class AbstractTwitter implements Twitter {
 	}
 
 	@Override
+	public IDs getFriendsIDs(long userId, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public IDs getFriendsIDs(String screenName, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
 	public IDs getFriendsIDs(long cursor) throws TwitterException {
 		return null;
 	}
@@ -491,6 +537,28 @@ public abstract class AbstractTwitter implements Twitter {
 
 	@Override
 	public IDs getFriendsIDs(String screenName, long cursor) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFriendsList(long userId, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFriendsList(String screenName, long cursor, int count) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFriendsList(long userId, long cursor, int count, boolean skipStatus,
+			boolean includeUserEntities) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getFriendsList(String screenName, long cursor, int count, boolean skipStatus,
+			boolean includeUserEntities) throws TwitterException {
 		return null;
 	}
 
@@ -547,6 +615,21 @@ public abstract class AbstractTwitter implements Twitter {
 
 	@Override
 	public ResponseList<Status> getMentionsTimeline(Paging paging) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public IDs getMutesIDs(long cursor) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public PagableResponseList<User> getMutesList(long cursor) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public IDs getNoRetweetsFriendships() throws TwitterException {
 		return null;
 	}
 
@@ -673,7 +756,7 @@ public abstract class AbstractTwitter implements Twitter {
 	}
 
 	@Override
-	public SimilarPlaces getSimilarPlaces(GeoLocation location, String name, String containedWithin,
+	public ResponseList<Place> getSimilarPlaces(GeoLocation location, String name, String containedWithin,
 			String streetAddress) throws TwitterException {
 		return null;
 	}
@@ -844,6 +927,11 @@ public abstract class AbstractTwitter implements Twitter {
 
 	@Override
 	public ListsResources list() {
+		return null;
+	}
+
+	@Override
+	public ResponseList<Status> lookup(long[] ids) throws TwitterException {
 		return null;
 	}
 
@@ -1143,6 +1231,11 @@ public abstract class AbstractTwitter implements Twitter {
 	public UserList updateUserList(String ownerScreenName, String slug, String newListName,
 			boolean isPublicList,
 			String newDescription) throws TwitterException {
+		return null;
+	}
+
+	@Override
+	public UploadedMedia uploadMedia(File mediaFile) throws TwitterException {
 		return null;
 	}
 
