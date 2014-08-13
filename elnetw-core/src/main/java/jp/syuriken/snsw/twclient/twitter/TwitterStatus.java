@@ -51,7 +51,7 @@ import twitter4j.UserMentionEntity;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterStatus implements Status, TwitterExtendedObject {
-	private static final long serialVersionUID = -188757917578787367L;
+	private static final long serialVersionUID = 1598784104742222367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
 
@@ -91,7 +91,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private/*final*/ GeoLocation geoLocation;
 	private/*final*/ HashtagEntity[] hashtagEntities;
 	private/*final*/ String inReplyToScreenName;
-	private boolean loadedInitialization;
 	private/*final*/ MediaEntity[] mediaEntities;
 	private/*final*/ Place place;
 	private/*final*/ String source;
@@ -364,15 +363,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return favorited;
 	}
 
-	/**
-	 * このステータスが起動時に読み込まれたものかどうかを調べる
-	 *
-	 * @return 起動時に読み込まれたならtrue
-	 */
-	public boolean isLoadedInitialization() {
-		return loadedInitialization;
-	}
-
 	@Override
 	public boolean isPossiblySensitive() {
 		return possiblySensitive;
@@ -407,14 +397,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		this.favorited = favorited;
 	}
 
-	/**
-	 * このステータスは起動時に読み込まれたものです
-	 *
-	 * @param loadedInitialization 起動時に読み込まれたならtrue
-	 */
-	public void setLoadedInitialization(boolean loadedInitialization) {
-		this.loadedInitialization = loadedInitialization;
-	}
 
 	/**
 	 * ユーザーがリツイートしたかどうかを設定する
