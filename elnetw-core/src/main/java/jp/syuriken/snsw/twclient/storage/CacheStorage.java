@@ -129,6 +129,11 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public DirEntry newMap(String path) {
+		return rootDirEntry.newMap(path);
+	}
+
+	@Override
 	public boolean readBool(String path) {
 		return rootDirEntry.readBool(path);
 	}

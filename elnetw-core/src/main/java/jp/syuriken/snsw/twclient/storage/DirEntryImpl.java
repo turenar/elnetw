@@ -141,6 +141,12 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	public DirEntry newMap(String path) {
+		mkdir(path);
+		return this;
+	}
+
+	@Override
 	public boolean readBool(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
@@ -311,7 +317,7 @@ public class DirEntryImpl implements DirEntry {
 			if (nextIndexOf < 0) {
 				break;
 			}
-			String pathElement = path.substring(indexOf + 1, nextIndexOf < 0 ? path.length() : nextIndexOf);
+			String pathElement = path.substring(indexOf + 1, nextIndexOf);
 			if (pathElement.isEmpty() || pathElement.equals(".")) {
 				// do nothing
 			} else if (pathElement.equals("..")) {
@@ -330,7 +336,7 @@ public class DirEntryImpl implements DirEntry {
 				}
 			}
 			indexOf = nextIndexOf;
-		} while (indexOf >= 0);
+		} while (true /*indexOf >= 0*/);
 		return dirEntry;
 	}
 
@@ -369,6 +375,10 @@ public class DirEntryImpl implements DirEntry {
 		String basename = basename(path);
 		parentDirectory.jsonObject.put(basename, value);
 		return this;
+	}
+
+	protected <T> void writeRaw(String key, T value) {
+		jsonObject.put(key, value);
 	}
 
 	@Override

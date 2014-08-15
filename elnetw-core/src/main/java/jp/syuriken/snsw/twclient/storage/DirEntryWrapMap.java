@@ -42,4 +42,10 @@ class DirEntryWrapMap<T> extends AbstractMap<String, T> {
 	public Set<Entry<String, T>> entrySet() {
 		return new DirEntrySet<>(target, converter);
 	}
+
+	@Override
+	public T put(String key, T value) {
+		target.writeRaw(key, value);
+		return null;
+	}
 }

@@ -95,6 +95,13 @@ public interface DirEntry {
 	DirEntry mkdir(String path);
 
 	/**
+	 * create new map
+	 * @param path path
+	 * @return this
+	 */
+	DirEntry newMap(String path);
+
+	/**
 	 * read bool from path
 	 *
 	 * @param path path
