@@ -27,6 +27,7 @@ import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.TestMessageBus;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.internal.NullUser;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class BlockingUsersChannelTest {
 	@Test
 	public void testBlockingWithDelayedEstablish() throws Exception {
 		ClientConfigurationTestImpl configuration = new ClientConfigurationTestImpl();
+		configuration.setCacheStorage(new CacheStorage());
 		configuration.setGlobalInstance();
 		try {
 			MessageBus messageBus = new TestMessageBus();
@@ -96,6 +98,7 @@ public class BlockingUsersChannelTest {
 	@Test
 	public void testBlockingWithStream() throws Exception {
 		ClientConfigurationTestImpl configuration = new ClientConfigurationTestImpl();
+		configuration.setCacheStorage(new CacheStorage());
 		configuration.setGlobalInstance();
 		try {
 			MessageBus messageBus = new TestMessageBus();
@@ -126,6 +129,7 @@ public class BlockingUsersChannelTest {
 	@Test
 	public void testInit() throws Exception {
 		ClientConfigurationTestImpl configuration = new ClientConfigurationTestImpl();
+		configuration.setCacheStorage(new CacheStorage());
 		configuration.setGlobalInstance();
 		try {
 			MessageBus messageBus = new TestMessageBus();

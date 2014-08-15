@@ -87,7 +87,7 @@ public class NullUser implements User {
 
 	@Override
 	public Date getCreatedAt() {
-		return null;
+		return new Date();
 	}
 
 	@Override
