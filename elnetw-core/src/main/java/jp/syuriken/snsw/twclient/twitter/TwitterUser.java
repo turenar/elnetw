@@ -102,9 +102,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private URLEntity urlEntity;
 	private boolean defaultProfile;
 	private boolean defaultProfileImage;
+	private long timestamp;
 
 	/**
 	 * instance
+	 *
 	 * @param dirEntry data dir entry
 	 */
 	public TwitterUser(DirEntry dirEntry) {
@@ -147,6 +149,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		DirEntry entities = dirEntry.getDirEntry("entities");
 		urlEntity = new URLEntityImpl(entities.getDirEntry("url"));
 		descriptionURLEntities = getEntitiesFromDirEntry(entities.getDirEntry("description"));
+
+		timestamp = dirEntry.exists("timestamp") ? dirEntry.readLong("timestamp") : System.currentTimeMillis();
 	}
 
 	/**
@@ -418,6 +422,15 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return timeZone;
 	}
 
+	/**
+	 * last updated timestamp
+	 *
+	 * @return timestamp
+	 */
+	public long getTimestamp() {
+		return timestamp;
+	}
+
 	@Override
 	public String getURL() {
 		return url;
@@ -550,12 +563,18 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	/**
 	 * update user information
+	 *
 	 * @param originalUser originalUser
 	 */
 	public void update(User originalUser) {
 		if (originalUser.getId() != id) {
 			throw new IllegalArgumentException("illegal user id: " + originalUser.getId());
 		}
+		if (originalUser instanceof TwitterUser && timestamp > ((TwitterUser) originalUser).getTimestamp()) {
+			return;
+		}
+		timestamp = originalUser instanceof TwitterUser
+				? ((TwitterUser) originalUser).getTimestamp() : System.currentTimeMillis();
 
 		isContributorsEnabled = originalUser.isContributorsEnabled();
 		isFollowRequestSent = originalUser.isFollowRequestSent();
@@ -596,36 +615,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		defaultProfileImage = originalUser.isDefaultProfileImage();
 	}
 
-	/**
-	 * このユーザーのプロフィールを指定したユーザーのプロフィールでアップデートする
-	 *
-	 * @param user 新しい情報が含まれたユーザー
-	 * @return this instance
-	 * @throws IllegalArgumentException このユーザーのIDと指定したユーザーのIDが一致しない
-	 */
-	public TwitterUser updateUser(User user) throws IllegalArgumentException {
-		if (id != user.getId()) {
-			throw new IllegalArgumentException("UserIDが一致しません");
-		}
-
-		description = user.getDescription();
-		favouritesCount = user.getFavouritesCount();
-		followersCount = user.getFollowersCount();
-		friendsCount = user.getFriendsCount();
-		listedCount = user.getListedCount();
-		location = user.getLocation();
-		name = user.getName();
-		profileBackgroundImageUrl = user.getProfileBackgroundImageURL();
-		profileBackgroundImageUrlHttps = user.getProfileBackgroundImageUrlHttps();
-		profileImageUrl = user.getProfileImageURL();
-		profileImageUrlHttps = user.getProfileImageURLHttps();
-		isProtected = user.isProtected();
-		screenName = user.getScreenName();
-		statusesCount = user.getStatusesCount();
-		url = user.getURL();
-		return this;
-	}
-
 	@Override
 	public void write(DirEntry dirEntry) {
 		dirEntry.writeBool("contributors_enabled", isContributorsEnabled)
@@ -663,7 +652,8 @@ public class TwitterUser implements User, TwitterExtendedObject {
 				.writeString("time_zone", timeZone)
 				.writeString("url", url)
 				.writeInt("utc_offset", utcOffset)
-				.writeBool("verified", isVerified);
+				.writeBool("verified", isVerified)
+				.writeLong("timestamp", timestamp);
 //				.writeString("notification", )
 //				.writeString("following",  )
 		dirEntry.mkdir("entities");

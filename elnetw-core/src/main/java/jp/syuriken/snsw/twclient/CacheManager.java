@@ -203,18 +203,6 @@ public class CacheManager {
 	}
 
 	/**
-	 * キャッシュされていない場合のみStatusをキャッシュする。
-	 *
-	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
-	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
-	 * @deprecated use {@link #cacheStatus(jp.syuriken.snsw.twclient.twitter.TwitterStatus)}
-	 */
-	@Deprecated
-	public TwitterStatus cacheStatusIfAbsent(TwitterStatus status) {
-		return cacheStatus(status);
-	}
-
-	/**
 	 * Userをキャッシュする
 	 *
 	 * @param user キャッシュするUser。nullだとぬるぽ投げます。
@@ -231,21 +219,6 @@ public class CacheManager {
 		} else {
 			return user;
 		}
-	}
-
-	/**
-	 * キャッシュされていない場合のみUserをキャッシュする。
-	 *
-	 * @param user キャッシュするStatus。nullだとぬるぽ投げます。
-	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
-	 * @deprecated use {@link #cacheUser(jp.syuriken.snsw.twclient.twitter.TwitterUser)}
-	 */
-	@Deprecated
-	public TwitterUser cacheUserIfAbsent(TwitterUser user) {
-		if (user == null) {
-			throw new NullPointerException();
-		}
-		return extract(userCacheMap.putIfAbsent(user.getId(), user));
 	}
 
 	public void flush() {
@@ -275,19 +248,6 @@ public class CacheManager {
 	}
 
 	/**
-	 * キャッシュ済みStatusを取得する。キャッシュされていなかったりStatusが存在しない(404)場合は引数のTwitterStatusインスタンスを返す。
-	 *
-	 * @param status キャッシュ済みStatus
-	 * @return TwitterStatusインスタンス
-	 * @deprecated use {@link #cacheStatus(jp.syuriken.snsw.twclient.twitter.TwitterStatus)}
-	 */
-	@Deprecated
-	public TwitterStatus getCachedStatus(TwitterStatus status) {
-		TwitterStatus twitterStatus = cacheStatus(status);
-		return twitterStatus == null ? status : twitterStatus.update(status);
-	}
-
-	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
 	 *
@@ -299,23 +259,10 @@ public class CacheManager {
 		if (user == null) {
 			String cachePath = getCachePath(userId);
 			if (cacheStorage.exists(cachePath)) {
-				user = new TwitterUser(cacheStorage.getDirEntry(cachePath));
+				user = cacheUser(new TwitterUser(cacheStorage.getDirEntry(cachePath)));
 			}
 		}
 		return extract(user);
-	}
-
-	/**
-	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合は引数のTwitterUserインスタンスを返す。
-	 *
-	 * @param user キャッシュ済みUser
-	 * @return TwitterUserインスタンス
-	 * @deprecated use {@link #cacheUser(jp.syuriken.snsw.twclient.twitter.TwitterUser)}
-	 */
-	@Deprecated
-	public TwitterUser getCachedUser(TwitterUser user) {
-		TwitterUser twitterUser = cacheUser(user);
-		return twitterUser == null ? user : twitterUser.updateUser(user);
 	}
 
 	/**
