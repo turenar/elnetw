@@ -68,6 +68,11 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 
 		TweetEntity[] entities = sortEntities(entitySupport);
 		MediaEntity[] extendedMediaEntities = entitySupport.getExtendedMediaEntities();
+		if (extendedMediaEntities.length == 0) {
+			extendedMediaEntities = null; // clearer condition
+		}
+
+
 		int offset = 0;
 		for (TweetEntity entity : entities) {
 			int start = entity.getStart();
