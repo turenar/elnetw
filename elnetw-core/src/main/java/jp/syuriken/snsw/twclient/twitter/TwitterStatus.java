@@ -50,7 +50,7 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStatus implements Status, TwitterExtendedObject {
+public class TwitterStatus implements Status {
 	private static final long serialVersionUID = 1598784104742222367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
@@ -87,7 +87,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private final boolean isTruncated;
 	private final TwitterStatus retweetedStatus;
 	private final User user;
-	private final String json;
 	private/*final*/ GeoLocation geoLocation;
 	private/*final*/ HashtagEntity[] hashtagEntities;
 	private/*final*/ String inReplyToScreenName;
@@ -136,7 +135,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 * @param user           getUser()
 	 */
 	public TwitterStatus(Status originalStatus, JSONObject jsonObject, User user) {
-		json = jsonObject == null ? null : jsonObject.toString();
 		favorited = originalStatus.isFavorited();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		urlEntities = originalStatus.getURLEntities();
@@ -174,7 +172,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 				TwitterStatus cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
 				if (cachedStatus == null) {
 					TwitterStatus status = new TwitterStatus(retweetedStatus, getRetweetJSONObject(jsonObject));
-					cachedStatus = cacheManager.getCachedStatus(status);
+					cachedStatus = cacheManager.cacheStatus(status);
 				}
 				retweetedStatus = cachedStatus;
 			}
@@ -272,11 +270,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public long getInReplyToUserId() {
 		return inReplyToUserId;
-	}
-
-	@Override
-	public String getJson() {
-		return json;
 	}
 
 	@Override

@@ -31,6 +31,15 @@ import java.util.Map;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface DirEntry {
+
+	/**
+	 * check if path is exists
+	 *
+	 * @param path path
+	 * @return exist?
+	 */
+	boolean exists(String path);
+
 	/**
 	 * get dir entry of path
 	 *
@@ -84,6 +93,14 @@ public interface DirEntry {
 	 * @return DirEntry
 	 */
 	DirEntry mkdir(String path);
+
+	/**
+	 * read bool from path
+	 *
+	 * @param path path
+	 * @return boolean
+	 */
+	boolean readBool(String path);
 
 	/**
 	 * read int from path
@@ -153,8 +170,8 @@ public interface DirEntry {
 	/**
 	 * read string from path
 	 *
-	 * @param path
-	 * @return
+	 * @param path path
+	 * @return String
 	 */
 	String readString(String path);
 
@@ -185,6 +202,7 @@ public interface DirEntry {
 	/**
 	 * remove path from database
 	 *
+	 * @param path path
 	 * @return if it exists
 	 */
 	boolean remove(String path);
@@ -221,34 +239,47 @@ public interface DirEntry {
 	Iterator<String> traverse();
 
 	/**
+	 * write bool to path
+	 *
+	 * @param path  path
+	 * @param value value
+	 * @return this
+	 */
+	DirEntry writeBool(String path, boolean value);
+
+	/**
 	 * write int to path
 	 *
 	 * @param path  path
 	 * @param value value
+	 * @return this
 	 */
-	void writeInt(String path, int value);
+	DirEntry writeInt(String path, int value);
 
 	/**
 	 * write list to path
 	 *
 	 * @param path     path
 	 * @param elements elements
+	 * @return this
 	 */
-	void writeList(String path, Object... elements);
+	DirEntry writeList(String path, Object... elements);
 
 	/**
 	 * write long to path
 	 *
 	 * @param path  path
 	 * @param value value
+	 * @return this
 	 */
-	void writeLong(String path, long value);
+	DirEntry writeLong(String path, long value);
 
 	/**
 	 * write String to path
 	 *
 	 * @param path path
 	 * @param data data
+	 * @return this
 	 */
-	void writeString(String path, String data);
+	DirEntry writeString(String path, String data);
 }

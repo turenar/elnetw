@@ -30,13 +30,14 @@ import java.util.NoSuchElementException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static org.json.JSONObject.NULL;
+
 /**
  * Dir Entry implementation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirEntryImpl implements DirEntry {
-
 	/**
 	 * cast for generic
 	 *
@@ -69,6 +70,13 @@ public class DirEntryImpl implements DirEntry {
 	private String basename(String path) {
 		int indexOf = path.lastIndexOf('/');
 		return indexOf < 0 ? path : path.substring(indexOf + 1);
+	}
+
+	@Override
+	public boolean exists(String path) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, false);
+		String basename = basename(path);
+		return parentDirectory != null && parentDirectory.jsonObject.has(basename);
 	}
 
 	@Override
@@ -130,6 +138,13 @@ public class DirEntryImpl implements DirEntry {
 	@Override
 	public DirEntryImpl mkdir(String path) {
 		return mkdir(path, false);
+	}
+
+	@Override
+	public boolean readBool(String path) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
+		String basename = basename(path);
+		return parentDirectory.jsonObject.getBoolean(basename);
 	}
 
 	/**
@@ -324,31 +339,43 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
-	public void writeInt(String path, int value) {
+	public DirEntry writeBool(String path, boolean value) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
 		parentDirectory.jsonObject.put(basename, value);
+		return this;
 	}
 
 	@Override
-	public void writeList(String path, Object... elements) {
+	public DirEntry writeInt(String path, int value) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
+		String basename = basename(path);
+		parentDirectory.jsonObject.put(basename, value);
+		return this;
+	}
+
+	@Override
+	public DirEntry writeList(String path, Object... elements) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
 		JSONArray jsonArray = new JSONArray(elements);
 		parentDirectory.jsonObject.put(basename, jsonArray);
+		return this;
 	}
 
 	@Override
-	public void writeLong(String path, long value) {
+	public DirEntry writeLong(String path, long value) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
 		parentDirectory.jsonObject.put(basename, value);
+		return this;
 	}
 
 	@Override
-	public void writeString(String path, String data) {
+	public DirEntry writeString(String path, String data) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		parentDirectory.jsonObject.put(basename, data);
+		parentDirectory.jsonObject.put(basename, data == null ? NULL : data);
+		return this;
 	}
 }

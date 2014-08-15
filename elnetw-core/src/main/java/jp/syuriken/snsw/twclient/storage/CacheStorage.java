@@ -23,6 +23,8 @@ package jp.syuriken.snsw.twclient.storage;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -87,6 +89,11 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public boolean exists(String path) {
+		return rootDirEntry.exists(path);
+	}
+
+	@Override
 	public DirEntry getDirEntry(String path) {
 		return rootDirEntry.getDirEntry(path);
 	}
@@ -119,6 +126,11 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public DirEntry mkdir(String path) {
 		return rootDirEntry.mkdir(path);
+	}
+
+	@Override
+	public boolean readBool(String path) {
+		return rootDirEntry.readBool(path);
 	}
 
 	@Override
@@ -208,7 +220,11 @@ public class CacheStorage implements DirEntry {
 	 */
 	public void store() throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(databasePath, UTF8_CHARSET)) {
-			root.write(writer);
+			Method writeMethod = JSONObject.class.getDeclaredMethod("write", Writer.class, int.class, int.class);
+			writeMethod.setAccessible(true);
+			writeMethod.invoke(root, writer, 1, 0);
+		} catch (ReflectiveOperationException e) {
+			throw new IOException("failed to invoke JSONObject.write(Writer, int, int)", e);
 		}
 	}
 
@@ -218,22 +234,32 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
-	public void writeInt(String path, int value) {
+	public CacheStorage writeBool(String path, boolean value) {
+		rootDirEntry.writeBool(path, value);
+		return this;
+	}
+
+	@Override
+	public CacheStorage writeInt(String path, int value) {
 		rootDirEntry.writeInt(path, value);
+		return this;
 	}
 
 	@Override
-	public void writeList(String path, Object... elements) {
+	public CacheStorage writeList(String path, Object... elements) {
 		rootDirEntry.writeList(path, elements);
+		return this;
 	}
 
 	@Override
-	public void writeLong(String path, long value) {
+	public CacheStorage writeLong(String path, long value) {
 		rootDirEntry.writeLong(path, value);
+		return this;
 	}
 
 	@Override
-	public void writeString(String path, String data) {
+	public CacheStorage writeString(String path, String data) {
 		rootDirEntry.writeString(path, data);
+		return this;
 	}
 }

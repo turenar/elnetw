@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.twclient.twitter;
 
+import jp.syuriken.snsw.twclient.storage.DirEntry;
+
 /**
  * Twitter拡張オブジェクト
  *
@@ -29,9 +31,9 @@ package jp.syuriken.snsw.twclient.twitter;
 interface TwitterExtendedObject {
 
 	/**
-	 * 元のJSONを取得する。
+	 * write data into json
 	 *
-	 * @return JSON
+	 * @param dirEntry Dir Entry object
 	 */
-	String getJson();
+	void write(DirEntry dirEntry);
 }

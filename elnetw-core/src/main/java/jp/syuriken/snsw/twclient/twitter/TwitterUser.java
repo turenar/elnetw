@@ -27,15 +27,15 @@ import javax.annotation.Nonnull;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.syuriken.snsw.twclient.CacheManager;
+import jp.syuriken.snsw.twclient.storage.DirEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
-import twitter4j.TwitterObjectFactory;
 import twitter4j.URLEntity;
 import twitter4j.User;
+
+import static jp.syuriken.snsw.twclient.twitter.URLEntityImpl.getEntitiesFromDirEntry;
 
 /**
  * プロフィールの更新ができるUser拡張型
@@ -56,7 +56,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
 		if (cachedUser == null) {
 			TwitterUser twitterUser = new TwitterUser(user);
-			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
+			cachedUser = cacheManager.cacheUser(twitterUser);
 			if (cachedUser == null) {
 				cachedUser = twitterUser;
 			}
@@ -64,38 +64,23 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return cachedUser;
 	}
 
-	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
-		String json = TwitterObjectFactory.getRawJSON(originalUser);
-		JSONObject jsonObject = null;
-		if (json != null) {
-			try {
-				jsonObject = new JSONObject(json);
-			} catch (JSONException e) {
-				logger.error("Cannot parse json", e); // already parsed by User*Impl
-				throw new AssertionError(e);
-			}
-		}
-		return jsonObject;
-	}
-
-	private final Date createdAt;
+	private final long createdAt;
 	private final long id;
-	private final boolean isContributorsEnabled;
-	private final boolean isFollowRequestSent;
-	private final boolean isGeoEnabled;
-	private final boolean isVerified;
-	private final String lang;
-	private final String profileBackgroundColor;
-	private final boolean profileBackgroundTiled;
-	private final String profileLinkColor;
-	private final String profileSidebarBorderColor;
-	private final String profileSidebarFillColor;
-	private final String profileTextColor;
-	private final boolean showAllInlineMedia;
-	private final String timeZone;
-	private final boolean translator;
-	private final int utcOffset;
-	private final String json;
+	private boolean isContributorsEnabled;
+	private boolean isFollowRequestSent;
+	private boolean isGeoEnabled;
+	private boolean isVerified;
+	private String lang;
+	private String profileBackgroundColor;
+	private boolean profileBackgroundTiled;
+	private String profileLinkColor;
+	private String profileSidebarBorderColor;
+	private String profileSidebarFillColor;
+	private String profileTextColor;
+	private boolean showAllInlineMedia;
+	private String timeZone;
+	private boolean translator;
+	private int utcOffset;
 	private boolean profileUseBackgroundImage;
 	private String description;
 	private int favouritesCount;
@@ -119,63 +104,60 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private boolean defaultProfileImage;
 
 	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param originalUser オリジナルユーザー
+	 * instance
+	 * @param dirEntry data dir entry
 	 */
-	public TwitterUser(User originalUser) {
-		this(originalUser, getJsonObject(originalUser));
+	public TwitterUser(DirEntry dirEntry) {
+		isContributorsEnabled = dirEntry.readBool("contributors_enabled");
+		createdAt = dirEntry.readLong("created_at");
+		defaultProfile = dirEntry.readBool("default_profile");
+		defaultProfileImage = dirEntry.readBool("default_profile_image");
+		description = dirEntry.readString("description");
+		favouritesCount = dirEntry.readInt("favourites_count");
+		isFollowRequestSent = dirEntry.readBool("follow_request_sent");
+		followersCount = dirEntry.readInt("followers_count");
+		friendsCount = dirEntry.readInt("friends_count");
+		isGeoEnabled = dirEntry.readBool("geo_enabled");
+		id = dirEntry.readLong("id");
+		translator = dirEntry.readBool("is_translator");
+		lang = dirEntry.readString("lang");
+		listedCount = dirEntry.readInt("listed_count");
+		location = dirEntry.readString("location");
+		name = dirEntry.readString("name");
+		profileBackgroundColor = dirEntry.readString("profile_background_color");
+		profileBackgroundImageUrl = dirEntry.readString("profile_background_image_url");
+		profileBackgroundImageUrlHttps = dirEntry.readString("profile_background_image_url_https");
+		profileBackgroundTiled = dirEntry.readBool("profile_background_tile");
+		profileBannerImageUrl = dirEntry.readString("profile_banner_url");
+		profileImageUrl = dirEntry.readString("profile_image_url");
+		profileImageUrlHttps = dirEntry.readString("profile_image_url_https");
+		profileLinkColor = dirEntry.readString("profile_link_color");
+		profileSidebarBorderColor = dirEntry.readString("profile_sidebar_border_color");
+		profileSidebarFillColor = dirEntry.readString("profile_sidebar_fill_color");
+		profileTextColor = dirEntry.readString("profile_text_color");
+		profileUseBackgroundImage = dirEntry.readBool("profile_use_background_image");
+		isProtected = dirEntry.readBool("protected");
+		screenName = dirEntry.readString("screen_name");
+		showAllInlineMedia = dirEntry.readBool("show_all_inline_media");
+		statusesCount = dirEntry.readInt("statuses_count");
+		timeZone = dirEntry.readString("time_zone");
+		url = dirEntry.readString("url");
+		utcOffset = dirEntry.readInt("utc_offset");
+		isVerified = dirEntry.readBool("verified");
+		DirEntry entities = dirEntry.getDirEntry("entities");
+		urlEntity = new URLEntityImpl(entities.getDirEntry("url"));
+		descriptionURLEntities = getEntitiesFromDirEntry(entities.getDirEntry("description"));
 	}
-
 
 	/**
 	 * インスタンスを生成する。
 	 *
 	 * @param originalUser オリジナルユーザー
-	 * @param jsonObject   生JSON。取得できなかった場合にはnull。
 	 */
-	public TwitterUser(User originalUser, JSONObject jsonObject) {
-		createdAt = originalUser.getCreatedAt();
+	public TwitterUser(User originalUser) {
+		createdAt = originalUser.getCreatedAt().getTime();
 		id = originalUser.getId();
-		isContributorsEnabled = originalUser.isContributorsEnabled();
-		isFollowRequestSent = originalUser.isFollowRequestSent();
-		isGeoEnabled = originalUser.isGeoEnabled();
-		isVerified = originalUser.isVerified();
-		lang = originalUser.getLang();
-		url = originalUser.getURL();
-		profileBackgroundColor = originalUser.getProfileBackgroundColor();
-		profileBackgroundImageUrl = originalUser.getProfileBackgroundImageURL();
-		profileBackgroundImageUrlHttps = originalUser.getProfileBackgroundImageUrlHttps();
-		profileBackgroundTiled = originalUser.isProfileBackgroundTiled();
-		profileImageUrl = originalUser.getProfileImageURL();
-		profileImageUrlHttps = originalUser.getProfileImageURLHttps();
-		profileLinkColor = originalUser.getProfileLinkColor();
-		profileSidebarBorderColor = originalUser.getProfileSidebarBorderColor();
-		profileSidebarFillColor = originalUser.getProfileSidebarFillColor();
-		profileTextColor = originalUser.getProfileTextColor();
-		profileUseBackgroundImage = originalUser.isProfileUseBackgroundImage();
-		showAllInlineMedia = originalUser.isShowAllInlineMedia();
-		timeZone = originalUser.getTimeZone();
-		translator = originalUser.isTranslator();
-		utcOffset = originalUser.getUtcOffset();
-		description = originalUser.getDescription();
-		favouritesCount = originalUser.getFavouritesCount();
-		followersCount = originalUser.getFollowersCount();
-		friendsCount = originalUser.getFriendsCount();
-		isProtected = originalUser.isProtected();
-		listedCount = originalUser.getListedCount();
-		location = originalUser.getLocation();
-		name = originalUser.getName();
-		screenName = originalUser.getScreenName();
-		statusesCount = originalUser.getStatusesCount();
-		String profileBannerURL = originalUser.getProfileBannerURL(); // delete "/web"
-		profileBannerImageUrl = profileBannerURL == null ? null : profileBannerURL.substring(0, profileBannerURL.length() - 4);
-		descriptionURLEntities = originalUser.getDescriptionURLEntities();
-		urlEntity = originalUser.getURLEntity();
-		defaultProfile = originalUser.isDefaultProfile();
-		defaultProfileImage = originalUser.isDefaultProfileImage();
-
-		json = jsonObject == null ? null : jsonObject.toString();
+		update(originalUser);
 	}
 
 	@Override
@@ -225,7 +207,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	@Override
 	public Date getCreatedAt() {
-		return (Date) createdAt.clone();
+		return new Date(createdAt);
 	}
 
 	@Override
@@ -257,16 +239,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	@Override
 	public long getId() {
 		return id;
-	}
-
-	/**
-	 * get json
-	 *
-	 * @return json string
-	 */
-	//@Override
-	public String getJson() {
-		return json;
 	}
 
 	@Override
@@ -577,6 +549,54 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	}
 
 	/**
+	 * update user information
+	 * @param originalUser originalUser
+	 */
+	public void update(User originalUser) {
+		if (originalUser.getId() != id) {
+			throw new IllegalArgumentException("illegal user id: " + originalUser.getId());
+		}
+
+		isContributorsEnabled = originalUser.isContributorsEnabled();
+		isFollowRequestSent = originalUser.isFollowRequestSent();
+		isGeoEnabled = originalUser.isGeoEnabled();
+		isVerified = originalUser.isVerified();
+		lang = originalUser.getLang();
+		url = originalUser.getURL();
+		profileBackgroundColor = originalUser.getProfileBackgroundColor();
+		profileBackgroundImageUrl = originalUser.getProfileBackgroundImageURL();
+		profileBackgroundImageUrlHttps = originalUser.getProfileBackgroundImageUrlHttps();
+		profileBackgroundTiled = originalUser.isProfileBackgroundTiled();
+		profileImageUrl = originalUser.getProfileImageURL();
+		profileImageUrlHttps = originalUser.getProfileImageURLHttps();
+		profileLinkColor = originalUser.getProfileLinkColor();
+		profileSidebarBorderColor = originalUser.getProfileSidebarBorderColor();
+		profileSidebarFillColor = originalUser.getProfileSidebarFillColor();
+		profileTextColor = originalUser.getProfileTextColor();
+		profileUseBackgroundImage = originalUser.isProfileUseBackgroundImage();
+		showAllInlineMedia = originalUser.isShowAllInlineMedia();
+		timeZone = originalUser.getTimeZone();
+		translator = originalUser.isTranslator();
+		utcOffset = originalUser.getUtcOffset();
+		description = originalUser.getDescription();
+		favouritesCount = originalUser.getFavouritesCount();
+		followersCount = originalUser.getFollowersCount();
+		friendsCount = originalUser.getFriendsCount();
+		isProtected = originalUser.isProtected();
+		listedCount = originalUser.getListedCount();
+		location = originalUser.getLocation();
+		name = originalUser.getName();
+		screenName = originalUser.getScreenName();
+		statusesCount = originalUser.getStatusesCount();
+		String profileBannerURL = originalUser.getProfileBannerURL(); // delete "/web"
+		profileBannerImageUrl = profileBannerURL == null ? null : profileBannerURL.substring(0, profileBannerURL.length() - 4);
+		descriptionURLEntities = originalUser.getDescriptionURLEntities();
+		urlEntity = originalUser.getURLEntity();
+		defaultProfile = originalUser.isDefaultProfile();
+		defaultProfileImage = originalUser.isDefaultProfileImage();
+	}
+
+	/**
 	 * このユーザーのプロフィールを指定したユーザーのプロフィールでアップデートする
 	 *
 	 * @param user 新しい情報が含まれたユーザー
@@ -604,5 +624,50 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		statusesCount = user.getStatusesCount();
 		url = user.getURL();
 		return this;
+	}
+
+	@Override
+	public void write(DirEntry dirEntry) {
+		dirEntry.writeBool("contributors_enabled", isContributorsEnabled)
+				.writeLong("created_at", createdAt)
+				.writeBool("default_profile", defaultProfile)
+				.writeBool("default_profile_image", defaultProfileImage)
+				.writeString("description", description)
+				.writeInt("favourites_count", favouritesCount)
+				.writeBool("follow_request_sent", isFollowRequestSent)
+				.writeInt("followers_count", followersCount)
+				.writeInt("friends_count", friendsCount)
+				.writeBool("geo_enabled", isGeoEnabled)
+				.writeLong("id", id)
+				.writeBool("is_translator", translator)
+				.writeString("lang", lang)
+				.writeInt("listed_count", listedCount)
+				.writeString("location", location)
+				.writeString("name", name)
+				.writeString("profile_background_color", profileBackgroundColor)
+				.writeString("profile_background_image_url", profileBackgroundImageUrl)
+				.writeString("profile_background_image_url_https", profileBackgroundImageUrlHttps)
+				.writeBool("profile_background_tile", profileBackgroundTiled)
+				.writeString("profile_banner_url", profileBannerImageUrl)
+				.writeString("profile_image_url", profileImageUrl)
+				.writeString("profile_image_url_https", profileImageUrlHttps)
+				.writeString("profile_link_color", profileLinkColor)
+				.writeString("profile_sidebar_border_color", profileSidebarBorderColor)
+				.writeString("profile_sidebar_fill_color", profileSidebarFillColor)
+				.writeString("profile_text_color", profileTextColor)
+				.writeBool("profile_use_background_image", profileUseBackgroundImage)
+				.writeBool("protected", isProtected)
+				.writeString("screen_name", screenName)
+				.writeBool("show_all_inline_media", showAllInlineMedia)
+				.writeInt("statuses_count", statusesCount)
+				.writeString("time_zone", timeZone)
+				.writeString("url", url)
+				.writeInt("utc_offset", utcOffset)
+				.writeBool("verified", isVerified);
+//				.writeString("notification", )
+//				.writeString("following",  )
+		dirEntry.mkdir("entities");
+		URLEntityImpl.write(dirEntry.mkdir("entities/url"), urlEntity);
+		URLEntityImpl.write(dirEntry.mkdir("entities/description"), descriptionURLEntities);
 	}
 }

@@ -386,10 +386,15 @@ public final class TwitterClientMain {
 
 	/**
 	 * init cache manager
+	 * @param condition init condition
 	 */
 	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
-	public void initCacheManager() {
-		configuration.setCacheManager(new CacheManager(configuration));
+	public void initCacheManager(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			configuration.setCacheManager(new CacheManager(configuration));
+		} else {
+			configuration.getCacheManager().flush();
+		}
 	}
 
 	/**
