@@ -22,10 +22,8 @@
 package jp.syuriken.snsw.twclient.filter.query;
 
 import java.io.StringReader;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Scanner;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
@@ -120,26 +118,6 @@ public class QueryCompiler implements FilterParserVisitor {
 	 */
 	public static QueryPropertyFactory getFilterProperty(String propertyName) {
 		return filterPropertyFactories.get(propertyName);
-	}
-
-	/**
-	 * テスト用インタラクティブコンソール
-	 *
-	 * @param args argv
-	 */
-	public static void main(String[] args) {
-		Scanner scanner = new Scanner(System.in, Charset.defaultCharset().name());
-		System.out.print("> ");
-		while (scanner.hasNextLine()) {
-			String query = scanner.nextLine();
-			try {
-				QueryCompiler.tokenize(query).dump("");
-				QueryCompiler.getCompiledObject(query);
-			} catch (IllegalSyntaxException | ParseException e) {
-				e.printStackTrace();
-			}
-			System.out.print("> ");
-		}
 	}
 
 	/**
