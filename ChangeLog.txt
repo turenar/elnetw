@@ -1,4 +1,6 @@
 Version 0.1-rc1
+	+ Add has_url, has_hashtag query property
+	+ Warn if older elnetw with newer config will be running
 	* Fix SPLP#remove() sometimes don't work
 	* Fix StandardBooleanProperties often ignored operator
 
