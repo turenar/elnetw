@@ -113,6 +113,7 @@ public class FilterParserTest implements FilterParserVisitor {
 		assertNoValidToken(list);
 	}
 
+
 	@Test
 	public void test1PropertyOperator2() throws ParseException {
 		QueryTokenStart node = tokenize(" \t    \nhoge \n\t: ");
@@ -155,6 +156,7 @@ public class FilterParserTest implements FilterParserVisitor {
 		assertComment(list, "/***/");
 		assertNoValidToken(list);
 	}
+
 
 	@Test
 	public void test2CommentWithAstarisk() throws Exception {
@@ -253,6 +255,51 @@ public class FilterParserTest implements FilterParserVisitor {
 		assertTokenFuncEnd(list);
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalChar() throws ParseException {
+		tokenize(" ++ -- ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalComment() throws ParseException {
+		tokenize(" /**/*/ ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalFunctionArgSeparator1() throws ParseException {
+		tokenize(" hoge( ,)");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalFunctionArgSeparator2() throws ParseException {
+		tokenize(" hoge(fuga,) ");
+	}
+
+	@Test(expected = Exception.class)
+	public void test3IllegalFunctionParenPair1() throws ParseException {
+		tokenize(" hoge( ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalFunctionParenPair2() throws ParseException {
+		tokenize(" hoge(fuga ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalFunctionParenPair3() throws ParseException {
+		tokenize(" hoge) ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalOp() throws ParseException {
+		tokenize(" hoge */ ");
+	}
+
+	@Test(expected = Throwable.class)
+	public void test3IllegalPropertyDoubleOp() throws ParseException {
+		tokenize(" hoge++ -- ");
 	}
 
 	@Test
