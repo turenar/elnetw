@@ -231,6 +231,8 @@ public class VersionInfoFrame extends JFrame {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("elnetw (エルナト): version")
 				.append(VersionInfo.getUniqueVersion())
+				.append("\n  ").append(VersionInfo.getCodeName())
+				.append(" (").append(VersionInfo.getMajorVersion()).append(")")
 				.append("\nTwitter Client for hitobasira")
 				.append("\n\n開発元: Turenai Project (@ture7)")
 				.append("\n配布元: ").append(VersionInfo.getSupportUrl())
