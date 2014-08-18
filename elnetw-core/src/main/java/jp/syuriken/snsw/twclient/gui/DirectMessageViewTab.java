@@ -35,29 +35,9 @@ import twitter4j.JSONObject;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DirectMessageViewTab extends DefaultClientTab implements RenderTarget {
+public class DirectMessageViewTab extends AbstractClientTab implements RenderTarget {
 
 	private static final String TAB_ID = "directmessage";
-
-	private static void nl2br(StringBuffer stringBuffer) {
-		int start = stringBuffer.length();
-		int offset = start;
-		int position;
-		while ((position = stringBuffer.indexOf("\n", offset)) >= 0) {
-			stringBuffer.replace(position, position + 1, "<br>");
-			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuffer.indexOf(" ", offset)) >= 0) {
-			stringBuffer.replace(position, position + 1, "&nbsp;");
-			offset = position + 1;
-		}
-		offset = start;
-		while ((position = stringBuffer.indexOf("&amp;", offset)) >= 0) {
-			stringBuffer.replace(position, position + 5, "&amp;amp;");
-			offset = position + 9;
-		}
-	}
 
 	private DelegateRenderer renderer = new DelegateRenderer() {
 

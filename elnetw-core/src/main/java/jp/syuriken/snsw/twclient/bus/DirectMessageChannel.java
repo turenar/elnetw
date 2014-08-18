@@ -29,8 +29,6 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -45,7 +43,6 @@ import twitter4j.TwitterFactory;
  */
 public class DirectMessageChannel extends TwitterRunnable implements MessageChannel {
 
-	private static final Logger logger = LoggerFactory.getLogger(TimelineChannel.class);
 	private final ClientConfiguration configuration;
 	private final int intervalOfDirectMessage;
 	private final ClientProperties configProperties;
@@ -85,6 +82,10 @@ public class DirectMessageChannel extends TwitterRunnable implements MessageChan
 			scheduledFuture.cancel(false);
 			scheduledFuture = null;
 		}
+	}
+
+	@Override
+	public void establish(ClientMessageListener listener) {
 	}
 
 	@Override

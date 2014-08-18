@@ -37,7 +37,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MentionViewTab extends DefaultClientTab implements RenderTarget {
+public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 
 	/**
 	 * メンションタブ用レンダラ

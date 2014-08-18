@@ -31,7 +31,7 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
  * タブのデータを管理するクラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
- * @see DefaultClientTab
+ * @see AbstractClientTab
  */
 public interface ClientTab {
 

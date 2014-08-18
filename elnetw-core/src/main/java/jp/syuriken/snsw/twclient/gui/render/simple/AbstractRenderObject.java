@@ -59,11 +59,11 @@ import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.EntitySupport;
@@ -201,13 +201,13 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	}
 
 	/**
-	 * レンダラ
-	 */
-	protected final SimpleRenderer renderer;
-	/**
 	 * レンターターゲット
 	 */
 	protected final RenderTarget target;
+	/**
+	 * レンダラ
+	 */
+	protected SimpleRenderer renderer;
 	/**
 	 * 右クリックで表示するポップアップメニュー
 	 */

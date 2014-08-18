@@ -27,7 +27,6 @@ import javax.annotation.Nonnull;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.syuriken.snsw.twclient.CacheManager;
-import jp.syuriken.snsw.twclient.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.JSONException;
@@ -47,6 +46,23 @@ public class TwitterUser implements User, TwitterExtendedObject {
 
 	private static final long serialVersionUID = 1893110786616307437L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterUser.class);
+
+	public static TwitterUser getInstance(User user) {
+		if (user instanceof TwitterUser) {
+			return (TwitterUser) user;
+		}
+
+		CacheManager cacheManager = TwitterStatus.configuration.getCacheManager();
+		TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
+		if (cachedUser == null) {
+			TwitterUser twitterUser = new TwitterUser(user);
+			cachedUser = cacheManager.cacheUserIfAbsent(twitterUser);
+			if (cachedUser == null) {
+				cachedUser = twitterUser;
+			}
+		}
+		return cachedUser;
+	}
 
 	private static JSONObject getJsonObject(User originalUser) throws AssertionError {
 		String json = TwitterObjectFactory.getRawJSON(originalUser);
@@ -90,7 +106,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private String location;
 	private String name;
 	private String screenName;
-	private Status status;
 	private int statusesCount;
 	private String url;
 	private String profileBackgroundImageUrl;
@@ -103,7 +118,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	private boolean defaultProfile;
 	private boolean defaultProfileImage;
 
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -112,6 +126,7 @@ public class TwitterUser implements User, TwitterExtendedObject {
 	public TwitterUser(User originalUser) {
 		this(originalUser, getJsonObject(originalUser));
 	}
+
 
 	/**
 	 * インスタンスを生成する。
@@ -159,26 +174,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		urlEntity = originalUser.getURLEntity();
 
 		json = jsonObject == null ? null : jsonObject.toString();
-
-		Status status = originalUser.getStatus();
-		JSONObject statusJsonObject;
-		try {
-			statusJsonObject = jsonObject == null ? null
-					: (jsonObject.isNull("status") ? null : jsonObject.getJSONObject("status"));
-		} catch (JSONException e) {
-			logger.error("Cannot parse json", e);
-			throw new RuntimeException(e);
-		}
-		if (!(status == null || status instanceof TwitterStatus)) {
-			ClientConfiguration configuration = ClientConfiguration.getInstance();
-			CacheManager cacheManager = configuration.getCacheManager();
-			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
-			if (cachedStatus == null) {
-				TwitterStatus twitterStatus = new TwitterStatus(status, statusJsonObject, this);
-				status = cacheManager.getCachedStatus(twitterStatus);
-			}
-		}
-		this.status = status;
 	}
 
 	@Override
@@ -262,6 +257,11 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return id;
 	}
 
+	/**
+	 * get json
+	 *
+	 * @return json string
+	 */
 	//@Override
 	public String getJson() {
 		return json;
@@ -425,9 +425,14 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return screenName;
 	}
 
+	/**
+	 * this class returns always null. This is workaround Twitter#getUser().getStatus().getUser()==null
+	 *
+	 * @return null
+	 */
 	@Override
 	public Status getStatus() {
-		return status;
+		return null;
 	}
 
 	@Override
@@ -521,6 +526,45 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		return null;
 	}
 
+	@Override
+	public String toString() {
+		return "TwitterUser{"
+				+ "id=" + id
+				+ ", name='" + name + '\''
+				+ ", screenName='" + screenName + '\''
+				+ ", location='" + location + '\''
+				+ ", description='" + description + '\''
+				+ ", isContributorsEnabled=" + isContributorsEnabled
+				+ ", profileImageUrl='" + profileImageUrl + '\''
+				+ ", profileImageUrlHttps='" + profileImageUrlHttps + '\''
+				+ ", url='" + url + '\''
+				+ ", isProtected=" + isProtected
+				+ ", followersCount=" + followersCount
+				+ ", profileBackgroundColor='" + profileBackgroundColor + '\''
+				+ ", profileTextColor='" + profileTextColor + '\''
+				+ ", profileLinkColor='" + profileLinkColor + '\''
+				+ ", profileSidebarFillColor='" + profileSidebarFillColor + '\''
+				+ ", profileSidebarBorderColor='" + profileSidebarBorderColor + '\''
+				+ ", profileUseBackgroundImage=" + profileUseBackgroundImage
+				+ ", showAllInlineMedia=" + showAllInlineMedia
+				+ ", friendsCount=" + friendsCount
+				+ ", createdAt=" + createdAt
+				+ ", favouritesCount=" + favouritesCount
+				+ ", utcOffset=" + utcOffset
+				+ ", timeZone='" + timeZone + '\''
+				+ ", profileBackgroundImageUrl='" + profileBackgroundImageUrl + '\''
+				+ ", profileBackgroundImageUrlHttps='" + profileBackgroundImageUrlHttps + '\''
+				+ ", profileBackgroundTiled=" + profileBackgroundTiled
+				+ ", lang='" + lang + '\''
+				+ ", statusesCount=" + statusesCount
+				+ ", isGeoEnabled=" + isGeoEnabled
+				+ ", isVerified=" + isVerified
+				+ ", translator=" + translator
+				+ ", listedCount=" + listedCount
+				+ ", isFollowRequestSent=" + isFollowRequestSent
+				+ '}';
+	}
+
 	/**
 	 * このユーザーのプロフィールを指定したユーザーのプロフィールでアップデートする
 	 *
@@ -546,7 +590,6 @@ public class TwitterUser implements User, TwitterExtendedObject {
 		profileImageUrlHttps = user.getProfileImageURLHttps();
 		isProtected = user.isProtected();
 		screenName = user.getScreenName();
-		status = user.getStatus();
 		statusesCount = user.getStatusesCount();
 		url = user.getURL();
 		return this;

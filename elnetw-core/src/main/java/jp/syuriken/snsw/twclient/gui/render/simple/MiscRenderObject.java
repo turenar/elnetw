@@ -30,6 +30,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.User;
@@ -44,6 +45,19 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 public class MiscRenderObject extends AbstractRenderObject {
 	private static final Logger logger = LoggerFactory.getLogger(MiscRenderObject.class);
 
+	public static MiscRenderObject getInstance(SimpleRenderer renderer, MessageRenderBase obj) {
+		MiscRenderObject renderObject = new MiscRenderObject(renderer, obj.getBasedObject());
+		renderObject.setBackgroundColor(obj.getBackgroundColor());
+		renderObject.setForegroundColor(obj.getForegroundColor());
+		renderObject.setCreatedBy(obj.getCreatedBy());
+		renderObject.setCreatedByText(obj.getCreatedBy(), obj.getLongCreatedBy());
+		renderObject.setDate(obj.getDate().getTime());
+		renderObject.setIcon(obj.getIcon());
+		renderObject.setUniqId(obj.getUniqId());
+		renderObject.setText(obj.getText());
+		return renderObject;
+	}
+
 	private static String getUserCreatedByText(User user) {
 		return "@" + user.getScreenName() + " (" + user.getName() + ")";
 	}
@@ -55,6 +69,12 @@ public class MiscRenderObject extends AbstractRenderObject {
 	private String uniqId;
 	private String text;
 
+	/**
+	 * instance
+	 *
+	 * @param renderer renderer
+	 * @param base     based object
+	 */
 	public MiscRenderObject(SimpleRenderer renderer, Object base) {
 		super(renderer);
 		this.base = base;

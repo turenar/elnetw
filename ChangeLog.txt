@@ -1,3 +1,13 @@
+Version 0.2
+	++ Add BlockingUserFilter. You can see its option in SettingFrame
+	++ Add has_url, has_hashtag filter property
+	++ Support comment in query statement
+	** Fix crash with RegexCompilation error when edit in QueryEditFrame
+	** Fix NPE if closing QueryEditFrame with empty query statement
+	 * Support LowerCaseName of query system
+	 * Update filter system
+	 * Stop using Constructor<> in query system
+
 Version 0.1-beta2 (2014年  6月 14日 土曜日 10:12:14 JST)
 
 	* Fix not launchable in Windows

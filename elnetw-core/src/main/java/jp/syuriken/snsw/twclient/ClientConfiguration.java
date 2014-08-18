@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -41,11 +40,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -106,6 +105,10 @@ public class ClientConfiguration {
 	 * UIフォントのプロパティ名
 	 */
 	public static final String PROPERTY_GUI_FONT_UI = "gui.font.ui";
+	/**
+	 * ブロック中のユーザーをミュートするかどうか
+	 */
+	public static final String PROPERTY_BLOCKING_USER_MUTE_ENABLED = "core.mute.blocking";
 	private static ClientConfiguration singleton;
 	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
 			new HashMap<>();
@@ -209,7 +212,7 @@ public class ClientConfiguration {
 	private volatile CacheManager cacheManager;
 	private transient ScheduledExecutorService timer;
 	private ClassLoader extraClassLoader;
-	private CopyOnWriteArrayList<MessageFilter> messageFilters = new CopyOnWriteArrayList<>();
+	private MessageFilter messageFilters = null;
 	private ParsedArguments parsedArguments;
 	private ArgParser argParser;
 
@@ -236,7 +239,11 @@ public class ClientConfiguration {
 	 * @param filter フィルター
 	 */
 	public void addFilter(MessageFilter filter) {
-		messageFilters.add(filter);
+		if (messageFilters == null) {
+			messageFilters = filter;
+		} else {
+			messageFilters.addChild(filter);
+		}
 	}
 
 	/**
@@ -453,9 +460,11 @@ public class ClientConfiguration {
 	 * グローバルで使用するフィルタを取得する
 	 *
 	 * @return フィルタ
+	 * @throws java.lang.CloneNotSupportedException at least one of message filter doesn't support clone
+	 *                                              (this should be not happened)
 	 */
-	public MessageFilter[] getFilters() {
-		return messageFilters.toArray(new MessageFilter[messageFilters.size()]);
+	public MessageFilter getFilters() throws CloneNotSupportedException {
+		return messageFilters.clone();
 	}
 
 	/**

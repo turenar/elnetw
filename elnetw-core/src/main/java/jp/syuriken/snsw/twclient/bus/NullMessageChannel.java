@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.twclient.bus;
 
+import jp.syuriken.snsw.twclient.ClientMessageListener;
+
 /**
  * null message channel
  */
@@ -36,6 +38,10 @@ public class NullMessageChannel implements MessageChannel {
 
 	@Override
 	public void disconnect() {
+	}
+
+	@Override
+	public void establish(ClientMessageListener listener) {
 	}
 
 	@Override

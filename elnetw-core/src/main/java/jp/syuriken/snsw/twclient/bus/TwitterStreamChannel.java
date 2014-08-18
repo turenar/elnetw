@@ -62,6 +62,10 @@ public class TwitterStreamChannel implements MessageChannel {
 	}
 
 	@Override
+	public void establish(ClientMessageListener listener) {
+	}
+
+	@Override
 	public void realConnect() {
 		// #connect() works.
 	}

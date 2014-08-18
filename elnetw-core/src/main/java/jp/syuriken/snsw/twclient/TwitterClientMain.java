@@ -65,34 +65,28 @@ import javax.swing.UIManager;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.OptionType;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
-import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
-import jp.syuriken.snsw.twclient.bus.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TimelineChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
-import jp.syuriken.snsw.twclient.bus.VirtualChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.BlockingUsersChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.DirectMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.MentionsChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.TimelineChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.TwitterStreamChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.VirtualChannelFactory;
+import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
-import jp.syuriken.snsw.twclient.filter.FilterCompiler;
-import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
-import jp.syuriken.snsw.twclient.filter.FilterProperty;
+import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.UserFilter;
-import jp.syuriken.snsw.twclient.filter.func.AndFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.ExtractFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.IfFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.InRetweetFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.NotFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.OneOfFilterFunction;
-import jp.syuriken.snsw.twclient.filter.func.OrFilterFunction;
-import jp.syuriken.snsw.twclient.filter.prop.InListProperty;
-import jp.syuriken.snsw.twclient.filter.prop.StandardBooleanProperties;
-import jp.syuriken.snsw.twclient.filter.prop.StandardIntProperties;
-import jp.syuriken.snsw.twclient.filter.prop.StandardStringProperties;
+import jp.syuriken.snsw.twclient.filter.QueryFilter;
+import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
+import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryConfigurator;
+import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
+import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
 import jp.syuriken.snsw.twclient.gui.MentionViewTab;
@@ -137,7 +131,6 @@ import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -265,7 +258,6 @@ public final class TwitterClientMain {
 	private Logger logger;
 
 	private JobQueue jobQueue;
-	private boolean debugMode;
 	private boolean portable;
 	private MessageBus messageBus;
 	private TwitterClientFrame frame;
@@ -315,7 +307,10 @@ public final class TwitterClientMain {
 	@Initializer(name = "gui/config/filter", dependencies = {"gui/main", "gui/config/builder"}, phase = "init")
 	public void addConfiguratorOfFilter() {
 		configuration.getConfigBuilder().getGroup("フィルタ")
-				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
+				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
+						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
+						new BooleanConfigType())
+				.addConfig("<ignore>", "フィルタの編集", "", new QueryConfigurator());
 	}
 
 	/**
@@ -449,13 +444,15 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/func", phase = "preinit")
 	public void initFilterFunctions() {
-		FilterCompiler.putFilterFunction("or", OrFilterFunction.getFactory());
-		FilterCompiler.putFilterFunction("exactly_one_of", OneOfFilterFunction.getFactory());
-		FilterCompiler.putFilterFunction("and", AndFilterFunction.getFactory());
-		FilterCompiler.putFilterFunction("not", NotFilterFunction.getFactory());
-		FilterCompiler.putFilterFunction("extract", ExtractFilterFunction.getFactory()); // for FilterEditFrame
-		FilterCompiler.putFilterFunction("inrt", InRetweetFilterFunction.getFactory());
-		FilterCompiler.putFilterFunction("if", IfFilterFunction.getFactory());
+		QueryCompiler.putFilterFunction("and", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("extract", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("if", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("inrt", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("not", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("exactly_one_of", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("one_of", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("or", StandardFunctionFactory.SINGLETON);
+
 	}
 
 	/**
@@ -463,25 +460,46 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/prop", phase = "preinit")
 	public void initFilterProperties() {
-		Constructor<? extends FilterProperty> properties;
-		properties = StandardIntProperties.getFactory();
-		FilterCompiler.putFilterProperty("userid", properties);
-		FilterCompiler.putFilterProperty("in_reply_to_userid", properties);
-		FilterCompiler.putFilterProperty("rtcount", properties);
-		FilterCompiler.putFilterProperty("timediff", properties);
-		properties = StandardBooleanProperties.getFactory();
-		FilterCompiler.putFilterProperty("retweeted", properties);
-		FilterCompiler.putFilterProperty("mine", properties);
-		FilterCompiler.putFilterProperty("protected", properties);
-		FilterCompiler.putFilterProperty("verified", properties);
-		FilterCompiler.putFilterProperty("status", properties);
-		FilterCompiler.putFilterProperty("dm", properties);
-		properties = StandardStringProperties.getFactory();
-		FilterCompiler.putFilterProperty("user", properties);
-		FilterCompiler.putFilterProperty("text", properties);
-		FilterCompiler.putFilterProperty("client", properties);
-
-		FilterCompiler.putFilterProperty("in_list", InListProperty.getFactory());
+		QueryCompiler.putFilterProperty("userid", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("user_id", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_reply_to", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_reply_to_userid", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("inreplyto", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("send_to", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("sendto", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("rtcount", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("rt_count", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("timediff", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("mine", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("protected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_protected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isprotected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("verified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_verified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isverified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("status", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_status", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isstatus", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("dm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("directmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("direct_message", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_dm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isdm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_directmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_direct_message", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isdirectmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("user", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("author", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("screen_name", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("screenname", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("text", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("client", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_list", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("has_hashtag", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("hashashtag", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("has_url", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("hasurl", StandardPropertyFactory.SINGLETON);
 	}
 
 	/**
@@ -637,10 +655,8 @@ public final class TwitterClientMain {
 	 */
 	public HashMap<String, Object> run() {
 		portable = Boolean.getBoolean("config.portable");
-		debugMode = false;
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
-			debugMode = true;
 		}
 
 		setHomeProperty();
@@ -804,9 +820,11 @@ public final class TwitterClientMain {
 	/**
 	 * set default global filter
 	 */
-	@Initializer(name = "filter/global", dependencies = "config", phase = "init")
+	@Initializer(name = "filter/global", dependencies = {"config", "bus/factory"}, phase = "init")
 	public void setDefaultFilter() {
-		configuration.addFilter(new UserFilter(UserFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
+		configuration.addFilter(new GlobalUserIdFilter());
+		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
+		configuration.addFilter(new BlockingUserFilter(true));
 	}
 
 	/**
@@ -856,13 +874,14 @@ public final class TwitterClientMain {
 	/**
 	 * init message bus channel factories
 	 */
-	@Initializer(name = "bus/factory", dependencies = "bus", phase = "init")
+	@Initializer(name = "bus/factory", dependencies = {"bus", "cache"}, phase = "init")
 	public void setMessageChannelFactory() {
 		messageBus.addChannelFactory("my/timeline", new VirtualChannelFactory("stream/user", "statuses/timeline"));
 		messageBus.addChannelFactory("stream/user", new TwitterStreamChannelFactory());
 		messageBus.addChannelFactory("statuses/timeline", new TimelineChannelFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
+		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
@@ -1023,10 +1042,14 @@ public final class TwitterClientMain {
 		}
 	}
 
-	/** OAuthアクセストークンの取得を試す */
+	/**
+	 * OAuthアクセストークンの取得を試す
+	 *
+	 * @param condition init condition
+	 */
 	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
-	public void tryGetOAuthAccessToken(InitCondition cond) {
-		if (!cond.isInitializingPhase()) {
+	public void tryGetOAuthAccessToken(InitCondition condition) {
+		if (!condition.isInitializingPhase()) {
 			return;
 		}
 
@@ -1043,7 +1066,7 @@ public final class TwitterClientMain {
 					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
-						cond.setFailStatus("OAuth failed: canceled", -1);
+						condition.setFailStatus("OAuth failed: canceled", -1);
 						return;
 					}
 				} else {
@@ -1051,7 +1074,7 @@ public final class TwitterClientMain {
 					break;
 				}
 			} catch (TwitterException e) {
-				cond.setFailStatus("error", 1);
+				condition.setFailStatus("error", 1);
 				return;
 			}
 		} while (true);

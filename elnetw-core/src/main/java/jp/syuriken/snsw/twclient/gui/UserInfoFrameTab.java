@@ -63,13 +63,13 @@ import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.cache.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
-import jp.syuriken.snsw.twclient.net.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UserInfoFrameTab extends DefaultClientTab {
+public class UserInfoFrameTab extends AbstractClientTab {
 
 	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
 
@@ -699,7 +699,7 @@ public class UserInfoFrameTab extends DefaultClientTab {
 				if (bannerURL != null) {
 					componentUserInfoPanel.setMaximumSize(NEW_BANNER_SIZE);
 					componentUserInfoPanel.setPreferredSize(NEW_BANNER_SIZE);
-				}else{
+				} else {
 					showHeaderItem.setEnabled(false);
 				}
 			}

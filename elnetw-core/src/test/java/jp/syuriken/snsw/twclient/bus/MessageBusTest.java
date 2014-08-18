@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.impl.TwitterConfigurationImpl;
 import org.junit.Test;
 import twitter4j.conf.Configuration;
 
@@ -55,9 +56,7 @@ public class MessageBusTest {
 
 
 	}
-	public static ClientMessageListener getListeners(MessageBus messageBus, String path, boolean recursive) {
-		return messageBus.getListeners(ACCOUNT_ID, recursive, path);
-	}
+
 	private static class MessageAdapter extends ClientMessageAdapter {
 		protected String value;
 
@@ -88,12 +87,6 @@ public class MessageBusTest {
 		@Override
 		public Configuration getTwitterConfiguration(String accountId) {
 			return new TwitterConfigurationImpl(accountId);
-		}
-	}
-
-	private static class MyMessageBus extends MessageBus {
-		@Override
-		protected void init() {
 		}
 	}
 
@@ -144,6 +137,10 @@ public class MessageBusTest {
 		}
 
 		@Override
+		public void establish(ClientMessageListener listener) {
+		}
+
+		@Override
 		public void realConnect() {
 		}
 	}
@@ -169,6 +166,10 @@ public class MessageBusTest {
 	public static final String WRITER_ACCOUNT = "222222222";
 	public static final String ACCOUNT_ID = "account";
 
+	public static ClientMessageListener getListeners(MessageBus messageBus, String path, boolean recursive) {
+		return messageBus.getListeners(ACCOUNT_ID, recursive, path);
+	}
+
 	private void assertArrayItemsEquals(String[] actual, String... expected) {
 		HashSet<String> hashSet = new HashSet<>();
 		Collections.addAll(hashSet, actual);
@@ -192,16 +193,43 @@ public class MessageBusTest {
 
 	@Test
 	public void testCleanUp() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("OnCleanUpTest", new TestFetcherFactory());
 		messageBus.establish("test", "OnCleanUpTest", new MessageAdapter());
 		messageBus.cleanUp();
 		assertTrue(OnCleanUpTestFetcher.isDisconnected);
 	}
 
+
+	@Test
+	public void testGetActualUsers() throws Exception {
+		ClientConfigurationTestImpl configuration = new MyClientConfigurationImpl();
+		configuration.setGlobalInstance();
+		try {
+			MessageBus messageBus = new TestMessageBus();
+			assertEquals(Long.parseLong(READER_ACCOUNT), messageBus.getActualUser(MessageBus.READER_ACCOUNT_ID));
+			assertEquals(Long.parseLong(WRITER_ACCOUNT), messageBus.getActualUser(MessageBus.WRITER_ACCOUNT_ID));
+			assertEquals(123456789L, messageBus.getActualUser("123456789"));
+		} finally {
+			configuration.clearGlobalInstance();
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetActualUsersWithAllAccountId() throws Exception {
+		ClientConfigurationTestImpl configuration = new MyClientConfigurationImpl();
+		configuration.setGlobalInstance();
+		try {
+			MessageBus messageBus = new TestMessageBus();
+			messageBus.getActualUser(MessageBus.ALL_ACCOUNT_ID);
+		} finally {
+			configuration.clearGlobalInstance();
+		}
+	}
+
 	@Test
 	public void testGetListeners() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("GetListeners", new TestFetcherFactory());
 
 		MessageAdapter allListener = new GetInternalListenersMessageListener();
@@ -210,8 +238,8 @@ public class MessageBusTest {
 		MessageAdapter singleListener = new GetInternalListenersMessageListener();
 		messageBus.establish(ACCOUNT_ID, "GetListeners", singleListener);
 
-		ClientMessageListener singleDispatcher = getListeners(messageBus,"GetListeners", false);
-		ClientMessageListener recursiveDispatcher = getListeners(messageBus,"GetListeners", true);
+		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
+		ClientMessageListener recursiveDispatcher = getListeners(messageBus, "GetListeners", true);
 
 		singleDispatcher.onClientMessage("isNotRecursive", null);
 		assertEquals("isNotRecursive", singleListener.getValue());
@@ -220,9 +248,11 @@ public class MessageBusTest {
 		recursiveDispatcher.onClientMessage("isRecursive", null);
 		assertEquals("isRecursive", singleListener.getValue());
 		assertEquals("isRecursive", allListener.getValue());
-	}@Test
-	 public void testGetListenersMultiple() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+	}
+
+	@Test
+	public void testGetListenersMultiple() throws Exception {
+		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("GetListeners", new TestFetcherFactory());
 
 		MessageAdapter listenerA = new GetInternalListenersMessageListener();
@@ -231,43 +261,21 @@ public class MessageBusTest {
 		MessageAdapter listenerB = new GetInternalListenersMessageListener();
 		messageBus.establish(ACCOUNT_ID, "GetListeners", listenerB);
 
-		ClientMessageListener singleDispatcher = getListeners(messageBus,"GetListeners", false);
+		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
 
 		singleDispatcher.onClientMessage("isRecursive", null);
 		assertEquals("isRecursive", listenerB.getValue());
 		assertEquals("isRecursive", listenerA.getValue());
 	}
-	@Test
-	public void testGetActualUsers() throws Exception {
-		ClientConfigurationTestImpl configuration = new MyClientConfigurationImpl();
-		configuration.setGlobalInstance();
-		try {
-			MessageBus messageBus = new MyMessageBus();
-			assertEquals(Long.parseLong(READER_ACCOUNT), messageBus.getActualUser(MessageBus.READER_ACCOUNT_ID));
-			assertEquals(Long.parseLong(WRITER_ACCOUNT), messageBus.getActualUser(MessageBus.WRITER_ACCOUNT_ID));
-			assertEquals(123456789L, messageBus.getActualUser("123456789"));
-		} finally {
-			configuration.clearGlobalInstance();
-		}
-	}	@Test(expected = IllegalArgumentException.class)
-		 public void testGetActualUsersWithAllAccountId() throws Exception {
-		ClientConfigurationTestImpl configuration = new MyClientConfigurationImpl();
-		configuration.setGlobalInstance();
-		try {
-			MessageBus messageBus = new MyMessageBus();
-			messageBus.getActualUser(MessageBus.ALL_ACCOUNT_ID);
-		} finally {
-			configuration.clearGlobalInstance();
-		}
-	}
+
 	@Test
 	public void testGetListenersUnknown() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 
 		MessageAdapter listener = new GetInternalListenersMessageListener();
 		messageBus.establish(ACCOUNT_ID, "GetListeners", listener);
 
-		ClientMessageListener singleDispatcher = getListeners(messageBus,"GetListeners", false);
+		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
 
 		singleDispatcher.onClientMessage("isRecursive", null);
 		assertEquals("isRecursive", listener.getValue());
@@ -275,13 +283,13 @@ public class MessageBusTest {
 
 	@Test
 	public void testGetPath() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		assertEquals("a:b", messageBus.getPath("a", "b"));
 	}
 
 	@Test
 	public void testGetRecursivePaths() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b"),
 				"a:b", "a:all", "$all:all", "$all:b");
 		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c"),
@@ -301,7 +309,7 @@ public class MessageBusTest {
 		ClientConfigurationTestImpl configuration = new MyClientConfigurationImpl();
 		configuration.setGlobalInstance();
 		try {
-			MessageBus messageBus = new MyMessageBus();
+			MessageBus messageBus = new TestMessageBus();
 			assertConf(messageBus, MessageBus.READER_ACCOUNT_ID, READER_ACCOUNT);
 			assertConf(messageBus, MessageBus.WRITER_ACCOUNT_ID, WRITER_ACCOUNT);
 			assertConf(messageBus, "aiueo", "aiueo");
@@ -314,7 +322,7 @@ public class MessageBusTest {
 	@Test
 	public void testOnChangeAccount() throws Exception {
 		assertEquals(0, OnChangeAccountTestFetcher.connectionCalledCount);
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("OnChangeAccount", new TestFetcherFactory());
 		messageBus.establish(MessageBus.READER_ACCOUNT_ID,
 				"OnChangeAccount", new MessageAdapter());
@@ -332,7 +340,7 @@ public class MessageBusTest {
 
 	@Test
 	public void testOnInitialized() throws Exception {
-		MessageBus messageBus = new MyMessageBus();
+		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("OnInitializedTest", new TestFetcherFactory());
 		messageBus.establish("test", "OnInitializedTest", new MessageAdapter());
 		messageBus.onInitialized();
