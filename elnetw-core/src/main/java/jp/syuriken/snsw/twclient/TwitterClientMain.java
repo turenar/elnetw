@@ -250,7 +250,6 @@ public final class TwitterClientMain {
 	private Logger logger;
 
 	private JobQueue jobQueue;
-	private boolean debugMode;
 	private boolean portable;
 	private MessageBus messageBus;
 	private TwitterClientFrame frame;
@@ -460,6 +459,7 @@ public final class TwitterClientMain {
 		QueryCompiler.putFilterProperty("send_to", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("sendto", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("rtcount", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("rt_count", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("timediff", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("mine", StandardPropertyFactory.SINGLETON);
@@ -646,10 +646,8 @@ public final class TwitterClientMain {
 	 */
 	public HashMap<String, Object> run() {
 		portable = Boolean.getBoolean("config.portable");
-		debugMode = false;
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
-			debugMode = true;
 		}
 
 		setHomeProperty();

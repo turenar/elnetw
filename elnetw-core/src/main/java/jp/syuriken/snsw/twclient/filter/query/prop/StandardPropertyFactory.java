@@ -49,6 +49,7 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 			case "sendto":
 				return new InReplyToUserIdProperty(name, operator, value);
 			case "rtcount":
+			case "rt_count":
 				return new RetweetCountProperty(name, operator, value);
 			case "timediff":
 				return new TimeDiffProperty(name, operator, value);
