@@ -730,9 +730,6 @@ public final class TwitterClientMain {
 					logger.warn("設定ファイルの読み込み中にエラー", e);
 				}
 			}
-
-			String configVersion = configProperties.getProperty("cfg.version", "0");
-			InitializeService.getService().provideInitializer("config/update/v" + configVersion, true);
 		} else {
 			configProperties.store();
 		}
@@ -1068,34 +1065,42 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * update configuration to v1
+	 * update configuration
+	 *
+	 * @param condition init condition
 	 */
-	@Initializer(name = "config/update/v1", dependencies = "config/update/v0", phase = "earlyinit")
-	public void updateConfigToV1() {
-		logger.info("Updating config to v1");
-		configProperties.setProperty("cfg.version", "1");
-	}
-
-	/**
-	 * update configuration to v2
-	 */
-	@Initializer(name = "config/update/v2", dependencies = "config/update/v1", phase = "earlyinit")
-	public void updateConfigToV2() {
-		logger.info("Updating config to v2");
-		if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
-			configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
-					configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+	@Initializer(name = "config/update", dependencies = "config", phase = "earlyinit")
+	public void updateConfig(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			int version = Integer.parseInt(configProperties.getProperty("cfg.version", "0"));
+			switch (version) {
+				case 0:
+					logger.info("Updating config to v1");
+					//configProperties.setProperty("cfg.version", "1");
+				case 1: // fall-through
+					logger.info("Updating config to v2");
+					if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
+						configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
+								configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+					}
+				case 2: // fall-through
+					logger.info("Updating config to v3");
+					configProperties.removePrefixed("gui.tabs");
+					configProperties.setProperty("cfg.version", "3");
+				case 3: // fall-through
+					// latest
+					break;
+				default:
+					int i = JOptionPane.showConfirmDialog(null,
+							"設定ファイルのバージョンより古いelnetwを動かしています！\n"
+									+ "予期しないクラッシュ、不具合が発生する可能性があります。\n\n"
+									+ "終了しますか？",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE);
+					if (i == JOptionPane.YES_OPTION) {
+						condition.setFailStatus("old version elnetw", 2);
+					}
+			}
 		}
-		configProperties.setProperty("cfg.version", "2");
-	}
-
-	/**
-	 * update configuration to v3
-	 */
-	@Initializer(name = "config/update/v3", dependencies = "config/update/v2", phase = "earlyinit")
-	public void updateConfigToV3() {
-		logger.info("Updating config to v3");
-		configProperties.removePrefixed("gui.tabs");
-		configProperties.setProperty("cfg.version", "3");
 	}
 }
