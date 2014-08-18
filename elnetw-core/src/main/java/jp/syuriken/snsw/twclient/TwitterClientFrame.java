@@ -1070,7 +1070,10 @@ import twitter4j.User;
 	 * initialize the form.
 	 */
 	private void initComponents() {
-		setTitle(ClientConfiguration.APPLICATION_NAME);
+		setTitle(VersionInfo.isSnapshot()
+						? VersionInfo.getCodeName() + " (" + ClientConfiguration.APPLICATION_NAME + ")"
+						: ClientConfiguration.APPLICATION_NAME
+		);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 
