@@ -22,115 +22,38 @@
 package jp.syuriken.snsw.lib.primitive;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 6/29/14
- * Time: 11:11 PM
+ * Benchmark for some Long Container
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class LongHashSetBenchmark {	private static long averageOf(long[] times) {
-	long sum = 0;
-	for (int i = 4; i < 28; i++) {
-		sum = times[i];
+public class LongHashSetBenchmark {
+	private static long averageOf(long[] times) {
+		long sum = 0;
+		for (int i = 4; i < 28; i++) {
+			sum = times[i];
+		}
+		return sum / 24;
 	}
-	return sum / 24;
-}
 
 	private static long[] bench(int max, boolean rand) {
-		System.out.print("\r\033[KRunning prebooster");
-		for (int i = 0; i < 20; i++) {
-			testHashSet(max, rand);
-			testTreeSet(max, rand);
-			testBukkit(max, rand);
-			testMine(max, rand, 0.5);
-			testMine(max, rand, 0.6);
-		}
-		long[] treeSetTimes = new long[32];
-		long[] hashSetTimes = new long[32];
-		long[] bukkitTimes = new long[32];
-		long[] myTimes = new long[32];
-		long[] myTimes7 = new long[32];
+		long[] factorArray = new long[61];
 		System.gc();
-		for (int i = -4; i < 32; i++) {
-			System.out.printf("\r\033[KRunning TreeSet(size=%d, %d times)", max, i);
-			long timeMillis = System.nanoTime();
-			testTreeSet(max, rand);
-			treeSetTimes[((i + 32) % 32)] = System.nanoTime() - timeMillis;
-		}
-		System.gc();
-		for (int i = -4; i < 32; i++) {
-			System.out.printf("\r\033[KRunning hashSet(size=%d, %d times)", max, i);
-			long timeMillis = System.nanoTime();
-			testHashSet(max, rand);
-			hashSetTimes[((i + 32) % 32)] = System.nanoTime() - timeMillis;
-		}
-		System.gc();
-		for (int i = -4; i < 32; i++) {
-			System.out.printf("\r\033[KRunning bukkit(size=%d, %d times)", max, i);
-			long timeMillis = System.nanoTime();
-			testBukkit(max, rand);
-			bukkitTimes[((i + 32) % 32)] = System.nanoTime() - timeMillis;
-		}
-		System.gc();
-		for (int i = -4; i < 32; i++) {
-			System.out.printf("\r\033[KRunning mine(size=%d, %d times)", max, i);
-			long timeMillis = System.nanoTime();
-			testMine(max, rand, 0.5);
-			myTimes[((i + 32) % 32)] = System.nanoTime() - timeMillis;
-		}
-		System.gc();
-		for (int i = -4; i < 32; i++) {
-			System.out.printf("\r\033[KRunning mine7(size=%d, %d times)", max, i);
-			long timeMillis = System.nanoTime();
-			testMine(max, rand, 0.6);
-			myTimes7[((i + 32) % 32)] = System.nanoTime() - timeMillis;
-		}
-		System.gc();
-		Arrays.sort(hashSetTimes);
-		Arrays.sort(treeSetTimes);
-		Arrays.sort(bukkitTimes);
-		Arrays.sort(myTimes);
-		Arrays.sort(myTimes7);
-		return new long[]{averageOf(treeSetTimes), averageOf(hashSetTimes), averageOf(bukkitTimes), averageOf(myTimes),
-				averageOf(myTimes7)};
-	}
-
-	private static String fastest(long[] result) {
-		if (result[0] < result[1]) {
-			if (result[0] < result[2]) {
-				if (result[0] < result[3]) {
-					return "TreeSet";
-				} else {
-					return "mine";
-				}
-			} else {
-				if (result[2] < result[3]) {
-					return "bukkit";
-				} else {
-					return "mine";
-				}
+		for (int rehashFactor = 20; rehashFactor <= 80; rehashFactor++) {
+			long[] myTimes = new long[32];
+			for (int time = -4; time < 32; time++) {
+				System.out.printf("\r\033[KRunning LongHashSet(size=%d, factor=0.%02d)", max, rehashFactor);
+				long timeMillis = System.nanoTime();
+				testMine(max, rand, rehashFactor * 0.01);
+				myTimes[((time + 32) % 32)] = System.nanoTime() - timeMillis;
 			}
-		} else {
-			if (result[1] < result[2]) {
-				if (result[1] < result[3]) {
-					return "HashSet";
-				} else {
-					return "mine";
-				}
-			} else {
-				if (result[2] < result[3]) {
-					return "bukkit";
-				} else {
-					return "mine";
-				}
-			}
+			System.gc();
+			Arrays.sort(myTimes);
+			factorArray[rehashFactor - 20] = averageOf(myTimes);
 		}
+		return factorArray;
 	}
 
 	public static void main(String[] args) {
@@ -139,47 +62,45 @@ public class LongHashSetBenchmark {	private static long averageOf(long[] times) 
 	}
 
 	private static void outerBench(boolean rand) {
-		long[] bukkitTimes = new long[20];
-		long[] myTimes = new long[20];
 		System.out.printf("=== rand=%s ===%n", Boolean.toString(rand));
-		System.out.println("size\t\tTreeSet\t\tHashSet\t\tbukkit\t\tmine\t\tmine0.6\t\tfastest");
-		for (int i = 4; i < 19; i++) {
+		System.out.println("size\t\t1st\t\t2nd\t\t3rd\t\t4th");
+		for (int i = 4; i < 17; i++) {
 			long[] result = bench(1 << i, rand);
-			System.out.printf("\r\033[K%d\t%16d%16d%16d%16d%16d\t%s%n", i, result[0], result[1], result[2], result[3],
-					result[4],
-					fastest(result));
+			System.out.printf("\r\033[K%8d\t", 1 << i);
+			showFastest(result);
 		}
 	}
 
-	private static void testBukkit(int max, boolean rand) {
-		BukkitLongHashSet bukkitLongHashSet = new BukkitLongHashSet();
-		ThreadLocalRandom random = ThreadLocalRandom.current();
-		for (int i = 0; i < max; i++) {
-			if (rand) {
-				long e = random.nextLong();
-				bukkitLongHashSet.add(e);
-				bukkitLongHashSet.contains(e);
-			} else {
-				bukkitLongHashSet.add(i);
-				bukkitLongHashSet.contains(i);
+	private static void showFastest(long[] result) {
+		int[] index = new int[]{-1, -1, -1, -1};
+		long[] max = new long[]{Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE};
+		for (int i = 0; i < result.length; i++) {
+			if (max[3] > result[i]) {
+				max[3] = result[index[3] = i];
+				sort(max, index);
+			}
+		}
+		for (int i = 0, maxLength = max.length; i < maxLength; i++) {
+			System.out.printf("[%d]%8d\t", index[i] + 20, max[i]);
+		}
+		System.out.println();
+	}
+
+	private static void sort(long[] max, int[] index) {
+		for (int i = 2; i >= 0; i--) {
+			if (max[i] > max[i + 1]) {
+				swap(max, index, i);
 			}
 		}
 	}
 
-	private static void testHashSet(int max, boolean rand) {
-		Set<Long> set = new HashSet<>();
-		ThreadLocalRandom random = ThreadLocalRandom.current();
-		for (int i = 0; i < max; i++) {
-			if (rand) {
-				long e = random.nextLong();
-				set.add(e);
-				set.contains(e);
-			} else {
-				long e = (long) i;
-				set.add(e);
-				set.contains(e);
-			}
-		}
+	private static void swap(long[] max, int[] index, int i) {
+		max[i + 1] = max[i] ^ max[i + 1];
+		max[i] = max[i] ^ max[i + 1];
+		max[i + 1] = max[i] ^ max[i + 1];
+		index[i + 1] = index[i] ^ index[i + 1];
+		index[i] = index[i] ^ index[i + 1];
+		index[i + 1] = index[i] ^ index[i + 1];
 	}
 
 	private static void testMine(int max, boolean rand, double f) {
@@ -193,22 +114,6 @@ public class LongHashSetBenchmark {	private static long averageOf(long[] times) 
 			} else {
 				longHashSet.add(i);
 				longHashSet.contains(i);
-			}
-		}
-	}
-
-	private static void testTreeSet(int max, boolean rand) {
-		Set<Long> set = new TreeSet<>();
-		ThreadLocalRandom random = ThreadLocalRandom.current();
-		for (int i = 0; i < max; i++) {
-			if (rand) {
-				long e = random.nextLong();
-				set.add(e);
-				set.contains(e);
-			} else {
-				long e = (long) i;
-				set.add(e);
-				set.contains(e);
 			}
 		}
 	}

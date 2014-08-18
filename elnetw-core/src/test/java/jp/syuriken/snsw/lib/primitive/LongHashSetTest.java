@@ -21,12 +21,6 @@
 
 package jp.syuriken.snsw.lib.primitive;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -85,6 +79,13 @@ public class LongHashSetTest {
 		longHashSet.add(1L);
 		assertEquals(1, longHashSet.size());
 		assertFalse(longHashSet.isEmpty());
+	}
+
+	@Test
+	public void testPowerOf() throws Exception {
+		assertEquals(2, LongHashSet.powerOf(2));
+		assertEquals(8, LongHashSet.powerOf(7));
+		assertEquals(32, LongHashSet.powerOf(17));
 	}
 
 	@Test
