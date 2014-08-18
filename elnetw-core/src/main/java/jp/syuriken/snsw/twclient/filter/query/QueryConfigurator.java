@@ -35,8 +35,8 @@ import javax.swing.JPanel;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.config.ConfigFrame;
 import jp.syuriken.snsw.twclient.config.ConfigType;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.gui.QueryEditFrame;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 
 /**
  * フィルタをごにょごにょするための {@link ConfigType}

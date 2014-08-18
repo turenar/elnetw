@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import java.awt.EventQueue;
 
@@ -28,8 +28,6 @@ import javax.swing.Icon;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 import twitter4j.Status;
 
 /**
@@ -81,12 +79,10 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param data 保存されたデータ
-	 * @throws JSONException          JSON例外
-	 * @throws IllegalSyntaxException クエリエラー
+	 * @param uniqId unique identifier
 	 */
-	public MentionViewTab(String data) throws JSONException, IllegalSyntaxException {
-		super(data);
+	public MentionViewTab(String uniqId) {
+		super(uniqId);
 		establishTweetPipe();
 	}
 
@@ -128,11 +124,6 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	@Override
 	public Icon getIcon() {
 		return null;
-	}
-
-	@Override
-	protected Object getSerializedExtendedData() {
-		return JSONObject.NULL;
 	}
 
 	@Override

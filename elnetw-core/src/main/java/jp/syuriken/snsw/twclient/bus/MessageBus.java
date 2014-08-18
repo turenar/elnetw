@@ -34,7 +34,7 @@ import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.gui.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

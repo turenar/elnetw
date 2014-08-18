@@ -28,11 +28,10 @@ import java.awt.event.KeyEvent;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 
-import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
-import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -133,33 +132,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 * @return 選択しているタブ
 	 */
 	ClientTab getSelectingTab();
-
-	/**
-	 * Twitterインスタンスを取得する
-	 *
-	 * @return Twitterインスタンス
-	 * @deprecated use {@link ClientConfiguration#getTwitterForRead()}
-	 */
-	@Deprecated
-	Twitter getTwitter();
-
-	/**
-	 * 読み込み用のTwitterインスタンスを取得する。
-	 *
-	 * @return 読み込み用Twitterインスタンス
-	 * @see ClientConfiguration#getTwitterForRead()
-	 */
-	@Deprecated
-	Twitter getTwitterForRead();
-
-	/**
-	 * 書き込み用のTwitterインスタンスを取得する。
-	 *
-	 * @return 書き込み用のTwitterインスタンス
-	 * @see ClientConfiguration#getTwitterForWrite()
-	 */
-	@Deprecated
-	Twitter getTwitterForWrite();
 
 	/**
 	 * UIに用いられるフォントを取得する。

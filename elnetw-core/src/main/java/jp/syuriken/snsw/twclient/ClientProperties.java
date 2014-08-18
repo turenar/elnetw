@@ -28,7 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AlgorithmParameters;
@@ -39,7 +39,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -55,14 +61,138 @@ import org.slf4j.LoggerFactory;
 
 import static jp.syuriken.snsw.twclient.ClientConfiguration.UTF8_CHARSET;
 
+
 /**
  * 登録済みのリスナに変更を通知できるプロパティーリストです。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ClientProperties extends Properties {
+public class ClientProperties implements Map<String, String> {
+	/**
+	 * Read in a "logical line" from an InputStream/Reader, skip all comment
+	 * and blank lines and filter out those leading whitespace characters
+	 * (\u0020, \u0009 and \u000c) from the beginning of a "natural line".
+	 * Method returns the char length of the "logical line" and stores
+	 * the line in "lineBuf".
+	 */
+	/*package*/ class LineReader {
+		protected static final int IN_CHAR_BUF_SIZE = 8192;
+		protected static final int LINE_BUF_SIZE = 1024;
+		protected char[] lineBuf = new char[LINE_BUF_SIZE];
+		protected final Reader reader;
+		protected char[] inCharBuf;
+		protected int inLimit = 0;
+		protected int inOff = 0;
 
-	private static final long serialVersionUID = -9065135476197360347L;
+		/**
+		 * make instance
+		 *
+		 * @param reader reader
+		 */
+		public LineReader(Reader reader) {
+			this.reader = reader;
+			inCharBuf = new char[IN_CHAR_BUF_SIZE];
+		}
+
+		/**
+		 * read line from reader
+		 *
+		 * @return read bytes
+		 * @throws IOException exception occurred
+		 */
+		public int readLine() throws IOException {
+			int len = 0;
+			char c;
+
+			boolean skipWhiteSpace = true;
+			boolean isCommentLine = false;
+			boolean isNewLine = true;
+			boolean appendedLineBegin = false;
+			boolean precedingBackslash = false;
+			boolean skipLF = false;
+
+			while (true) {
+				if (inOff >= inLimit) {
+					inLimit = reader.read(inCharBuf);
+					inOff = 0;
+					if (inLimit <= 0) {
+						if (len == 0 || isCommentLine) {
+							return -1;
+						}
+						return len;
+					}
+				}
+				c = inCharBuf[inOff++];
+				if (skipLF) {
+					skipLF = false;
+					if (c == '\n') {
+						continue;
+					}
+				}
+				if (skipWhiteSpace) {
+					if (c == ' ' || c == '\t' || c == '\f') {
+						continue;
+					}
+					if (!appendedLineBegin && (c == '\r' || c == '\n')) {
+						continue;
+					}
+					skipWhiteSpace = false;
+					appendedLineBegin = false;
+				}
+				if (isNewLine) {
+					isNewLine = false;
+					if (c == '#' || c == '!') {
+						isCommentLine = true;
+						continue;
+					}
+				}
+
+				if (c != '\n' && c != '\r') {
+					lineBuf[len++] = c;
+					if (len == lineBuf.length) {
+						int newLength = lineBuf.length * 2;
+						if (newLength < 0) {
+							newLength = Integer.MAX_VALUE;
+						}
+						char[] buf = new char[newLength];
+						System.arraycopy(lineBuf, 0, buf, 0, lineBuf.length);
+						lineBuf = buf;
+					}
+					//flip the preceding backslash flag
+					precedingBackslash = c == '\\' && !precedingBackslash;
+				} else {
+					// reached EOL
+					if (isCommentLine || len == 0) {
+						isCommentLine = false;
+						isNewLine = true;
+						skipWhiteSpace = true;
+						len = 0;
+						continue;
+					}
+					if (inOff >= inLimit) {
+						inLimit = reader.read(inCharBuf);
+						inOff = 0;
+						if (inLimit <= 0) {
+							return len;
+						}
+					}
+					if (precedingBackslash) {
+						len -= 1;
+						//skip the leading whitespace characters in following line
+						skipWhiteSpace = true;
+						appendedLineBegin = true;
+						precedingBackslash = false;
+						if (c == '\r') {
+							skipLF = true;
+						}
+					} else {
+						return len;
+					}
+				}
+			}
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";
@@ -71,6 +201,7 @@ public class ClientProperties extends Properties {
 	private static final long MIN2MS = SEC2MS * 60;
 	private static final long HOUR2MS = MIN2MS * 60;
 	private static final long DAY2MS = HOUR2MS * 24;
+	private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
 	private static byte[] decrypt(byte[] src, Key decryptKey) throws InvalidKeyException {
 		try {
@@ -96,7 +227,7 @@ public class ClientProperties extends Properties {
 
 	private static byte[] encrypt(byte[] src, Key encryptKey) throws InvalidKeyException {
 		try {
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
 			cipher.init(Cipher.ENCRYPT_MODE, encryptKey);
 
 			byte[] iv = cipher.getParameters().getEncoded();
@@ -135,10 +266,19 @@ public class ClientProperties extends Properties {
 		return new SecretKeySpec(keyBytes, "AES");
 	}
 
+	/**
+	 * A property list that contains default values for any keys not
+	 * found in this property list.
+	 */
+	protected final ClientProperties defaults;
 	/** リスナの配列 */
 	protected transient CopyOnWriteArrayList<PropertyChangeListener> listeners;
 	/** 保存先のファイル */
 	protected Path storePath;
+	/**
+	 * properties map
+	 */
+	protected HashMap<String, String> properties = new HashMap<>();
 
 	/** インスタンスを生成する。 */
 	public ClientProperties() {
@@ -150,8 +290,8 @@ public class ClientProperties extends Properties {
 	 *
 	 * @param defaults デフォルトプロパティー
 	 */
-	public ClientProperties(Properties defaults) {
-		super(defaults);
+	public ClientProperties(ClientProperties defaults) {
+		this.defaults = defaults;
 		listeners = new CopyOnWriteArrayList<>();
 	}
 
@@ -168,15 +308,35 @@ public class ClientProperties extends Properties {
 	}
 
 	@Override
+	public synchronized void clear() {
+		properties.clear();
+	}
+
+	@Override
+	public synchronized boolean containsKey(Object key) {
+		return properties.containsKey(key);
+	}
+
+	@Override
+	public synchronized boolean containsValue(Object value) {
+		return properties.containsValue(value);
+	}
+
+	@Override
+	public synchronized Set<Entry<String, String>> entrySet() {
+		return properties.entrySet();
+	}
+
+	@Override
 	public synchronized boolean equals(Object o) {
 		if (!(o instanceof ClientProperties)) {
 			return false;
 		}
-		if (!super.equals(o)) {
-			return false;
-		}
 		ClientProperties c = (ClientProperties) o;
 		synchronized (c) {
+			if (!properties.equals(c.properties)) {
+				return false;
+			}
 			if (!listeners.equals(c.listeners)) {
 				return false;
 			}
@@ -199,6 +359,11 @@ public class ClientProperties extends Properties {
 		for (PropertyChangeListener listener : listeners) {
 			listener.propertyChange(evt);
 		}
+	}
+
+	@Override
+	public synchronized String get(Object key) {
+		return getProperty((String) key);
 	}
 
 	/**
@@ -237,9 +402,8 @@ public class ClientProperties extends Properties {
 	 * @param key キー
 	 * @return Colorインスタンス
 	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません
-	 * @throws NumberFormatException    数値に変換できない値です
 	 */
-	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
+	public synchronized Color getColor(String key) throws IllegalArgumentException {
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -253,6 +417,15 @@ public class ClientProperties extends Properties {
 		} else {
 			throw new IllegalArgumentException(MessageFormat.format("{0}はColorに使用できる値ではありません: {1}", key, value));
 		}
+	}
+
+	/**
+	 * return default properties
+	 *
+	 * @return defaults
+	 */
+	public synchronized ClientProperties getDefaults() {
+		return defaults;
 	}
 
 	/**
@@ -361,6 +534,7 @@ public class ClientProperties extends Properties {
 		}
 		int fontSize = Integer.parseInt(fontSizeString.trim());
 
+		//noinspection MagicConstant
 		return new Font(fontName, fontStyle, fontSize);
 	}
 
@@ -516,6 +690,42 @@ public class ClientProperties extends Properties {
 	}
 
 	/**
+	 * Searches for the property with the specified key in this property list.
+	 * If the key is not found in this property list, the default property list,
+	 * and its defaults, recursively, are then checked. The method returns
+	 * <code>null</code> if the property is not found.
+	 *
+	 * @param key the property key.
+	 * @return the value in this property list with the specified key value.
+	 * @see #setProperty
+	 * @see #defaults
+	 */
+	public synchronized String getProperty(String key) {
+		String prop = properties.get(key);
+		if (prop == null && defaults != null) {
+			prop = defaults.getProperty(key);
+		}
+		return prop;
+	}
+
+	/**
+	 * Searches for the property with the specified key in this property list.
+	 * If the key is not found in this property list, the default property list,
+	 * and its defaults, recursively, are then checked. The method returns the
+	 * default value argument if the property is not found.
+	 *
+	 * @param key          the hashtable key.
+	 * @param defaultValue a default value.
+	 * @return the value in this property list with the specified key value.
+	 * @see #setProperty
+	 * @see #defaults
+	 */
+	public synchronized String getProperty(String key, String defaultValue) {
+		String value = getProperty(key);
+		return value == null ? defaultValue : value;
+	}
+
+	/**
 	 * get milliseconds
 	 *
 	 * @param key property key
@@ -562,20 +772,334 @@ public class ClientProperties extends Properties {
 	@Override
 	public synchronized int hashCode() {
 		int hashCode = super.hashCode();
+		hashCode += 19 * properties.hashCode();
 		hashCode += 19 * listeners.hashCode();
 		hashCode += 19 * storePath.hashCode();
 		return hashCode;
 	}
 
-	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		listeners = new CopyOnWriteArrayList<>();
+	@Override
+	public synchronized boolean isEmpty() {
+		return properties.isEmpty();
 	}
 
 	@Override
-	public synchronized Object remove(Object key) {
+	public synchronized Set<String> keySet() {
+		return properties.keySet();
+	}
+
+	/**
+	 * Reads a property list (key and element pairs) from the input
+	 * character stream in a simple line-oriented format.
+	 * <p>
+	 * Properties are processed in terms of lines. There are two
+	 * kinds of line, <i>natural lines</i> and <i>logical lines</i>.
+	 * A natural line is defined as a line of
+	 * characters that is terminated either by a set of line terminator
+	 * characters (<code>\n</code> or <code>\r</code> or <code>\r\n</code>)
+	 * or by the end of the stream. A natural line may be either a blank line,
+	 * a comment line, or hold all or some of a key-element pair. A logical
+	 * line holds all the data of a key-element pair, which may be spread
+	 * out across several adjacent natural lines by escaping
+	 * the line terminator sequence with a backslash character
+	 * <code>\</code>.  Note that a comment line cannot be extended
+	 * in this manner; every natural line that is a comment must have
+	 * its own comment indicator, as described below. Lines are read from
+	 * input until the end of the stream is reached.
+	 *
+	 * <p>
+	 * A natural line that contains only white space characters is
+	 * considered blank and is ignored.  A comment line has an ASCII
+	 * <code>'#'</code> or <code>'!'</code> as its first non-white
+	 * space character; comment lines are also ignored and do not
+	 * encode key-element information.  In addition to line
+	 * terminators, this format considers the characters space
+	 * (<code>' '</code>, <code>'&#92;u0020'</code>), tab
+	 * (<code>'\t'</code>, <code>'&#92;u0009'</code>), and form feed
+	 * (<code>'\f'</code>, <code>'&#92;u000C'</code>) to be white
+	 * space.
+	 *
+	 * <p>
+	 * If a logical line is spread across several natural lines, the
+	 * backslash escaping the line terminator sequence, the line
+	 * terminator sequence, and any white space at the start of the
+	 * following line have no affect on the key or element values.
+	 * The remainder of the discussion of key and element parsing
+	 * (when loading) will assume all the characters constituting
+	 * the key and element appear on a single natural line after
+	 * line continuation characters have been removed.  Note that
+	 * it is <i>not</i> sufficient to only examine the character
+	 * preceding a line terminator sequence to decide if the line
+	 * terminator is escaped; there must be an odd number of
+	 * contiguous backslashes for the line terminator to be escaped.
+	 * Since the input is processed from left to right, a
+	 * non-zero even number of 2<i>n</i> contiguous backslashes
+	 * before a line terminator (or elsewhere) encodes <i>n</i>
+	 * backslashes after escape processing.
+	 *
+	 * <p>
+	 * The key contains all of the characters in the line starting
+	 * with the first non-white space character and up to, but not
+	 * including, the first unescaped <code>'='</code>,
+	 * <code>':'</code>, or white space character other than a line
+	 * terminator. All of these key termination characters may be
+	 * included in the key by escaping them with a preceding backslash
+	 * character; for example,<p>
+	 *
+	 * <code>\:\=</code><p>
+	 *
+	 * would be the two-character key <code>":="</code>.  Line
+	 * terminator characters can be included using <code>\r</code> and
+	 * <code>\n</code> escape sequences.  Any white space after the
+	 * key is skipped; if the first non-white space character after
+	 * the key is <code>'='</code> or <code>':'</code>, then it is
+	 * ignored and any white space characters after it are also
+	 * skipped.  All remaining characters on the line become part of
+	 * the associated element string; if there are no remaining
+	 * characters, the element is the empty string
+	 * <code>&quot;&quot;</code>.  Once the raw character sequences
+	 * constituting the key and element are identified, escape
+	 * processing is performed as described above.
+	 *
+	 * <p>
+	 * As an example, each of the following three lines specifies the key
+	 * <code>"Truth"</code> and the associated element value
+	 * <code>"Beauty"</code>:
+	 * <p>
+	 * <pre>
+	 * Truth = Beauty
+	 *  Truth:Beauty
+	 * Truth                    :Beauty
+	 * </pre>
+	 * As another example, the following three lines specify a single
+	 * property:
+	 * <p>
+	 * <pre>
+	 * fruits                           apple, banana, pear, \
+	 *                                  cantaloupe, watermelon, \
+	 *                                  kiwi, mango
+	 * </pre>
+	 * The key is <code>"fruits"</code> and the associated element is:
+	 * <p>
+	 * <pre>"apple, banana, pear, cantaloupe, watermelon, kiwi, mango"</pre>
+	 * Note that a space appears before each <code>\</code> so that a space
+	 * will appear after each comma in the final result; the <code>\</code>,
+	 * line terminator, and leading white space on the continuation line are
+	 * merely discarded and are <i>not</i> replaced by one or more other
+	 * characters.
+	 * <p>
+	 * As a third example, the line:
+	 * <p>
+	 * <pre>cheeses
+	 * </pre>
+	 * specifies that the key is <code>"cheeses"</code> and the associated
+	 * element is the empty string <code>""</code>.<p>
+	 * <p>
+	 *
+	 * <a name="unicodeescapes"></a>
+	 * Characters in keys and elements can be represented in escape
+	 * sequences similar to those used for character and string literals
+	 * (see sections 3.3 and 3.10.6 of
+	 * <cite>The Java&trade; Language Specification</cite>).
+	 *
+	 * The differences from the character escape sequences and Unicode
+	 * escapes used for characters and strings are:
+	 *
+	 * <ul>
+	 * <li> Octal escapes are not recognized.
+	 *
+	 * <li> The character sequence <code>\b</code> does <i>not</i>
+	 * represent a backspace character.
+	 *
+	 * <li> The method does not treat a backslash character,
+	 * <code>\</code>, before a non-valid escape character as an
+	 * error; the backslash is silently dropped.  For example, in a
+	 * Java string the sequence <code>"\z"</code> would cause a
+	 * compile time error.  In contrast, this method silently drops
+	 * the backslash.  Therefore, this method treats the two character
+	 * sequence <code>"\b"</code> as equivalent to the single
+	 * character <code>'b'</code>.
+	 *
+	 * <li> Escapes are not necessary for single and double quotes;
+	 * however, by the rule above, single and double quote characters
+	 * preceded by a backslash still yield single and double quote
+	 * characters, respectively.
+	 *
+	 * <li> Only a single 'u' character is allowed in a Uniocde escape
+	 * sequence.
+	 *
+	 * </ul>
+	 * <p>
+	 * The specified stream remains open after this method returns.
+	 *
+	 * @param reader the input character stream.
+	 * @throws IOException              if an error occurred when reading from the
+	 *                                  input stream.
+	 * @throws IllegalArgumentException if a malformed Unicode escape
+	 *                                  appears in the input.
+	 * @since 1.6
+	 */
+	public synchronized void load(Reader reader) throws IOException {
+		load0(new LineReader(reader));
+	}
+
+	private void load0(LineReader lr) throws IOException {
+		char[] convtBuf = new char[1024];
+		int limit;
+		int keyLen;
+		int valueStart;
+		char c;
+		boolean hasSep;
+		boolean precedingBackslash;
+
+		while ((limit = lr.readLine()) >= 0) {
+			keyLen = 0;
+			valueStart = limit;
+			hasSep = false;
+
+			//System.out.println("line=<" + new String(lineBuf, 0, limit) + ">");
+			precedingBackslash = false;
+			while (keyLen < limit) {
+				c = lr.lineBuf[keyLen];
+				//need check if escaped.
+				if ((c == '=' || c == ':') && !precedingBackslash) {
+					valueStart = keyLen + 1;
+					hasSep = true;
+					break;
+				} else if ((c == ' ' || c == '\t' || c == '\f') && !precedingBackslash) {
+					valueStart = keyLen + 1;
+					break;
+				}
+				precedingBackslash = c == '\\' && !precedingBackslash;
+				keyLen++;
+			}
+			while (valueStart < limit) {
+				c = lr.lineBuf[valueStart];
+				if (c != ' ' && c != '\t' && c != '\f') {
+					if (!hasSep && (c == '=' || c == ':')) {
+						hasSep = true;
+					} else {
+						break;
+					}
+				}
+				valueStart++;
+			}
+			String key = loadConvert(lr.lineBuf, 0, keyLen, convtBuf);
+			String value = loadConvert(lr.lineBuf, valueStart, limit - valueStart, convtBuf);
+			put(key, value);
+		}
+	}
+
+	/*
+	 * Converts encoded &#92;uxxxx to unicode chars
+	 * and changes special saved chars to their original forms
+	 */
+	private String loadConvert(char[] in, int off, int len, char[] convtBuf) {
+		if (convtBuf.length < len) {
+			int newLen = len * 2;
+			if (newLen < 0) {
+				newLen = Integer.MAX_VALUE;
+			}
+			convtBuf = new char[newLen];
+		}
+		char aChar;
+		char[] out = convtBuf;
+		int outLen = 0;
+		int end = off + len;
+
+		while (off < end) {
+			aChar = in[off++];
+			if (aChar == '\\') {
+				aChar = in[off++];
+				if (aChar == 'u') {
+					// Read the xxxx
+					int value = 0;
+					for (int i = 0; i < 4; i++) {
+						aChar = in[off++];
+						switch (aChar) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+								value = (value << 4) + aChar - '0';
+								break;
+							case 'a':
+							case 'b':
+							case 'c':
+							case 'd':
+							case 'e':
+							case 'f':
+								value = (value << 4) + 10 + aChar - 'a';
+								break;
+							case 'A':
+							case 'B':
+							case 'C':
+							case 'D':
+							case 'E':
+							case 'F':
+								value = (value << 4) + 10 + aChar - 'A';
+								break;
+							default:
+								throw new IllegalArgumentException(
+										"Malformed \\uxxxx encoding.");
+						}
+					}
+					out[outLen++] = (char) value;
+				} else {
+					if (aChar == 't') {
+						aChar = '\t';
+					} else if (aChar == 'r') {
+						aChar = '\r';
+					} else if (aChar == 'n') {
+						aChar = '\n';
+					} else if (aChar == 'f') {
+						aChar = '\f';
+					}
+					out[outLen++] = aChar;
+				}
+			} else {
+				out[outLen++] = aChar;
+			}
+		}
+		return new String(out, 0, outLen);
+	}
+
+	@Override
+	public synchronized String put(String key, String value) {
+		return setProperty(key, value);
+	}
+
+	@Override
+	public synchronized void putAll(Map<? extends String, ? extends String> m) {
+		for (Entry<? extends String, ? extends String> entry : m.entrySet()) {
+			put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	@Override
+	public synchronized String remove(Object key) {
 		firePropertyChanged((String) key, getProperty((String) key), null);
-		return super.remove(key);
+		return properties.remove(key);
+	}
+
+	/**
+	 * remove all entry with key started with prefix
+	 *
+	 * @param prefix prefix key
+	 */
+	public synchronized void removePrefixed(String prefix) {
+		for (Iterator<String> iterator = properties.keySet().iterator(); iterator.hasNext(); ) {
+			String key = iterator.next();
+			if (key.startsWith(prefix)) {
+				iterator.remove();
+			}
+		}
 	}
 
 	/**
@@ -586,6 +1110,58 @@ public class ClientProperties extends Properties {
 	 */
 	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
 		return listeners.remove(listener);
+	}
+
+	/*
+	 * Converts unicodes to encoded &#92;uxxxx and escapes
+	 * special characters with a preceding slash
+	 */
+	private String saveConvert(String theString, boolean escapeSpace) {
+		int len = theString.length();
+		int bufLen = len * 2;
+		if (bufLen < 0) {
+			bufLen = Integer.MAX_VALUE;
+		}
+		StringBuilder outBuffer = new StringBuilder(bufLen);
+
+		for (int x = 0; x < len; x++) {
+			char aChar = theString.charAt(x);
+			switch (aChar) {
+				case ' ':
+					if (x == 0 || escapeSpace) {
+						outBuffer.append('\\');
+					}
+					outBuffer.append(' ');
+					break;
+				case '\t':
+					outBuffer.append('\\');
+					outBuffer.append('t');
+					break;
+				case '\n':
+					outBuffer.append('\\');
+					outBuffer.append('n');
+					break;
+				case '\r':
+					outBuffer.append('\\');
+					outBuffer.append('r');
+					break;
+				case '\f':
+					outBuffer.append('\\');
+					outBuffer.append('f');
+					break;
+				case '=': // Fall through
+				case ':': // Fall through
+				case '#': // Fall through
+				case '!': // Fall through
+				case '\\':
+					outBuffer.append('\\');
+					outBuffer.append(aChar);
+					break;
+				default:
+					outBuffer.append(aChar);
+			}
+		}
+		return outBuffer.toString();
 	}
 
 	/**
@@ -701,12 +1277,19 @@ public class ClientProperties extends Properties {
 	}
 
 	/**
-	 * <p>プロパティを設定して、登録済みのリスナに変更を通知します。</p>
-	 * {@inheritDoc}
+	 * Calls the <tt>Map</tt> method <code>put</code>. Provided for
+	 * parallelism with the <tt>getProperty</tt> method. Enforces use of
+	 * strings for property keys and values. The value returned is the
+	 * result of the <tt>Map</tt> call to <code>put</code>.
+	 *
+	 * @param key      the key to be placed into this property list.
+	 * @param newValue the value corresponding to <tt>key</tt>.
+	 * @return the previous value of the specified key in this property
+	 * list, or <code>null</code> if it did not have one.
+	 * @see #getProperty
 	 */
-	@Override
-	public synchronized Object setProperty(String key, String newValue) {
-		String oldValue = (String) super.setProperty(key, newValue);
+	public synchronized String setProperty(String key, String newValue) {
+		String oldValue = properties.put(key, newValue);
 		firePropertyChanged(key, oldValue, newValue);
 		return oldValue;
 	}
@@ -726,7 +1309,7 @@ public class ClientProperties extends Properties {
 	 * @param key  key
 	 * @param time time as milliseconds
 	 */
-	public void setTime(String key, long time) {
+	public synchronized void setTime(String key, long time) {
 		setTime(key, time, TimeUnit.MILLISECONDS);
 	}
 
@@ -760,8 +1343,13 @@ public class ClientProperties extends Properties {
 		setProperty(key, unitTime + unit);
 	}
 
+	@Override
+	public synchronized int size() {
+		return properties.size();
+	}
+
 	/** ファイルに保存する。 */
-	public void store() {
+	public synchronized void store() {
 		store("Auto generated by jp.syuriken.snsw.twclient.ClientProperties");
 	}
 
@@ -770,11 +1358,46 @@ public class ClientProperties extends Properties {
 	 *
 	 * @param comments ファイルのコメント
 	 */
-	public synchronized void store(String comments) {
+	public void store(String comments) {
 		try (BufferedWriter writer = Files.newBufferedWriter(storePath, UTF8_CHARSET)) {
 			store(writer, comments);
 		} catch (IOException e) {
 			logger.warn("Propertiesファイルの保存中にエラー", e);
 		}
+	}
+
+	/**
+	 * store data
+	 *
+	 * @param writer   writer
+	 * @param comments comment
+	 */
+	public synchronized void store(BufferedWriter writer, String comments) {
+		try {
+			if (comments != null) {
+				writer.write("# ");
+				writer.write(comments);
+				writer.newLine();
+			}
+			writer.write("#" + new Date().toString());
+			writer.newLine();
+			synchronized (this) {
+				TreeMap<String, String> sortedMap = new TreeMap<>(properties);
+				for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
+					String key = saveConvert(entry.getKey(), true);
+					String value = saveConvert(entry.getValue(), false);
+					writer.write(key + "=" + value);
+					writer.newLine();
+				}
+			}
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public synchronized Collection<String> values() {
+		return properties.values();
 	}
 }

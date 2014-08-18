@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui;
+package jp.syuriken.snsw.twclient.gui.tab;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -71,9 +71,6 @@ import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.JSONArray;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 import twitter4j.Status;
 import twitter4j.UserMentionEntity;
 
@@ -347,7 +344,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected final ClientProperties configProperties;
 	/**
 	 * 他のタブと区別するためのユニークなID。
-	 * これはフィルタの保存や {@link #getSerializedData()} の保存などに使用されます。
+	 * これはフィルタの保存やシリアライズ処理などに使用されます。
 	 */
 	protected final String uniqId;
 	/**
@@ -425,35 +422,27 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param serializedJson シリアル化されたJSON
-	 * @throws JSONException JSONの形式が正しくないか必要とするキーが存在しない
+	 * @param uniqId unique identifier
 	 */
-	protected AbstractClientTab(JSONObject serializedJson) throws JSONException {
+	protected AbstractClientTab(String uniqId) {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
-		String accountId = serializedJson.getString("accountId");
+		this.uniqId = uniqId;
+		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
+		defaultFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
+
+		String propertyPrefix = getPropertyPrefix();
+		String accountId = configProperties.getProperty(propertyPrefix + ".accountId");
 		if (accountId == null) {
 			accountId = "$reader";
 		}
 		this.accountId = accountId;
-		uniqId = serializedJson.getString("uniqId");
-		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
-		defaultFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
-		init(configuration);
-	}
 
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param serializedJson シリアル化されたJSON
-	 * @throws JSONException JSONの復号化中に例外
-	 */
-	protected AbstractClientTab(String serializedJson) throws JSONException {
-		this(new JSONObject(serializedJson));
+		init(configuration);
 	}
 
 	@Override
@@ -471,6 +460,11 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 			RenderPanel component = renderObject.getComponent();
 			postListAddQueue.add(component);
 		}
+	}
+
+	@Override
+	public void close() {
+		configProperties.removePrefixed(getPropertyPrefix());
 	}
 
 	/**
@@ -552,6 +546,10 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
+	protected String getPropertyPrefix() {
+		return "gui.tabs.data." + uniqId;
+	}
+
 	/**
 	 * 描画する前にフィルタする、クラスを取得する。
 	 *
@@ -605,40 +603,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 		return postListScrollPane;
 	}
-
-	/**
-	 * このクラスではJSONが返されます。
-	 *
-	 * @return JSON形式のデータ
-	 */
-	@Override
-	public String getSerializedData() {
-		try {
-			return new JSONObject().put("accountId", accountId).put("uniqId", getUniqId()).put("tabId", getTabId())
-					.put("extended", getSerializedExtendedData()).toString();
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * 次回タブ復元時に必要なデータを取得する。
-	 *
-	 * <p>
-	 * この関数によって返されたデータは、次回のタブ復元によるインスタンス作成時に
-	 * JSONで、&quot;extended&quot;キーに格納されます。
-	 * {@link JSONObject} や {@link JSONArray} なども使用出来ます。特に保存するデータがないときは
-	 * {@link JSONObject#NULL} を使用してください。
-	 * </p>
-	 * <p>
-	 * JSON例外を返すことができます。その他の例外は推奨されませんが {@link RuntimeException} などに
-	 * ラップしてください。
-	 * </p>
-	 *
-	 * @return 次回タブ復元時に必要なデータ
-	 * @throws JSONException JSON例外
-	 */
-	protected abstract Object getSerializedExtendedData() throws JSONException;
 
 	/**
 	 * SortedPostListPanelを取得する(レンダラ用)
@@ -787,5 +751,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 		viewport.setViewPosition(new Point(viewRect.x, viewRect.y));
 		viewport.validate();
+	}
+
+	@Override
+	public void serialize() {
+		String propertyPrefix = getPropertyPrefix();
+		configProperties.put(propertyPrefix + ".accountId", accountId);
+		configProperties.put(propertyPrefix + ".uniqId", uniqId);
+		configProperties.put(propertyPrefix + ".tabId", getTabId());
 	}
 }

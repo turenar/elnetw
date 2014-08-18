@@ -23,7 +23,6 @@ package jp.syuriken.snsw.twclient;
 
 import java.awt.EventQueue;
 import java.awt.TrayIcon;
-import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.text.MessageFormat;
@@ -43,7 +42,8 @@ import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,16 +110,15 @@ public class ClientConfiguration {
 	 */
 	public static final String PROPERTY_BLOCKING_USER_MUTE_ENABLED = "core.mute.blocking";
 	private static ClientConfiguration singleton;
-	private static HashMap<String, Constructor<? extends ClientTab>> clientTabConstructorsMap =
-			new HashMap<>();
+	private static HashMap<String, ClientTabFactory> clientTabConstructorsMap = new HashMap<>();
 
 	/**
-	 * タブ復元に使用するコンストラクタ(ClientConfiguration, String)を取得する
+	 * タブ復元に使用する{@link jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory}を取得する
 	 *
 	 * @param id タブID
-	 * @return コンストラクタ。idに関連付けられたコンストラクタがない場合 <code>null</code>
+	 * @return ファクトリ。idに関連付けられたファクトリがない場合 <code>null</code>
 	 */
-	public static Constructor<? extends ClientTab> getClientTabConstructor(String id) {
+	public static ClientTabFactory getClientTabConstructor(String id) {
 		return clientTabConstructorsMap.get(id);
 	}
 
@@ -136,41 +135,17 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * タブ復元時に使用するコンストラクタを追加する。
-	 * この関数は {@link #putClientTabConstructor(String, Constructor)} を内部で呼び出します。
-	 * {@link ClientConfiguration} と {@link String} の2つの引数を持つコンストラクタがあるクラスである必要があります。
+	 * タブ復元時に使用するファクトリを追加する。
 	 *
-	 * @param id     タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
-	 * @param class1 タブ復元時にコンストラクタを呼ぶクラス
-	 * @return 以前 id に関連付けられていたコンストラクタ
-	 * @throws IllegalArgumentException 不正なコンストラクタ
-	 * @see #putClientTabConstructor(String, Constructor)
-	 */
-	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
-			Class<? extends ClientTab> class1) throws IllegalArgumentException {
-		try {
-			return putClientTabConstructor(id, class1.getConstructor(String.class));
-		} catch (ReflectiveOperationException e) {
-			throw new IllegalArgumentException("指定されたクラスはコンストラクタ(String)を持ちません", e);
-		}
-	}
-
-	/**
-	 * タブ復元時に使用するコンストラクタを追加する。
-	 * コンストラクタは {@link String} ()の2つの引数を持つコンストラクタである必要があります。
-	 *
-	 * @param id          タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
-	 * @param constructor タブ復元時に呼ばれるコンストラクタ
+	 * @param id      タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
+	 * @param factory factory for client tab
 	 * @return 以前 id に関連付けられていたコンストラクタ
 	 */
-	public static Constructor<? extends ClientTab> putClientTabConstructor(String id,
-			Constructor<? extends ClientTab> constructor) {
-		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(String.class)) {
-			return clientTabConstructorsMap.put(id, constructor);
+	public static ClientTabFactory putClientTabConstructor(String id, ClientTabFactory factory) {
+		if (factory == null) {
+			throw new NullPointerException();
 		} else {
-			throw new IllegalArgumentException(
-					"ClientConfiguration#addClientTabConstructor: 渡されたコンストラクタは正しい型の引数を持ちません");
+			return clientTabConstructorsMap.put(id, factory);
 		}
 	}
 
