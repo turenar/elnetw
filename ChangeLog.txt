@@ -1,4 +1,4 @@
-Version 0.1-rc1
+Version 0.1-rc1 (Mon Aug 18 19:29:10 JST 2014)
 	+ Add has_url, has_hashtag query property
 	+ Warn if older elnetw with newer config will be running
 	* Fix SPLP#remove() sometimes don't work
