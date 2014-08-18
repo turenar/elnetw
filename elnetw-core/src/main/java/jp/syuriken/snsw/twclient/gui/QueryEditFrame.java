@@ -34,17 +34,11 @@ import javax.swing.JTextArea;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.FilterQueryFormatter;
+import jp.syuriken.snsw.twclient.filter.query.FilterQueryNormalizer;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
-import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
-import jp.syuriken.snsw.twclient.filter.tokenizer.Node;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
-import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenQuery;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
-import jp.syuriken.snsw.twclient.filter.tokenizer.SimpleNode;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.GroupLayout.Alignment.TRAILING;
@@ -58,148 +52,6 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  */
 @SuppressWarnings("serial")
 public class QueryEditFrame extends JFrame implements WindowListener {
-
-	/** クエリを見やすくするフォーマッタ */
-	protected static class FilterQueryFormatter implements FilterParserVisitor {
-
-		/** 関数の深さ */
-		protected transient int queryDepth;
-		/** 抽出設定かどうか */
-		protected boolean isExtract;
-
-		/**
-		 * 抽出設定かどうかを取得する
-		 *
-		 * @return 抽出設定かどうか
-		 */
-		public boolean isExtractFilter() {
-			return isExtract;
-		}
-
-		@Override
-		public Object visit(QueryTokenFunction node, Object data) {
-			StringBuilder stringBuilder = (StringBuilder) data;
-
-			queryDepth++;
-			stringBuilder.append(node.jjtGetValue()).append("(\n");
-
-			int childrenCount = node.jjtGetNumChildren();
-			for (int i = 0; i < childrenCount; i++) {
-				for (int d = 0; d < queryDepth; d++) {
-					stringBuilder.append("  ");
-				}
-				node.jjtGetChild(i).jjtAccept(this, data);
-				stringBuilder.append(",\n");
-			}
-			int len = stringBuilder.length();
-			stringBuilder.deleteCharAt(len - 2); // remove "," before "\n"
-
-			queryDepth--;
-			for (int i = 0; i < queryDepth; i++) {
-				stringBuilder.append("  ");
-			}
-			return stringBuilder.append(")");
-		}
-
-		@Override
-		public Object visit(QueryTokenProperty node, Object data) {
-			((StringBuilder) data).append(node.jjtGetValue());
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyOperator node, Object data) {
-			return ((StringBuilder) data).append(' ').append(node.jjtGetValue());
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyValue node, Object data) {
-			return ((StringBuilder) data).append(' ').append(node.jjtGetValue());
-		}
-
-		@Override
-		public Object visit(QueryTokenQuery node, Object data) {
-			if (node.jjtGetNumChildren() >= 1) { // extract(..)を処理
-				Node childNode = node.jjtGetChild(0);
-				if (childNode instanceof QueryTokenFunction) {
-					if ("extract".equals(((QueryTokenFunction) childNode).jjtGetValue())) {
-						isExtract = true;
-						// "extract("と")"の部分は表示しない。
-						int argCount = childNode.jjtGetNumChildren();
-						if (argCount == 0) { // argが指定されていないときは処理終わり
-							return data;
-						} else {
-							((QueryTokenFunction) childNode).childrenAccept(this, data);
-						}
-					}
-				}
-			}
-			// extract(..)がない→除外
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenStart node, Object data) {
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(SimpleNode node, Object data) {
-			return null;
-		}
-	}
-
-	/** スペースを削除するフィルタクエリビジター */
-	protected static class FilterQueryNormalizer implements FilterParserVisitor {
-
-		@Override
-		public Object visit(QueryTokenFunction node, Object data) {
-			StringBuilder stringBuilder = (StringBuilder) data;
-			stringBuilder.append(node.jjtGetValue()).append('(');
-
-			int count = node.jjtGetNumChildren();
-			if (count >= 0) {
-				for (int i = 0; i < count; i++) {
-					node.jjtGetChild(i).jjtAccept(this, data);
-					stringBuilder.append(',');
-				}
-				stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-			}
-			stringBuilder.append(')');
-			return null;
-		}
-
-		@Override
-		public Object visit(QueryTokenProperty node, Object data) {
-			((StringBuilder) data).append(node.jjtGetValue());
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyOperator node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
-		}
-
-		@Override
-		public Object visit(QueryTokenPropertyValue node, Object data) {
-			return ((StringBuilder) data).append(node.jjtGetValue());
-		}
-
-		@Override
-		public Object visit(QueryTokenQuery node, Object data) {
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(QueryTokenStart node, Object data) {
-			return node.childrenAccept(this, data);
-		}
-
-		@Override
-		public Object visit(SimpleNode node, Object data) {
-			return null;
-		}
-	}
 
 	public static final int DEFAULT_FRAME_SIZE = 400;
 
@@ -275,7 +127,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 			StringBuilder stringBuilder = new StringBuilder(filterQuery.length());
 			try {
 				QueryTokenStart tokenStart = QueryCompiler.tokenize(filterQuery);
-				FilterQueryFormatter queryFormatter = new FilterQueryFormatter();
+				FilterQueryFormatter queryFormatter = new FilterQueryFormatter(stringBuilder);
 				tokenStart.jjtAccept(queryFormatter, stringBuilder);
 				if (queryFormatter.isExtractFilter()) {
 					getComponentExtractOption().setSelected(true);
@@ -313,7 +165,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 				QueryTokenStart tokenStart = QueryCompiler.tokenize(queryText);
 				StringBuilder stringBuilder = new StringBuilder();
 
-				tokenStart.jjtAccept(new FilterQueryNormalizer(), stringBuilder);
+				tokenStart.jjtAccept(new FilterQueryNormalizer(stringBuilder), stringBuilder);
 
 				if (getComponentExtractOption().isSelected()) {
 					stringBuilder.insert(0, "extract(");

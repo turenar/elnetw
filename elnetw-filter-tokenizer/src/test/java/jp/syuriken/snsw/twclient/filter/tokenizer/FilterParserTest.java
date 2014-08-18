@@ -29,10 +29,11 @@ import java.util.Queue;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTFUNCTION;
+import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTFUNCTIONARGSEPARATOR;
+import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTFUNCTIONLEFTPARENTHESIS;
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTPROPERTY;
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTPROPERTYOPERATOR;
 import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.JJTPROPERTYVALUE;
-import static jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserTreeConstants.jjtNodeName;
 import static org.junit.Assert.*;
 
 /**
@@ -42,54 +43,145 @@ import static org.junit.Assert.*;
  */
 public class FilterParserTest implements FilterParserVisitor {
 
-	private static class FunctionEndVirtualNode extends SimpleNode {
 
+	private static class CommentVirtualNode extends MyNode {
+		public CommentVirtualNode(String image) {
+			super(0xf0000001);
+			jjtSetValue(image);
+		}
+	}
+
+	private static class FunctionEndVirtualNode extends MyNode {
 		public FunctionEndVirtualNode() {
 			super(0xf0000000);
 		}
 	}
 
-	private void assertNoValidToken(List<SimpleNode> list) {
+	private void assertComment(Queue<MyNode> list, String comment) {
+		MyNode node = list.poll();
+		assertTrue(node instanceof CommentVirtualNode);
+		assertEquals(comment, node.jjtGetValue());
+	}
+
+	private void assertComment(Queue<MyNode> list) {
+		assertComment(list, "/**/");
+	}
+
+	private void assertNoValidToken(List<MyNode> list) {
 		assertTrue(list.isEmpty());
 	}
 
-	private void assertToken(Queue<SimpleNode> list, int kind, String value) {
-		SimpleNode node = list.poll();
-		assertEquals(jjtNodeName[kind], node.toString());
+	private void assertToken(Queue<MyNode> list, int kind, String value) {
+		MyNode node = list.poll();
+		assertNotNull(node);
+		assertEquals(kind, node.getTypeId());
 		if (value != null) {
 			assertEquals(value, node.jjtGetValue());
 		}
 	}
 
-	private void assertTokenFuncEnd(Queue<SimpleNode> list) {
+	private void assertTokenFuncEnd(Queue<MyNode> list) {
+		assertTrue(list.poll() instanceof QueryTokenFunctionRightParenthesis);
 		assertTrue(list.poll() instanceof FunctionEndVirtualNode);
 	}
 
+	private void handleComment(Queue<MyNode> data, Token tok) {
+		if (tok.specialToken != null) {
+			handleComment(data, tok.specialToken);
+		}
+		data.add(new CommentVirtualNode(tok.image));
+	}
+
 	@SuppressWarnings("unchecked")
-	private void recordVisit(SimpleNode node, Object data) {
-		((Queue<SimpleNode>) data).add(node);
+	private void recordVisit(MyNode node, Object dataObj, boolean commentOnly) {
+		Token tok = node.getSpecialToken();
+		Queue<MyNode> data = (Queue<MyNode>) dataObj;
+		if (tok != null) {
+			handleComment(data, tok);
+		}
+		if (!commentOnly) {
+			data.add(node);
+		}
 	}
 
 	@Test
-	public void testNextToken1WithPropertyNameOnly() throws ParseException {
+	public void test1PropertyNameOnly() throws ParseException {
 		QueryTokenStart node = tokenize(" hoge ");
-		LinkedList<SimpleNode> list = new LinkedList<>();
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertNoValidToken(list);
 	}
 
 	@Test
-	public void testNextToken2WithPropertyOperator() throws ParseException {
+	public void test1PropertyOperator2() throws ParseException {
+		QueryTokenStart node = tokenize(" \t    \nhoge \n\t: ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertToken(list, JJTPROPERTYOPERATOR, ":");
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2Comment() throws Exception {
+		QueryTokenStart node = tokenize("/* */ hoge /* */");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertComment(list, "/* */");
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertComment(list, "/* */");
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2CommentMultiline() throws Exception {
+		QueryTokenStart node = tokenize("/*\n */ hoge /* \n*/");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertComment(list, "/*\n */");
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertComment(list, "/* \n*/");
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2CommentShortHand() throws Exception {
+		QueryTokenStart node = tokenize("/**/ hoge /***/");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertComment(list);
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertComment(list, "/***/");
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2CommentWithAstarisk() throws Exception {
+		QueryTokenStart node = tokenize("/** */ hoge /* **/");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertComment(list, "/** */");
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertComment(list, "/* **/");
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2Function() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge (  ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test2PropertyOperator1() throws ParseException {
 		QueryTokenStart node = tokenize("hoge:");
-		LinkedList<SimpleNode> list = new LinkedList<>();
-		node.jjtAccept(this, list);
-		assertToken(list, JJTPROPERTY, "hoge");
-		assertToken(list, JJTPROPERTYOPERATOR, ":");
-		assertNoValidToken(list);
-
-		node = tokenize(" \t    \nhoge \n\t: ");
-		list = new LinkedList<>();
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
@@ -97,48 +189,109 @@ public class FilterParserTest implements FilterParserVisitor {
 	}
 
 	@Test
-	public void testNextToken3WithPropertyComparedWithString() throws ParseException {
-		QueryTokenStart node = tokenize("hoge:\"aaaa\"");
-		LinkedList<SimpleNode> list = new LinkedList<>();
+	public void test3CommentWithProperty() throws Exception {
+		QueryTokenStart node = tokenize("/**/hoge/**/ == /**/\"cjk\"");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
+		assertComment(list);
 		assertToken(list, JJTPROPERTY, "hoge");
-		assertToken(list, JJTPROPERTYOPERATOR, ":");
-		assertToken(list, JJTPROPERTYVALUE, "\"aaaa\"");
-		assertNoValidToken(list);
-
-		node = tokenize("hoge:\" \"");
-		node.jjtAccept(this, list);
-		assertToken(list, JJTPROPERTY, "hoge");
-		assertToken(list, JJTPROPERTYOPERATOR, ":");
-		assertToken(list, JJTPROPERTYVALUE, "\" \"");
+		assertComment(list);
+		assertToken(list, JJTPROPERTYOPERATOR, "==");
+		assertComment(list);
+		assertToken(list, JJTPROPERTYVALUE, "\"cjk\"");
 		assertNoValidToken(list);
 	}
 
 	@Test
-	public void testNextToken4WithPropertyComparedWithInt() throws ParseException {
+	public void test3FunctionDeeply1() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( fuga ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test3FunctionDeeply2() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( fuga ?) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "?");
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test3FunctionDeeply3() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( fuga == 1234) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "==");
+		assertToken(list, JJTPROPERTYVALUE, "1234");
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test3FunctionDeeply4() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( hoge ( ) ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertTokenFuncEnd(list);
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test3PropertyInt1() throws ParseException {
 		QueryTokenStart node = tokenize("hoge:1234");
-		LinkedList<SimpleNode> list = new LinkedList<>();
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
+	}
 
-		node = tokenize("hoge== 1234");
+	@Test
+	public void test3PropertyInt2() throws ParseException {
+		QueryTokenStart node = tokenize("hoge== 1234");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "==");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
+	}
 
-		node = tokenize("hoge != 1234");
+	@Test
+	public void test3PropertyInt3() throws ParseException {
+		QueryTokenStart node = tokenize("hoge != 1234");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "!=");
 		assertToken(list, JJTPROPERTYVALUE, "1234");
 		assertNoValidToken(list);
+	}
 
-		node = tokenize(" hoge <= 1234 ");
+	@Test
+	public void test3PropertyInt4() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge <= 1234 ");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTPROPERTY, "hoge");
 		assertToken(list, JJTPROPERTYOPERATOR, "<=");
@@ -147,151 +300,207 @@ public class FilterParserTest implements FilterParserVisitor {
 	}
 
 	@Test
-	public void testNextToken5WithFunction() throws ParseException {
-		QueryTokenStart node = tokenize(" hoge (  ) ");
-		LinkedList<SimpleNode> list = new LinkedList<>();
+	public void test3PropertyString1() throws ParseException {
+		QueryTokenStart node = tokenize("hoge:\"aaaa\"");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertTokenFuncEnd(list);
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertToken(list, JJTPROPERTYOPERATOR, ":");
+		assertToken(list, JJTPROPERTYVALUE, "\"aaaa\"");
 		assertNoValidToken(list);
 	}
 
 	@Test
-	public void testNextToken6WithDeepFunction() throws ParseException {
-		QueryTokenStart node = tokenize(" hoge ( fuga ) ");
-		LinkedList<SimpleNode> list = new LinkedList<>();
+	public void test3PropertyString2() throws ParseException {
+		QueryTokenStart node = tokenize("hoge:\" \"");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertTokenFuncEnd(list);
-		assertNoValidToken(list);
-
-		node = tokenize(" hoge ( fuga ?) ");
-		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "?");
-		assertTokenFuncEnd(list);
-		assertNoValidToken(list);
-
-		node = tokenize(" hoge ( fuga == 1234) ");
-		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "==");
-		assertToken(list, JJTPROPERTYVALUE, "1234");
-		assertTokenFuncEnd(list);
-		assertNoValidToken(list);
-
-		node = tokenize(" hoge ( hoge ( ) ) ");
-		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertTokenFuncEnd(list);
-		assertTokenFuncEnd(list);
+		assertToken(list, JJTPROPERTY, "hoge");
+		assertToken(list, JJTPROPERTYOPERATOR, ":");
+		assertToken(list, JJTPROPERTYVALUE, "\" \"");
 		assertNoValidToken(list);
 	}
 
 	@Test
-	public void testNextToken7WithFunctionSeparator() throws ParseException {
-		QueryTokenStart node = tokenize(" hoge ( fuga?, fuga ) ");
-		LinkedList<SimpleNode> list = new LinkedList<>();
-		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "?");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertTokenFuncEnd(list);
-		assertNoValidToken(list);
-
-		node = tokenize(" hoge ( fuga?, hoge(fuga\n==9876, fuga\t??  ) ) ");
-		node.jjtAccept(this, list);
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "?");
-		assertToken(list, JJTFUNCTION, "hoge");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "==");
-		assertToken(list, JJTPROPERTYVALUE, "9876");
-		assertToken(list, JJTPROPERTY, "fuga");
-		assertToken(list, JJTPROPERTYOPERATOR, "??");
-		assertTokenFuncEnd(list);
-		assertTokenFuncEnd(list);
-		assertNoValidToken(list);
-
-		node = tokenize("a(b?, c(d\n==9876, e\t??, f(g:\" \\\" \", h:\" \\'\\n\\\\ \")  ), k? ) ");
+	public void test4FunctionMultiArg1() throws ParseException {
+		QueryTokenStart node = tokenize("a(b?, c(d\n==9876, e\t??, f(g:\" \\\" \", h:\" \\'\\n\\\\ \")  ), k? ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertToken(list, JJTFUNCTION, "a");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
 		assertToken(list, JJTPROPERTY, "b");
 		assertToken(list, JJTPROPERTYOPERATOR, "?");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
 		assertToken(list, JJTFUNCTION, "c");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
 		assertToken(list, JJTPROPERTY, "d");
 		assertToken(list, JJTPROPERTYOPERATOR, "==");
 		assertToken(list, JJTPROPERTYVALUE, "9876");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
 		assertToken(list, JJTPROPERTY, "e");
 		assertToken(list, JJTPROPERTYOPERATOR, "??");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
 		assertToken(list, JJTFUNCTION, "f");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
 		assertToken(list, JJTPROPERTY, "g");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertToken(list, JJTPROPERTYVALUE, "\" \\\" \"");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
 		assertToken(list, JJTPROPERTY, "h");
 		assertToken(list, JJTPROPERTYOPERATOR, ":");
 		assertToken(list, JJTPROPERTYVALUE, "\" \\'\\n\\\\ \"");
 		assertTokenFuncEnd(list);
 		assertTokenFuncEnd(list);
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
 		assertToken(list, JJTPROPERTY, "k");
 		assertToken(list, JJTPROPERTYOPERATOR, "?");
 		assertTokenFuncEnd(list);
 		assertNoValidToken(list);
 	}
 
-	private QueryTokenStart tokenize(String s) throws ParseException {
-		return new FilterParser(new StringReader(s)).Start();
+	@Test
+	public void test4FunctionMultiArg2() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( fuga?, fuga ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "?");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test4FunctionMultiArg3() throws ParseException {
+		QueryTokenStart node = tokenize(" hoge ( fuga?, hoge(fuga\n==9876, fuga\t??  ) ) ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "?");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
+		assertToken(list, JJTFUNCTION, "hoge");
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "==");
+		assertToken(list, JJTPROPERTYVALUE, "9876");
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertToken(list, JJTPROPERTYOPERATOR, "??");
+		assertTokenFuncEnd(list);
+		assertTokenFuncEnd(list);
+		assertNoValidToken(list);
+	}
+
+	@Test
+	public void test5CommentWithFunction() throws Exception {
+		QueryTokenStart node = tokenize(" /**/ test/**//**/(/* *//**/fuga/**//**/?/**//**/,/**//**/fuga/**//**/)/**/ ");
+		LinkedList<MyNode> list = new LinkedList<>();
+		node.jjtAccept(this, list);
+		assertComment(list);
+		assertToken(list, JJTFUNCTION, "test");
+		assertComment(list);
+		assertComment(list);
+		assertToken(list, JJTFUNCTIONLEFTPARENTHESIS, null);
+		assertComment(list, "/* */");
+		assertComment(list);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertComment(list);
+		assertComment(list);
+		assertToken(list, JJTPROPERTYOPERATOR, "?");
+		assertComment(list);
+		assertComment(list);
+		assertToken(list, JJTFUNCTIONARGSEPARATOR, null);
+		assertComment(list);
+		assertComment(list);
+		assertToken(list, JJTPROPERTY, "fuga");
+		assertComment(list);
+		assertComment(list);
+		assertTokenFuncEnd(list);
+		assertComment(list);
+		assertNoValidToken(list);
+	}
+
+	private QueryTokenStart tokenize(String query) throws ParseException {
+		return new FilterParser(new StringReader(query)).Start();
 	}
 
 	@Override
 	public Object visit(QueryTokenFunction node, Object data) {
-		recordVisit(node, data);
+		recordVisit(node, data, false);
 		node.childrenAccept(this, data);
-		recordVisit(new FunctionEndVirtualNode(), data);
+		recordVisit(new FunctionEndVirtualNode(), data, false);
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionArgSeparator node, Object data) {
+		recordVisit(node, data, false);
+		node.childrenAccept(this, data);
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionLeftParenthesis node, Object data) {
+		recordVisit(node, data, false);
+		node.childrenAccept(this, data);
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionRightParenthesis node, Object data) {
+		recordVisit(node, data, false);
+		node.childrenAccept(this, data);
 		return null;
 	}
 
 	@Override
 	public Object visit(QueryTokenProperty node, Object data) {
-		recordVisit(node, data);
+		recordVisit(node, data, false);
 		node.childrenAccept(this, data);
 		return null;
 	}
 
 	@Override
 	public Object visit(QueryTokenPropertyOperator node, Object data) {
-		recordVisit(node, data);
+		recordVisit(node, data, false);
 		node.childrenAccept(this, data);
 		return null;
 	}
 
 	@Override
 	public Object visit(QueryTokenPropertyValue node, Object data) {
-		recordVisit(node, data);
+		recordVisit(node, data, false);
 		node.childrenAccept(this, data);
 		return null;
 	}
 
 	@Override
 	public Object visit(QueryTokenQuery node, Object data) {
-		node.childrenAccept(this, data);
-		return null;
-	}
-
-	@Override
-	public Object visit(QueryTokenStart node, Object data) {
+		recordVisit(node, data, true);
 		node.childrenAccept(this, data);
 		return null;
 	}
 
 	@Override
 	public Object visit(SimpleNode node, Object data) {
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenStart node, Object data) {
+		recordVisit(node, data, true);
+		node.childrenAccept(this, data);
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenEndOfData node, Object data) {
+		recordVisit(node, data, true);
 		node.childrenAccept(this, data);
 		return null;
 	}

@@ -29,7 +29,11 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParser;
 import jp.syuriken.snsw.twclient.filter.tokenizer.FilterParserVisitor;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenEndOfData;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunction;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionArgSeparator;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionLeftParenthesis;
+import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenFunctionRightParenthesis;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenProperty;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyOperator;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenPropertyValue;
@@ -168,9 +172,10 @@ public class QueryCompiler implements FilterParserVisitor {
 		if (factory == null) {
 			throw new WrappedException(new IllegalSyntaxException("func<" + functionName + ">は見つかりません。"));
 		}
-		QueryDispatcherBase[] args = new QueryDispatcherBase[childrenCount];
-		for (int i = 0; i < childrenCount; i++) {
-			args[i] = (QueryDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
+		// skip LeftParen, ArgSeparator, RightParen
+		QueryDispatcherBase[] args = new QueryDispatcherBase[childrenCount >> 1];
+		for (int i = 1; i < childrenCount; i += 2) {
+			args[i >> 1] = (QueryDispatcherBase) node.jjtGetChild(i).jjtAccept(this, data);
 		}
 
 		try {
@@ -178,6 +183,21 @@ public class QueryCompiler implements FilterParserVisitor {
 		} catch (IllegalSyntaxException e) {
 			throw new WrappedException(e);
 		}
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionArgSeparator node, Object data) {
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionLeftParenthesis node, Object data) {
+		return null;
+	}
+
+	@Override
+	public Object visit(QueryTokenFunctionRightParenthesis node, Object data) {
+		return null;
 	}
 
 	@Override
@@ -250,6 +270,11 @@ public class QueryCompiler implements FilterParserVisitor {
 	@Override
 	public QueryDispatcherBase visit(QueryTokenStart node, Object data) {
 		return (QueryDispatcherBase) node.jjtGetChild(0).jjtAccept(this, data);
+	}
+
+	@Override
+	public Object visit(QueryTokenEndOfData node, Object data) {
+		return null;
 	}
 
 	@Override

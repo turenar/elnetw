@@ -5,6 +5,8 @@ options{
 	VISITOR=true;
 	JDK_VERSION="1.6";
 	NODE_PREFIX="QueryToken";
+	NODE_CLASS="MyNode";
+	TRACK_TOKENS=true;
 }
 
 PARSER_BEGIN(FilterParser)
@@ -40,21 +42,44 @@ TOKEN:
 	| < ALPHASTR: (<ALPHACHAR>)+ >
 }
 
+SPECIAL_TOKEN:
+{
+	< COMMENT: (
+		"/*" // start of comment
+			( ~["*"] // not astarisk
+			| (
+				("*")+
+				(~["*","/"]) // */
+			))*
+		("*")+ "/" ) >
+}
+
 QueryTokenStart Start() #Start: {}
 {
-	(Query())? <EOF>
+	(Query())? EndOfData()
 	{ return jjtThis; }
+}
+
+void EndOfData(): {}
+{
+	<EOF>
 }
 
 void Query(): {}
 {
-	( LOOKAHEAD(2) Function() | Property() )
+	(
+		( LOOKAHEAD(2) Function() | Property() )
+	)
 }
 
 void Property(): { Token t; }
 {
 	t=<ALPHASTR> { jjtThis.jjtSetValue(t.image); }
-	 (PropertyOperator() (PropertyValue())? )?
+	(
+		( PropertyOperator()
+			(PropertyValue())?
+		)?
+	)
 }
 
 void PropertyOperator(): { Token t; }
@@ -70,8 +95,26 @@ void PropertyValue(): { Token t; }
 void Function(): { Token t; }
 {
 	t=<ALPHASTR> { jjtThis.jjtSetValue(t.image); }
-	"(" (
+	FunctionLeftParenthesis() (
 		( LOOKAHEAD(2) Function() | Property() )
-		( "," (LOOKAHEAD(2) Function() | Property() ))*
-	)? ")"
+		(
+			FunctionArgSeparator()
+			(LOOKAHEAD(2) Function() | Property() )
+		)*
+	)? FunctionRightParenthesis()
+}
+
+void FunctionArgSeparator(): {}
+{
+	","
+}
+
+void FunctionLeftParenthesis(): {}
+{
+	"("
+}
+
+void FunctionRightParenthesis(): {}
+{
+	")"
 }
