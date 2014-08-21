@@ -22,21 +22,28 @@
 package jp.syuriken.snsw.twclient.gui.render.simple;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
+import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.Utility;
 import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
+import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
+import twitter4j.User;
 
 import static jp.syuriken.snsw.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_CURSOR_HAND;
@@ -47,6 +54,20 @@ import static jp.syuriken.snsw.twclient.ClientFrameApi.SET_CURSOR_HAND;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirectMessageRenderObject extends EntitySupportRenderObject {
+	private static class IntentActionListener implements ActionListener {
+		private static final ClientConfiguration configuration = ClientConfiguration.getInstance();
+		private final IntentArguments intentArguments;
+
+		public IntentActionListener(IntentArguments intentArguments) {
+			this.intentArguments = intentArguments;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			configuration.handleAction(intentArguments);
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(DirectMessageRenderObject.class);
 	private final DirectMessage directMessage;
 	private String uniqId;
@@ -62,12 +83,10 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	@Override
 	public void focusGained(FocusEvent e) {
 		super.focusGained(e);
-
 		String tweetText = getTweetViewText(directMessage, directMessage.getText());
-		String createdBy;
-		createdBy = MessageFormat.format("@{0} ({1}) -> @{2} ({3})", directMessage.getSender().getScreenName(),
-				directMessage.getSender().getName(), directMessage.getRecipient().getScreenName(),
-				directMessage.getRecipient().getName());
+		String createdBy = String.format("@%1$s (%2$s) -> @%3$s (%4$s)",
+				directMessage.getSender().getScreenName(), directMessage.getSender().getName(),
+				directMessage.getRecipient().getScreenName(), directMessage.getRecipient().getName());
 		String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
 		Icon userProfileIcon = componentUserIcon.getIcon();
 
@@ -90,6 +109,18 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	@Override
 	public Date getDate() {
 		return directMessage.getCreatedAt();
+	}
+
+	/**
+	 * CreatedByをクリックした時に表示されるポップアップメニューの中身を作成
+	 *
+	 * @param user ユーザー
+	 * @return JMenuItem インスタンス
+	 */
+	protected JMenuItem getNamePopup(User user) {
+		JMenuItem senderItem = new JMenuItem(String.format("@%s (%s)", user.getScreenName(), user.getName()));
+		senderItem.addActionListener(new IntentActionListener(new IntentArguments("userinfo").putExtra("user", user)));
+		return senderItem;
 	}
 
 	@Override
@@ -117,13 +148,29 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	@Override
 	public void onEvent(String name, Object arg) {
 		super.onEvent(name, arg);
-		if (name.equals(ClientEventConstants.EVENT_CLICKED_USERICON)) {
-			try {
-				new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
-						.setVisible(true);
-			} catch (MalformedURLException e) {
-				logger.error("failed getting original profile image", e);
-			}
+		switch (name) {
+			case ClientEventConstants.EVENT_CLICKED_USERICON:
+				try {
+					new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
+							.setVisible(true);
+				} catch (MalformedURLException e) {
+					logger.error("failed getting original profile image", e);
+				}
+				break;
+			case ClientEventConstants.EVENT_CLICKED_CREATED_BY:
+				if (directMessage.getSenderId() == directMessage.getRecipientId()) {
+					getConfiguration().handleAction(
+							new IntentArguments("userinfo").putExtra("user", directMessage.getSender()));
+				} else {
+					JPopupMenu menu = new JPopupMenu();
+					menu.add(getNamePopup(directMessage.getSender()));
+					menu.add(getNamePopup(directMessage.getRecipient()));
+					MouseEvent event = (MouseEvent) arg;
+					menu.show(event.getComponent(), event.getX(), event.getY());
+				}
+				break;
+			default:
+				// do nothing
 		}
 	}
 }
