@@ -87,7 +87,12 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 		@Override
 		public int compare(TweetEntity o1, TweetEntity o2) {
-			return o1.getStart() - o2.getStart();
+			int diff = o1.getStart() - o2.getStart();
+			if (diff == 0) {
+				// prior MediaEntity to URLEntity
+				diff = (o1 instanceof MediaEntity ? -1 : 0) - (o2 instanceof MediaEntity ? -1 : 0);
+			}
+			return diff;
 		}
 	}
 

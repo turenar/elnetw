@@ -72,6 +72,11 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 			int end = entity.getEnd();
 			String url;
 
+			if (offset >= end) {
+				//assert entity instanceof URLEntity;
+				// entitySupport may be DM
+				continue; // prev is MediaEntity and now is URLEntity...?
+			}
 			stringBuilder.append(escapeHTML(text.substring(offset, start)));
 
 			if (entity instanceof HashtagEntity) {
@@ -167,7 +172,9 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 			for (URLEntity entity : mediaEntities) {
 				String entityText = entity.getText();
 				int start = statusText.indexOf(entityText);
-				statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
+				if (start >= 0) {
+					statusText.replace(start, start + entityText.length(), entity.getDisplayURL());
+				}
 			}
 		}
 		componentStatusText = new JLabel(statusText.toString());
