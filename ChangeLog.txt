@@ -1,9 +1,12 @@
 Version 0.2
+	++ Prohibit multi instance (#38)
 	++ Add BlockingUserFilter. You can see its option in SettingFrame
 	++ Add has_url, has_hashtag filter property
 	++ Support comment in query statement
+	 + Update tab configuration. Don't use json
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
+	 * Fix operator ignored in bool query property
 	 * Support LowerCaseName of query system
 	 * Update filter system
 	 * Stop using Constructor<> in query system
