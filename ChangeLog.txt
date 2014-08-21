@@ -7,9 +7,18 @@ Version 0.2
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
 	 * Fix operator ignored in bool query property
+	 * Fix inf-loop in JobQueue without #shutdown multi invocation
 	 * Support LowerCaseName of query system
 	 * Update filter system
 	 * Stop using Constructor<> in query system
+
+Version 0.1-rc1 (Mon Aug 18 19:29:10 JST 2014)
+
+	+ Add has_url, has_hashtag query property
+	+ Warn if older elnetw with newer config will be running
+	* Fix SPLP#remove() sometimes don't work
+	* Fix StandardBooleanProperties often ignored operator
+>>>>>>> 5eafb5a... JobQueue: fix inf-loop without multi invocation of #shutdown()
 
 Version 0.1-beta2 (2014年  6月 14日 土曜日 10:12:14 JST)
 
