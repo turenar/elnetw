@@ -59,11 +59,11 @@ import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientFrameApi;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderPanel;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.EntitySupport;
@@ -87,7 +87,12 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 		@Override
 		public int compare(TweetEntity o1, TweetEntity o2) {
-			return o1.getStart() - o2.getStart();
+			int diff = o1.getStart() - o2.getStart();
+			if (diff == 0) {
+				// prior MediaEntity to URLEntity
+				diff = (o1 instanceof MediaEntity ? -1 : 0) - (o2 instanceof MediaEntity ? -1 : 0);
+			}
+			return diff;
 		}
 	}
 

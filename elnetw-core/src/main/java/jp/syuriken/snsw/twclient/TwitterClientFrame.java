@@ -71,8 +71,8 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
 import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -83,7 +83,6 @@ import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -994,25 +993,6 @@ import twitter4j.User;
 		return tweetViewUserIconLabel;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public Twitter getTwitter() {
-		return getTwitterForRead();
-	}
-
-	@Deprecated
-	@Override
-	public Twitter getTwitterForRead() {
-		return configuration.getTwitterForRead();
-	}
-
-	@Deprecated
-	@Override
-	public Twitter getTwitterForWrite() {
-		return configuration.getTwitterForWrite();
-	}
-
 	@Override
 	public Font getUiFont() {
 		return uiFont;
@@ -1090,7 +1070,10 @@ import twitter4j.User;
 	 * initialize the form.
 	 */
 	private void initComponents() {
-		setTitle(ClientConfiguration.APPLICATION_NAME);
+		setTitle(VersionInfo.isSnapshot()
+						? VersionInfo.getCodeName() + " (" + ClientConfiguration.APPLICATION_NAME + ")"
+						: ClientConfiguration.APPLICATION_NAME
+		);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 
@@ -1137,6 +1120,7 @@ import twitter4j.User;
 	/*package*/void removeFrameTab(int indexOf, ClientTab tab) {
 		JTabbedPane viewTab = getViewTab();
 		viewTab.remove(indexOf);
+		tab.close();
 	}
 
 	/**
@@ -1255,7 +1239,7 @@ import twitter4j.User;
 			String tabId = tab.getTabId();
 			String uniqId = tab.getUniqId();
 			tabs.append(tabId).append(':').append(uniqId).append(' ');
-			configProperties.setProperty("gui.tabs.data." + uniqId, tab.getSerializedData());
+			tab.serialize();
 		}
 		configProperties.setProperty("gui.tabs.list", tabs.toString().trim());
 

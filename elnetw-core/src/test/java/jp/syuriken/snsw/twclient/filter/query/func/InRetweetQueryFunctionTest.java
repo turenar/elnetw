@@ -23,7 +23,7 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -39,7 +39,7 @@ public class InRetweetQueryFunctionTest extends FilterConstants {
 	@Test
 	public void testConstructor() {
 		try {
-			new InRetweetQueryFunction("inrt", new FilterDispatcherBase[]{});
+			new InRetweetQueryFunction("inrt", new QueryDispatcherBase[]{});
 			fail("childの個数を無視したよう");
 		} catch (IllegalSyntaxException e) {
 			// do nothing
@@ -51,7 +51,7 @@ public class InRetweetQueryFunctionTest extends FilterConstants {
 			throw new AssertionError(e);
 		}
 
-		FilterDispatcherBase[] arr = new FilterDispatcherBase[2];
+		QueryDispatcherBase[] arr = new QueryDispatcherBase[2];
 		try {
 			new InRetweetQueryFunction("inrt", arr);
 			fail("childの個数を無視したよう");

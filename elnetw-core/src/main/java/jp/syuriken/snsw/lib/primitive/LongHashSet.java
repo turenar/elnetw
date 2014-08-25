@@ -48,7 +48,8 @@ public class LongHashSet {
 	protected static final double LOAD_FACTOR = 0.5;
 	private static final Logger logger = LoggerFactory.getLogger(LongHashSet.class);
 
-	private static int powerOf(int initialCapacity) {
+	/*package*/
+	static int powerOf(int initialCapacity) {
 		int l = Integer.highestOneBit(initialCapacity);
 		return l < initialCapacity ? l << 1 : l;
 	}
@@ -92,8 +93,9 @@ public class LongHashSet {
 
 	/**
 	 * instance
+	 *
 	 * @param initialCapacity initial capacity(16)
-	 * @param loadFactor load factor(0.5)
+	 * @param loadFactor      load factor(0.5)
 	 */
 	public LongHashSet(int initialCapacity, double loadFactor) {
 		this.loadFactor = loadFactor;
@@ -105,6 +107,7 @@ public class LongHashSet {
 
 	/**
 	 * put long value. putting {@link Long#MIN_VALUE} is not permitted
+	 *
 	 * @param aLong long value
 	 * @return if this does not contains aLong, return true. otherwise, false.
 	 */
@@ -147,6 +150,7 @@ public class LongHashSet {
 
 	/**
 	 * check if contains value
+	 *
 	 * @param o long value
 	 * @return if contains, return true. otherwise, false.
 	 */
@@ -164,6 +168,7 @@ public class LongHashSet {
 
 	/**
 	 * get count of hash conflict. The larger this value, the slower the performance
+	 *
 	 * @return hash conflict count.
 	 */
 	public int getHashConflict() {
@@ -182,6 +187,7 @@ public class LongHashSet {
 
 	/**
 	 * check set does not contain any value.
+	 *
 	 * @return empty?
 	 */
 	public boolean isEmpty() {
@@ -205,6 +211,7 @@ public class LongHashSet {
 
 	/**
 	 * remove specified value
+	 *
 	 * @param o long value
 	 * @return if contains, return true
 	 */
@@ -228,6 +235,7 @@ public class LongHashSet {
 
 	/**
 	 * return size
+	 *
 	 * @return size
 	 */
 	public int size() {

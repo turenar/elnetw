@@ -27,8 +27,8 @@ import java.text.MessageFormat;
 import javax.swing.JMenuItem;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
+import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import twitter4j.ResponseList;

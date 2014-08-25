@@ -493,6 +493,12 @@ public class JobQueue {
 		}
 	}
 
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		shutdown();
+	}
+
 	/**
 	 * exit worker
 	 *
@@ -511,7 +517,7 @@ public class JobQueue {
 
 			notify(); // sometimes make JobQueue#shutdownNow wake up and recheck workers alive
 			if (countOf(state - 1) == 0) {
-				this.state.compareAndSet(state, stateOf(PHASE_EXITED, 0));
+				this.state.compareAndSet(state - 1, stateOf(PHASE_EXITED, 0));
 			}
 		}
 		logger.debug("{}: Finish", jobWorkerThread);
@@ -557,7 +563,8 @@ public class JobQueue {
 			if (job == null) {
 				try {
 					int tempState = state.get();
-					if (wakeUpFlag && !worker.isMainThread && countOf(tempState) > coreThreadPoolSize) {
+					if (isShutdownPhase()
+							|| (wakeUpFlag && !worker.isMainThread && countOf(tempState) > coreThreadPoolSize)) {
 						// exit free worker
 						logger.debug("{}: No job! try to exit...", worker);
 						if (finishWorker(worker, tempState)) {
@@ -840,8 +847,14 @@ public class JobQueue {
 			}
 		}
 		synchronized (childThreads) {
-			for (Thread childThread : childThreads) {
-				childThread.interrupt();
+			for (JobWorkerThread childThread : childThreads) {
+				if (childThread.tryLock()) {
+					try {
+						childThread.interrupt();
+					} finally {
+						childThread.unlock();
+					}
+				}
 			}
 		}
 	}

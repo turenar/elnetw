@@ -25,6 +25,7 @@ import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,8 +33,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -44,6 +46,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
@@ -61,33 +64,38 @@ import javax.swing.UIManager;
 import jp.syuriken.snsw.lib.parser.ArgParser;
 import jp.syuriken.snsw.lib.parser.OptionType;
 import jp.syuriken.snsw.lib.parser.ParsedArguments;
-import jp.syuriken.snsw.twclient.bus.BlockingUsersChannelFactory;
-import jp.syuriken.snsw.twclient.bus.DirectMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
-import jp.syuriken.snsw.twclient.bus.NullMessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TimelineChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TwitterStreamChannelFactory;
-import jp.syuriken.snsw.twclient.bus.VirtualChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.BlockingUsersChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.DirectMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.MentionsChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.TimelineChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.TwitterStreamChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.VirtualChannelFactory;
+import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
 import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
-import jp.syuriken.snsw.twclient.filter.FilterCompiler;
-import jp.syuriken.snsw.twclient.filter.FilterConfigurator;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.QueryFilter;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
+import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryConfigurator;
 import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
 import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
-import jp.syuriken.snsw.twclient.gui.ClientTab;
-import jp.syuriken.snsw.twclient.gui.DirectMessageViewTab;
-import jp.syuriken.snsw.twclient.gui.MentionViewTab;
-import jp.syuriken.snsw.twclient.gui.TimelineViewTab;
-import jp.syuriken.snsw.twclient.gui.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.gui.render.simple.RenderObjectHandler;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.DirectMessageViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.MentionViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.TimelineViewTab;
+import jp.syuriken.snsw.twclient.gui.tab.factory.DirectMessageViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.MentionViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.TimelineViewTabFactory;
+import jp.syuriken.snsw.twclient.gui.tab.factory.UserInfoViewTabFactory;
 import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.DoNothingActionHandler;
@@ -126,13 +134,15 @@ import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
-import jp.syuriken.snsw.twclient.net.ImageCacher;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * 実際に起動するランチャ
@@ -252,13 +262,13 @@ public final class TwitterClientMain {
 	private Logger logger;
 
 	private JobQueue jobQueue;
-	private boolean debugMode;
 	private boolean portable;
 	private MessageBus messageBus;
 	private TwitterClientFrame frame;
 	private boolean isInterrupted;
 	private DeadlockMonitor deadlockMonitor;
 	private CacheStorage cacheStorage;
+	private FileLock configFileLock;
 
 	/**
 	 * インスタンスを生成する。
@@ -290,10 +300,10 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "gui/tab/init-factory", phase = "init")
 	public void addClientTabConstructor() {
-		ClientConfiguration.putClientTabConstructor("timeline", TimelineViewTab.class);
-		ClientConfiguration.putClientTabConstructor("mention", MentionViewTab.class);
-		ClientConfiguration.putClientTabConstructor("directmessage", DirectMessageViewTab.class);
-		ClientConfiguration.putClientTabConstructor("userinfo", UserInfoFrameTab.class);
+		ClientConfiguration.putClientTabConstructor("timeline", new TimelineViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("mention", new MentionViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("directmessage", new DirectMessageViewTabFactory());
+		ClientConfiguration.putClientTabConstructor("userinfo", new UserInfoViewTabFactory());
 	}
 
 	/**
@@ -305,7 +315,7 @@ public final class TwitterClientMain {
 				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
 						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
 						new BooleanConfigType())
-				.addConfig("<ignore>", "フィルタの編集", "", new FilterConfigurator());
+				.addConfig("<ignore>", "フィルタの編集", "", new QueryConfigurator());
 	}
 
 	/**
@@ -386,6 +396,7 @@ public final class TwitterClientMain {
 
 	/**
 	 * init cache manager
+	 *
 	 * @param condition init condition
 	 */
 	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
@@ -464,14 +475,14 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/func", phase = "preinit")
 	public void initFilterFunctions() {
-		FilterCompiler.putFilterFunction("and", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("extract", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("if", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("inrt", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("not", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("exactly_one_of", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("one_of", StandardFunctionFactory.SINGLETON);
-		FilterCompiler.putFilterFunction("or", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("and", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("extract", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("if", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("inrt", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("not", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("exactly_one_of", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("one_of", StandardFunctionFactory.SINGLETON);
+		QueryCompiler.putFilterFunction("or", StandardFunctionFactory.SINGLETON);
 
 	}
 
@@ -480,35 +491,46 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/prop", phase = "preinit")
 	public void initFilterProperties() {
-		FilterCompiler.putFilterProperty("userid", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("user_id", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("in_reply_to", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("in_reply_to_userid", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("send_to", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("rtcount", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("timediff", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("mine", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("my_tweet", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("my_dm", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("protected", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_protected", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("verified", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_verified", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("status", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_status", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("dm", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("directmessage", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("direct_message", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_dm", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_directmessage", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("is_direct_message", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("user", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("author", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("screen_name", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("text", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("client", StandardPropertyFactory.SINGLETON);
-		FilterCompiler.putFilterProperty("in_list", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("userid", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("user_id", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_reply_to", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_reply_to_userid", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("inreplyto", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("send_to", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("sendto", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("rtcount", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("rt_count", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("timediff", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("mine", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("protected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_protected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isprotected", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("verified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_verified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isverified", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("status", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_status", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isstatus", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("dm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("directmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("direct_message", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_dm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isdm", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_directmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_direct_message", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isdirectmessage", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("user", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("author", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("screen_name", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("screenname", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("text", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("client", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("in_list", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("has_hashtag", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("hashashtag", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("has_url", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("hasurl", StandardPropertyFactory.SINGLETON);
 	}
 
 	/**
@@ -629,21 +651,12 @@ public final class TwitterClientMain {
 				int separatorPosition = tabIdentifier.indexOf(':');
 				String tabId = tabIdentifier.substring(0, separatorPosition);
 				String uniqId = tabIdentifier.substring(separatorPosition + 1);
-				Constructor<? extends ClientTab> tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
+				ClientTabFactory tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
 				if (tabConstructor == null) {
 					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
 				} else {
-					try {
-						ClientTab tab = tabConstructor.newInstance(
-								configProperties.getProperty("gui.tabs.data." + uniqId));
-						configuration.addFrameTab(tab);
-					} catch (IllegalArgumentException | InstantiationException e) {
-						logger.error("タブが復元できません: タブを初期化できません。tabId=" + tabId, e);
-					} catch (IllegalAccessException e) {
-						logger.error("タブが復元できません: 正しくないアクセス指定子です。tabId=" + tabId, e);
-					} catch (InvocationTargetException e) {
-						logger.error("タブが復元できません: 初期化中にエラーが発生しました。tabId=" + tabId, e);
-					}
+					ClientTab tab = tabConstructor.getInstance(tabId, uniqId);
+					configuration.addFrameTab(tab);
 				}
 			}
 		}
@@ -664,10 +677,8 @@ public final class TwitterClientMain {
 	 */
 	public HashMap<String, Object> run() {
 		portable = Boolean.getBoolean("config.portable");
-		debugMode = false;
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
-			debugMode = true;
 		}
 
 		setHomeProperty();
@@ -708,6 +719,10 @@ public final class TwitterClientMain {
 		} catch (InitializeException e) {
 			logger.error("failed initialization", e);
 			return getResultMap(e.getExitCode(), true);
+		}
+		if (!initializeService.isInitialized("gui/main/show")) {
+			logger.error("failed initialization. MainWindow is not shown");
+			return getResultMap(1, true);
 		}
 		logger.info("Initialized");
 
@@ -750,22 +765,41 @@ public final class TwitterClientMain {
 	public void setConfigProperties(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			configProperties = configuration.getConfigProperties();
-			File configFile = new File(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
-			configProperties.setStoreFile(configFile);
-			if (configFile.exists()) {
+
+			try {
+				Path lockPath = Paths.get(configuration.getConfigRootDir(), CONFIG_FILE_NAME + ".lock");
+				FileChannel channel = FileChannel.open(lockPath, EnumSet.of(CREATE, WRITE));
+				configFileLock = channel.tryLock();
+				if (configFileLock == null) {
+					JOptionPane.showMessageDialog(null, "同じ設定ディレクトリからの多重起動を検知しました。終了します。\n\n"
+									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+					condition.setFailStatus("MultiInstanceRunning", 1);
+					return;
+				}
+			} catch (IOException e) {
+				logger.warn("Lock failed", e);
+			}
+
+			Path configPath = Paths.get(configuration.getConfigRootDir(), CONFIG_FILE_NAME);
+			configProperties.setStorePath(configPath);
+			if (Files.exists(configPath)) {
 				logger.debug(CONFIG_FILE_NAME + " is found.");
-				try {
-					InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), "UTF-8");
+				try (BufferedReader reader = Files.newBufferedReader(configPath, ClientConfiguration.UTF8_CHARSET)) {
 					configProperties.load(reader);
 				} catch (IOException e) {
 					logger.warn("設定ファイルの読み込み中にエラー", e);
 				}
 			}
-
-			String configVersion = configProperties.getProperty("cfg.version", "0");
-			InitializeService.getService().provideInitializer("config/update/v" + configVersion, true);
 		} else {
 			configProperties.store();
+			if (configFileLock != null) {
+				try {
+					configFileLock.release();
+				} catch (IOException e) {
+					logger.warn("Unlock failed", e);
+				}
+			}
 		}
 	}
 
@@ -1099,24 +1133,42 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * update configuration to v1
+	 * update configuration
+	 *
+	 * @param condition init condition
 	 */
-	@Initializer(name = "config/update/v1", dependencies = "config/update/v0", phase = "earlyinit")
-	public void updateConfigToV1() {
-		logger.info("Updating config to v1");
-		configProperties.setProperty("cfg.version", "1");
-	}
-
-	/**
-	 * update configuration to v2
-	 */
-	@Initializer(name = "config/update/v2", dependencies = "config/update/v1", phase = "earlyinit")
-	public void updateConfigToV2() {
-		logger.info("Updating config to v2");
-		if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
-			configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
-					configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+	@Initializer(name = "config/update", dependencies = "config", phase = "earlyinit")
+	public void updateConfig(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			int version = Integer.parseInt(configProperties.getProperty("cfg.version", "0"));
+			switch (version) {
+				case 0:
+					logger.info("Updating config to v1");
+					//configProperties.setProperty("cfg.version", "1");
+				case 1: // fall-through
+					logger.info("Updating config to v2");
+					if (configProperties.containsKey(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE)) {
+						configProperties.setInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE,
+								configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE) / 1000);
+					}
+				case 2: // fall-through
+					logger.info("Updating config to v3");
+					configProperties.removePrefixed("gui.tabs");
+					configProperties.setProperty("cfg.version", "3");
+				case 3: // fall-through
+					// latest
+					break;
+				default:
+					int i = JOptionPane.showConfirmDialog(null,
+							"設定ファイルのバージョンより古いelnetwを動かしています！\n"
+									+ "予期しないクラッシュ、不具合が発生する可能性があります。\n\n"
+									+ "終了しますか？",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE);
+					if (i == JOptionPane.YES_OPTION) {
+						condition.setFailStatus("old version elnetw", 2);
+					}
+			}
 		}
-		configProperties.setProperty("cfg.version", "2");
 	}
 }

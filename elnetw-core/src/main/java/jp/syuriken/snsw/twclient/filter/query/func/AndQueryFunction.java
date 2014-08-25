@@ -23,7 +23,7 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -34,7 +34,7 @@ import twitter4j.Status;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class AndQueryFunction implements QueryFunction {
-	private FilterDispatcherBase[] child;
+	private QueryDispatcherBase[] child;
 
 	/**
 	 * インスタンスを生成する。
@@ -44,7 +44,7 @@ public class AndQueryFunction implements QueryFunction {
 	 * @throws IllegalSyntaxException エラー
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
-	public AndQueryFunction(String functionName, FilterDispatcherBase[] child) throws IllegalSyntaxException {
+	public AndQueryFunction(String functionName, QueryDispatcherBase[] child) throws IllegalSyntaxException {
 		if (child.length == 0) {
 			throw new IllegalSyntaxException("func<" + functionName + ">: 子要素の個数が0です");
 		}
@@ -53,7 +53,7 @@ public class AndQueryFunction implements QueryFunction {
 
 	@Override
 	public boolean filter(DirectMessage directMessage) {
-		for (FilterDispatcherBase operator : child) {
+		for (QueryDispatcherBase operator : child) {
 			if (!operator.filter(directMessage)) {
 				return false;
 			}
@@ -63,7 +63,7 @@ public class AndQueryFunction implements QueryFunction {
 
 	@Override
 	public boolean filter(Status status) {
-		for (FilterDispatcherBase operator : child) {
+		for (QueryDispatcherBase operator : child) {
 			if (!operator.filter(status)) {
 				return false;
 			}

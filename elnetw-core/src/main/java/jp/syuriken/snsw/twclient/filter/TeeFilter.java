@@ -22,12 +22,12 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.gui.TabRenderer;
+import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 入力 → {@link jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
+ * 入力 → {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

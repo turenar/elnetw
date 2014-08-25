@@ -23,9 +23,9 @@ package jp.syuriken.snsw.twclient.filter;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
-import jp.syuriken.snsw.twclient.filter.query.FilterDispatcherBase;
+import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -38,14 +38,14 @@ import static org.junit.Assert.*;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public abstract class FilterConstants implements FilterDispatcherBase {
+public abstract class FilterConstants implements QueryDispatcherBase {
 
-	private static class BooleanFilterDispatcher implements FilterDispatcherBase {
+	private static class BooleanQueryDispatcher implements QueryDispatcherBase {
 
 		private boolean bool;
 
 
-		public BooleanFilterDispatcher(boolean bool) {
+		public BooleanQueryDispatcher(boolean bool) {
 			this.bool = bool;
 		}
 
@@ -61,24 +61,24 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	}
 
 
-	/** 常にfalseを返す {@link FilterDispatcherBase} */
-	public static final FilterDispatcherBase FALSE_DISPATCHER = new BooleanFilterDispatcher(false);
+	/** 常にfalseを返す {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} */
+	public static final QueryDispatcherBase FALSE_DISPATCHER = new BooleanQueryDispatcher(false);
 
-	/** 常にtrueを返す {@link FilterDispatcherBase} */
-	public static final FilterDispatcherBase TRUE_DISPATCHER = new BooleanFilterDispatcher(true);
+	/** 常にtrueを返す {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} */
+	public static final QueryDispatcherBase TRUE_DISPATCHER = new BooleanQueryDispatcher(true);
 	/**
 	 * &#64;twit4j による 2012年7月10日14:35 投稿。
 	 * 「Tue Jul 10 14:35:33 JST 2012 test」
 	 */
 	public static final Status STATUS_1;
 	/**
-	 * &#64;ture7s による 2012年7月11日18:01JST 投稿
-	 * 「てす &#64;ture7 &#64;ture7s」
+	 * &#64;ture7n による投稿
+	 * 「てす &#64;ture7 &#64;ture7n」
 	 */
 	public static final Status STATUS_2;
 	/**
-	 * &#64;ture7s による 2012年7月11日18:02JST 投稿
-	 * 「&#64;ture7s てす ‪#てす‬ http://example.com」
+	 * &#64;ture7n による投稿
+	 * 「&#64;ture7n てす ‪#てす‬ http://example.com」
 	 */
 	public static final Status STATUS_3;
 	/** API Documentに記述されているリツイートされたStatusのテスト用データ */
@@ -91,9 +91,9 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	static {
 		try {
 			STATUS_1 = loadStatus("222564698627907584.json");
-			STATUS_2 = loadStatus("222978973305544704.json");
-			STATUS_3 = loadStatus("222979122341752833.json");
-			STATUS_4 = loadStatus("21947795900469248.json");
+			STATUS_2 = loadStatus("490396681007951873.json");
+			STATUS_3 = loadStatus("490396828781666304.json");
+			STATUS_4 = loadStatus("465231779159228416.json");
 			STATUS_5 = loadStatus("st_test.json");
 			DM_1 = loadDirectMessage("dm.json");
 		} catch (TwitterException | IOException e) {
@@ -106,10 +106,10 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 	 * {@link #FALSE_DISPATCHER} ないし {@link #TRUE_DISPATCHER} を格納した配列を返す
 	 *
 	 * @param bools bool配列
-	 * @return {@link FilterDispatcherBase}配列
+	 * @return {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase}配列
 	 */
-	protected static FilterDispatcherBase[] getDispatchers(boolean... bools) {
-		FilterDispatcherBase[] dispatchers = new FilterDispatcherBase[bools.length];
+	protected static QueryDispatcherBase[] getDispatchers(boolean... bools) {
+		QueryDispatcherBase[] dispatchers = new QueryDispatcherBase[bools.length];
 		for (int i = 0; i < bools.length; i++) {
 			dispatchers[i] = bools[i] ? TRUE_DISPATCHER : FALSE_DISPATCHER;
 		}
@@ -126,14 +126,10 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 			stream = new BufferedInputStream(FilterConstants.class.getResourceAsStream("/tweets/" + fileName));
 			byte[] buf = new byte[65536];
 			int len = stream.read(buf);
-			return new String(buf, 0, len, Charset.forName("utf8"));
+			return new String(buf, 0, len, ClientConfiguration.UTF8_CHARSET);
 		} finally {
 			if (stream != null) {
-				try {
-					stream.close();
-				} catch (IOException e) {
-					throw new AssertionError(e);
-				}
+				stream.close();
 			}
 		}
 	}
@@ -146,8 +142,8 @@ public abstract class FilterConstants implements FilterDispatcherBase {
 		// do nothing because static initializer may do
 	}
 
-	/** 自分自身を格納した {@link FilterDispatcherBase} の配列 */
-	protected final FilterDispatcherBase[] thisDispatcher = new FilterDispatcherBase[]{
+	/** 自分自身を格納した {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} の配列 */
+	protected final QueryDispatcherBase[] thisDispatcher = new QueryDispatcherBase[]{
 			this
 	};
 	/** 最後にフィルタしようとしたオブジェクト */

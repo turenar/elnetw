@@ -28,7 +28,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -129,7 +128,7 @@ public class PropertyEditorFrame extends JFrame {
 		defaultProperties.setProperty("default", "default?");
 		defaultProperties.setProperty("int", "is the value");
 		ClientProperties clientProperties = new ClientProperties(defaultProperties);
-		clientProperties.setStoreFile(File.createTempFile("elnetw-test", ".prop"));
+		clientProperties.setStorePath(File.createTempFile("elnetw-test", ".prop"));
 		clientProperties.setProperty("123", "456");
 		clientProperties.setProperty("default", "entire");
 		clientProperties.setProperty("abc", "def");
@@ -249,10 +248,9 @@ public class PropertyEditorFrame extends JFrame {
 				}
 			});
 			tableProperties.setDefaultRenderer(String.class, new DefaultTableCellRendererExtension(tableModel));
-			TableRowSorter<DefaultTableModelExtension> sorter =
-					new TableRowSorter<DefaultTableModelExtension>(tableModel);
+			TableRowSorter<DefaultTableModelExtension> sorter = new TableRowSorter<>(tableModel);
 			sorter.setSortable(1, false);
-			List<SortKey> s = new ArrayList<SortKey>();
+			List<SortKey> s = new ArrayList<>();
 			s.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
 			sorter.setSortKeys(s);
 			tableProperties.setRowSorter(sorter);
@@ -304,19 +302,21 @@ public class PropertyEditorFrame extends JFrame {
 		tableModel.setRowCount(0);
 
 		ClientProperties configProperties = configuration.getConfigProperties();
-		for (Enumeration<?> enumeration = configProperties.propertyNames(); enumeration.hasMoreElements(); ) {
-			String key = (String) enumeration.nextElement();
-			tableModel.addRow(new Object[]{
-					key,
-					configProperties.getProperty(key)
-			});
-		}
+		do {
+			for (String key : configProperties.keySet()) {
+				tableModel.addRow(new Object[]{
+						key,
+						configProperties.getProperty(key)
+				});
+			}
+			configProperties = configProperties.getDefaults();
+		} while (configProperties != null);
 	}
 
 	@Override
-	public void setVisible(boolean b) {
-		super.setVisible(b);
-		if (b == true) {
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		if (visible) {
 			initTableModel();
 		}
 	}

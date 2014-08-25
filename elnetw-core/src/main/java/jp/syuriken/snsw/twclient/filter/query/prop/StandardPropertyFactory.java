@@ -44,37 +44,44 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 				return new UserIdProperty(name, operator, value);
 			case "in_reply_to":
 			case "in_reply_to_userid":
+			case "inreplyto":
 			case "send_to":
+			case "sendto":
 				return new InReplyToUserIdProperty(name, operator, value);
 			case "rtcount":
+			case "rt_count":
 				return new RetweetCountProperty(name, operator, value);
 			case "timediff":
 				return new TimeDiffProperty(name, operator, value);
 			case "retweeted":
 				return new RetweetedProperty(name, operator, value);
 			case "mine":
-			case "my_tweet":
-			case "my_dm":
 				return new MyTweetProperty(name, operator, value);
 			case "protected":
 			case "is_protected":
+			case "isprotected":
 				return new IsProtectedProperty(name, operator, value);
 			case "verified":
 			case "is_verified":
+			case "isverified":
 				return new IsVerifiedProperty(name, operator, value);
 			case "status":
 			case "is_status":
+			case "isstatus":
 				return new IsStatusProperty(name, operator, value);
 			case "dm":
 			case "directmessage":
 			case "direct_message":
 			case "is_dm":
+			case "isdm":
 			case "is_directmessage":
 			case "is_direct_message":
+			case "isdirectmessage":
 				return new IsDirectMessageProperty(name, operator, value);
 			case "user":
 			case "author":
 			case "screen_name":
+			case "screenname":
 				return new ScreenNameProperty(name, operator, value);
 			case "text":
 				return new StatusTextProperty(name, operator, value);
@@ -82,8 +89,14 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 				return new ClientProperty(name, operator, value);
 			case "in_list":
 				return new InListProperty(name, operator, value);
+			case "has_hashtag":
+			case "hashashtag":
+				return new HasHashtagProperty(name, operator, value);
+			case "has_url":
+			case "hasurl":
+				return new HasUrlProperty(name, operator, value);
 			default:
-				throw new IllegalSyntaxException("Not supported factor");
+				throw new IllegalSyntaxException("Not supported factory");
 		}
 	}
 }

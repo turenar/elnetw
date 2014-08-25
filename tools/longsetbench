@@ -1,0 +1,2 @@
+#!/bin/sh
+$(dirname $0)/executor.sh $@ jp.syuriken.snsw.lib.primitive.SeveralLongSetBenchmark

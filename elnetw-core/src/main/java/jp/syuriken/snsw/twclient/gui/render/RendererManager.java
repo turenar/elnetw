@@ -21,8 +21,8 @@
 
 package jp.syuriken.snsw.twclient.gui.render;
 
-import jp.syuriken.snsw.twclient.gui.TabRenderer;
 import jp.syuriken.snsw.twclient.gui.render.simple.SimpleRenderer;
+import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 
 /** Renderer Manager */
 public class RendererManager {
