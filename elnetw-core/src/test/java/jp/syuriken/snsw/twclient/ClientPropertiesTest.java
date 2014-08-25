@@ -58,6 +58,11 @@ public class ClientPropertiesTest {
 			assertEquals(property, evt.getPropertyName());
 			assertEquals(oldValue, evt.getOldValue());
 			assertEquals(newValue, evt.getNewValue());
+			evt = null;
+		}
+
+		public void testNotCalled() {
+			assertNull(evt);
 		}
 	}
 
@@ -348,6 +353,18 @@ public class ClientPropertiesTest {
 		assertEquals("#list:0", clientProperties.getProperty("test"));
 		assertFalse(clientProperties.containsKey("test[0]"));
 		assertFalse(clientProperties.containsKey("test[1]"));
+	}
+
+	@Test
+	public void testRemovePropertyChangedListener() {
+		ClientProperties clientProperties = new ClientProperties();
+		PropertyChangeListenerTestImpl listener = new PropertyChangeListenerTestImpl();
+		clientProperties.addPropertyChangedListener(listener);
+		clientProperties.setProperty("test", "aaa");
+		listener.test("test", null, clientProperties.getProperty("test"));
+		clientProperties.removePropertyChangedListener(listener);
+		clientProperties.setProperty("test", "bbb");
+		listener.testNotCalled();
 	}
 
 	@Test

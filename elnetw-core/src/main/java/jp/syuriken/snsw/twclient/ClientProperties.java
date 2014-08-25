@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
+import java.lang.ref.WeakReference;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -40,10 +41,11 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.AbstractList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
@@ -62,7 +64,6 @@ import org.slf4j.LoggerFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientProperties extends Properties {
-
 	private class PropWrappedList extends AbstractList<String> implements PropertyChangeListener {
 		private final String key;
 		private int len;
@@ -140,6 +141,30 @@ public class ClientProperties extends Properties {
 		}
 	}
 
+	/**
+	 * weak reference which supports #equals()
+	 *
+	 * @param <T> referent type
+	 */
+	protected class WeakReferenceEx<T> extends WeakReference<T> {
+		private int hash;
+
+		public WeakReferenceEx(T referent) {
+			super(referent);
+			hash = referent.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof WeakReferenceEx && ((WeakReferenceEx) obj).get() == get();
+		}
+
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+	}
+
 	private static final long serialVersionUID = -9137200173250477268L;
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
@@ -214,7 +239,7 @@ public class ClientProperties extends Properties {
 	}
 
 	/** リスナの配列 */
-	protected transient CopyOnWriteArrayList<PropertyChangeListener> listeners;
+	protected transient ConcurrentLinkedQueue<WeakReferenceEx<PropertyChangeListener>> listeners;
 	/** 保存先のファイル */
 	protected File storeFile;
 
@@ -230,7 +255,7 @@ public class ClientProperties extends Properties {
 	 */
 	public ClientProperties(Properties defaults) {
 		super(defaults);
-		listeners = new CopyOnWriteArrayList<>();
+		listeners = new ConcurrentLinkedQueue<>();
 	}
 
 	/**
@@ -242,7 +267,7 @@ public class ClientProperties extends Properties {
 		if (listener == null) {
 			throw new IllegalArgumentException("listenerはnullであってはいけません。");
 		}
-		listeners.add(listener);
+		listeners.add(new WeakReferenceEx<>(listener));
 	}
 
 	@Override
@@ -274,8 +299,14 @@ public class ClientProperties extends Properties {
 	 */
 	public synchronized void firePropertyChanged(String key, String oldValue, String newValue) {
 		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
-		for (PropertyChangeListener listener : listeners) {
-			listener.propertyChange(evt);
+		for (Iterator<WeakReferenceEx<PropertyChangeListener>> iterator = listeners.iterator(); iterator.hasNext(); ) {
+			WeakReferenceEx<PropertyChangeListener> ref = iterator.next();
+			PropertyChangeListener listener = ref.get();
+			if (listener == null) {
+				iterator.remove();
+			} else {
+				listener.propertyChange(evt);
+			}
 		}
 	}
 
@@ -317,7 +348,7 @@ public class ClientProperties extends Properties {
 	 * @throws IllegalArgumentException int,int,int[,int]の形ではありません
 	 * @throws NumberFormatException    数値に変換できない値です
 	 */
-	public synchronized Color getColor(String key) throws IllegalArgumentException, NumberFormatException {
+	public synchronized Color getColor(String key) throws IllegalArgumentException {
 		String value = getProperty(key);
 		if (value == null) {
 			return null;
@@ -475,6 +506,11 @@ public class ClientProperties extends Properties {
 		}
 	}
 
+	/**
+	 * listを取得する
+	 * @param key キー
+	 * @return リスト
+	 */
 	public List<String> getList(String key) {
 		String value = getProperty(key, "#list:0");
 		if (value.startsWith("#list:")) {
@@ -657,7 +693,7 @@ public class ClientProperties extends Properties {
 
 	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		listeners = new CopyOnWriteArrayList<>();
+		listeners = new ConcurrentLinkedQueue<>();
 	}
 
 	@Override
@@ -673,7 +709,7 @@ public class ClientProperties extends Properties {
 	 * @return 登録されて削除された場合true
 	 */
 	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
-		return listeners.remove(listener);
+		return listeners.remove(new WeakReferenceEx<>(listener));
 	}
 
 	/**
