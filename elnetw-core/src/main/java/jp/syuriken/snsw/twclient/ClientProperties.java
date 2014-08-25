@@ -38,7 +38,10 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
+import java.util.AbstractList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +63,84 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientProperties extends Properties {
 
-	private static final long serialVersionUID = -9065135476197360347L;
+	private class PropWrappedList extends AbstractList<String> implements PropertyChangeListener {
+		private final String key;
+		private int len;
+
+		public PropWrappedList(String key) {
+			this.key = key;
+			addPropertyChangedListener(this);
+		}
+
+		@Override
+		public boolean add(String s) {
+			setProperty(getKeyOf(len), s);
+			updateLen(+1);
+			return true;
+		}
+
+		@Override
+		public void add(int index, String element) {
+			checkRange(index, true);
+			synchronized (ClientProperties.this) {
+				for (int i = len; i > index; i--) {
+					setProperty(getKeyOf(i), getProperty(getKeyOf(i - 1)));
+				}
+			}
+			setProperty(getKeyOf(index), element);
+			updateLen(+1);
+		}
+
+		private void checkRange(int index, boolean insert) {
+			if (index < 0 || (insert ? index > len : index >= len)) {
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public String get(int index) {
+			checkRange(index, false);
+			return getProperty(getKeyOf(index));
+		}
+
+		private String getKeyOf(int index) {
+			return key + "[" + index + "]";
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals(key)) {
+				String len = getProperty(key, "#list:0").substring("#list:".length());
+				this.len = Integer.parseInt(len);
+			}
+		}
+
+		@Override
+		public String remove(int index) {
+			checkRange(index, false);
+			String removed = getProperty(getKeyOf(index));
+			synchronized (ClientProperties.this) {
+				for (int i = index; i < len; i++) {
+					setProperty(getKeyOf(i - 1), getProperty(getKeyOf(i)));
+				}
+			}
+			ClientProperties.this.remove(getKeyOf(len - 1));
+			updateLen(-1);
+			return removed;
+		}
+
+		@Override
+		public int size() {
+			return len;
+		}
+
+		private void updateLen(int delta) {
+			len += delta;
+			setProperty(key, "#list:" + len);
+		}
+	}
+
+	private static final long serialVersionUID = -9137200173250477268L;
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";
@@ -359,6 +439,7 @@ public class ClientProperties extends Properties {
 		}
 		int fontSize = Integer.parseInt(fontSizeString.trim());
 
+		//noinspection MagicConstant
 		return new Font(fontName, fontStyle, fontSize);
 	}
 
@@ -391,6 +472,15 @@ public class ClientProperties extends Properties {
 		} catch (NumberFormatException e) {
 			logger.warn("#getInteger() failed with key `" + key + "'", e);
 			return defaultValue;
+		}
+	}
+
+	public List<String> getList(String key) {
+		String value = getProperty(key, "#list:0");
+		if (value.startsWith("#list:")) {
+			return new PropWrappedList(key);
+		} else {
+			throw new IllegalArgumentException("`" + key + "' is not valid list.");
 		}
 	}
 

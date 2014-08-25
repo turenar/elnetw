@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +45,6 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientPropertiesTest {
-
 	/*package*/static final class PropertyChangeListenerTestImpl implements PropertyChangeListener {
 
 		private PropertyChangeEvent evt;
@@ -59,7 +60,6 @@ public class ClientPropertiesTest {
 			assertEquals(newValue, evt.getNewValue());
 		}
 	}
-
 
 	/**
 	 * obfuscate string
@@ -288,6 +288,66 @@ public class ClientPropertiesTest {
 			throw new AssertionError(e);
 		}
 		clientProperties.getPrivateString("aaa", "Oxcafebaby");
+	}
+
+	@Test
+	public void testListAdd() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		List<String> list = clientProperties.getList("test");
+		list.add("hoge");
+		assertEquals("#list:1", clientProperties.getProperty("test"));
+		assertEquals("hoge", clientProperties.getProperty("test[0]"));
+		assertEquals(1, list.size());
+		assertFalse(list.isEmpty());
+		list.add("fuga");
+		assertEquals("#list:2", clientProperties.getProperty("test"));
+		assertEquals("hoge", clientProperties.getProperty("test[0]"));
+		assertEquals("fuga", clientProperties.getProperty("test[1]"));
+		assertEquals(2, list.size());
+	}
+
+	@Test
+	public void testListInsert() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		List<String> one = clientProperties.getList("test");
+		List<String> another = clientProperties.getList("test");
+		one.add("Hinata");
+		one.add("Airi");
+		one.add(0, "Maho");
+		another.add(3, "Tomoka");
+		one.add(3, "Saki");
+		assertEquals(5, one.size());
+		assertEquals("Maho", another.get(0));
+		assertEquals("Hinata", another.get(1));
+		assertEquals("Airi", another.get(2));
+		assertEquals("Saki", another.get(3));
+		assertEquals("Tomoka", another.get(4));
+	}
+
+	@Test(expected = NoSuchElementException.class)
+	public void testListInvalidIndex() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		List<String> one = clientProperties.getList("test");
+		one.get(4);
+	}
+
+	@Test
+	public void testListRemove() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		List<String> list = clientProperties.getList("test");
+		list.add("hoge");
+		list.add("fuga");
+		assertEquals(2, list.size());
+		list.remove("hoge");
+		assertEquals(1, list.size());
+		assertEquals("#list:1", clientProperties.getProperty("test"));
+		assertEquals("fuga", list.get(0));
+		assertEquals("fuga", clientProperties.getProperty("test[0]"));
+		assertFalse(clientProperties.containsKey("test[1]"));
+		list.remove(0);
+		assertEquals("#list:0", clientProperties.getProperty("test"));
+		assertFalse(clientProperties.containsKey("test[0]"));
+		assertFalse(clientProperties.containsKey("test[1]"));
 	}
 
 	@Test
