@@ -315,9 +315,9 @@ public class ClientPropertiesTest {
 	public void testListInsert() throws Exception {
 		ClientProperties clientProperties = new ClientProperties();
 		List<String> one = clientProperties.getList("test");
-		List<String> another = clientProperties.getList("test");
 		one.add("Hinata");
 		one.add("Airi");
+		List<String> another = clientProperties.getList("test");
 		one.add(0, "Maho");
 		another.add(3, "Tomoka");
 		one.add(3, "Saki");

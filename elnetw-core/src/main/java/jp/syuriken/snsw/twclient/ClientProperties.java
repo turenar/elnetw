@@ -82,8 +82,8 @@ public class ClientProperties implements Map<String, String> {
 	/*package*/ class LineReader {
 		protected static final int IN_CHAR_BUF_SIZE = 8192;
 		protected static final int LINE_BUF_SIZE = 1024;
-		protected final Reader reader;
 		protected char[] lineBuf = new char[LINE_BUF_SIZE];
+		protected final Reader reader;
 		protected char[] inCharBuf;
 		protected int inLimit = 0;
 		protected int inOff = 0;
@@ -204,13 +204,16 @@ public class ClientProperties implements Map<String, String> {
 		public PropWrappedList(String key) {
 			this.key = key;
 			addPropertyChangedListener(this);
+			updateLen();
 		}
 
 		@Override
 		public boolean add(String s) {
-			setProperty(getKeyOf(len), s);
-			updateLen(+1);
-			return true;
+			synchronized (ClientProperties.this) {
+				setProperty(getKeyOf(len), s);
+				updateLen(+1);
+				return true;
+			}
 		}
 
 		@Override
@@ -232,9 +235,19 @@ public class ClientProperties implements Map<String, String> {
 		}
 
 		@Override
+		public void clear() {
+			synchronized (ClientProperties.this) {
+				ClientProperties.this.remove(key);
+				ClientProperties.this.removePrefixed(key + "[");
+			}
+		}
+
+		@Override
 		public String get(int index) {
-			checkRange(index, false);
-			return getProperty(getKeyOf(index));
+			synchronized (ClientProperties.this) {
+				checkRange(index, false);
+				return getProperty(getKeyOf(index));
+			}
 		}
 
 		private String getKeyOf(int index) {
@@ -244,28 +257,34 @@ public class ClientProperties implements Map<String, String> {
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals(key)) {
-				String len = getProperty(key, "#list:0").substring("#list:".length());
-				this.len = Integer.parseInt(len);
+				updateLen();
 			}
 		}
 
 		@Override
 		public String remove(int index) {
-			checkRange(index, false);
-			String removed = getProperty(getKeyOf(index));
 			synchronized (ClientProperties.this) {
-				for (int i = index; i < len; i++) {
-					setProperty(getKeyOf(i - 1), getProperty(getKeyOf(i)));
+				checkRange(index, false);
+				String removed = getProperty(getKeyOf(index));
+				synchronized (ClientProperties.this) {
+					for (int i = index; i < len; i++) {
+						setProperty(getKeyOf(i - 1), getProperty(getKeyOf(i)));
+					}
 				}
+				ClientProperties.this.remove(getKeyOf(len - 1));
+				updateLen(-1);
+				return removed;
 			}
-			ClientProperties.this.remove(getKeyOf(len - 1));
-			updateLen(-1);
-			return removed;
 		}
 
 		@Override
 		public int size() {
 			return len;
+		}
+
+		protected void updateLen() {
+			String len = getProperty(key, "#list:0").substring("#list:".length());
+			this.len = Integer.parseInt(len);
 		}
 
 		private void updateLen(int delta) {
@@ -476,21 +495,6 @@ public class ClientProperties implements Map<String, String> {
 	@Override
 	public synchronized String get(Object key) {
 		return getProperty((String) key);
-	}
-
-	/**
-	 * スペースで区切られた設定値を配列にして返す。この関数はキャッシュされません。
-	 *
-	 * @param key キー
-	 * @return space-separated array
-	 */
-	public synchronized String[] getArray(String key) {
-		String property = getProperty(key, "").trim();
-		if (property.isEmpty()) {
-			return new String[0];
-		} else {
-			return property.split(" ");
-		}
 	}
 
 	/**

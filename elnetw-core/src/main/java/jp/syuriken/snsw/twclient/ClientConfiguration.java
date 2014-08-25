@@ -327,8 +327,8 @@ public class ClientConfiguration {
 	 *
 	 * @return アカウントリスト。
 	 */
-	public String[] getAccountList() {
-		return configProperties.getArray(PROPERTY_ACCOUNT_LIST);
+	public List<String> getAccountList() {
+		return configProperties.getList(PROPERTY_ACCOUNT_LIST);
 	}
 
 	/**
@@ -418,9 +418,9 @@ public class ClientConfiguration {
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null || accountId.isEmpty()) {
-			String[] accountList = getAccountList();
-			if (accountList.length > 0) {
-				accountId = accountList[0];
+			List<String> accountList = getAccountList();
+			if (accountList.size() > 0) {
+				accountId = accountList.get(0);
 			} else {
 				accountId = null;
 			}
@@ -804,7 +804,7 @@ public class ClientConfiguration {
 	 * @see #isMyAccount(long)
 	 */
 	public boolean isMyAccount(String accountId) {
-		String[] accountList = getAccountList();
+		List<String> accountList = getAccountList();
 		for (String account : accountList) {
 			if (accountId.equals(account)) {
 				return true;
@@ -1030,7 +1030,7 @@ public class ClientConfiguration {
 			return e1;
 		}
 		synchronized (configProperties) {
-			String[] accountList = getAccountList();
+			List<String> accountList = getAccountList();
 			boolean updateAccountList = true;
 			for (String accountId : accountList) {
 				if (accountId.equals(userId)) {

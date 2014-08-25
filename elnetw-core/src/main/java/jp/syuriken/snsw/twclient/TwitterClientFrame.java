@@ -40,8 +40,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -78,9 +78,9 @@ import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
 import jp.syuriken.snsw.twclient.internal.LayeredLayoutManager;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
@@ -407,7 +407,7 @@ import twitter4j.User;
 	 */
 	/*package*/final class UserInfoFetcher implements Runnable {
 
-		public final String[] accountList = ClientConfiguration.getInstance().getAccountList();
+		public final List<String> accountList;
 		final UserInfoFetcher this$uif = UserInfoFetcher.this;
 		public int offset = 0;
 		public JMenuItem[] readTimelineMenuItems;
@@ -415,13 +415,17 @@ import twitter4j.User;
 
 		/** インスタンスを生成する。 */
 		public UserInfoFetcher() {
-			readTimelineMenuItems = new JMenuItem[accountList.length];
-			postToMenuItems = new JMenuItem[accountList.length];
+			accountList = configuration.getAccountList();
+			readTimelineMenuItems = new JMenuItem[accountList.size()];
+			postToMenuItems = new JMenuItem[accountList.size()];
 			String defaultAccountId = configuration.getDefaultAccountId();
 			ButtonGroup readButtonGroup = new ButtonGroup();
 			ButtonGroup writeButtonGroup = new ButtonGroup();
-			for (int i = 0; i < accountList.length; i++) {
-				String accountId = accountList[i];
+			CacheManager cacheManager = configuration.getCacheManager();
+			for (int i = 0; i < accountList.size(); i++) {
+				String accountId = accountList.get(i);
+
+				cacheManager.queueFetchingUser(Long.parseLong(accountId));
 
 				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
 				readMenuItem.setActionCommand("menu_login_read!accountId=" + accountId);
@@ -449,39 +453,12 @@ import twitter4j.User;
 
 		@Override
 		public void run() {
-			if (offset < accountList.length) {
-				int lookupUsersSize = accountList.length - offset;
-				lookupUsersSize = lookupUsersSize <= 100 ? lookupUsersSize : 100;
-				try {
-					long[] ids = new long[lookupUsersSize];
-
-					for (int i = 0; i < lookupUsersSize; i++) {
-						ids[i] = Long.parseLong(accountList[offset + i]);
-					}
-
-					ResponseList<User> users = configuration.getTwitterForRead().lookupUsers(ids);
-
-					int finish = offset + lookupUsersSize;
-					for (User user : users) {
-						for (int i = offset; i < finish; i++) {
-							if (accountList[i].equals(String.valueOf(user.getId()))) {
-								readTimelineMenuItems[i].setText(user.getScreenName());
-								postToMenuItems[i].setText(user.getScreenName());
-							}
-						}
-					}
-					offset += lookupUsersSize;
-				} catch (TwitterException e) {
-					e.printStackTrace(); //TODO
-				}
-
-				configuration.getTimer().schedule(new Runnable() {
-
-					@Override
-					public void run() {
-						configuration.addJob(Priority.LOW, this$uif);
-					}
-				}, 10, TimeUnit.SECONDS); // TODO: why 10?
+			CacheManager cacheManager = configuration.getCacheManager();
+			for (int i = 0, accountListSize = accountList.size(); i < accountListSize; i++) {
+				String accountId = accountList.get(i);
+				TwitterUser user = cacheManager.getUser(Long.parseLong(accountId));
+				readTimelineMenuItems[i].setText(user.getScreenName());
+				postToMenuItems[i].setText(user.getScreenName());
 			}
 		}
 	}
@@ -1234,14 +1211,6 @@ import twitter4j.User;
 	@Override
 	public void windowClosed(WindowEvent e) {
 		logger.debug("closing main-window...");
-		StringBuilder tabs = new StringBuilder();
-		for (ClientTab tab : configuration.getFrameTabs()) {
-			String tabId = tab.getTabId();
-			String uniqId = tab.getUniqId();
-			tabs.append(tabId).append(':').append(uniqId).append(' ');
-			tab.serialize();
-		}
-		configProperties.setProperty("gui.tabs.list", tabs.toString().trim());
 
 		configProperties.setDimension("gui.main.size", getSize());
 		configProperties.setInteger("gui.main.split.pos", getSplitPane1().getDividerLocation());
