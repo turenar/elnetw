@@ -367,10 +367,12 @@ public final class TwitterClientMain {
 	}
 
 	protected void convertOldPropArrayToList(String propName) {
-		String[] oldArray = configProperties.getProperty(propName).split(" ");
-		configProperties.remove(propName); // avoid invalid list
-		List<String> list = configProperties.getList(propName);
-		Collections.addAll(list, oldArray);
+		if (configProperties.containsKey(propName)) {
+			String[] oldArray = configProperties.getProperty(propName).split(" ");
+			configProperties.remove(propName); // avoid invalid list
+			List<String> list = configProperties.getList(propName);
+			Collections.addAll(list, oldArray);
+		}
 	}
 
 	/**
@@ -647,6 +649,7 @@ public final class TwitterClientMain {
 
 	/**
 	 * restore tabs
+	 * @param condition init condition
 	 */
 	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
 			phase = "prestart")

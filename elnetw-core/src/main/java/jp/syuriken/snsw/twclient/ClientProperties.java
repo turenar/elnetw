@@ -237,8 +237,8 @@ public class ClientProperties implements Map<String, String> {
 		@Override
 		public void clear() {
 			synchronized (ClientProperties.this) {
-				ClientProperties.this.remove(key);
 				ClientProperties.this.removePrefixed(key + "[");
+				updateLen(-len);
 			}
 		}
 
@@ -317,7 +317,6 @@ public class ClientProperties implements Map<String, String> {
 		}
 	}
 
-	private static final long serialVersionUID = -9137200173250477268L;
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";
@@ -693,8 +692,7 @@ public class ClientProperties implements Map<String, String> {
 	 * @return リスト
 	 */
 	public List<String> getList(String key) {
-		String value = getProperty(key, "#list:0");
-		if (value.startsWith("#list:")) {
+		if (isValidListProp(key)) {
 			return new PropWrappedList(key);
 		} else {
 			throw new IllegalArgumentException("`" + key + "' is not valid list.");
@@ -912,6 +910,11 @@ public class ClientProperties implements Map<String, String> {
 	@Override
 	public synchronized boolean isEmpty() {
 		return properties.isEmpty();
+	}
+
+	private boolean isValidListProp(String key) {
+		String value = getProperty(key, "#list:0");
+		return value.startsWith("#list:");
 	}
 
 	@Override
@@ -1217,6 +1220,20 @@ public class ClientProperties implements Map<String, String> {
 	public synchronized String remove(Object key) {
 		firePropertyChanged((String) key, getProperty((String) key), null);
 		return properties.remove(key);
+	}
+
+	/**
+	 * remove list from properties
+	 *
+	 * @param key property key
+	 */
+	public void removeList(String key) {
+		if (isValidListProp(key)) {
+			remove(key);
+			removePrefixed(key + "[");
+		} else {
+			throw new IllegalArgumentException("property `" + key + "' is not list");
+		}
 	}
 
 	/**

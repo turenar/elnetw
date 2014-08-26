@@ -226,6 +226,8 @@ public class ClientPropertiesTest {
 
 		assertEquals(Long.MAX_VALUE, clientProperties.getLong("aaa"));
 		assertEquals(Long.MIN_VALUE, clientProperties.getLong("bbb"));
+		assertEquals(Long.MIN_VALUE, clientProperties.getLong("bbb", 0));
+		assertEquals(0, clientProperties.getLong("ccc", 0));
 	}
 
 	/** {@link ClientProperties#getPrivateString(String, String)} */
@@ -241,6 +243,7 @@ public class ClientPropertiesTest {
 
 		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", "0xcafebabe"));
 		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", keyCafebabe));
+		assertEquals("abcdefg", clientProperties.getPrivateString("aaa", "ignore", keyCafebabe));
 		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "elnetw"));
 		assertEquals("hijklmn", clientProperties.getPrivateString("bbb", "test", "elnetw"));
 		assertEquals("opqrstu", clientProperties.getPrivateString("ccc", "cipher"));
@@ -248,6 +251,7 @@ public class ClientPropertiesTest {
 		assertEquals("terminal", clientProperties.getPrivateString("ddd", "terminal", "test"));
 		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "kill me baby"));
 		assertEquals("vwxyz", clientProperties.getPrivateString("fff", "$priv$0", "kill me baby"));
+		assertEquals("not found", clientProperties.getPrivateString("ggg", "not found", keyCafebabe));
 	}
 
 	@Test
@@ -353,6 +357,16 @@ public class ClientPropertiesTest {
 		assertEquals("#list:0", clientProperties.getProperty("test"));
 		assertFalse(clientProperties.containsKey("test[0]"));
 		assertFalse(clientProperties.containsKey("test[1]"));
+	}
+
+	@Test
+	public void testRemoveList() throws Exception {
+		ClientProperties clientProperties = new ClientProperties();
+		List<String> one = clientProperties.getList("test");
+		one.add("Hinata");
+		one.add("Airi");
+		clientProperties.removeList("test");
+		assertTrue(clientProperties.isEmpty());
 	}
 
 	@Test
