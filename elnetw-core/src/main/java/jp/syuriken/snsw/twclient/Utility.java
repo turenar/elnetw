@@ -112,8 +112,8 @@ public class Utility {
 			"epiphany",
 			"mozilla"
 	};
-	public static final int VISIBLE_CHAR_CODE_MIN = 0x20;
-	public static final int VISIBLE_CHAR_CODE_MAX = 0x7e;
+	private static final int VISIBLE_CHAR_CODE_MIN = 0x20;
+	private static final int VISIBLE_CHAR_CODE_MAX = 0x7e;
 	private static volatile OSType ostype;
 	private static KVEntry[] privacyEntries;
 	/** DateFormatを管理する */
@@ -480,6 +480,7 @@ public class Utility {
 	public Utility(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
+
 
 	/**
 	 * インストールされているブラウザを確定する。

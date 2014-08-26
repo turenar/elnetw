@@ -27,6 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import static jp.syuriken.snsw.twclient.JobQueue.LinkedQueue;
+import static jp.syuriken.snsw.twclient.JobQueue.PHASE_EXITED;
+import static jp.syuriken.snsw.twclient.JobQueue.PHASE_NEW;
+import static jp.syuriken.snsw.twclient.JobQueue.PHASE_RUNNING;
+import static jp.syuriken.snsw.twclient.JobQueue.PHASE_STOPPING;
 import static org.junit.Assert.*;
 
 /**
@@ -133,7 +137,7 @@ public class JobQueueTest {
 		}
 	}
 
-	private static class JobQueueTestImpl extends JobQueue {
+	public static class JobQueueTestImpl extends JobQueue {
 		public JobQueueTestImpl() {
 			coreThreadPoolSize = 1;
 			maximumThreadPoolSize = 1;
@@ -368,9 +372,9 @@ public class JobQueueTest {
 
 	@Test
 	public void testKeepAlive() throws Throwable {
-		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
-		final AtomicInteger callCount = new AtomicInteger();
-		final AssertionHandler handler = new AssertionHandler();
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		AssertionHandler handler = new AssertionHandler();
+		AtomicInteger callCount = new AtomicInteger();
 
 		Runnable job = new SimpleJob(callCount);
 		for (int i = 0; i < 100; i++) {
@@ -398,8 +402,14 @@ public class JobQueueTest {
 		do {
 			Thread.sleep(2); // wait for all jobs consumed
 		} while (jobQueue.size() != 0);
-
-		Thread.sleep(5); // wait for worker timeout
+		for (int i = 0; i < 101; i++) {
+			if (jobQueue.getWorkerCount() == 2) {
+				break;
+			} else if (i == 100) {
+				fail("KeepAlive test failed");
+			}
+			Thread.sleep(1);
+		}
 		assertEquals(0, jobQueue.size());
 		assertEquals(2, jobQueue.getWorkerCount());
 		assertEquals(211, callCount.get());
@@ -604,6 +614,30 @@ public class JobQueueTest {
 		assertEquals(0, jobQueue.size());
 		assertEquals(0, jobQueue.getWorkerCount());
 		assertEquals(211, callCount.get());
+	}
+
+	@Test
+	public void testPhase() throws Throwable {
+		final JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		assertEquals(PHASE_NEW, jobQueue.getPhase());
+		for (int i = 0; i < 100; i++) {
+			jobQueue.addJob(new ParallelRunnable() {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						// do nothing
+					}
+				}
+			});
+		}
+		jobQueue.startWorker();
+		assertEquals(PHASE_RUNNING, jobQueue.getPhase());
+		jobQueue.shutdown();
+		assertEquals(PHASE_STOPPING, jobQueue.getPhase());
+		shutdownQueue(jobQueue);
+		assertEquals(PHASE_EXITED, jobQueue.getPhase());
 	}
 
 	@Test

@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AlgorithmParameters;
@@ -38,15 +39,18 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
+import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
@@ -193,6 +197,126 @@ public class ClientProperties implements Map<String, String> {
 		}
 	}
 
+	private class PropWrappedList extends AbstractList<String> implements PropertyChangeListener {
+		private final String key;
+		private int len;
+
+		public PropWrappedList(String key) {
+			this.key = key;
+			addPropertyChangedListener(this);
+			updateLen();
+		}
+
+		@Override
+		public boolean add(String s) {
+			synchronized (ClientProperties.this) {
+				setProperty(getKeyOf(len), s);
+				updateLen(+1);
+				return true;
+			}
+		}
+
+		@Override
+		public void add(int index, String element) {
+			checkRange(index, true);
+			synchronized (ClientProperties.this) {
+				for (int i = len; i > index; i--) {
+					setProperty(getKeyOf(i), getProperty(getKeyOf(i - 1)));
+				}
+			}
+			setProperty(getKeyOf(index), element);
+			updateLen(+1);
+		}
+
+		private void checkRange(int index, boolean insert) {
+			if (index < 0 || (insert ? index > len : index >= len)) {
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public void clear() {
+			synchronized (ClientProperties.this) {
+				ClientProperties.this.removePrefixed(key + "[");
+				updateLen(-len);
+			}
+		}
+
+		@Override
+		public String get(int index) {
+			synchronized (ClientProperties.this) {
+				checkRange(index, false);
+				return getProperty(getKeyOf(index));
+			}
+		}
+
+		private String getKeyOf(int index) {
+			return key + "[" + index + "]";
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (evt.getPropertyName().equals(key)) {
+				updateLen();
+			}
+		}
+
+		@Override
+		public String remove(int index) {
+			synchronized (ClientProperties.this) {
+				checkRange(index, false);
+				String removed = getProperty(getKeyOf(index));
+				synchronized (ClientProperties.this) {
+					for (int i = index; i < len; i++) {
+						setProperty(getKeyOf(i - 1), getProperty(getKeyOf(i)));
+					}
+				}
+				ClientProperties.this.remove(getKeyOf(len - 1));
+				updateLen(-1);
+				return removed;
+			}
+		}
+
+		@Override
+		public int size() {
+			return len;
+		}
+
+		protected void updateLen() {
+			String len = getProperty(key, "#list:0").substring("#list:".length());
+			this.len = Integer.parseInt(len);
+		}
+
+		private void updateLen(int delta) {
+			len += delta;
+			setProperty(key, "#list:" + len);
+		}
+	}
+
+	/**
+	 * weak reference which supports #equals()
+	 *
+	 * @param <T> referent type
+	 */
+	protected class WeakReferenceEx<T> extends WeakReference<T> {
+		private int hash;
+
+		public WeakReferenceEx(T referent) {
+			super(referent);
+			hash = referent.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof WeakReferenceEx && ((WeakReferenceEx) obj).get() == get();
+		}
+
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
 	private static final int KEY_BIT = 128;
 	private static final String ENCRYPT_HEADER = "$priv$0$";
@@ -272,7 +396,7 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	protected final ClientProperties defaults;
 	/** リスナの配列 */
-	protected transient CopyOnWriteArrayList<PropertyChangeListener> listeners;
+	protected transient ConcurrentLinkedQueue<WeakReferenceEx<PropertyChangeListener>> listeners;
 	/** 保存先のファイル */
 	protected Path storePath;
 	/**
@@ -292,7 +416,7 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public ClientProperties(ClientProperties defaults) {
 		this.defaults = defaults;
-		listeners = new CopyOnWriteArrayList<>();
+		listeners = new ConcurrentLinkedQueue<>();
 	}
 
 	/**
@@ -304,7 +428,7 @@ public class ClientProperties implements Map<String, String> {
 		if (listener == null) {
 			throw new IllegalArgumentException("listenerはnullであってはいけません。");
 		}
-		listeners.add(listener);
+		listeners.add(new WeakReferenceEx<>(listener));
 	}
 
 	@Override
@@ -356,29 +480,20 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized void firePropertyChanged(String key, String oldValue, String newValue) {
 		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
-		for (PropertyChangeListener listener : listeners) {
-			listener.propertyChange(evt);
+		for (Iterator<WeakReferenceEx<PropertyChangeListener>> iterator = listeners.iterator(); iterator.hasNext(); ) {
+			WeakReferenceEx<PropertyChangeListener> ref = iterator.next();
+			PropertyChangeListener listener = ref.get();
+			if (listener == null) {
+				iterator.remove();
+			} else {
+				listener.propertyChange(evt);
+			}
 		}
 	}
 
 	@Override
 	public synchronized String get(Object key) {
 		return getProperty((String) key);
-	}
-
-	/**
-	 * スペースで区切られた設定値を配列にして返す。この関数はキャッシュされません。
-	 *
-	 * @param key キー
-	 * @return space-separated array
-	 */
-	public synchronized String[] getArray(String key) {
-		String property = getProperty(key, "").trim();
-		if (property.isEmpty()) {
-			return new String[0];
-		} else {
-			return property.split(" ");
-		}
 	}
 
 	/**
@@ -567,6 +682,20 @@ public class ClientProperties implements Map<String, String> {
 		} catch (NumberFormatException e) {
 			logger.warn("#getInteger() failed with key `" + key + "'", e);
 			return defaultValue;
+		}
+	}
+
+	/**
+	 * listを取得する
+	 *
+	 * @param key キー
+	 * @return リスト
+	 */
+	public List<String> getList(String key) {
+		if (isValidListProp(key)) {
+			return new PropWrappedList(key);
+		} else {
+			throw new IllegalArgumentException("`" + key + "' is not valid list.");
 		}
 	}
 
@@ -781,6 +910,11 @@ public class ClientProperties implements Map<String, String> {
 	@Override
 	public synchronized boolean isEmpty() {
 		return properties.isEmpty();
+	}
+
+	private boolean isValidListProp(String key) {
+		String value = getProperty(key, "#list:0");
+		return value.startsWith("#list:");
 	}
 
 	@Override
@@ -1089,6 +1223,20 @@ public class ClientProperties implements Map<String, String> {
 	}
 
 	/**
+	 * remove list from properties
+	 *
+	 * @param key property key
+	 */
+	public void removeList(String key) {
+		if (isValidListProp(key)) {
+			remove(key);
+			removePrefixed(key + "[");
+		} else {
+			throw new IllegalArgumentException("property `" + key + "' is not list");
+		}
+	}
+
+	/**
 	 * remove all entry with key started with prefix
 	 *
 	 * @param prefix prefix key
@@ -1109,7 +1257,7 @@ public class ClientProperties implements Map<String, String> {
 	 * @return 登録されて削除された場合true
 	 */
 	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
-		return listeners.remove(listener);
+		return listeners.remove(new WeakReferenceEx<>(listener));
 	}
 
 	/*

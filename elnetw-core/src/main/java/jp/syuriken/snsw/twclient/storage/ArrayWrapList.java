@@ -19,35 +19,50 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
+package jp.syuriken.snsw.twclient.storage;
 
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+import java.util.AbstractList;
+
+import org.json.JSONArray;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * json array wrapped as list
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
-	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
+class ArrayWrapList<T> extends AbstractList<T> {
+	private final JSONArray jsonArray;
+	private final Converter<T> converter;
+
+	public ArrayWrapList(JSONArray jsonArray, Converter<T> converter) {
+		this.jsonArray = jsonArray;
+		this.converter = converter;
 	}
 
 	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
-		}
-		return list;
+	public void add(int index, T element) {
+		jsonArray.put(index, element);
+	}
+
+	@Override
+	public T get(int index) {
+		return converter.convert(jsonArray.get(index));
+	}
+
+	@Override
+	public T remove(int index) {
+		return converter.convert(jsonArray.remove(index));
+	}
+
+	@Override
+	public T set(int index, T element) {
+		Object removed = jsonArray.remove(index);
+		jsonArray.put(index, element);
+		return converter.convert(removed);
+	}
+
+	@Override
+	public int size() {
+		return jsonArray.length();
 	}
 }

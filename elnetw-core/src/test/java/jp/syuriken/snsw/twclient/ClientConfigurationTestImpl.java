@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import twitter4j.Twitter;
 
 /**
@@ -66,6 +67,11 @@ public class ClientConfigurationTestImpl extends ClientConfiguration {
 	@Override
 	public Twitter getTwitterForRead() {
 		return null;
+	}
+
+	@Override
+	public synchronized void setCacheStorage(CacheStorage cacheStorage) {
+		super.setCacheStorage(cacheStorage);
 	}
 
 	public void setConfigDefaultProperties(ClientProperties configDefaultProperties) {

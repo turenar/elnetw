@@ -46,9 +46,11 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
@@ -134,6 +136,7 @@ import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -142,6 +145,7 @@ import twitter4j.auth.AccessToken;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static jp.syuriken.snsw.twclient.ClientConfiguration.PROPERTY_ACCOUNT_LIST;
 
 /**
  * 実際に起動するランチャ
@@ -266,6 +270,7 @@ public final class TwitterClientMain {
 	private TwitterClientFrame frame;
 	private boolean isInterrupted;
 	private DeadlockMonitor deadlockMonitor;
+	private CacheStorage cacheStorage;
 	private FileLock configFileLock;
 
 	/**
@@ -361,6 +366,15 @@ public final class TwitterClientMain {
 		}
 	}
 
+	protected void convertOldPropArrayToList(String propName) {
+		if (configProperties.containsKey(propName)) {
+			String[] oldArray = configProperties.getProperty(propName).split(" ");
+			configProperties.remove(propName); // avoid invalid list
+			List<String> list = configProperties.getList(propName);
+			Collections.addAll(list, oldArray);
+		}
+	}
+
 	/**
 	 * init action handlers
 	 */
@@ -394,10 +408,36 @@ public final class TwitterClientMain {
 
 	/**
 	 * init cache manager
+	 *
+	 * @param condition init condition
 	 */
 	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
-	public void initCacheManager() {
-		configuration.setCacheManager(new CacheManager(configuration));
+	public void initCacheManager(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			configuration.setCacheManager(new CacheManager(configuration));
+		} else {
+			configuration.getCacheManager().flush();
+		}
+	}
+
+	/**
+	 * init cache storage
+	 *
+	 * @param condition init condition
+	 */
+	@Initializer(name = "cache/db", dependencies = "config", phase = "preinit")
+	public void initCacheStorage(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			Path dbPath = Paths.get(System.getProperty("elnetw.cache.dir"), "cache.db");
+			cacheStorage = new CacheStorage(dbPath);
+			configuration.setCacheStorage(cacheStorage);
+		} else {
+			try {
+				cacheStorage.store();
+			} catch (IOException e) {
+				logger.error("Error occurred while storing database", e);
+			}
+		}
 	}
 
 	/**
@@ -600,46 +640,56 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * restore tabs
-	 */
-	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
-			phase = "prestart")
-	public void recoverClientTabs() {
-		String tabsList = configProperties.getProperty("gui.tabs.list");
-		if (tabsList == null) {
-			try {
-				configuration.addFrameTab(new TimelineViewTab());
-				configuration.addFrameTab(new MentionViewTab());
-				configuration.addFrameTab(new DirectMessageViewTab());
-			} catch (IllegalSyntaxException e) {
-				throw new AssertionError(e); // This can't happen: because no query
-			}
-		} else {
-			String[] tabs = tabsList.split(" ");
-			for (String tabIdentifier : tabs) {
-				if (tabIdentifier.isEmpty()) {
-					continue;
-				}
-				int separatorPosition = tabIdentifier.indexOf(':');
-				String tabId = tabIdentifier.substring(0, separatorPosition);
-				String uniqId = tabIdentifier.substring(separatorPosition + 1);
-				ClientTabFactory tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
-				if (tabConstructor == null) {
-					logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
-				} else {
-					ClientTab tab = tabConstructor.getInstance(tabId, uniqId);
-					configuration.addFrameTab(tab);
-				}
-			}
-		}
-	}
-
-	/**
 	 * queue log flusher by notifying property changed
 	 */
 	@Initializer(name = "log/flush", dependencies = {"timer", "config/default", "config"}, phase = "earlyinit")
 	public void registerLogFlusher() {
 		configProperties.firePropertyChanged(AsyncAppender.PROPERTY_FLUSH_INTERVAL, null, null);
+	}
+
+	/**
+	 * restore tabs
+	 * @param condition init condition
+	 */
+	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
+			phase = "prestart")
+	public void restoreClientTabs(InitCondition condition) {
+		List<String> tabsList = configProperties.getList("gui.tabs.list");
+		if (condition.isInitializingPhase()) {
+			if (tabsList.size() == 0) {
+				try {
+					configuration.addFrameTab(new TimelineViewTab());
+					configuration.addFrameTab(new MentionViewTab());
+					configuration.addFrameTab(new DirectMessageViewTab());
+				} catch (IllegalSyntaxException e) {
+					throw new AssertionError(e); // This can't happen: because no query
+				}
+			} else {
+				for (String tabIdentifier : tabsList) {
+					if (tabIdentifier.isEmpty()) {
+						continue;
+					}
+					int separatorPosition = tabIdentifier.indexOf(':');
+					String tabId = tabIdentifier.substring(0, separatorPosition);
+					String uniqId = tabIdentifier.substring(separatorPosition + 1);
+					ClientTabFactory tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
+					if (tabConstructor == null) {
+						logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
+					} else {
+						ClientTab tab = tabConstructor.getInstance(tabId, uniqId);
+						configuration.addFrameTab(tab);
+					}
+				}
+			}
+		} else {
+			tabsList.clear();
+			for (ClientTab tab : configuration.getFrameTabs()) {
+				String tabId = tab.getTabId();
+				String uniqId = tab.getUniqId();
+				tabsList.add(tabId + ':' + uniqId + ' ');
+				tab.serialize();
+			}
+		}
 	}
 
 	/**
@@ -852,7 +902,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "bus", dependencies = {"jobqueue", "config"}, phase = "preinit")
+	@Initializer(name = "bus", dependencies = {"jobqueue", "config", "cache/db"}, phase = "preinit")
 	public void setMessageBus(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			messageBus = new MessageBus();
@@ -1044,7 +1094,7 @@ public final class TwitterClientMain {
 			return;
 		}
 
-		if (configuration.getAccountList().length != 0) {
+		if (configuration.getAccountList().size() != 0) {
 			return;
 		}
 
@@ -1079,7 +1129,8 @@ public final class TwitterClientMain {
 					JOptionPane.ERROR_MESSAGE);
 			throw new RuntimeException(e);
 		}
-		configProperties.setProperty("twitter.oauth.access_token.list", userId);
+		List<String> accountList = configProperties.getList(PROPERTY_ACCOUNT_LIST);
+		accountList.add(userId);
 		configProperties.setProperty("twitter.oauth.access_token.default", userId);
 		configuration.storeAccessToken(accessToken);
 		configProperties.store();
@@ -1110,6 +1161,7 @@ public final class TwitterClientMain {
 	 * @param condition init condition
 	 */
 	@Initializer(name = "config/update", dependencies = "config", phase = "earlyinit")
+	@SuppressWarnings("fallthrough")
 	public void updateConfig(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			int version = Integer.parseInt(configProperties.getProperty("cfg.version", "0"));
@@ -1128,6 +1180,13 @@ public final class TwitterClientMain {
 					configProperties.removePrefixed("gui.tabs");
 					configProperties.setProperty("cfg.version", "3");
 				case 3: // fall-through
+					logger.info("Updating config to v4");
+				{
+					convertOldPropArrayToList(PROPERTY_ACCOUNT_LIST);
+					convertOldPropArrayToList("gui.tabs.list");
+					configProperties.setProperty("cfg.version", "4");
+				}
+				case 4:
 					// latest
 					break;
 				default:

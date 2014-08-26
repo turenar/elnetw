@@ -19,35 +19,33 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
+package jp.syuriken.snsw.twclient.storage;
 
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+import java.util.AbstractMap;
+import java.util.Set;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * DirEntry Wrapped Map
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
-	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
+class DirEntryWrapMap<T> extends AbstractMap<String, T> {
+	private final DirEntryImpl target;
+	private final Converter<T> converter;
+
+	public DirEntryWrapMap(DirEntryImpl target, Converter<T> converter) {
+		this.target = target;
+		this.converter = converter;
 	}
 
 	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
-		}
-		return list;
+	public Set<Entry<String, T>> entrySet() {
+		return new DirEntrySet<>(target, converter);
+	}
+
+	@Override
+	public T put(String key, T value) {
+		target.writeRaw(key, value);
+		return null;
 	}
 }
