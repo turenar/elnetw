@@ -82,7 +82,6 @@ import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.QueryFilter;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
 import jp.syuriken.snsw.twclient.filter.query.QueryConfigurator;
@@ -649,6 +648,7 @@ public final class TwitterClientMain {
 
 	/**
 	 * restore tabs
+	 *
 	 * @param condition init condition
 	 */
 	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
@@ -864,7 +864,6 @@ public final class TwitterClientMain {
 	@Initializer(name = "filter/global", dependencies = {"config", "bus/factory"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
-		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 		configuration.addFilter(new BlockingUserFilter(true));
 	}
 

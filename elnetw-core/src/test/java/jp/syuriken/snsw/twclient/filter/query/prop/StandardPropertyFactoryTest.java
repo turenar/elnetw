@@ -77,28 +77,28 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 
 	public static boolean testEqual(String propName, String target, DirectMessage directMessage)
 			throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(directMessage);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, ":", target).filter(directMessage);
 	}
 
 	public static boolean testEqual(String propName, String target, Status status) throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(status);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, ":", target).filter(status);
 	}
 
 	public static boolean testEqual(String propName, long target, DirectMessage directMessage)
 			throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(directMessage);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, ":", target).filter(directMessage);
 	}
 
 	public static boolean testEqual(String propName, long target, Status status) throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, ":", target).filter(status);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, ":", target).filter(status);
 	}
 
 	public static boolean testIs(String propName, DirectMessage directMessage) throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, "?", false).filter(directMessage);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, "?", false).filter(directMessage);
 	}
 
 	public static boolean testIs(String propName, Status status) throws IllegalSyntaxException {
-		return StandardPropertyFactory.SINGLETON.getInstance(propName, "?", false).filter(status);
+		return StandardPropertyFactory.SINGLETON.getInstance(null, propName, "?", false).filter(status);
 	}
 
 	/**
@@ -330,7 +330,7 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 	public void testFilterUnknownName() throws IllegalSyntaxException {
 		configuration.setGlobalInstance();
 		try {
-			StandardPropertyFactory.SINGLETON.getInstance("unknown unknown", "", "");
+			StandardPropertyFactory.SINGLETON.getInstance(null, "unknown unknown", "", "");
 		} finally {
 			configuration.clearGlobalInstance();
 		}

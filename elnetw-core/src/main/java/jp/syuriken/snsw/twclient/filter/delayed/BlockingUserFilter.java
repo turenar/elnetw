@@ -60,7 +60,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 								}
 							}
 					);
-					start();
+					stopDelay();
 			}
 		}
 
@@ -121,7 +121,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 				if (isEnabled) {
 					showFetchingBlocking();
 				} else {
-					start();
+					stopDelay();
 				}
 				break;
 		}
@@ -134,11 +134,11 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 			isEnabled = configuration.getConfigProperties()
 					.getBoolean(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED);
 			if (isEnabled) {
-				stop();
+				startDelay();
 				showFetchingBlocking();
 				queueBlockingFetcher();
 			} else {
-				start();
+				stopDelay();
 			}
 		}
 	}

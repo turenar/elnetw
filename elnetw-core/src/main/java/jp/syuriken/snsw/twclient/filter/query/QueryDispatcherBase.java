@@ -30,7 +30,6 @@ import twitter4j.Status;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface QueryDispatcherBase {
-
 	/**
 	 * ダイレクトメッセージをフィルター
 	 *

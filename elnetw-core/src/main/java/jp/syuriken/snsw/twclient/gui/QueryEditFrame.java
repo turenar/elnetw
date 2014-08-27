@@ -37,8 +37,11 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterQueryFormatter;
 import jp.syuriken.snsw.twclient.filter.query.FilterQueryNormalizer;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryController;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.GroupLayout.Alignment.TRAILING;
@@ -52,8 +55,25 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  */
 @SuppressWarnings("serial")
 public class QueryEditFrame extends JFrame implements WindowListener {
+	private class NullQueryController implements QueryController {
+		@Override
+		public void disableDelay(QueryDispatcherBase delayer) {
+			// do nothing
+		}
+
+		@Override
+		public void enableDelay(QueryDispatcherBase delayer) {
+			// do nothing
+		}
+
+		@Override
+		public TwitterUser getTargetUser() {
+			return configuration.getCacheManager().getUser(Long.parseLong(configuration.getAccountIdForRead()));
+		}
+	}
 
 	public static final int DEFAULT_FRAME_SIZE = 400;
+	private final ClientConfiguration configuration;
 
 	private String propertyKey;
 	private ClientProperties properties;
@@ -70,7 +90,8 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 	public QueryEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		properties = ClientConfiguration.getInstance().getConfigProperties();
+		configuration = ClientConfiguration.getInstance();
+		properties = configuration.getConfigProperties();
 		initComponents(displayString);
 	}
 
@@ -173,7 +194,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 				}
 				query = stringBuilder.toString();
 				// test compilable? (for regex test)
-				QueryCompiler.getCompiledObject(query);
+				QueryCompiler.getCompiledObject(query, new NullQueryController());
 			}
 			properties.setProperty(propertyKey, query);
 			dispose();

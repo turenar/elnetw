@@ -23,6 +23,7 @@ package jp.syuriken.snsw.twclient.gui.tab;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
 /**
  * タブレンダラ
@@ -38,6 +39,8 @@ public interface TabRenderer extends ClientMessageListener, MessageFilter {
 	 * event id for writer account changed
 	 */
 	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
+
+	TwitterUser getUser();
 
 	/**
 	 * render for display requirements

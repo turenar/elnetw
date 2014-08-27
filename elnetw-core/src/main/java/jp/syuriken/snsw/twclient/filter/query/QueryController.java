@@ -21,23 +21,32 @@
 
 package jp.syuriken.snsw.twclient.filter.query;
 
-import jp.syuriken.snsw.twclient.filter.FilterConstants;
-import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
-import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
-import org.junit.Test;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
-import static org.junit.Assert.*;
+/**
+ * Query Controller: control delayer, get target user
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
+public interface QueryController {
+	/**
+	 * stop delaying. new status is to be coming
+	 *
+	 * @param delayer delay target
+	 */
+	void disableDelay(QueryDispatcherBase delayer);
 
-public class QueryCompilerTest extends FilterConstants {
-	@Test
-	public void testCompile() throws Exception {
-		QueryCompiler.putFilterFunction("and", StandardFunctionFactory.SINGLETON);
-		QueryCompiler.putFilterProperty("rt_count", StandardPropertyFactory.SINGLETON);
-		QueryCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
+	/**
+	 * start delaying. new status is not to be coming
+	 *
+	 * @param delayer delay target
+	 */
+	void enableDelay(QueryDispatcherBase delayer);
 
-		QueryDispatcherBase compiledObject = QueryCompiler.getCompiledObject("and(rt_count<100, retweeted!?)", null);
-		assertTrue(compiledObject.filter(STATUS_1));
-		assertFalse(compiledObject.filter(STATUS_4));
-		assertTrue(compiledObject.filter(DM_1));
-	}
+	/**
+	 * get target user.
+	 *
+	 * @return target user
+	 */
+	TwitterUser getTargetUser();
 }

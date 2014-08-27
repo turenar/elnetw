@@ -42,6 +42,7 @@ import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import jp.syuriken.snsw.twclient.gui.render.RendererFocusEvent;
 import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
+import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -238,6 +239,11 @@ public class SimpleRenderer implements TabRenderer {
 	 */
 	protected Font getUiFont() {
 		return uiFont;
+	}
+
+	@Override
+	public TwitterUser getUser() {
+		return cacheManager.getUser(actualUserId);
 	}
 
 	/**

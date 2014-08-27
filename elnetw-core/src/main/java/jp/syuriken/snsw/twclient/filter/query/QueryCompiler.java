@@ -84,12 +84,14 @@ public class QueryCompiler implements FilterParserVisitor {
 	 * コンパイルされたクエリオブジェクトを取得する。
 	 *
 	 * @param query クエリ
+	 *              @param controller query controller instance. some query requires user information.
+	 *                                some query requires networking. so controller should be passed
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws jp.syuriken.snsw.twclient.filter.IllegalSyntaxException 正しくない文法のクエリ
 	 */
-	public static QueryDispatcherBase getCompiledObject(String query)
+	public static QueryDispatcherBase getCompiledObject(String query, QueryController controller)
 			throws IllegalSyntaxException {
-		QueryCompiler queryCompiler = new QueryCompiler();
+		QueryCompiler queryCompiler = new QueryCompiler(controller);
 		try {
 			return (QueryDispatcherBase) tokenize(query).jjtAccept(queryCompiler, null);
 		} catch (TokenMgrError | ParseException e) {
@@ -158,8 +160,10 @@ public class QueryCompiler implements FilterParserVisitor {
 		return filterParser.Start();
 	}
 
+	private final QueryController controller;
 
-	private QueryCompiler() {
+	private QueryCompiler(QueryController controller) {
+		this.controller = controller;
 	}
 
 	@Override
@@ -218,7 +222,7 @@ public class QueryCompiler implements FilterParserVisitor {
 		String propertyOperator = propertyData.operator;
 		Object value = propertyData.value;
 		try {
-			return factory.getInstance(propertyName, propertyOperator, value);
+			return factory.getInstance(controller, propertyName, propertyOperator, value);
 		} catch (IllegalSyntaxException e) {
 			throw new WrappedException(e);
 		}

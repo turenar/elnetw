@@ -724,7 +724,8 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized long getLong(String key, long defaultValue) {
 		try {
-			return getLong(key);
+			String value = getProperty(key);
+			return value == null ? defaultValue : Long.parseLong(value);
 		} catch (NumberFormatException e) {
 			logger.warn("#getLong() failed with key `" + key + "'", e);
 			return defaultValue;
