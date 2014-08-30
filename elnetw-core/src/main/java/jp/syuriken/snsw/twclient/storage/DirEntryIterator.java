@@ -58,7 +58,7 @@ class DirEntryIterator<T> implements Iterator<Map.Entry<String, T>> {
 
 	protected final DirEntryImpl target;
 	protected final Converter<T> converter;
-	protected final Iterator keys;
+	protected final Iterator<String> keys;
 
 
 	public DirEntryIterator(DirEntryImpl target, Converter<T> converter) {
@@ -74,7 +74,7 @@ class DirEntryIterator<T> implements Iterator<Map.Entry<String, T>> {
 
 	@Override
 	public Map.Entry<String, T> next() {
-		String nextKey = (String) keys.next();
+		String nextKey = keys.next();
 		return new EntryImpl(nextKey, converter);
 	}
 

@@ -58,33 +58,7 @@ import twitter4j.conf.Configuration;
 public class MessageBus {
 	private static class ApiConfigurationImpl implements TwitterAPIConfiguration {
 
-		private static class SizeImpl implements MediaEntity.Size {
-
-			private final int width;
-			private final int height;
-			private final int resize;
-
-			public SizeImpl(int width, int height, int resize) {
-				this.width = width;
-				this.height = height;
-				this.resize = resize;
-			}
-
-			@Override
-			public int getHeight() {
-				return height;
-			}
-
-			@Override
-			public int getResize() {
-				return resize;
-			}
-
-			@Override
-			public int getWidth() {
-				return width;
-			}
-		}
+		private static final long serialVersionUID = 3286804457928802269L;
 
 		private int charactersReservedPerMedia;
 		private int maxMediaPerUpload;
@@ -170,6 +144,35 @@ public class MessageBus {
 			photoSizes = apiConfiguration.getPhotoSizes();
 			shortUrlLength = apiConfiguration.getShortURLLength();
 			shortUrlLengthHttps = apiConfiguration.getShortURLLengthHttps();
+		}
+	}
+
+	private static class SizeImpl implements MediaEntity.Size {
+
+		private static final long serialVersionUID = -1371963865104040605L;
+		private final int width;
+		private final int height;
+		private final int resize;
+
+		public SizeImpl(int width, int height, int resize) {
+			this.width = width;
+			this.height = height;
+			this.resize = resize;
+		}
+
+		@Override
+		public int getHeight() {
+			return height;
+		}
+
+		@Override
+		public int getResize() {
+			return resize;
+		}
+
+		@Override
+		public int getWidth() {
+			return width;
 		}
 	}
 

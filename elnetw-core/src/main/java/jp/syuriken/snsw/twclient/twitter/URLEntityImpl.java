@@ -30,6 +30,8 @@ import twitter4j.URLEntity;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class URLEntityImpl implements URLEntity {
+	private static final long serialVersionUID = -8010158472808922410L;
+
 	/**
 	 * read url entities from dir entry
 	 *

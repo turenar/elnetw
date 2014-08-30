@@ -40,6 +40,7 @@ import twitter4j.User;
  */
 public class DelayedUserImpl extends TwitterUser {
 	private static final Logger logger = LoggerFactory.getLogger(DelayedUserImpl.class);
+	private static final long serialVersionUID = 2888425677038932000L;
 	private final long userId;
 	protected TwitterUser target;
 

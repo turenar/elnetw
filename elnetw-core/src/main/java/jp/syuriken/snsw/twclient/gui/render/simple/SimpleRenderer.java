@@ -280,6 +280,7 @@ public class SimpleRenderer implements TabRenderer {
 				break;
 			case TabRenderer.RENDER_DELETE_OBJECT:
 				renderTarget.removeStatus((String) arg);
+				break;
 			default:
 				// do nothing
 		}

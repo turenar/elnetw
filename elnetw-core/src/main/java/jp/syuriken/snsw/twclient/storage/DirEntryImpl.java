@@ -158,8 +158,9 @@ public class DirEntryImpl implements DirEntry {
 	 *
 	 * @return iterator
 	 */
-	protected Iterator readDir() {
-		return jsonObject.keys();
+	@SuppressWarnings("unchecked")
+	protected Iterator<String> readDir() {
+		return (Iterator<String>) jsonObject.keys();
 	}
 
 	@Override
