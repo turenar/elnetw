@@ -21,6 +21,10 @@
 
 package jp.syuriken.snsw.lib.primitive;
 
+import java.util.Arrays;
+
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -37,6 +41,32 @@ public class LongHashSetTest {
 			assertTrue(longHashSet.contains(i));
 			assertFalse(longHashSet.add(i));
 		}
+	}
+	@Test
+	public void testAddAll() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(4);
+		longHashSet.addAll(newSeqArray(0,16));
+		assertEquals(16, longHashSet.size());
+		longHashSet.addAll(newSeqArray(0,24));
+		assertEquals(24,longHashSet.size());
+	}
+
+	@Test
+	public void testToArray() throws Exception {
+			LongHashSet longHashSet = new LongHashSet(4);
+			longHashSet.addAll(newSeqArray(0,16));
+			assertEquals(16, longHashSet.size());
+		long[] array = longHashSet.toArray();
+		Arrays.sort(array);
+		assertArrayEquals(newSeqArray(0,16), array);
+	}
+
+	private long[] newSeqArray(int start, int len) {
+		long[] arr = new long[len];
+		for (int i = 0; i <len; i++) {
+			arr[i] = start+i;
+		}
+		return arr;
 	}
 
 	@Test
