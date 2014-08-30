@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.channel;
 
 import java.util.ArrayList;
 
@@ -28,6 +28,8 @@ import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import twitter4j.PagableResponseList;
@@ -67,7 +69,7 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	 * client message name when fetching blocking users is over
 	 */
 	public static final String BLOCKING_FETCH_FINISHED_ID
-			= "jp.syuriken.snsw.twclient.bus.BlockingUserChannel BlockingFetchFinished";
+			= "jp.syuriken.snsw.twclient.bus.channel.BlockingUsersChannel BlockingFetchFinished";
 	private final ClientConfiguration configuration;
 	/**
 	 * dispatch to

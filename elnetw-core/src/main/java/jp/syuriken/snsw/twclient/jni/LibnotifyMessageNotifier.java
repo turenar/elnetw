@@ -27,8 +27,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.MessageNotifier;
 import jp.syuriken.snsw.twclient.Utility;
+import jp.syuriken.snsw.twclient.notifier.MessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,9 +74,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 				logger.trace("java-gnome is partial found...", e);
 			} catch (InvocationTargetException e) {
 				logger.warn("#checkUsable", e.getCause());
-			} catch (NoSuchMethodException e) {
-				logger.warn("#checkUsable", e);
-			} catch (IllegalAccessException e) {
+			} catch (ReflectiveOperationException e) {
 				logger.warn("#checkUsable", e);
 			}
 		}

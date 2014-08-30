@@ -19,13 +19,15 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.channel;
 
 import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import twitter4j.IDs;
@@ -90,7 +92,7 @@ public class FollowingUsersChannel extends TwitterRunnable implements MessageCha
 	 * client message name when fetching blocking users is over
 	 */
 	public static final String FOLLOWING_USERS_FETCHED
-			= "jp.syuriken.snsw.twclient.bus.FollowingUsersChannel followingFetched";
+			= "jp.syuriken.snsw.twclient.bus.channel.FollowingUsersChannel followingFetched";
 	/**
 	 * dispatch to
 	 */

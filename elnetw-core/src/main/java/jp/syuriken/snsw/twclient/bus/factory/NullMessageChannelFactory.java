@@ -24,7 +24,7 @@ package jp.syuriken.snsw.twclient.bus.factory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.NullMessageChannel;
+import jp.syuriken.snsw.twclient.bus.channel.NullMessageChannel;
 
 /**
  * null message channel factory

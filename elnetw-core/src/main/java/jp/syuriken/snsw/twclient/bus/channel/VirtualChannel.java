@@ -19,25 +19,40 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient;
+package jp.syuriken.snsw.twclient.bus.channel;
 
-import java.io.File;
-import java.io.IOException;
+import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 
 /**
- * 通知が送信されるクラスのインターフェース
+ * virtual channel: publish specified channel
+ *
+ * <p>establish messageには対応していない</p>
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface MessageNotifier {
+public class VirtualChannel implements MessageChannel {
+	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
+		ClientMessageListener listener = messageBus.getListeners(accountId, to);
+		for (String s : from) {
+			messageBus.establish(accountId, s, listener);
+		}
+	}
 
-	/**
-	 * 通知を送信する
-	 *
-	 * @param summary   概要
-	 * @param text      テキスト
-	 * @param imageFile アイコン。ない場合はnull
-	 * @throws java.io.IOException 外部プロセスの起動に失敗
-	 */
-	void sendNotify(String summary, String text, File imageFile) throws IOException;
+	@Override
+	public synchronized void connect() {
+	}
+
+	@Override
+	public synchronized void disconnect() {
+	}
+
+	@Override
+	public void establish(ClientMessageListener listener) {
+	}
+
+	@Override
+	public void realConnect() {
+	}
 }

@@ -82,11 +82,11 @@ import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
+import jp.syuriken.snsw.twclient.config.QueryEditConfigType;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
-import jp.syuriken.snsw.twclient.filter.query.QueryConfigurator;
 import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
 import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.syuriken.snsw.twclient.gui.render.simple.RenderObjectHandler;
@@ -130,13 +130,13 @@ import jp.syuriken.snsw.twclient.internal.AsyncAppender;
 import jp.syuriken.snsw.twclient.internal.DeadlockMonitor;
 import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
-import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
-import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
+import jp.syuriken.snsw.twclient.notifier.NotifySendMessageNotifier;
+import jp.syuriken.snsw.twclient.notifier.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -319,7 +319,7 @@ public final class TwitterClientMain {
 				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
 						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
 						new BooleanConfigType())
-				.addConfig("<ignore>", "フィルタの編集", "", new QueryConfigurator());
+				.addConfig("<ignore>", "フィルタの編集", "", new QueryEditConfigType());
 	}
 
 	/**

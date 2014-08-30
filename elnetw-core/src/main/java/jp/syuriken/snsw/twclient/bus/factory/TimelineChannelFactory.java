@@ -24,10 +24,10 @@ package jp.syuriken.snsw.twclient.bus.factory;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
-import jp.syuriken.snsw.twclient.bus.TimelineChannel;
+import jp.syuriken.snsw.twclient.bus.channel.TimelineChannel;
 
 /**
- * {@link jp.syuriken.snsw.twclient.bus.TimelineChannel}のファクトリークラス
+ * {@link jp.syuriken.snsw.twclient.bus.channel.TimelineChannel}のファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

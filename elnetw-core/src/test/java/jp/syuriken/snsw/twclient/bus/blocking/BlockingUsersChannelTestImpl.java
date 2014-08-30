@@ -21,8 +21,8 @@
 
 package jp.syuriken.snsw.twclient.bus.blocking;
 
-import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.channel.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 

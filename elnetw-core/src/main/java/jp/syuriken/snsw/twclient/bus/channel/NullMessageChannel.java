@@ -19,31 +19,26 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.channel;
 
 import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 
 /**
- * virtual channel: publish specified channel
- *
- * <p>establish messageには対応していない</p>
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * null message channel
  */
-public class VirtualChannel implements MessageChannel {
-	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
-		ClientMessageListener listener = messageBus.getListeners(accountId, to);
-		for (String s : from) {
-			messageBus.establish(accountId, s, listener);
-		}
+public class NullMessageChannel implements MessageChannel {
+	public static final MessageChannel INSTANCE = new NullMessageChannel();
+
+	private NullMessageChannel() {
 	}
 
 	@Override
-	public synchronized void connect() {
+	public void connect() {
 	}
 
 	@Override
-	public synchronized void disconnect() {
+	public void disconnect() {
 	}
 
 	@Override

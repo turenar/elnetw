@@ -19,54 +19,58 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.notifier;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
+import java.io.File;
+import java.io.IOException;
+
+import jp.syuriken.snsw.twclient.Utility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * ストリームからデータを取得するDataFetcher
+ * notify-sendを使用して通知を送信するクラス。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStreamChannel implements MessageChannel {
-	private final String accountId;
-	private final ClientMessageListener listener;
-	private final MessageBus messageBus;
-	private volatile TwitterStream stream;
+public class NotifySendMessageNotifier implements MessageNotifier {
+	private static final Logger logger = LoggerFactory.getLogger(NotifySendMessageNotifier.class);
 
-	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
-		this.messageBus = messageBus;
-		this.accountId = accountId;
-		listener = messageBus.getListeners(accountId, "stream/user");
-	}
-
-	@Override
-	public synchronized void connect() {
-		if (stream == null) {
-			stream = new TwitterStreamFactory(
-					messageBus.getTwitterConfiguration(accountId)).getInstance();
-			stream.addConnectionLifeCycleListener(listener);
-			stream.addListener(listener);
-			stream.user();
+	public static boolean checkUsable() {
+		if (Utility.getOstype() == Utility.OSType.OTHER) {
+			try {
+				if (Runtime.getRuntime().exec(new String[]{
+						"which",
+						"notify-send"
+				}).waitFor() == 0) {
+					return true;
+				}
+			} catch (InterruptedException e) {
+				// do nothing
+			} catch (IOException e) {
+				logger.warn("#detectNotifier: whichの呼び出しに失敗", e);
+			}
 		}
+		return false;
 	}
 
+
 	@Override
-	public synchronized void disconnect() {
-		if (stream != null) {
-			stream.shutdown();
-			stream = null;
+	public void sendNotify(String summary, String text, File imageFile) throws IOException {
+		if (imageFile == null) {
+			Runtime.getRuntime().exec(new String[]{
+					"notify-send",
+					summary,
+					text
+			});
+		} else {
+			Runtime.getRuntime().exec(new String[]{
+					"notify-send",
+					"-i",
+					imageFile.getPath(),
+					summary,
+					text
+			});
 		}
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
-		// #connect() works.
 	}
 }

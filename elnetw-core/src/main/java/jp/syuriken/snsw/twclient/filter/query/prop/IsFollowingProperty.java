@@ -26,7 +26,7 @@ import java.awt.Color;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientEventConstants;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
-import jp.syuriken.snsw.twclient.bus.FollowingUsersChannel;
+import jp.syuriken.snsw.twclient.bus.channel.FollowingUsersChannel;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryController;
 import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
@@ -41,6 +41,9 @@ import twitter4j.Status;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class IsFollowingProperty extends AbstractBoolArgProperty {
+	/**
+	 * message dispatcher
+	 */
 	protected class Dispatcher extends ClientMessageAdapter {
 		@Override
 		public void onClientMessage(String name, Object arg) {

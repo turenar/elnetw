@@ -24,7 +24,7 @@ package jp.syuriken.snsw.twclient.bus.blocking;
 import java.util.LinkedList;
 
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
-import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
+import jp.syuriken.snsw.twclient.bus.channel.BlockingUsersChannel;
 import twitter4j.User;
 
 /**

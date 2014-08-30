@@ -44,6 +44,7 @@ import java.util.ListIterator;
 import javax.swing.JOptionPane;
 
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.notifier.MessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
