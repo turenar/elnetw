@@ -123,8 +123,8 @@ public class QueryConfigurator implements ConfigType, ActionListener {
 			int count = configuration.getFrameTabCount();
 			for (int i = 0; i < count; i++) {
 				ClientTab tab = configuration.getFrameTab(i);
-				filterChooser.addItem(new KVItem(tab.getTitle() + " (" + tab.getUniqId() + ")", "core.filter._tabs."
-						+ tab.getUniqId()));
+				filterChooser.addItem(new KVItem(tab.getTitle() + " (" + tab.getUniqId() + ")", "gui.tabs.data."
+						+ tab.getUniqId() + ".filter.query"));
 			}
 		}
 		return filterChooser;

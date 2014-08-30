@@ -46,6 +46,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -1185,12 +1186,27 @@ public final class TwitterClientMain {
 					configProperties.setProperty("cfg.version", "3");
 				case 3: // fall-through
 					logger.info("Updating config to v4");
-				{
 					convertOldPropArrayToList(PROPERTY_ACCOUNT_LIST);
 					convertOldPropArrayToList("gui.tabs.list");
 					configProperties.setProperty("cfg.version", "4");
+				case 4: // fall-through
+					logger.info("Updating config to v5");
+				{
+					ArrayList<String> toConvertKeys = new ArrayList<>();
+					for (String key : configProperties.keySet()) {
+						if (key.startsWith("core.filter._tabs")) {
+							toConvertKeys.add(key);
+						}
+					}
+					for (String key : toConvertKeys) {
+						String query = configProperties.getProperty(key);
+						String uniqId = key.substring("core.filter._tabs.".length());
+						configProperties.setProperty("gui.tabs.data." + uniqId + ".filter.query", query);
+						configProperties.remove(key);
+					}
 				}
-				case 4:
+				configProperties.setProperty("cfg.version", "5");
+				case 5:
 					// latest
 					break;
 				default:

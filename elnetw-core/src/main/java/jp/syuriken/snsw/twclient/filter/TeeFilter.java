@@ -91,7 +91,7 @@ public class TeeFilter extends AbstractMessageFilter implements TabRenderer {
 	 * @return query property key
 	 */
 	public String getQueryPropertyKey(String uniqId) {
-		return "core.filter._tabs." + uniqId;
+		return "gui.tabs.data." + uniqId + ".filter.query";
 	}
 
 	@Override
