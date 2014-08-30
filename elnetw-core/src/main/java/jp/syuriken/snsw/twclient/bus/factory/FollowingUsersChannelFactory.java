@@ -19,35 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui.tab;
+package jp.syuriken.snsw.twclient.bus.factory;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.bus.FollowingUsersChannel;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
 
 /**
- * タブレンダラ
+ * factory for FollowingUsersChannel
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface TabRenderer extends ClientMessageListener, MessageFilter {
-	/**
-	 * event id for reader account changed
-	 */
-	/*public static final*/ String READER_ACCOUNT_CHANGED = "account reader changed";
-	/**
-	 * event id for writer account changed
-	 */
-	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
-
-	/**
-	 * get user id
-	 *
-	 * @return user id
-	 */
-	String getUserId();
-
-	/**
-	 * render for display requirements
-	 */
-	void onDisplayRequirement();
+public class FollowingUsersChannelFactory implements MessageChannelFactory {
+	@Override
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+		return new FollowingUsersChannel(messageBus, accountId, path);
+	}
 }

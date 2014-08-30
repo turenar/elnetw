@@ -28,6 +28,7 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -100,7 +101,7 @@ class VirtualMessagePublisher implements ClientMessageListener {
 		if (!(listeners.length == 0 || user instanceof TwitterUser)) {
 			TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
 			if (cachedUser == null) {
-				return cacheManager.cacheUser(new TwitterUser(user));
+				return cacheManager.cacheUser(new TwitterUserImpl(user));
 			} else {
 				return cachedUser;
 			}

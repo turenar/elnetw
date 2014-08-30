@@ -98,4 +98,8 @@ public abstract class AbstractBoolArgProperty implements QueryProperty {
 	 * @return value
 	 */
 	protected abstract boolean getPropertyValue(DirectMessage directMessage);
+
+	@Override
+	public void init() {
+	}
 }

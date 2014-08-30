@@ -32,7 +32,6 @@ import jp.syuriken.snsw.twclient.filter.NullQueryDispatcher;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
 import jp.syuriken.snsw.twclient.filter.query.QueryController;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -51,22 +50,23 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 	public static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
 	protected final ArrayList<QueryDispatcherBase> delayers = new ArrayList<>();
 	private final ClientProperties configProperties;
-	private final TwitterUser user;
+	private final String userId;
 	private final String queryPropertyKey;
 	private volatile QueryDispatcherBase query;
 
 	/**
 	 * make instance
 	 *
-	 * @param user             tqrget user
+	 * @param userId           target user
 	 * @param queryPropertyKey configProperties' property key
 	 */
-	public QueryFilter(TwitterUser user, String queryPropertyKey) {
-		this.user = user;
+	public QueryFilter(String userId, String queryPropertyKey) {
+		this.userId = userId;
 		this.queryPropertyKey = queryPropertyKey;
 		configProperties = ClientConfiguration.getInstance().getConfigProperties();
 		configProperties.addPropertyChangedListener(this);
 		initFilterQueries();
+		stopDelay();
 	}
 
 	@Override
@@ -94,8 +94,8 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 	}
 
 	@Override
-	public TwitterUser getTargetUser() {
-		return user;
+	public String getTargetUserId() {
+		return userId;
 	}
 
 	private void initFilterQueries() {
@@ -113,6 +113,16 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 	}
 
 	@Override
+	public void onClientMessage(String name, Object arg) {
+		switch (name) { // CS-IGNORE
+			case INIT_UI:
+				query.init();
+				break;
+		}
+		super.onClientMessage(name, arg);
+	}
+
+	@Override
 	public void onDirectMessage(DirectMessage message) {
 		if (isStarted) {
 			if (!query.filter(message)) {
@@ -122,6 +132,7 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 			filteringQueue.add(new DelayedOnDirectMessage(this, message));
 		}
 	}
+
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {

@@ -69,7 +69,6 @@ import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility;
 import jp.syuriken.snsw.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.syuriken.snsw.twclient.internal.SortedPostListPanel;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
@@ -127,8 +126,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 
 		@Override
-		public TwitterUser getUser() {
-			return configuration.getCacheManager().getUser(configuration.getMessageBus().getActualUser(accountId));
+		public String getUserId() {
+			return accountId;
 		}
 
 		@Override

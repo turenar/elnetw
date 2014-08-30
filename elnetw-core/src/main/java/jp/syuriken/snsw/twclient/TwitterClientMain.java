@@ -69,6 +69,7 @@ import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.factory.BlockingUsersChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.DirectMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.FollowingUsersChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.TimelineChannelFactory;
@@ -542,6 +543,9 @@ public final class TwitterClientMain {
 		QueryCompiler.putFilterProperty("hashashtag", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("has_url", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("hasurl", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_following", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isfollowing", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("following", StandardPropertyFactory.SINGLETON);
 	}
 
 	/**
@@ -686,7 +690,7 @@ public final class TwitterClientMain {
 			for (ClientTab tab : configuration.getFrameTabs()) {
 				String tabId = tab.getTabId();
 				String uniqId = tab.getUniqId();
-				tabsList.add(tabId + ':' + uniqId + ' ');
+				tabsList.add(tabId + ':' + uniqId);
 				tab.serialize();
 			}
 		}
@@ -922,6 +926,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
+		messageBus.addChannelFactory("users/following", new FollowingUsersChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}

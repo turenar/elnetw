@@ -21,8 +21,6 @@
 
 package jp.syuriken.snsw.twclient.filter.query;
 
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
-
 /**
  * Query Controller: control delayer, get target user
  *
@@ -44,9 +42,17 @@ public interface QueryController {
 	void enableDelay(QueryDispatcherBase delayer);
 
 	/**
-	 * get target user.
+	 * get target user id.
 	 *
-	 * @return target user
+	 * @return target user id
 	 */
-	TwitterUser getTargetUser();
+	String getTargetUserId();
+
+	/**
+	 * publish client message
+	 *
+	 * @param name message name
+	 * @param arg  argument
+	 */
+	void onClientMessage(String name, Object arg);
 }

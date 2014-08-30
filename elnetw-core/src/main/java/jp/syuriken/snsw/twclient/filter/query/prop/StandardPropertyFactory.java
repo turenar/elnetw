@@ -97,6 +97,10 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 			case "has_url":
 			case "hasurl":
 				return new HasUrlProperty(name, operator, value);
+			case "is_following":
+			case "isfollowing":
+			case "following":
+				return new IsFollowingProperty(controller, name, operator, value);
 			default:
 				throw new IllegalSyntaxException("Not supported factory");
 		}

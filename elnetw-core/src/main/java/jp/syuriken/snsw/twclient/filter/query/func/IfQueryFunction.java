@@ -23,12 +23,11 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
-import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /** 'if' filter function: if(expr, trueCond [, falseCond]) */
-public class IfQueryFunction implements QueryFunction {
+public class IfQueryFunction extends AbstractQueryFunction {
 
 	private final QueryDispatcherBase trueCond;
 	private final QueryDispatcherBase falseCond;
@@ -67,5 +66,12 @@ public class IfQueryFunction implements QueryFunction {
 		} else {
 			return falseCond != null && falseCond.filter(status);
 		}
+	}
+
+	@Override
+	public void init() {
+		trueCond.init();
+		falseCond.init();
+		expr.init();
 	}
 }

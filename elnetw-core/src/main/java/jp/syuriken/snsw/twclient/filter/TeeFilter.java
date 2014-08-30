@@ -24,7 +24,6 @@ package jp.syuriken.snsw.twclient.filter;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.filter.delayed.QueryFilter;
 import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,12 +65,12 @@ public class TeeFilter extends AbstractMessageFilter implements TabRenderer {
 		if (useGlobalFilter) {
 			try {
 				addChild(configuration.getFilters());
-				addChild(new QueryFilter(tabRenderer.getUser(), PROPERTY_KEY_FILTER_GLOBAL_QUERY));
+				addChild(new QueryFilter(tabRenderer.getUserId(), PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 			} catch (CloneNotSupportedException e) {
 				logger.error("failed to filter.clone()", e);
 			}
 		}
-		addChild(new QueryFilter(tabRenderer.getUser(), queryPropertyKey));
+		addChild(new QueryFilter(tabRenderer.getUserId(), queryPropertyKey));
 		addChild(tabRenderer);
 	}
 
@@ -96,8 +95,8 @@ public class TeeFilter extends AbstractMessageFilter implements TabRenderer {
 	}
 
 	@Override
-	public TwitterUser getUser() {
-		return renderer.getUser();
+	public String getUserId() {
+		return renderer.getUserId();
 	}
 
 	@Override

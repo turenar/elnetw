@@ -45,4 +45,11 @@ public interface QueryDispatcherBase {
 	 * @return フィルターするかどうか
 	 */
 	boolean filter(Status status);
+
+	/**
+	 * 初期化する。これはフィルターが初期化されてから呼ばれます。それまでは
+	 * {@link jp.syuriken.snsw.twclient.filter.query.QueryController#onClientMessage(String, Object)}の
+	 * 呼び出しが禁止されます。
+	 */
+	void init();
 }

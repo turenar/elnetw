@@ -19,35 +19,22 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.gui.tab;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import jp.syuriken.snsw.twclient.filter.MessageFilter;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 
 /**
- * タブレンダラ
+ * Created with IntelliJ IDEA.
+ * Date: 8/28/14
+ * Time: 12:10 AM
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface TabRenderer extends ClientMessageListener, MessageFilter {
-	/**
-	 * event id for reader account changed
-	 */
-	/*public static final*/ String READER_ACCOUNT_CHANGED = "account reader changed";
-	/**
-	 * event id for writer account changed
-	 */
-	/*public static final*/ String WRITER_ACCOUNT_CHANGED = "account writer changed";
+public abstract class AbstractQueryFunction implements QueryFunction {
+	protected QueryDispatcherBase[] child;
 
-	/**
-	 * get user id
-	 *
-	 * @return user id
-	 */
-	String getUserId();
-
-	/**
-	 * render for display requirements
-	 */
-	void onDisplayRequirement();
+	@Override
+	public void init() {
+	}
 }

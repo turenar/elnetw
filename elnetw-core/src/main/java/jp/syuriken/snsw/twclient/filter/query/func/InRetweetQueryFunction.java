@@ -23,7 +23,6 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
-import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
@@ -32,9 +31,8 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class InRetweetQueryFunction implements QueryFunction {
+public class InRetweetQueryFunction extends AbstractQueryFunction {
 	private QueryDispatcherBase child;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -58,5 +56,10 @@ public class InRetweetQueryFunction implements QueryFunction {
 	@Override
 	public boolean filter(Status status) {
 		return child.filter(status.isRetweet() ? status.getRetweetedStatus() : status);
+	}
+
+	@Override
+	public void init() {
+		child.init();
 	}
 }

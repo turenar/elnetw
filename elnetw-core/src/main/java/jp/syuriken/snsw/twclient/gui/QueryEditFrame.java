@@ -41,7 +41,6 @@ import jp.syuriken.snsw.twclient.filter.query.QueryController;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.GroupLayout.Alignment.TRAILING;
@@ -67,8 +66,13 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 		}
 
 		@Override
-		public TwitterUser getTargetUser() {
-			return configuration.getCacheManager().getUser(Long.parseLong(configuration.getAccountIdForRead()));
+		public String getTargetUserId() {
+			return configuration.getAccountIdForRead();
+		}
+
+		@Override
+		public void onClientMessage(String name, Object arg) {
+			// do nothing
 		}
 	}
 

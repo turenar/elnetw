@@ -94,4 +94,8 @@ public abstract class AbstractIntArgProperty implements QueryProperty {
 	 * @return value
 	 */
 	protected abstract long getPropertyValue(DirectMessage directMessage);
+
+	@Override
+	public void init() {
+	}
 }

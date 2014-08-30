@@ -108,5 +108,9 @@ public abstract class AbstractEntitySupportProperty<T extends TweetEntity> imple
 	protected String getTextOfEntity(T entity) {
 		return entity.getText();
 	}
+
+	@Override
+	public void init() {
+	}
 }
 
