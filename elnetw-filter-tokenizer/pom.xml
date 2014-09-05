@@ -20,7 +20,7 @@
 		<repository>
 			<id>turenar-mvnrepo</id>
 			<name>Elnetw's Maven Repository</name>
-			<url>https://raw.github.com/turenar/maven-repo/master</url>
+			<url>http://einzbern.turenar.mydns.jp/maven/</url>
 		</repository>
 	</repositories>
 
