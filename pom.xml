@@ -48,7 +48,7 @@
 		</pluginRepository>
 		<pluginRepository>
 			<id>turenar-mvnrepo</id>
-			<url>https://raw.github.com/turenar/maven-repo/master</url>
+			<url>http://einzbern.turenar.mydns.jp/maven/</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>clojars.org</id>
