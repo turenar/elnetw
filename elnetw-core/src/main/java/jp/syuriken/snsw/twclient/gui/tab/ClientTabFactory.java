@@ -21,11 +21,45 @@
 
 package jp.syuriken.snsw.twclient.gui.tab;
 
+import javax.swing.JComponent;
+
 /**
  * factory for client tab
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface ClientTabFactory {
+	/**
+	 * get instance from uniq id
+	 *
+	 * @param tabId  tab id
+	 * @param uniqId uniq id
+	 * @return restored tab
+	 */
 	ClientTab getInstance(String tabId, String uniqId);
+
+	/**
+	 * get name of tab
+	 *
+	 * @return name
+	 */
+	String getName();
+
+	/**
+	 * get component for tab specific configuration
+	 *
+	 * @return component or null. null shows no specific configuration
+	 */
+	JComponent getOtherConfigurationComponent();
+
+	/**
+	 * create tab
+	 *
+	 * @param tabId                       tab id
+	 * @param accountId                   account id (String)
+	 * @param otherConfigurationComponent {@link #getOtherConfigurationComponent()}. if it is null,
+	 *                                    implementer must ignore this arg.
+	 * @return tab instance or null. null shows factory handles adding tab
+	 */
+	ClientTab newTab(String tabId, String accountId, JComponent otherConfigurationComponent);
 }

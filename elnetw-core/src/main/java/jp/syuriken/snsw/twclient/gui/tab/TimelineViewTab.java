@@ -91,9 +91,13 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	private volatile boolean focusGained;
 	private volatile boolean isDirty;
 
-	/** インスタンスを生成する。 */
-	public TimelineViewTab() {
-		super();
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param accountId account id
+	 */
+	public TimelineViewTab(String accountId) {
+		super(accountId);
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
@@ -101,10 +105,11 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param tabId  ignored
 	 * @param uniqId unique identifier
 	 */
-	public TimelineViewTab(String uniqId) {
-		super(uniqId);
+	public TimelineViewTab(String tabId, String uniqId) {
+		super(tabId, uniqId);
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}

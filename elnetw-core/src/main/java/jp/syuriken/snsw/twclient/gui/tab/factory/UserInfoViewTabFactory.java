@@ -21,6 +21,14 @@
 
 package jp.syuriken.snsw.twclient.gui.tab.factory;
 
+import javax.swing.GroupLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
+import javax.swing.border.TitledBorder;
+
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
@@ -31,8 +39,79 @@ import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserInfoViewTabFactory implements ClientTabFactory {
+	protected static class UserInfoConfigPanel extends JPanel {
+
+		private JLabel userLabel;
+		private JLabel userAtMarkLabel;
+		private JTextField userTextField;
+
+		public UserInfoConfigPanel() {
+			setBorder(new TitledBorder("固有の設定"));
+			initComponents();
+		}
+
+		protected JLabel getComponentUserAtMarkLabel() {
+			if (userAtMarkLabel == null) {
+				userAtMarkLabel = new JLabel("@");
+			}
+			return userAtMarkLabel;
+		}
+
+		protected JLabel getComponentUserLabel() {
+			if (userLabel == null) {
+				userLabel = new JLabel("スクリーンネーム");
+			}
+			return userLabel;
+		}
+
+		protected JTextField getComponentUserTextField() {
+			if (userTextField == null) {
+				userTextField = new JTextField();
+			}
+			return userTextField;
+		}
+
+		protected void initComponents() {
+			GroupLayout layout = new GroupLayout(this);
+			setLayout(layout);
+			layout.setVerticalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup()
+							.addComponent(getComponentUserLabel())
+							.addComponent(getComponentUserAtMarkLabel())
+							.addComponent(getComponentUserTextField())));
+			layout.setHorizontalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup()
+							.addComponent(getComponentUserLabel()))
+					.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+					.addGroup(layout.createParallelGroup()
+							.addGroup(layout.createSequentialGroup()
+									.addComponent(getComponentUserAtMarkLabel())
+									.addComponent(getComponentUserTextField()))));
+		}
+	}
+
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
 		return new UserInfoFrameTab(uniqId);
+	}
+
+	@Override
+	public String getName() {
+		return "ユーザータイムライン";
+	}
+
+	@Override
+	public JComponent getOtherConfigurationComponent() {
+		return new UserInfoConfigPanel();
+	}
+
+	@Override
+	public ClientTab newTab(String tabId, String accountId, JComponent otherConfigurationComponent) {
+		if (!(otherConfigurationComponent instanceof UserInfoConfigPanel)) {
+			throw new AssertionError("illegal type");
+		}
+		UserInfoConfigPanel configPanel = (UserInfoConfigPanel) otherConfigurationComponent;
+		String screenName = configPanel.getComponentUserTextField().getText();
+		return new UserInfoFrameTab(accountId, screenName);
 	}
 }

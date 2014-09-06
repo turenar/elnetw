@@ -73,9 +73,11 @@ import jp.syuriken.snsw.twclient.JobQueue.Priority;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.gui.VersionInfoFrame;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
+import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.internal.DefaultTweetLengthCalculator;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
+import jp.syuriken.snsw.twclient.internal.IntentActionListener;
 import jp.syuriken.snsw.twclient.internal.LayeredLayoutManager;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
@@ -101,25 +103,6 @@ import twitter4j.User;
 		@Override
 		public ViewFactory getViewFactory() {
 			return viewFactory;
-		}
-	}
-
-	/**
-	 * MenuItemのActionListenerの実装。
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	private final class ActionListenerImplementation implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			/* StatusData statusData;
-			 if (selectingPost == null) {
-			statusData = null;
-			} else {
-			statusData = statusMap.get(selectingPost.getRenderObject().id);
-			} */
-			configuration.handleAction(Utility.getIntentArguments(e.getActionCommand()));
 		}
 	}
 
@@ -408,8 +391,6 @@ import twitter4j.User;
 	/*package*/final class UserInfoFetcher implements Runnable {
 
 		public final List<String> accountList;
-		final UserInfoFetcher this$uif = UserInfoFetcher.this;
-		public int offset = 0;
 		public JMenuItem[] readTimelineMenuItems;
 		public JMenuItem[] postToMenuItems;
 
@@ -428,8 +409,8 @@ import twitter4j.User;
 				cacheManager.queueFetchingUser(Long.parseLong(accountId));
 
 				JMenuItem readMenuItem = new JRadioButtonMenuItem(accountId);
-				readMenuItem.setActionCommand("menu_login_read!accountId=" + accountId);
-				readMenuItem.addActionListener(menuActionListener);
+				readMenuItem.addActionListener(new IntentActionListener("menu_login_read")
+						.putExtra("accountId", accountId));
 				if (accountId.equals(defaultAccountId)) {
 					readMenuItem.setSelected(true);
 					readMenuItem.setFont(readMenuItem.getFont().deriveFont(Font.BOLD));
@@ -439,8 +420,7 @@ import twitter4j.User;
 				readButtonGroup.add(readMenuItem);
 
 				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
-				writeMenuItem.setActionCommand("menu_login_write!accountId=" + accountId);
-				writeMenuItem.addActionListener(menuActionListener);
+				writeMenuItem.addActionListener(new IntentActionListener("menu_login_write").putExtra("accountId", accountId));
 				if (accountId.equals(defaultAccountId)) {
 					writeMenuItem.setSelected(true);
 					writeMenuItem.setFont(writeMenuItem.getFont().deriveFont(Font.BOLD));
@@ -470,9 +450,9 @@ import twitter4j.User;
 	/** UIフォント */
 	public final Font uiFont;
 	/*package*/final transient ClientConfiguration configuration;
-	/*package*/final transient ActionListener menuActionListener = new ActionListenerImplementation();
 	/*package*/final transient TweetLengthCalculator defaultTweetLengthCalculator =
 			new DefaultTweetLengthCalculator(this);
+	/*package*/ final Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ Status inReplyToStatus = null;
 	/*package*/ JPanel editPanel;
 	/*package*/ JPanel postPanel;
@@ -492,7 +472,6 @@ import twitter4j.User;
 	/*package*/ JLabel tweetViewCreatedByLabel;
 	/*package*/ JLabel tweetViewCreatedAtLabel;
 	/*package*/ JLabel tweetViewUserIconLabel;
-	/*package*/ Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ JLabel postLengthLabel;
 	protected transient ClientTab selectingTab;
 	/*package*/transient TweetLengthCalculator tweetLengthCalculator = defaultTweetLengthCalculator;
@@ -568,22 +547,6 @@ import twitter4j.User;
 		getPostBox().requestFocusInWindow();
 	}
 
-	private JMenu getAccountMenu() {
-		if (accountMenu == null) {
-			accountMenu = new JMenu("アカウント");
-
-			configuration.addJob(Priority.LOW, new UserInfoFetcher());
-			accountMenu.add(getReadTimelineJMenu());
-			accountMenu.add(getPostToJMenu());
-
-			JMenuItem verifyAccountMenuItem = new JMenuItem("アカウント認証(V)...", KeyEvent.VK_V);
-			verifyAccountMenuItem.setActionCommand("menu_account_verify");
-			verifyAccountMenuItem.addActionListener(menuActionListener);
-			accountMenu.add(verifyAccountMenuItem);
-		}
-		return accountMenu;
-	}
-
 	@Override
 	public String getActionCommandByShortcutKey(String component, String keyString) {
 		synchronized (shortcutKeyMap) {
@@ -603,30 +566,10 @@ import twitter4j.User;
 	private JMenuBar getClientMenuBar() {
 		if (clientMenu == null) {
 			clientMenu = new JMenuBar();
-			{
-				JMenu applicationMenu = new JMenu("アプリケーション");
-				JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
-				configMenuItem.setActionCommand("menu_config");
-				configMenuItem.addActionListener(new ActionListenerImplementation());
-				applicationMenu.add(configMenuItem);
-
-				applicationMenu.addSeparator();
-
-				JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
-				quitMenuItem.setActionCommand("menu_quit");
-				quitMenuItem.addActionListener(menuActionListener);
-				applicationMenu.add(quitMenuItem);
-				clientMenu.add(applicationMenu);
-			}
-			clientMenu.add(getAccountMenu());
-			{
-				JMenu infoMenu = new JMenu("情報");
-				JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
-				versionMenuItem.setActionCommand("core!version");
-				versionMenuItem.addActionListener(new ActionListenerImplementation());
-				infoMenu.add(versionMenuItem);
-				clientMenu.add(infoMenu);
-			}
+			clientMenu.add(getMenuApplication());
+			clientMenu.add(getMenuAccount());
+			clientMenu.add(getMenuAdd());
+			clientMenu.add(getMenuInfo());
 		}
 		return clientMenu;
 	}
@@ -669,7 +612,6 @@ import twitter4j.User;
 		return this;
 	}
 
-
 	/**
 	 * 一時的な情報を追加するときに、この時間たったら削除してもいーよ的な時間を取得する。
 	 * 若干重要度が高いときは *2 とかしてみよう！
@@ -689,6 +631,65 @@ import twitter4j.User;
 	@Override
 	public User getLoginUser() {
 		return configuration.getCacheManager().getUser(Long.parseLong(configuration.getAccountIdForRead()));
+	}
+
+	private JMenu getMenuAccount() {
+		if (accountMenu == null) {
+			accountMenu = new JMenu("アカウント");
+
+			configuration.addJob(Priority.LOW, new UserInfoFetcher());
+			accountMenu.add(getReadTimelineJMenu());
+			accountMenu.add(getPostToJMenu());
+
+			JMenuItem verifyAccountMenuItem = new JMenuItem("アカウント認証(V)...", KeyEvent.VK_V);
+			verifyAccountMenuItem.addActionListener(new IntentActionListener("menu_account_verify"));
+			accountMenu.add(verifyAccountMenuItem);
+		}
+		return accountMenu;
+	}
+
+	private JMenu getMenuAdd() {
+		JMenu addMenu;
+		addMenu = new JMenu("追加");
+		addMenu.add(getMenuAddTab());
+
+		return addMenu;
+	}
+
+	private JMenu getMenuAddTab() {
+		JMenu tabMenu = new JMenu("タブ");
+		for (Map.Entry<String, ClientTabFactory> factoryEntry : ClientConfiguration.getClientTabFactories().entrySet()) {
+			String tabId = factoryEntry.getKey();
+			ClientTabFactory factory = factoryEntry.getValue();
+			JMenuItem factoryItem = new JMenuItem(factory.getName());
+			factoryItem.addActionListener(new IntentActionListener("tab_add").putExtra("tabId", tabId));
+			tabMenu.add(factoryItem);
+		}
+		return tabMenu;
+	}
+
+	private JMenu getMenuApplication() {
+		JMenu applicationMenu;
+		applicationMenu = new JMenu("アプリケーション");
+		JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
+		configMenuItem.addActionListener(new IntentActionListener("menu_config"));
+		applicationMenu.add(configMenuItem);
+
+		applicationMenu.addSeparator();
+
+		JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
+		quitMenuItem.addActionListener(new IntentActionListener("menu_quit"));
+		applicationMenu.add(quitMenuItem);
+		return applicationMenu;
+	}
+
+	private JMenu getMenuInfo() {
+		JMenu infoMenu;
+		infoMenu = new JMenu("情報");
+		JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
+		versionMenuItem.addActionListener(new IntentActionListener("core").putExtra("_arg", "version"));
+		infoMenu.add(versionMenuItem);
+		return infoMenu;
 	}
 
 	private JButton getPostActionButton() {

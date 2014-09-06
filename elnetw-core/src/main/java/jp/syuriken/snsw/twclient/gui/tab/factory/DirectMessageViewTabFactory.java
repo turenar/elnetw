@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.twclient.gui.tab.factory;
 
+import javax.swing.JComponent;
+
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.gui.tab.DirectMessageViewTab;
@@ -33,6 +35,21 @@ import jp.syuriken.snsw.twclient.gui.tab.DirectMessageViewTab;
 public class DirectMessageViewTabFactory implements ClientTabFactory {
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
-		return new DirectMessageViewTab(uniqId);
+		return new DirectMessageViewTab(tabId, uniqId);
+	}
+
+	@Override
+	public String getName() {
+		return "DM";
+	}
+
+	@Override
+	public JComponent getOtherConfigurationComponent() {
+		return null;
+	}
+
+	@Override
+	public ClientTab newTab(String tabId, String accountId, JComponent otherConfigurationComponent) {
+		return new DirectMessageViewTab(accountId);
 	}
 }

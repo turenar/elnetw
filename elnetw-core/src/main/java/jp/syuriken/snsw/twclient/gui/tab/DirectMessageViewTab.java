@@ -23,7 +23,6 @@ package jp.syuriken.snsw.twclient.gui.tab;
 
 import javax.swing.Icon;
 
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import twitter4j.DirectMessage;
@@ -55,24 +54,24 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 
 	/**
 	 * インスタンスを生成する。
-	 *
-	 * @throws IllegalSyntaxException クエリエラー
+	 * @param accountId account id
 	 */
-	public DirectMessageViewTab() throws IllegalSyntaxException {
-		super();
-		configuration.getMessageBus().establish("$reader", "direct_messages", getRenderer());
-		configuration.getMessageBus().establish("$reader", "stream/user", getRenderer());
+	public DirectMessageViewTab(String accountId) {
+		super(accountId);
+		configuration.getMessageBus().establish(accountId, "direct_messages", getRenderer());
+		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param tabId  ignored
 	 * @param uniqId unique identifier
 	 */
-	public DirectMessageViewTab(String uniqId) {
-		super(uniqId);
-		configuration.getMessageBus().establish("$reader", "direct_messages", getRenderer());
-		configuration.getMessageBus().establish("$reader", "stream/user", getRenderer());
+	public DirectMessageViewTab(String tabId, String uniqId) {
+		super(tabId, uniqId);
+		configuration.getMessageBus().establish(accountId, "direct_messages", getRenderer());
+		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
 
 	@Override

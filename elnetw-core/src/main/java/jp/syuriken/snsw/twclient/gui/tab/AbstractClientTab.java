@@ -410,14 +410,14 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected boolean shouldBeScrollToPost;
 
 	/** インスタンスを生成する。 */
-	protected AbstractClientTab() {
+	protected AbstractClientTab(String accountId) {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
 		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
-		accountId = "$reader";
+		this.accountId = accountId;
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
 		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
 		defaultFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_DEFAULT);
@@ -427,9 +427,10 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param tabId  ignored
 	 * @param uniqId unique identifier
 	 */
-	protected AbstractClientTab(String uniqId) {
+	protected AbstractClientTab(@SuppressWarnings("UnusedParameters") String tabId, String uniqId) {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();

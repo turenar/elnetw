@@ -85,7 +85,6 @@ import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
 import jp.syuriken.snsw.twclient.config.QueryEditConfigType;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
 import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
@@ -101,6 +100,7 @@ import jp.syuriken.snsw.twclient.gui.tab.factory.MentionViewTabFactory;
 import jp.syuriken.snsw.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.syuriken.snsw.twclient.gui.tab.factory.UserInfoViewTabFactory;
 import jp.syuriken.snsw.twclient.handler.AccountVerifierActionHandler;
+import jp.syuriken.snsw.twclient.handler.AddClientTabActionHandler;
 import jp.syuriken.snsw.twclient.handler.ClearPostBoxActionHandler;
 import jp.syuriken.snsw.twclient.handler.DoNothingActionHandler;
 import jp.syuriken.snsw.twclient.handler.FavoriteActionHandler;
@@ -303,12 +303,12 @@ public final class TwitterClientMain {
 	/**
 	 * init client tab factories
 	 */
-	@Initializer(name = "gui/tab/init-factory", phase = "init")
+	@Initializer(name = "gui/tab/init-factory", phase = "preinit")
 	public void addClientTabConstructor() {
-		ClientConfiguration.putClientTabConstructor("timeline", new TimelineViewTabFactory());
-		ClientConfiguration.putClientTabConstructor("mention", new MentionViewTabFactory());
-		ClientConfiguration.putClientTabConstructor("directmessage", new DirectMessageViewTabFactory());
-		ClientConfiguration.putClientTabConstructor("userinfo", new UserInfoViewTabFactory());
+		ClientConfiguration.putClientTabFactory("timeline", new TimelineViewTabFactory());
+		ClientConfiguration.putClientTabFactory("mention", new MentionViewTabFactory());
+		ClientConfiguration.putClientTabFactory("directmessage", new DirectMessageViewTabFactory());
+		ClientConfiguration.putClientTabFactory("userinfo", new UserInfoViewTabFactory());
 	}
 
 	/**
@@ -399,6 +399,7 @@ public final class TwitterClientMain {
 		configuration.addActionHandler("search", new SearchActionHandler());
 		configuration.addActionHandler("openimg", new OpenImageActionHandler());
 		configuration.addActionHandler("blackhole", new DoNothingActionHandler());
+		configuration.addActionHandler("tab_add", new AddClientTabActionHandler());
 		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
 		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
 		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
@@ -663,13 +664,9 @@ public final class TwitterClientMain {
 		List<String> tabsList = configProperties.getList("gui.tabs.list");
 		if (condition.isInitializingPhase()) {
 			if (tabsList.size() == 0) {
-				try {
-					configuration.addFrameTab(new TimelineViewTab());
-					configuration.addFrameTab(new MentionViewTab());
-					configuration.addFrameTab(new DirectMessageViewTab());
-				} catch (IllegalSyntaxException e) {
-					throw new AssertionError(e); // This can't happen: because no query
-				}
+				configuration.addFrameTab(new TimelineViewTab("$reader"));
+				configuration.addFrameTab(new MentionViewTab("$reader"));
+				configuration.addFrameTab(new DirectMessageViewTab("$reader"));
 			} else {
 				for (String tabIdentifier : tabsList) {
 					if (tabIdentifier.isEmpty()) {
@@ -678,7 +675,7 @@ public final class TwitterClientMain {
 					int separatorPosition = tabIdentifier.indexOf(':');
 					String tabId = tabIdentifier.substring(0, separatorPosition);
 					String uniqId = tabIdentifier.substring(separatorPosition + 1);
-					ClientTabFactory tabConstructor = ClientConfiguration.getClientTabConstructor(tabId);
+					ClientTabFactory tabConstructor = ClientConfiguration.getClientTabFactory(tabId);
 					if (tabConstructor == null) {
 						logger.warn("タブが復元できません: tabId={}, uniqId={}", tabId, uniqId);
 					} else {
@@ -1095,7 +1092,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "accesstoken", dependencies = "config", phase = "earlyinit")
+	@Initializer(name = "accesstoken", dependencies = "config/update", phase = "earlyinit")
 	public void tryGetOAuthAccessToken(InitCondition condition) {
 		if (!condition.isInitializingPhase()) {
 			return;

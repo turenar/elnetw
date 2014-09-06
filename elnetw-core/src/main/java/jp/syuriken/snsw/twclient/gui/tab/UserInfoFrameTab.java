@@ -63,6 +63,7 @@ import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.cache.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.gui.BackgroundImagePanel;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
@@ -154,23 +155,31 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	public UserInfoFrameTab(String uniqId) {
 		super(uniqId);
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
+		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + userId, getRenderer());
+		configuration.addJob(new ParallelRunnable() {
+			@Override
+			public void run() {
+				setUser(configuration.getCacheManager().getUser(userId));
+			}
+		});
+		urlIntentMap = new HashMap<>();
+	}
 
+	/**
+	 * インスタンスを生成する。
+	 */
+	public UserInfoFrameTab(final String accountId, final String targetScreenName) {
+		super(accountId);
 		configuration.addJob(new TwitterRunnable() {
 			@Override
 			protected void access() throws TwitterException {
-				TwitterUser user = configuration.getCacheManager().getUser(userId);
-				setUser(user);
+				TwitterUser user = TwitterUser.getInstance(configuration.getTwitter(accountId).showUser(targetScreenName));
+				setUser(configuration.getCacheManager().cacheUser(user));
 			}
 
 			@Override
 			protected void onException(TwitterException ex) {
 				UserInfoFrameTab.this.getRenderer().onException(ex);
-			}
-
-			@Override
-			public void run() {
-				setUser(configuration.getCacheManager().getUser(userId));
-				super.run();
 			}
 		});
 		urlIntentMap = new HashMap<>();
@@ -181,8 +190,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	 *
 	 * @param user ユーザー
 	 */
-	public UserInfoFrameTab(TwitterUser user) {
-		super();
+	public UserInfoFrameTab(String accountId, TwitterUser user) {
+		super(accountId);
 		setUser(user);
 		urlIntentMap = new HashMap<>();
 	}
@@ -603,6 +612,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	/*package*/ void setUser(final TwitterUser user) {
 		this.user = user;
 		configuration.getMessageBus().establish(accountId, "all", getRenderer());
+		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + user.getId(), getRenderer());
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
