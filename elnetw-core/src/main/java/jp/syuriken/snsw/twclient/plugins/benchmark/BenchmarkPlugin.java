@@ -1,3 +1,24 @@
+/*
+ * The MIT License (MIT)
+ * Copyright (c) 2011-2014 Turenai Project
+ *
+ * Permission is hereby granted, free of charge,
+ *  to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation the rights to
+ *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ *  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package jp.syuriken.snsw.twclient.plugins.benchmark;
 
 import java.io.File;
@@ -11,12 +32,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
 import twitter4j.TwitterException;
-import twitter4j.json.DataObjectFactory;
+import twitter4j.TwitterObjectFactory;
 
 /**
  * Benchmark Plugin
@@ -48,7 +70,7 @@ public class BenchmarkPlugin implements Runnable {
 			try (Scanner scanner = new Scanner(new File(filename), "UTF-8")) {
 				while (scanner.hasNextLine()) {
 					try {
-						Status status = DataObjectFactory.createStatus(scanner.nextLine());
+						Status status = TwitterObjectFactory.createStatus(scanner.nextLine());
 						addStatus(status);
 					} catch (TwitterException e) {
 						logger.warn("illegal benchmark json", e);
@@ -61,9 +83,14 @@ public class BenchmarkPlugin implements Runnable {
 		}
 	}
 
-	private class RestPublishingJob implements Runnable {
-		ClientMessageListener listerner = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
-						"statuses/timeline");
+	private class RestPublishingJob implements ParallelRunnable {
+		private ClientMessageListener listener;
+
+		public RestPublishingJob() {
+			listener = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
+					"statuses/timeline");
+		}
+
 		@Override
 		public void run() {
 			ArrayList<Status> list = new ArrayList<>();
@@ -87,26 +114,31 @@ public class BenchmarkPlugin implements Runnable {
 				}
 			}
 			for (Status status : list) {
-				listerner.onStatus(status);
+				listener.onStatus(status);
 			}
 			configuration.addJob(JobQueue.PRIORITY_LOW, this);
 		}
 	}
 
 	private class StreamPublishingJob extends Thread {
+		private ClientMessageListener listener;
+
 		/*package*/ StreamPublishingJob() {
 			super("benchmark-stream");
 			setDaemon(true);
-		}
-		ClientMessageListener listerner = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
+			listener = configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, false,
 					"statuses/timeline");
+		}
+
 		@Override
 		public void run() {
-			Status status = getStatus();
-			if (status == null && finished.get()) {
-				return;
+			while (true) {
+				Status status = getStatus();
+				if (status == null && finished.get()) {
+					return;
+				}
+				listener.onStatus(status);
 			}
-			listerner.onStatus(status);
 		}
 	}
 

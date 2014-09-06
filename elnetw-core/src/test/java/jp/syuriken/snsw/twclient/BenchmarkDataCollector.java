@@ -1,24 +1,47 @@
+/*
+ * The MIT License (MIT)
+ * Copyright (c) 2011-2014 Turenai Project
+ *
+ * Permission is hereby granted, free of charge,
+ *  to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation the rights to
+ *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ *  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package jp.syuriken.snsw.twclient;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+
 import twitter4j.Status;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.UserStreamAdapter;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
-import twitter4j.json.DataObjectFactory;
-
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.InvalidKeyException;
 
 /** Data Collector from twitter stream */
 public class BenchmarkDataCollector extends UserStreamAdapter {
-	public static void main (String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 		ClientProperties configProperties = new ClientProperties();
-		configProperties.load(new FileInputStream("elnetw.cfg"));
+		configProperties.load(Files.newBufferedReader(Paths.get("elnetw.cfg"), Charset.forName("UTF-8")));
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		String[] accessToken;
 		try {
@@ -31,8 +54,7 @@ public class BenchmarkDataCollector extends UserStreamAdapter {
 
 		Configuration configuration = new ConfigurationBuilder()
 				.setUserStreamRepliesAllEnabled(configProperties.getBoolean("twitter.stream.replies_all"))
-				.setJSONStoreEnabled(true).setClientVersion(VersionInfo.getUniqueVersion())
-				.setClientURL(VersionInfo.getSupportUrl())
+				.setJSONStoreEnabled(true)
 				.setOAuthAccessToken(accessToken[0])
 				.setOAuthAccessTokenSecret(accessToken[1])
 				.setOAuthConsumerKey(accessToken[2])
@@ -48,10 +70,10 @@ public class BenchmarkDataCollector extends UserStreamAdapter {
 	private final BufferedWriter bufferedWriter;
 	private int count;
 
-	public BenchmarkDataCollector () throws IOException {
+	public BenchmarkDataCollector() throws IOException {
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			@Override
-			public void run () {
+			public void run() {
 				if (bufferedWriter != null) {
 					try {
 						bufferedWriter.close();
@@ -73,8 +95,8 @@ public class BenchmarkDataCollector extends UserStreamAdapter {
 	}
 
 	@Override
-	public synchronized void onStatus (Status status) {
-		String rawJSON = DataObjectFactory.getRawJSON(status);
+	public synchronized void onStatus(Status status) {
+		String rawJSON = TwitterObjectFactory.getRawJSON(status);
 		try {
 			fileWriter.append(rawJSON);
 			fileWriter.append('\n');
