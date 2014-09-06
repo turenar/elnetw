@@ -19,61 +19,30 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.init;
+package jp.syuriken.snsw.twclient.internal;
 
-import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.init.InitializeException;
+import jp.syuriken.snsw.twclient.init.InitializeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Information for @{@link Initializer}
+ * shutdown hook
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitCondition {
-
-	/** clear fail status */
-	void clearFailStatus();
-
-	/**
-	 * get ClientConfiguration
-	 *
-	 * @return configuration
-	 */
-	ClientConfiguration getConfiguration();
-
-	/**
-	 * get if should be uninit fast? fast uninit should not wait for blocking operation, such as stream finalize
-	 * @return fast uninit?
-	 */
-	boolean isFastUninit();
-
-	/**
-	 * check this invocation is initializing stage
-	 *
-	 * @return if true, initializing. otherwise, de-initializing.
-	 */
-	boolean isInitializingPhase();
-
-	/**
-	 * Check already called {@link #setFailStatus(String, int)}
-	 *
-	 * @return whether fail status is set
-	 */
-	boolean isSetFailStatus();
-
-	/**
-	 * set status as fail
-	 *
-	 * @param cause    cause of failure
-	 * @param reason   fail reason
-	 * @param exitCode exit code
-	 */
-	void setFailStatus(Throwable cause, String reason, int exitCode);
-
-	/**
-	 * set status as fail
-	 *
-	 * @param reason   fail reason
-	 * @param exitCode exit code
-	 */
-	void setFailStatus(String reason, int exitCode);
+public class ShutdownHook extends Thread {
+	@Override
+	public synchronized void run() {
+		InitializeService initializeService = InitializeService.getService();
+		if (!initializeService.isUninitialized()) {
+			Logger logger = LoggerFactory.getLogger(ShutdownHook.class);
+			logger.warn("uninit: fast uninit! This may cause unexpectated exception.");
+			try {
+				initializeService.uninit(true);
+			} catch (InitializeException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 }

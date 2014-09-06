@@ -128,6 +128,7 @@ import jp.syuriken.snsw.twclient.internal.DeadlockMonitor;
 import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
 import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
+import jp.syuriken.snsw.twclient.internal.ShutdownHook;
 import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import jp.syuriken.snsw.twclient.media.NullMediaResolver;
@@ -669,6 +670,8 @@ public final class TwitterClientMain {
 		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
 		InitializeService initializeService = DynamicInitializeService.use(configuration);
+
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 		initializeService
 				.registerPhase("earlyinit")
 				.registerPhase("preinit")
@@ -857,7 +860,7 @@ public final class TwitterClientMain {
 		if (condition.isInitializingPhase()) {
 			messageBus = new MessageBus();
 			configuration.setMessageBus(messageBus);
-		} else {
+		} else if (!condition.isFastUninit()) {
 			messageBus.cleanUp();
 		}
 	}
@@ -912,6 +915,7 @@ public final class TwitterClientMain {
 		} else {
 			ScheduledExecutorService timer = configuration.getTimer();
 			timer.shutdown();
+			if (!condition.isFastUninit()) {
 			try {
 				if (!timer.awaitTermination(5, TimeUnit.SECONDS)) {
 					logger.error("Failed shutdown timer: timeout");
@@ -919,6 +923,7 @@ public final class TwitterClientMain {
 				}
 			} catch (InterruptedException e) {
 				timer.shutdownNow();
+			}
 			}
 		}
 	}
@@ -1000,7 +1005,7 @@ public final class TwitterClientMain {
 	public void startDeadlockMonitor(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			deadlockMonitor = new DeadlockMonitor();
-		} else {
+		} else if (condition.isFastUninit()) {
 			deadlockMonitor.cancel();
 		}
 	}
@@ -1017,7 +1022,7 @@ public final class TwitterClientMain {
 			jobQueue.startWorker();
 		} else {
 			jobQueue.shutdown();
-			while (true) {
+			while (!condition.isFastUninit()) {
 				try {
 					if (jobQueue.shutdownNow(JOBWORKER_JOIN_TIMEOUT)) {
 						break;

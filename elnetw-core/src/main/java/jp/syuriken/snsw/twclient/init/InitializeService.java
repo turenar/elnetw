@@ -97,6 +97,13 @@ public abstract class InitializeService {
 	public abstract boolean isRegistered(String name);
 
 	/**
+	 * check if service is uninitialized. If this function returns true,
+	 * other functions which do some operation may throw {@link java.lang.IllegalStateException}
+	 * @return uninitialized?
+	 */
+	public abstract boolean isUninitialized();
+
+	/**
 	 * provide null-initializer as name
 	 *
 	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
@@ -162,7 +169,19 @@ public abstract class InitializeService {
 	 *
 	 * @throws InitializeException exception occurred.
 	 */
-	public abstract void uninit() throws InitializeException;
+	public void uninit() throws InitializeException {
+		uninit(false);
+	}
+
+	/**
+	 * un-initialize initializer
+	 *
+	 * <p>Once called this method, calling all other methods is act indefinitely</p>
+	 *
+	 * @param fastUninit fast uninit? This should be false.
+	 * @throws InitializeException exception occurred.
+	 */
+	public abstract void uninit(boolean fastUninit) throws InitializeException;
 
 	/**
 	 * wait for init-queue consumed

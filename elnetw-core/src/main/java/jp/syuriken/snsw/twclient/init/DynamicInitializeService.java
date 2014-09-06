@@ -81,6 +81,11 @@ public class DynamicInitializeService extends InitializeService {
 		}
 
 		@Override
+		public boolean isFastUninit() {
+			return fastUninit;
+		}
+
+		@Override
 		public boolean isInitializingPhase() {
 			return initializingPhase;
 		}
@@ -337,6 +342,7 @@ public class DynamicInitializeService extends InitializeService {
 	/** stack to invoke de-initializer */
 	protected Stack<InitializerInfoImpl> uninitStack;
 	private HashSet<String> phaseSet;
+	private boolean fastUninit;
 
 	/**
 	 * インスタンス生成
@@ -370,7 +376,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public InitializerInfo getInfo(String name) {
+	public synchronized InitializerInfo getInfo(String name) {
 		return initializerInfoMap.get(name);
 	}
 
@@ -389,12 +395,17 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
+	public synchronized boolean isUninitialized() {
+		return uninitStack == null;
+	}
+
+	@Override
 	public InitializeService provideInitializer(String name) throws IllegalArgumentException {
 		return provideInitializer(name, false);
 	}
 
 	@Override
-	public InitializeService provideInitializer(String name, boolean force) {
+	public synchronized InitializeService provideInitializer(String name, boolean force) {
 		if (initializerInfoMap.containsKey(name)) {
 			if (force) {
 				InitializerInfoImpl initializerInfo = initializerInfoMap.get(name);
@@ -409,7 +420,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public synchronized InitializeService register(Object instance, Method method) throws IllegalArgumentException {
+	public InitializeService register(Object instance, Method method) throws IllegalArgumentException {
 		Initializer initializer = method.getAnnotation(Initializer.class);
 		if (initializer != null) {
 			register(instance, method, initializer);
@@ -420,7 +431,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public synchronized InitializeService register(Class<?> initClass) throws IllegalArgumentException {
+	public InitializeService register(Class<?> initClass) throws IllegalArgumentException {
 		Field[] declaredFields = initClass.getDeclaredFields();
 		Object instance = null;
 		for (Field field : declaredFields) {
@@ -446,7 +457,8 @@ public class DynamicInitializeService extends InitializeService {
 		return this;
 	}
 
-	private void register(Object instance, Method method, Initializer initializer) throws IllegalArgumentException {
+	private synchronized void register(Object instance, Method method,
+			Initializer initializer) throws IllegalArgumentException {
 		ensureNotCalledUninit();
 
 		String name = initializer.name();
@@ -465,7 +477,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public InitializeService registerPhase(String phase) {
+	public synchronized InitializeService registerPhase(String phase) {
 		phaseSet.add(phase);
 		return this;
 	}
@@ -475,7 +487,7 @@ public class DynamicInitializeService extends InitializeService {
 	 *
 	 * @param name initializer名
 	 */
-	public void resolve(String name) {
+	public synchronized void resolve(String name) {
 		if (initializedSet.contains(name)) {
 			return;
 		}
@@ -500,7 +512,7 @@ public class DynamicInitializeService extends InitializeService {
 	 *
 	 * @throws InitializeException 例外
 	 */
-	protected void runResolvedInitializer() throws InitializeException {
+	protected synchronized void runResolvedInitializer() throws InitializeException {
 		while (!initQueue.isEmpty()) {
 			InitializerInfoImpl info = initQueue.poll();
 			if (logger.isTraceEnabled()) {
@@ -515,7 +527,8 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public void uninit() throws InitializeException {
+	public synchronized void uninit(boolean fastUninit) throws InitializeException {
+		this.fastUninit = fastUninit;
 		if (uninitStack == null) {
 			throw new IllegalStateException("already uninitialized");
 		}
@@ -529,7 +542,7 @@ public class DynamicInitializeService extends InitializeService {
 	}
 
 	@Override
-	public InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
+	public synchronized InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
 		ensureNotCalledUninit();
 		runResolvedInitializer();
 		return this;
