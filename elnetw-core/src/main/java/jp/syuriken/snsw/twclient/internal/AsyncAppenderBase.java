@@ -49,7 +49,6 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.spi.AppenderAttachable;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 
 /**
@@ -66,15 +65,9 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 * timed worker
 	 */
 	protected class TimerWorker implements Runnable {
-		private ClientConfiguration configuration = ClientConfiguration.getInstance();
-
 		@Override
 		public void run() {
-			if (blockingQueue.remainingCapacity() == 0) {
-				flush();
-			} else if (blockingQueue.isEmpty()) {
-				configuration.addJob(JobQueue.PRIORITY_LOW, worker);
-			}
+			flush();
 		}
 	}
 
@@ -92,6 +85,10 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 */
 	public static final int DEFAULT_QUEUE_SIZE = 256;
 	/**
+	 * queue size
+	 */
+	protected int queueSize = DEFAULT_QUEUE_SIZE;
+	/**
 	 * property name of flush interval
 	 */
 	public static final String PROPERTY_FLUSH_INTERVAL = "core.logger.flush_interval";
@@ -99,10 +96,6 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 * undefined stub
 	 */
 	protected static final int UNDEFINED = -1;
-	/**
-	 * queue size
-	 */
-	protected int queueSize = DEFAULT_QUEUE_SIZE;
 	/**
 	 * discarding threshold
 	 */
