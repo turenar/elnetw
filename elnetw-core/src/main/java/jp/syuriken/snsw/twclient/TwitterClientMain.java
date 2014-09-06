@@ -75,6 +75,7 @@ import jp.syuriken.snsw.twclient.bus.factory.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.TimelineChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.TwitterStreamChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.UserTimelineChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.VirtualChannelFactory;
 import jp.syuriken.snsw.twclient.cache.ImageCacher;
 import jp.syuriken.snsw.twclient.config.ActionButtonConfigType;
@@ -928,6 +929,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
 		messageBus.addChannelFactory("users/following", new FollowingUsersChannelFactory());
+		messageBus.addChannelFactory("statuses/user_timeline", new UserTimelineChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}

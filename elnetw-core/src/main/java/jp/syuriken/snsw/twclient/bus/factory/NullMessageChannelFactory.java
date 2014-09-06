@@ -36,7 +36,7 @@ public class NullMessageChannelFactory implements MessageChannelFactory {
 	}
 
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
 		return NullMessageChannel.INSTANCE;
 	}
 }

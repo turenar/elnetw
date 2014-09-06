@@ -39,7 +39,7 @@ public class VirtualChannelFactory implements MessageChannelFactory {
 	}
 
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
 		return new VirtualChannel(messageBus, accountId, path, to);
 	}
 }

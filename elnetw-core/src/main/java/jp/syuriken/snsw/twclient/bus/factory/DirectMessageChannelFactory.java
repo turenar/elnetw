@@ -33,7 +33,7 @@ import jp.syuriken.snsw.twclient.bus.channel.DirectMessageChannel;
  */
 public class DirectMessageChannelFactory implements MessageChannelFactory {
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
 		return new DirectMessageChannel(messageBus, accountId);
 	}
 }
