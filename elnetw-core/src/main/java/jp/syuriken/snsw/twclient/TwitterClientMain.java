@@ -829,7 +829,7 @@ public final class TwitterClientMain {
 		String cacheDir = System.getProperty("elnetw.cache.dir");
 		// do not use Utility: it initializes logger!
 		if (System.getProperty("os.name").contains("Windows")) {
-			appHomeDir = appHomeDir == null ? System.getenv("APPDATA") : appHomeDir;
+			appHomeDir = appHomeDir == null ? System.getenv("APPDATA") + "/elnetw" : appHomeDir;
 			cacheDir = cacheDir == null ? System.getProperty("java.io.tmpdir") + "/elnetw/cache" : cacheDir;
 		} else {
 			appHomeDir = appHomeDir == null ? System.getProperty("user.home") + "/.elnetw" : appHomeDir;
