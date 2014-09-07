@@ -1,13 +1,16 @@
-Version 0.2
+Version 0.2-alpha1
+
+	!! Update config version. Some of your configuration may be dropped.
 	++ Prohibit multi instance (#38)
 	++ Add BlockingUserFilter. You can see its option in SettingFrame
-	++ Add has_url, has_hashtag filter property
-	++ Support comment in query statement
+	++ Add is_following query property. This causes your TL delayed (#40)
+	++ Support comment in query statement (#4)
+	++ Add interface to add tab (#41)
+	 + Add disk cache mechanism to store misc data (#35)
 	 + Update tab configuration. Don't use json
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
 	 * Fix operator ignored in bool query property
-	 * Fix inf-loop in JobQueue without #shutdown multi invocation
 	 * Support LowerCaseName of query system
 	 * Update filter system
 	 * Stop using Constructor<> in query system
@@ -15,14 +18,14 @@ Version 0.2
 Version 0.1 (Mon Sep  8 01:48:35 JST 2014)
 
 	+ DM's name now navigates you to userinfo
-	+ Add shutdown hook for proper termination
+	+ Add shutdown hook for proper termination (#42)
 	* Fix wrong app home dir
 	* Fix inf-loop in JobQueue without #shutdown multi invocation
 	* Fix log flusher is not working
 
 Version 0.1-rc1 (Mon Aug 18 19:29:10 JST 2014)
 
-	+ Add has_url, has_hashtag query property
+	+ Add has_url, has_hashtag query property (#5)
 	+ Warn if older elnetw with newer config will be running
 	* Fix SPLP#remove() sometimes don't work
 	* Fix StandardBooleanProperties often ignored operator
