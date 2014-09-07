@@ -39,11 +39,8 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class FilterConstants implements QueryDispatcherBase {
-
 	private static class BooleanQueryDispatcher implements QueryDispatcherBase {
-
 		private boolean bool;
-
 
 		public BooleanQueryDispatcher(boolean bool) {
 			this.bool = bool;
@@ -58,12 +55,14 @@ public abstract class FilterConstants implements QueryDispatcherBase {
 		public boolean filter(Status status) {
 			return bool;
 		}
-	}
 
+		@Override
+		public void init() {
+		}
+	}
 
 	/** 常にfalseを返す {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} */
 	public static final QueryDispatcherBase FALSE_DISPATCHER = new BooleanQueryDispatcher(false);
-
 	/** 常にtrueを返す {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} */
 	public static final QueryDispatcherBase TRUE_DISPATCHER = new BooleanQueryDispatcher(true);
 	/**
@@ -168,5 +167,9 @@ public abstract class FilterConstants implements QueryDispatcherBase {
 	public boolean filter(Status status) {
 		lastFilteringObject = status;
 		return false;
+	}
+
+	@Override
+	public void init() {
 	}
 }

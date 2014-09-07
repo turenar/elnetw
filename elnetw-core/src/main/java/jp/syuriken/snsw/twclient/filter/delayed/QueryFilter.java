@@ -19,14 +19,18 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter;
+package jp.syuriken.snsw.twclient.filter.delayed;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
+import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.NullQueryDispatcher;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryController;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,30 +38,49 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 6/23/14
- * Time: 2:45 PM
+ * Query Filter: handles QueryDispatcherBase just as normal filter
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QueryFilter extends AbstractMessageFilter implements PropertyChangeListener {
-
+public class QueryFilter extends DelayedFilter implements PropertyChangeListener, QueryController {
 	private static final Logger logger = LoggerFactory.getLogger(QueryFilter.class);
 	/**
 	 * property name for global filter
 	 */
 	public static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
-	private final ClientConfiguration configuration;
+	protected final ArrayList<QueryDispatcherBase> delayers = new ArrayList<>();
 	private final ClientProperties configProperties;
+	private final String userId;
 	private final String queryPropertyKey;
 	private volatile QueryDispatcherBase query;
 
-	public QueryFilter(String queryPropertyKey) {
+	/**
+	 * make instance
+	 *
+	 * @param userId           target user
+	 * @param queryPropertyKey configProperties' property key
+	 */
+	public QueryFilter(String userId, String queryPropertyKey) {
+		this.userId = userId;
 		this.queryPropertyKey = queryPropertyKey;
-		configuration = ClientConfiguration.getInstance();
-		configProperties = configuration.getConfigProperties();
+		configProperties = ClientConfiguration.getInstance().getConfigProperties();
 		configProperties.addPropertyChangedListener(this);
 		initFilterQueries();
+		stopDelay();
+	}
+
+	@Override
+	public void disableDelay(QueryDispatcherBase delayer) {
+		delayers.remove(delayer);
+		if (delayers.isEmpty()) {
+			stopDelay();
+		}
+	}
+
+	@Override
+	public void enableDelay(QueryDispatcherBase delayer) {
+		delayers.add(delayer);
+		startDelay();
 	}
 
 	@Override
@@ -70,13 +93,18 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 		return false;
 	}
 
+	@Override
+	public String getTargetUserId() {
+		return userId;
+	}
+
 	private void initFilterQueries() {
 		String query = configProperties.getProperty(queryPropertyKey);
 		if (query == null || query.trim().isEmpty()) {
 			this.query = NullQueryDispatcher.getInstance();
 		} else {
 			try {
-				this.query = QueryCompiler.getCompiledObject(query);
+				this.query = QueryCompiler.getCompiledObject(query, this);
 			} catch (IllegalSyntaxException e) {
 				logger.warn("#initFilterQueries()", e);
 				this.query = NullQueryDispatcher.getInstance();
@@ -85,11 +113,26 @@ public class QueryFilter extends AbstractMessageFilter implements PropertyChange
 	}
 
 	@Override
+	public void onClientMessage(String name, Object arg) {
+		switch (name) { // CS-IGNORE
+			case INIT_UI:
+				query.init();
+				break;
+		}
+		super.onClientMessage(name, arg);
+	}
+
+	@Override
 	public void onDirectMessage(DirectMessage message) {
-		if (!query.filter(message)) {
-			child.onDirectMessage(message);
+		if (isStarted) {
+			if (!query.filter(message)) {
+				child.onDirectMessage(message);
+			}
+		} else {
+			filteringQueue.add(new DelayedOnDirectMessage(this, message));
 		}
 	}
+
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {

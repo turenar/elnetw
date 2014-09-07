@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.channel;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +28,8 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.ClientProperties;
 import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import twitter4j.Paging;
 import twitter4j.ResponseList;

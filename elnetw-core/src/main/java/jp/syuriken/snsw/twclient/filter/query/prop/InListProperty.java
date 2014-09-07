@@ -46,7 +46,6 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class InListProperty implements QueryProperty {
-
 	/** {@link UserFollewedByListFetcher} のスケジューラ */
 	public class ListFetcherScheduler extends TimerTask {
 
@@ -155,7 +154,6 @@ public class InListProperty implements QueryProperty {
 	}
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(InListProperty.class);
-
 	/** 設定 */
 	protected ClientConfiguration configuration;
 	private boolean isEqual;
@@ -165,7 +163,6 @@ public class InListProperty implements QueryProperty {
 	protected long[] userIdsFollowedByList;
 	/** リストフェッチャ */
 	protected UserFollewedByListFetcher listFetcher;
-
 
 	/**
 	 * インスタンスを生成する。
@@ -205,5 +202,9 @@ public class InListProperty implements QueryProperty {
 	@Override
 	public boolean filter(Status status) {
 		return isEqual == (Arrays.binarySearch(userIdsFollowedByList, status.getUser().getId()) >= 0);
+	}
+
+	@Override
+	public void init() {
 	}
 }

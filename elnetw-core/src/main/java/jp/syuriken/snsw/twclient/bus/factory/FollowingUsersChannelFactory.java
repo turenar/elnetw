@@ -19,38 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.factory;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
+import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.channel.FollowingUsersChannel;
 
 /**
- * virtual channel: publish specified channel
- *
- * <p>establish messageには対応していない</p>
+ * factory for FollowingUsersChannel
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class VirtualChannel implements MessageChannel {
-	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
-		ClientMessageListener listener = messageBus.getListeners(accountId, to);
-		for (String s : from) {
-			messageBus.establish(accountId, s, listener);
-		}
-	}
-
+public class FollowingUsersChannelFactory implements MessageChannelFactory {
 	@Override
-	public synchronized void connect() {
-	}
-
-	@Override
-	public synchronized void disconnect() {
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+		return new FollowingUsersChannel(messageBus, accountId, path);
 	}
 }

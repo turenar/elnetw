@@ -33,7 +33,8 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserPagableResponseListImpl extends ArrayList<User> implements PagableResponseList<User> {
-	private long nextCursor = -1L;
+	private static final long serialVersionUID = 8644155493656857128L;
+	protected long nextCursor = -1L;
 
 	@Override
 	public int getAccessLevel() {

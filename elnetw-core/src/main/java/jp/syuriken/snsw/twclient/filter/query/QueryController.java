@@ -19,32 +19,40 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
-
-import jp.syuriken.snsw.twclient.ClientMessageListener;
+package jp.syuriken.snsw.twclient.filter.query;
 
 /**
- * null message channel
+ * Query Controller: control delayer, get target user
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class NullMessageChannel implements MessageChannel {
-	public static final MessageChannel INSTANCE = new NullMessageChannel();
+public interface QueryController {
+	/**
+	 * stop delaying. new status is to be coming
+	 *
+	 * @param delayer delay target
+	 */
+	void disableDelay(QueryDispatcherBase delayer);
 
-	private NullMessageChannel() {
-	}
+	/**
+	 * start delaying. new status is not to be coming
+	 *
+	 * @param delayer delay target
+	 */
+	void enableDelay(QueryDispatcherBase delayer);
 
-	@Override
-	public void connect() {
-	}
+	/**
+	 * get target user id.
+	 *
+	 * @return target user id
+	 */
+	String getTargetUserId();
 
-	@Override
-	public void disconnect() {
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
-	}
+	/**
+	 * publish client message
+	 *
+	 * @param name message name
+	 * @param arg  argument
+	 */
+	void onClientMessage(String name, Object arg);
 }

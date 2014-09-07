@@ -22,6 +22,7 @@
 package jp.syuriken.snsw.twclient.filter.query.prop;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
+import jp.syuriken.snsw.twclient.filter.query.QueryController;
 import jp.syuriken.snsw.twclient.filter.query.QueryProperty;
 import jp.syuriken.snsw.twclient.filter.query.QueryPropertyFactory;
 
@@ -37,7 +38,8 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 	}
 
 	@Override
-	public QueryProperty getInstance(String name, String operator, Object value) throws IllegalSyntaxException {
+	public QueryProperty getInstance(QueryController controller, String name,
+			String operator, Object value) throws IllegalSyntaxException {
 		switch (name) {
 			case "userid":
 			case "user_id":
@@ -95,6 +97,10 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 			case "has_url":
 			case "hasurl":
 				return new HasUrlProperty(name, operator, value);
+			case "is_following":
+			case "isfollowing":
+			case "following":
+				return new IsFollowingProperty(controller, name, operator, value);
 			default:
 				throw new IllegalSyntaxException("Not supported factory");
 		}

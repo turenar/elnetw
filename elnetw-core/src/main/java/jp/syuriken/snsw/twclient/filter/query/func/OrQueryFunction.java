@@ -24,7 +24,6 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
-import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
@@ -33,9 +32,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class OrQueryFunction implements QueryFunction {
-
-	private final QueryDispatcherBase[] child;
+public class OrQueryFunction extends AbstractQueryFunction {
 
 	/**
 	 * インスタンスを生成する。

@@ -41,6 +41,7 @@ public class BackgroundImagePanel extends JPanel {
 	 * 背景画像の上に見やすいように塗る色
 	 */
 	public static final Color IMAGE_OVERLAY_COLOR = new Color(0f, 0f, 0f, 0.3f);
+	private static final long serialVersionUID = -3176015401705848989L;
 	// 描画する画像
 	private BufferedImage image;
 

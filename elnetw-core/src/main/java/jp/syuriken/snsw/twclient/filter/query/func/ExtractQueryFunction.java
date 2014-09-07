@@ -23,13 +23,12 @@ package jp.syuriken.snsw.twclient.filter.query.func;
 
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
-import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 
 /** extract: {@link jp.syuriken.snsw.twclient.gui.QueryEditFrame}用 */
-public class ExtractQueryFunction implements QueryFunction {
+public class ExtractQueryFunction extends AbstractQueryFunction {
 	private final QueryDispatcherBase child;
 
 	/**
@@ -60,5 +59,10 @@ public class ExtractQueryFunction implements QueryFunction {
 	public boolean filter(Status status) {
 		QueryDispatcherBase child = this.child;
 		return child == null || !child.filter(status);
+	}
+
+	@Override
+	public void init() {
+		child.init();
 	}
 }

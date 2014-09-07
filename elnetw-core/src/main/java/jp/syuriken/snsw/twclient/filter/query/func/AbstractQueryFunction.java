@@ -19,54 +19,22 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.filter.query.func;
 
-import jp.syuriken.snsw.twclient.ClientMessageListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
+import jp.syuriken.snsw.twclient.filter.query.QueryFunction;
 
 /**
- * ストリームからデータを取得するDataFetcher
+ * Created with IntelliJ IDEA.
+ * Date: 8/28/14
+ * Time: 12:10 AM
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStreamChannel implements MessageChannel {
-	private final String accountId;
-	private final ClientMessageListener listener;
-	private final MessageBus messageBus;
-	private volatile TwitterStream stream;
-
-	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
-		this.messageBus = messageBus;
-		this.accountId = accountId;
-		listener = messageBus.getListeners(accountId, "stream/user");
-	}
+public abstract class AbstractQueryFunction implements QueryFunction {
+	protected QueryDispatcherBase[] child;
 
 	@Override
-	public synchronized void connect() {
-		if (stream == null) {
-			stream = new TwitterStreamFactory(
-					messageBus.getTwitterConfiguration(accountId)).getInstance();
-			stream.addConnectionLifeCycleListener(listener);
-			stream.addListener(listener);
-			stream.user();
-		}
-	}
-
-	@Override
-	public synchronized void disconnect() {
-		if (stream != null) {
-			stream.shutdown();
-			stream = null;
-		}
-	}
-
-	@Override
-	public void establish(ClientMessageListener listener) {
-	}
-
-	@Override
-	public void realConnect() {
-		// #connect() works.
+	public void init() {
 	}
 }

@@ -126,6 +126,11 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 
 		@Override
+		public String getUserId() {
+			return accountId;
+		}
+
+		@Override
 		public void onClientMessage(String name, Object arg) {
 			switch (name) {
 				case REQUEST_FOCUS_TAB_COMPONENT:

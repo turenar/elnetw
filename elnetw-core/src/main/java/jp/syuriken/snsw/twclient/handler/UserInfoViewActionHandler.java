@@ -31,6 +31,7 @@ import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -129,7 +130,7 @@ public class UserInfoViewActionHandler extends StatusActionHandlerBase {
 			}
 		}
 
-		TwitterUser twitterUser = (user instanceof TwitterUser) ? (TwitterUser) user : new TwitterUser(user);
+		TwitterUser twitterUser = (user instanceof TwitterUser) ? (TwitterUser) user : new TwitterUserImpl(user);
 		final UserInfoFrameTab tab = new UserInfoFrameTab(twitterUser);
 		final long userId = user.getId();
 		ClientConfiguration configuration = ClientConfiguration.getInstance();

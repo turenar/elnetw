@@ -21,10 +21,10 @@
 
 package jp.syuriken.snsw.twclient.bus.blocking;
 
-import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.channel.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.internal.NullUser;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 
 /**
  * test channel for BlockingUsersChannelTest
@@ -46,7 +46,7 @@ public class BlockingUsersChannelTestImpl extends BlockingUsersChannel {
 	@Override
 	protected void initActualUser() {
 		NullUser nullUser = new NullUser(1L);
-		actualUser = new TwitterUser(nullUser);
+		actualUser = new TwitterUserImpl(nullUser);
 	}
 
 	@Override

@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.filter.query;
+package jp.syuriken.snsw.twclient.config;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -33,8 +33,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
-import jp.syuriken.snsw.twclient.config.ConfigFrame;
-import jp.syuriken.snsw.twclient.config.ConfigType;
 import jp.syuriken.snsw.twclient.gui.QueryEditFrame;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 
@@ -43,7 +41,7 @@ import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QueryConfigurator implements ConfigType, ActionListener {
+public class QueryEditConfigType implements ConfigType, ActionListener {
 
 	/**
 	 * {@link #displayString}と {@link #propertyKey}を格納するだけのクラス
@@ -81,7 +79,7 @@ public class QueryConfigurator implements ConfigType, ActionListener {
 
 
 	/** インスタンスを生成する。 */
-	public QueryConfigurator() {
+	public QueryEditConfigType() {
 		this.configuration = ClientConfiguration.getInstance();
 	}
 
@@ -123,8 +121,8 @@ public class QueryConfigurator implements ConfigType, ActionListener {
 			int count = configuration.getFrameTabCount();
 			for (int i = 0; i < count; i++) {
 				ClientTab tab = configuration.getFrameTab(i);
-				filterChooser.addItem(new KVItem(tab.getTitle() + " (" + tab.getUniqId() + ")", "core.filter._tabs."
-						+ tab.getUniqId()));
+				filterChooser.addItem(new KVItem(tab.getTitle() + " (" + tab.getUniqId() + ")", "gui.tabs.data."
+						+ tab.getUniqId() + ".filter.query"));
 			}
 		}
 		return filterChooser;

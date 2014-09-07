@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.internal;
+package jp.syuriken.snsw.twclient.notifier;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.TrayIcon;
@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.JobQueue;
-import jp.syuriken.snsw.twclient.MessageNotifier;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 
 /**
@@ -47,7 +46,7 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 
 	private TrayIcon trayIcon;
 
-	private LinkedList<Object[]> queue = new LinkedList<Object[]>();
+	private LinkedList<Object[]> queue = new LinkedList<>();
 
 	private long lastNotified;
 

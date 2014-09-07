@@ -46,6 +46,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -69,6 +70,7 @@ import jp.syuriken.snsw.lib.parser.ParsedArguments;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.factory.BlockingUsersChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.DirectMessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.factory.FollowingUsersChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.MentionsChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.NullMessageChannelFactory;
 import jp.syuriken.snsw.twclient.bus.factory.TimelineChannelFactory;
@@ -80,12 +82,11 @@ import jp.syuriken.snsw.twclient.config.BooleanConfigType;
 import jp.syuriken.snsw.twclient.config.ConfigFrameBuilder;
 import jp.syuriken.snsw.twclient.config.ConsumerTokenConfigType;
 import jp.syuriken.snsw.twclient.config.IntegerConfigType;
+import jp.syuriken.snsw.twclient.config.QueryEditConfigType;
 import jp.syuriken.snsw.twclient.filter.GlobalUserIdFilter;
 import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.filter.QueryFilter;
 import jp.syuriken.snsw.twclient.filter.delayed.BlockingUserFilter;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
-import jp.syuriken.snsw.twclient.filter.query.QueryConfigurator;
 import jp.syuriken.snsw.twclient.filter.query.func.StandardFunctionFactory;
 import jp.syuriken.snsw.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.syuriken.snsw.twclient.gui.render.simple.RenderObjectHandler;
@@ -129,14 +130,14 @@ import jp.syuriken.snsw.twclient.internal.AsyncAppender;
 import jp.syuriken.snsw.twclient.internal.DeadlockMonitor;
 import jp.syuriken.snsw.twclient.internal.LoggingConfigurator;
 import jp.syuriken.snsw.twclient.internal.MenuConfiguratorActionHandler;
-import jp.syuriken.snsw.twclient.internal.NotifySendMessageNotifier;
 import jp.syuriken.snsw.twclient.internal.ShutdownHook;
-import jp.syuriken.snsw.twclient.internal.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.jni.LibnotifyMessageNotifier;
 import jp.syuriken.snsw.twclient.media.NullMediaResolver;
 import jp.syuriken.snsw.twclient.media.RegexpMediaResolver;
 import jp.syuriken.snsw.twclient.media.UrlResolverManager;
 import jp.syuriken.snsw.twclient.media.XpathMediaResolver;
+import jp.syuriken.snsw.twclient.notifier.NotifySendMessageNotifier;
+import jp.syuriken.snsw.twclient.notifier.TrayIconMessageNotifier;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -319,7 +320,7 @@ public final class TwitterClientMain {
 				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
 						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
 						new BooleanConfigType())
-				.addConfig("<ignore>", "フィルタの編集", "", new QueryConfigurator());
+				.addConfig("<ignore>", "フィルタの編集", "", new QueryEditConfigType());
 	}
 
 	/**
@@ -544,6 +545,9 @@ public final class TwitterClientMain {
 		QueryCompiler.putFilterProperty("hashashtag", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("has_url", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("hasurl", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("is_following", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("isfollowing", StandardPropertyFactory.SINGLETON);
+		QueryCompiler.putFilterProperty("following", StandardPropertyFactory.SINGLETON);
 	}
 
 	/**
@@ -650,6 +654,7 @@ public final class TwitterClientMain {
 
 	/**
 	 * restore tabs
+	 *
 	 * @param condition init condition
 	 */
 	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
@@ -687,7 +692,7 @@ public final class TwitterClientMain {
 			for (ClientTab tab : configuration.getFrameTabs()) {
 				String tabId = tab.getTabId();
 				String uniqId = tab.getUniqId();
-				tabsList.add(tabId + ':' + uniqId + ' ');
+				tabsList.add(tabId + ':' + uniqId);
 				tab.serialize();
 			}
 		}
@@ -867,7 +872,6 @@ public final class TwitterClientMain {
 	@Initializer(name = "filter/global", dependencies = {"config", "bus/factory"}, phase = "init")
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
-		configuration.addFilter(new QueryFilter(QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 		configuration.addFilter(new BlockingUserFilter(true));
 	}
 
@@ -926,6 +930,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());
 		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
+		messageBus.addChannelFactory("users/following", new FollowingUsersChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
@@ -966,14 +971,14 @@ public final class TwitterClientMain {
 			ScheduledExecutorService timer = configuration.getTimer();
 			timer.shutdown();
 			if (!condition.isFastUninit()) {
-			try {
-				if (!timer.awaitTermination(5, TimeUnit.SECONDS)) {
-					logger.error("Failed shutdown timer: timeout");
+				try {
+					if (!timer.awaitTermination(5, TimeUnit.SECONDS)) {
+						logger.error("Failed shutdown timer: timeout");
+						timer.shutdownNow();
+					}
+				} catch (InterruptedException e) {
 					timer.shutdownNow();
 				}
-			} catch (InterruptedException e) {
-				timer.shutdownNow();
-			}
 			}
 		}
 	}
@@ -1186,12 +1191,27 @@ public final class TwitterClientMain {
 					configProperties.setProperty("cfg.version", "3");
 				case 3: // fall-through
 					logger.info("Updating config to v4");
-				{
 					convertOldPropArrayToList(PROPERTY_ACCOUNT_LIST);
 					convertOldPropArrayToList("gui.tabs.list");
 					configProperties.setProperty("cfg.version", "4");
+				case 4: // fall-through
+					logger.info("Updating config to v5");
+				{
+					ArrayList<String> toConvertKeys = new ArrayList<>();
+					for (String key : configProperties.keySet()) {
+						if (key.startsWith("core.filter._tabs")) {
+							toConvertKeys.add(key);
+						}
+					}
+					for (String key : toConvertKeys) {
+						String query = configProperties.getProperty(key);
+						String uniqId = key.substring("core.filter._tabs.".length());
+						configProperties.setProperty("gui.tabs.data." + uniqId + ".filter.query", query);
+						configProperties.remove(key);
+					}
 				}
-				case 4:
+				configProperties.setProperty("cfg.version", "5");
+				case 5:
 					// latest
 					break;
 				default:

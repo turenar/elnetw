@@ -21,13 +21,13 @@
 
 package jp.syuriken.snsw.twclient.bus.factory;
 
-import jp.syuriken.snsw.twclient.bus.MentionsChannel;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
 import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
+import jp.syuriken.snsw.twclient.bus.channel.MentionsChannel;
 
 /**
- * {@link jp.syuriken.snsw.twclient.bus.MentionsChannel}のためのファクトリークラス
+ * {@link jp.syuriken.snsw.twclient.bus.channel.MentionsChannel}のためのファクトリークラス
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

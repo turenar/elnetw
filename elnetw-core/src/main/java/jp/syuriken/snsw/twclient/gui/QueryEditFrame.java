@@ -37,6 +37,8 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
 import jp.syuriken.snsw.twclient.filter.query.FilterQueryFormatter;
 import jp.syuriken.snsw.twclient.filter.query.FilterQueryNormalizer;
 import jp.syuriken.snsw.twclient.filter.query.QueryCompiler;
+import jp.syuriken.snsw.twclient.filter.query.QueryController;
+import jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase;
 import jp.syuriken.snsw.twclient.filter.tokenizer.ParseException;
 import jp.syuriken.snsw.twclient.filter.tokenizer.QueryTokenStart;
 
@@ -52,8 +54,30 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  */
 @SuppressWarnings("serial")
 public class QueryEditFrame extends JFrame implements WindowListener {
+	private class NullQueryController implements QueryController {
+		@Override
+		public void disableDelay(QueryDispatcherBase delayer) {
+			// do nothing
+		}
+
+		@Override
+		public void enableDelay(QueryDispatcherBase delayer) {
+			// do nothing
+		}
+
+		@Override
+		public String getTargetUserId() {
+			return configuration.getAccountIdForRead();
+		}
+
+		@Override
+		public void onClientMessage(String name, Object arg) {
+			// do nothing
+		}
+	}
 
 	public static final int DEFAULT_FRAME_SIZE = 400;
+	private final ClientConfiguration configuration;
 
 	private String propertyKey;
 	private ClientProperties properties;
@@ -70,7 +94,8 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 	public QueryEditFrame(String displayString, String propertyKey) {
 		this.propertyKey = propertyKey;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		properties = ClientConfiguration.getInstance().getConfigProperties();
+		configuration = ClientConfiguration.getInstance();
+		properties = configuration.getConfigProperties();
 		initComponents(displayString);
 	}
 
@@ -173,7 +198,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 				}
 				query = stringBuilder.toString();
 				// test compilable? (for regex test)
-				QueryCompiler.getCompiledObject(query);
+				QueryCompiler.getCompiledObject(query, new NullQueryController());
 			}
 			properties.setProperty(propertyKey, query);
 			dispose();

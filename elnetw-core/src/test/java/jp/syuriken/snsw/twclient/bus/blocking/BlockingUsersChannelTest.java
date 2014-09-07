@@ -28,7 +28,7 @@ import jp.syuriken.snsw.twclient.bus.TestMessageBus;
 import jp.syuriken.snsw.twclient.filter.FilterConstants;
 import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
-import jp.syuriken.snsw.twclient.twitter.TwitterUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import twitter4j.User;
@@ -44,7 +44,7 @@ public class BlockingUsersChannelTest {
 	}
 
 	private User getUser(long userId) {
-		return new TwitterUser(new NullUser(userId));
+		return new TwitterUserImpl(new NullUser(userId));
 	}
 
 	@Test

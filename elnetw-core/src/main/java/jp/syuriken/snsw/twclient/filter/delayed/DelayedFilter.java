@@ -224,21 +224,21 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 	}
 
 	/**
+	 * start message delaying
+	 */
+	protected synchronized void startDelay() {
+		logger.info("start message delaying");
+		isStarted = false;
+	}
+
+	/**
 	 * stop message delaying
 	 */
-	protected synchronized void start() {
+	protected synchronized void stopDelay() {
 		logger.info("stop message delaying");
 		isStarted = true;
 		while (!filteringQueue.isEmpty()) {
 			filteringQueue.poll().run();
 		}
-	}
-
-	/**
-	 * start message delaying
-	 */
-	protected synchronized void stop() {
-		logger.info("start message delaying");
-		isStarted = false;
 	}
 }

@@ -16,44 +16,140 @@
 
 package jp.syuriken.snsw.lib.primitive;
 
-import java.util.Iterator;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class BukkitLongHashSet {
-    private final static int INITIAL_SIZE = 3;
-    private final static double LOAD_FACTOR = 0.75;
+	private class Itr implements Iterator<Long> {
+		private int index;
+		private int lastReturned = -1;
+		private int expectedModCount;
 
+		public Itr() {
+			for (index = 0; index < values.length && (values[index] == FREE || values[index] == REMOVED); index++) {
+				// This is just to drive the index forward to the first valid entry
+			}
+			expectedModCount = modCount;
+		}
+
+		public boolean hasNext() {
+			return index != values.length;
+		}
+
+		public Long next() {
+			if (modCount != expectedModCount) {
+				throw new ConcurrentModificationException();
+			}
+
+			int length = values.length;
+			if (index >= length) {
+				lastReturned = -2;
+				throw new NoSuchElementException();
+			}
+
+			lastReturned = index;
+			for (index += 1; index < length && (values[index] == FREE || values[index] == REMOVED); index++) {
+				// This is just to drive the index forward to the next valid entry
+			}
+
+			if (values[lastReturned] == FREE) {
+				return FREE;
+			} else {
+				return values[lastReturned];
+			}
+		}
+
+		public void remove() {
+			if (modCount != expectedModCount) {
+				throw new ConcurrentModificationException();
+			}
+
+			if (lastReturned == -1 || lastReturned == -2) {
+				throw new IllegalStateException();
+			}
+
+			if (values[lastReturned] != FREE && values[lastReturned] != REMOVED) {
+				values[lastReturned] = REMOVED;
+				elements--;
+				modCount++;
+				expectedModCount = modCount;
+			}
+		}
+	}
+
+	private final static int INITIAL_SIZE = 3;
+    private final static double LOAD_FACTOR = 0.75;
     private final static long FREE = 0;
     private final static long REMOVED = Long.MIN_VALUE;
-
     private int freeEntries;
     private int elements;
     private long[] values;
     private int modCount;
 
-    public BukkitLongHashSet() {
-        this(INITIAL_SIZE);
-    }
+	public BukkitLongHashSet() {
+		this(INITIAL_SIZE);
+	}
 
-    public BukkitLongHashSet(int size) {
-        values = new long[(size==0 ? 1 : size)];
-        elements = 0;
-        freeEntries = values.length;
-        modCount = 0;
-    }
+	public BukkitLongHashSet(int size) {
+		values = new long[(size == 0 ? 1 : size)];
+		elements = 0;
+		freeEntries = values.length;
+		modCount = 0;
+	}
 
-    public Iterator iterator() {
-        return new Itr();
-    }
+	public boolean add(long value) {
+		int hash = hash(value);
+		int index = (hash & 0x7FFFFFFF) % values.length;
+		int offset = 1;
+		int deletedix = -1;
 
-    public int size() {
-        return elements;
-    }
+		// search for the object (continue while !null and !this object)
+		while (values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
+			// if there's a deleted object here we can put this object here,
+			// provided it's not in here somewhere else already
+			if (values[index] == REMOVED) {
+				deletedix = index;
+			}
 
-    public boolean isEmpty() {
-        return elements == 0;
-    }
+			index = ((index + offset) & 0x7FFFFFFF) % values.length;
+			offset = offset * 2 + 1;
+
+			if (offset == -1) {
+				offset = 2;
+			}
+		}
+
+		if (values[index] == FREE) {
+			if (deletedix != -1) { // reusing a deleted cell
+				index = deletedix;
+			} else {
+				freeEntries--;
+			}
+
+			modCount++;
+			elements++;
+			values[index] = value;
+
+			if (1 - (freeEntries / (double) values.length) > LOAD_FACTOR) {
+				rehash();
+			}
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void clear() {
+		elements = 0;
+		for (int ix = 0; ix < values.length; ix++) {
+			values[ix] = FREE;
+		}
+
+		freeEntries = values.length;
+		modCount++;
+	}
 
     public boolean contains(long value) {
         int hash = hash(value);
@@ -73,83 +169,23 @@ public class BukkitLongHashSet {
         return values[index] != FREE;
     }
 
-    public boolean add(long value) {
-        int hash = hash(value);
-        int index = (hash & 0x7FFFFFFF) % values.length;
-        int offset = 1;
-        int deletedix = -1;
+	// This method copied from Murmur3, written by Austin Appleby released under Public Domain
+	private int hash(long value) {
+		value ^= value >>> 33;
+		value *= 0xff51afd7ed558ccdL;
+		value ^= value >>> 33;
+		value *= 0xc4ceb9fe1a85ec53L;
+		value ^= value >>> 33;
+		return (int) value;
+	}
 
-        // search for the object (continue while !null and !this object)
-        while(values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
-            // if there's a deleted object here we can put this object here,
-            // provided it's not in here somewhere else already
-            if (values[index] == REMOVED) {
-                deletedix = index;
-            }
+    public boolean isEmpty() {
+		return elements == 0;
+	}
 
-            index = ((index + offset) & 0x7FFFFFFF) % values.length;
-            offset = offset * 2 + 1;
-
-            if (offset == -1) {
-                offset = 2;
-            }
-        }
-
-        if (values[index] == FREE) {
-            if (deletedix != -1) { // reusing a deleted cell
-                index = deletedix;
-            } else {
-                freeEntries--;
-            }
-
-            modCount++;
-            elements++;
-            values[index] = value;
-
-            if (1 - (freeEntries / (double) values.length) > LOAD_FACTOR) {
-                rehash();
-            }
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean remove(long value) {
-        int hash = hash(value);
-        int index = (hash & 0x7FFFFFFF) % values.length;
-        int offset = 1;
-
-        // search for the object (continue while !null and !this object)
-        while(values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
-            index = ((index + offset) & 0x7FFFFFFF) % values.length;
-            offset = offset * 2 + 1;
-
-            if (offset == -1) {
-                offset = 2;
-            }
-        }
-
-        if (values[index] != FREE) {
-            values[index] = REMOVED;
-            modCount++;
-            elements--;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public void clear() {
-        elements = 0;
-        for (int ix = 0; ix < values.length; ix++) {
-            values[ix] = FREE;
-        }
-
-        freeEntries = values.length;
-        modCount++;
-    }
+	public Iterator<Long> iterator() {
+		return new Itr();
+	}
 
     public long popFirst() {
         for (long value : values) {
@@ -162,108 +198,70 @@ public class BukkitLongHashSet {
         return 0;
     }
 
-    // This method copied from Murmur3, written by Austin Appleby released under Public Domain
-    private int hash(long value) {
-        value ^= value >>> 33;
-        value *= 0xff51afd7ed558ccdL;
-        value ^= value >>> 33;
-        value *= 0xc4ceb9fe1a85ec53L;
-        value ^= value >>> 33;
-        return (int) value;
-    }
+	private void rehash() {
+		int gargagecells = values.length - (elements + freeEntries);
+		if (gargagecells / (double) values.length > 0.05) {
+			rehash(values.length);
+		} else {
+			rehash(values.length * 2 + 1);
+		}
+	}
 
-    private void rehash() {
-        int gargagecells = values.length - (elements + freeEntries);
-        if (gargagecells / (double) values.length > 0.05) {
-            rehash(values.length);
-        } else {
-            rehash(values.length * 2 + 1);
-        }
-    }
+	private void rehash(int newCapacity) {
+		long[] newValues = new long[newCapacity];
 
-    private void rehash(int newCapacity) {
-        long[] newValues = new long[newCapacity];
+		for (long value : values) {
+			if (value == FREE || value == REMOVED) {
+				continue;
+			}
 
-        for (long value : values) {
-            if (value == FREE || value == REMOVED) {
-                continue;
-            }
+			int hash = hash(value);
+			int index = (hash & 0x7FFFFFFF) % newCapacity;
+			int offset = 1;
 
-            int hash = hash(value);
-            int index = (hash & 0x7FFFFFFF) % newCapacity;
-            int offset = 1;
+			// search for the object
+			while (newValues[index] != FREE) {
+				index = ((index + offset) & 0x7FFFFFFF) % newCapacity;
+				offset = offset * 2 + 1;
 
-            // search for the object
-            while (newValues[index] != FREE) {
-                index = ((index + offset) & 0x7FFFFFFF) % newCapacity;
-                offset = offset * 2 + 1;
+				if (offset == -1) {
+					offset = 2;
+				}
+			}
 
-                if (offset == -1) {
-                    offset = 2;
-                }
-            }
+			newValues[index] = value;
+		}
 
-            newValues[index] = value;
-        }
+		values = newValues;
+		freeEntries = values.length - elements;
+	}
 
-        values = newValues;
-        freeEntries = values.length - elements;
-    }
+	public boolean remove(long value) {
+		int hash = hash(value);
+		int index = (hash & 0x7FFFFFFF) % values.length;
+		int offset = 1;
 
-    private class Itr implements Iterator {
-        private int index;
-        private int lastReturned = -1;
-        private int expectedModCount;
+		// search for the object (continue while !null and !this object)
+		while (values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
+			index = ((index + offset) & 0x7FFFFFFF) % values.length;
+			offset = offset * 2 + 1;
 
-        public Itr() {
-            for (index = 0; index < values.length && (values[index] == FREE || values[index] == REMOVED); index++) {
-                // This is just to drive the index forward to the first valid entry
-            }
-            expectedModCount = modCount;
+			if (offset == -1) {
+				offset = 2;
+			}
         }
 
-        public boolean hasNext() {
-            return index != values.length;
-        }
+		if (values[index] != FREE) {
+			values[index] = REMOVED;
+			modCount++;
+			elements--;
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-        public Long next() {
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-
-            int length = values.length;
-            if (index >= length) {
-                lastReturned = -2;
-                throw new NoSuchElementException();
-            }
-
-            lastReturned = index;
-            for (index += 1; index < length && (values[index] == FREE || values[index] == REMOVED); index++) {
-                // This is just to drive the index forward to the next valid entry
-            }
-
-            if (values[lastReturned] == FREE) {
-                return FREE;
-            } else {
-                return values[lastReturned];
-            }
-        }
-
-        public void remove() {
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-
-            if (lastReturned == -1 || lastReturned == -2) {
-                throw new IllegalStateException();
-            }
-
-            if (values[lastReturned] != FREE && values[lastReturned] != REMOVED) {
-                values[lastReturned] = REMOVED;
-                elements--;
-                modCount++;
-                expectedModCount = modCount;
-            }
-        }
-    }
+	public int size() {
+		return elements;
+	}
 }

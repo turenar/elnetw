@@ -31,7 +31,6 @@ import twitter4j.Status;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class NullQueryDispatcher implements QueryDispatcherBase {
-
 	private static final QueryDispatcherBase instance = new NullQueryDispatcher();
 
 	/**
@@ -54,5 +53,9 @@ public class NullQueryDispatcher implements QueryDispatcherBase {
 	@Override
 	public boolean filter(Status status) {
 		return false;
+	}
+
+	@Override
+	public void init() {
 	}
 }

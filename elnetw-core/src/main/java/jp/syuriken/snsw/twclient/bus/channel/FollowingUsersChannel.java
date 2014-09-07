@@ -19,56 +19,80 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus;
+package jp.syuriken.snsw.twclient.bus.channel;
 
-import java.util.ArrayList;
-
-import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
+import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.MessageChannel;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
-import twitter4j.PagableResponseList;
+import twitter4j.IDs;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.User;
 
 /**
- * ブロック中のユーザーを取得するDataFetcher。establish対応。
+ * following users channel
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
+public class FollowingUsersChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
+	/**
+	 * following users checker
+	 */
+	public static class FollowingUsersQuery {
+		private final FollowingUsersChannel channel;
 
-	private class BlockingUserDispatcher extends ClientMessageAdapter {
-		@Override
-		public void onBlock(User source, User blockedUser) {
-
-			synchronized (blockingUsers) {
-				blockingUsers.add(TwitterUser.getInstance(blockedUser));
-			}
-			listeners.onBlock(source, blockedUser);
+		/**
+		 * make instance
+		 *
+		 * @param channel parent channel
+		 */
+		protected FollowingUsersQuery(FollowingUsersChannel channel) {
+			this.channel = channel;
 		}
 
-		@Override
-		public void onUnblock(User source, User unblockedUser) {
-			synchronized (blockingUsers) {
-				blockingUsers.remove(TwitterUser.getInstance(unblockedUser));
-			}
-			listeners.onUnblock(source, unblockedUser);
+		/**
+		 * get all followings
+		 *
+		 * @return followings
+		 */
+		public long[] getFollowings() {
+			LongHashSet list = channel.followingList;
+			return list.toArray();
+		}
+
+		/**
+		 * check if the user is following userId
+		 *
+		 * @param userId user id
+		 * @return is following?
+		 */
+		public boolean isFollowing(long userId) {
+			return channel.followingList.contains(userId);
 		}
 	}
 
+	private class FollowingUsersDispatcher extends ClientMessageAdapter {
+		@Override
+		public void onFriendList(long[] friendIds) {
+			LongHashSet list = new LongHashSet();
+			for (long friendId : friendIds) {
+				list.add(friendId);
+			}
+			followingList = list;
+		}
+	}
 
 	/**
 	 * client message name when fetching blocking users is over
 	 */
-	public static final String BLOCKING_FETCH_FINISHED_ID
-			= "jp.syuriken.snsw.twclient.bus.BlockingUserChannel BlockingFetchFinished";
-	private final ClientConfiguration configuration;
+	public static final String FOLLOWING_USERS_FETCHED
+			= "jp.syuriken.snsw.twclient.bus.channel.FollowingUsersChannel followingFetched";
 	/**
 	 * dispatch to
 	 */
@@ -90,9 +114,10 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	 */
 	protected volatile TwitterUser actualUser;
 	/**
-	 * blocking users list: operations must be synchronized
+	 * following users list: operations must be synchronized
 	 */
-	protected volatile ArrayList<TwitterUser> blockingUsers = null;
+	protected volatile LongHashSet followingList = null;
+	private FollowingUsersQuery query = new FollowingUsersQuery(this);
 
 	/**
 	 * インスタンスを生成する
@@ -101,30 +126,25 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	 * @param accountId  アカウントID (long)
 	 * @param path       bus path
 	 */
-	public BlockingUsersChannel(MessageBus messageBus, String accountId, String path) {
+	public FollowingUsersChannel(MessageBus messageBus, String accountId, String path) {
 		this.messageBus = messageBus;
 		this.accountId = accountId;
 		listeners = messageBus.getListeners(accountId, path);
 
-		configuration = ClientConfiguration.getInstance();
-		messageBus.establish(accountId, "stream/user", new BlockingUserDispatcher());
+		messageBus.establish(accountId, "stream/user", new FollowingUsersDispatcher());
 	}
 
 	@Override
 	protected void access() throws TwitterException {
 		long cursor = -1;
-		ArrayList<TwitterUser> blockingSet = new ArrayList<>();
-		PagableResponseList<User> blocksIDs;
+		LongHashSet newList = new LongHashSet(followingList == null ? 16 : followingList.size());
 		do {
-			blocksIDs = twitter.getBlocksList(cursor);
-			for (User blockingUser : blocksIDs) {
-				blockingSet.add(TwitterUser.getInstance(blockingUser));
-				listeners.onBlock(actualUser, blockingUser);
-			}
-			cursor = blocksIDs.getNextCursor();
-		} while (blocksIDs.hasNext());
-		blockingUsers = blockingSet;
-		listeners.onClientMessage(BLOCKING_FETCH_FINISHED_ID, null);
+			IDs friendsIDs = twitter.getFriendsIDs(cursor);
+			newList.addAll(friendsIDs.getIDs());
+			cursor = friendsIDs.getNextCursor();
+		} while (cursor != 0);
+		followingList = newList;
+		listeners.onClientMessage(FOLLOWING_USERS_FETCHED, query);
 	}
 
 	@Override
@@ -138,12 +158,10 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 
 	@Override
 	public void establish(ClientMessageListener listener) {
-		if (blockingUsers != null) {
-			synchronized (blockingUsers) {
-				for (User blockingUser : blockingUsers) {
-					listener.onBlock(actualUser, blockingUser);
-				}
-				listener.onClientMessage(BLOCKING_FETCH_FINISHED_ID, null);
+		if (followingList != null) {
+			synchronized (followingList) {
+				query = new FollowingUsersQuery(this);
+				listener.onClientMessage(FOLLOWING_USERS_FETCHED, query);
 			}
 		}
 	}
@@ -153,11 +171,6 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	 */
 	protected void initActualUser() {
 		actualUser = configuration.getCacheManager().getUser(messageBus.getActualUser(accountId));
-	}
-
-	@Override
-	protected void onException(TwitterException ex) {
-		listeners.onException(ex);
 	}
 
 	@Override

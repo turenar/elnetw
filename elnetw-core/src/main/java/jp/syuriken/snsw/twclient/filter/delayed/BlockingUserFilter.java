@@ -29,8 +29,8 @@ import java.beans.PropertyChangeListener;
 import jp.syuriken.snsw.lib.primitive.LongHashSet;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageAdapter;
-import jp.syuriken.snsw.twclient.bus.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.bus.MessageBus;
+import jp.syuriken.snsw.twclient.bus.channel.BlockingUsersChannel;
 import jp.syuriken.snsw.twclient.filter.AbstractMessageFilter;
 import jp.syuriken.snsw.twclient.gui.render.MessageRenderBase;
 import twitter4j.User;
@@ -60,7 +60,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 								}
 							}
 					);
-					start();
+					stopDelay();
 			}
 		}
 
@@ -121,7 +121,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 				if (isEnabled) {
 					showFetchingBlocking();
 				} else {
-					start();
+					stopDelay();
 				}
 				break;
 		}
@@ -134,11 +134,11 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 			isEnabled = configuration.getConfigProperties()
 					.getBoolean(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED);
 			if (isEnabled) {
-				stop();
+				startDelay();
 				showFetchingBlocking();
 				queueBlockingFetcher();
 			} else {
-				start();
+				stopDelay();
 			}
 		}
 	}

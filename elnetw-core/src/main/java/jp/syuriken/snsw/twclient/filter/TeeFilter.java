@@ -22,9 +22,12 @@
 package jp.syuriken.snsw.twclient.filter;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
+import jp.syuriken.snsw.twclient.filter.delayed.QueryFilter;
 import jp.syuriken.snsw.twclient.gui.tab.TabRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static jp.syuriken.snsw.twclient.filter.delayed.QueryFilter.PROPERTY_KEY_FILTER_GLOBAL_QUERY;
 
 /**
  * 入力 → {@link jp.syuriken.snsw.twclient.filter.query.QueryDispatcherBase} → {@link TabRenderer} とするユーティリティークラス。
@@ -57,16 +60,17 @@ public class TeeFilter extends AbstractMessageFilter implements TabRenderer {
 	public TeeFilter(String uniqId, TabRenderer tabRenderer, boolean useGlobalFilter) {
 		configuration = ClientConfiguration.getInstance();
 		renderer = tabRenderer;
-		queryPropertyKey = "core.filter._tabs." + uniqId;
+		queryPropertyKey = getQueryPropertyKey(uniqId);
 
 		if (useGlobalFilter) {
 			try {
 				addChild(configuration.getFilters());
+				addChild(new QueryFilter(tabRenderer.getUserId(), PROPERTY_KEY_FILTER_GLOBAL_QUERY));
 			} catch (CloneNotSupportedException e) {
 				logger.error("failed to filter.clone()", e);
 			}
 		}
-		addChild(new QueryFilter(queryPropertyKey));
+		addChild(new QueryFilter(tabRenderer.getUserId(), queryPropertyKey));
 		addChild(tabRenderer);
 	}
 
@@ -80,6 +84,20 @@ public class TeeFilter extends AbstractMessageFilter implements TabRenderer {
 		return false;
 	}
 
+	/**
+	 * get query property key for tab
+	 *
+	 * @param uniqId unique id
+	 * @return query property key
+	 */
+	public String getQueryPropertyKey(String uniqId) {
+		return "gui.tabs.data." + uniqId + ".filter.query";
+	}
+
+	@Override
+	public String getUserId() {
+		return renderer.getUserId();
+	}
 
 	@Override
 	public void onDisplayRequirement() {

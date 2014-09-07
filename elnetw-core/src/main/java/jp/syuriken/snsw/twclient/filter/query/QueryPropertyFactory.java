@@ -29,5 +29,6 @@ import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface QueryPropertyFactory {
-	QueryProperty getInstance(String name, String operator, Object value) throws IllegalSyntaxException;
+	QueryProperty getInstance(QueryController controller, String name,
+			String operator, Object value) throws IllegalSyntaxException;
 }

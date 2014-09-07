@@ -133,6 +133,12 @@ public class LongHashSet {
 		}
 	}
 
+	public synchronized void addAll(long[] ids) {
+		for (long id : ids) {
+			add(id);
+		}
+	}
+
 	/**
 	 * clear all values
 	 */
@@ -190,7 +196,7 @@ public class LongHashSet {
 	 *
 	 * @return empty?
 	 */
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		return size == 0;
 	}
 
@@ -240,5 +246,19 @@ public class LongHashSet {
 	 */
 	public int size() {
 		return size;
+	}
+
+	public synchronized long[] toArray() {
+		long[] hashedTable = values;
+		long[] array = new long[size];
+		int i = 0;
+		for (long element : hashedTable) {
+			if (element == ZERO) {
+				array[i++] = 0;
+			} else if (element != 0) {
+				array[i++] = element;
+			}
+		}
+		return array;
 	}
 }

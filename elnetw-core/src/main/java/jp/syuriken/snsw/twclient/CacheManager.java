@@ -34,8 +34,10 @@ import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import jp.syuriken.snsw.twclient.storage.DirEntry;
+import jp.syuriken.snsw.twclient.twitter.DelayedUserImpl;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
+import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.ResponseList;
@@ -110,7 +112,7 @@ public class CacheManager {
 		protected void access() throws TwitterException {
 			ResponseList<User> users = twitter.lookupUsers(userIds);
 			for (User user : users) {
-				cacheUser(new TwitterUser(user));
+				cacheUser(new TwitterUserImpl(user), false);
 			}
 			for (long userId : userIds) {
 				if (!isCachedUser(userId)) {
@@ -118,7 +120,11 @@ public class CacheManager {
 					userCacheMap.put(userId, ERROR_USER);
 				}
 			}
+			synchronized (delayingNotifierLock) {
+				delayingNotifierLock.notifyAll();
+			}
 		}
+
 	}
 
 	/** エラー時に格納するUser */
@@ -157,6 +163,7 @@ public class CacheManager {
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 	private final CacheStorage cacheStorage;
+	protected final Object delayingNotifierLock = new Object();
 
 	/**
 	 * インスタンスを生成する。
@@ -209,6 +216,17 @@ public class CacheManager {
 	 * @return キャッシュされていたStatus。キャッシュされていなければ引数をそのまま返す。
 	 */
 	public TwitterUser cacheUser(TwitterUser user) {
+		return cacheUser(user, true);
+	}
+
+	/**
+	 * cache user
+	 *
+	 * @param user         user
+	 * @param shouldNotify should notify delayingNotifierLock's holders
+	 * @return cached user or user argument
+	 */
+	protected TwitterUser cacheUser(TwitterUser user, boolean shouldNotify) {
 		if (user == null) {
 			throw new NullPointerException();
 		}
@@ -217,10 +235,18 @@ public class CacheManager {
 			cachedUser.update(user);
 			return cachedUser;
 		} else {
+			if (shouldNotify) {
+				synchronized (delayingNotifierLock) {
+					delayingNotifierLock.notifyAll();
+				}
+			}
 			return user;
 		}
 	}
 
+	/**
+	 * flush to cache storage
+	 */
 	public void flush() {
 		DirEntry dirEntry = cacheStorage.mkdir("/cache/user", true);
 		for (User user : getUserSet()) {
@@ -259,10 +285,43 @@ public class CacheManager {
 		if (user == null) {
 			String cachePath = getCachePath(userId);
 			if (cacheStorage.exists(cachePath)) {
-				user = cacheUser(new TwitterUser(cacheStorage.getDirEntry(cachePath)));
+				user = cacheUser(new TwitterUserImpl(cacheStorage.getDirEntry(cachePath)));
 			}
 		}
 		return extract(user);
+	}
+
+	/**
+	 * Userを遅延取得する。{@link #queueFetchingUser(long)}との違いは、この関数の呼び出し自体はブロックされないことです。
+	 * ただし、UserインスタンスのuserId以外の取得はブロックされます。
+	 *
+	 * <p>Userに関しては、最大100までキューに入れるため、すぐに取得されるとは限りません。必要があるようなら、
+	 * {@link #runUserFetcher(boolean)}を呼び出して、即フェッチさせてください。</p>
+	 *
+	 * @param userId User ID
+	 * @return すでにキャッシュされているとき、エラーキャッシュの場合null、そうでなければ{@link TwitterUserImpl}インスタンス。
+	 * キャッシュされていないとき{@link jp.syuriken.snsw.twclient.twitter.DelayedUserImpl}
+	 */
+	public TwitterUser getDelayedUser(long userId) {
+		if (userCacheMap.containsKey(userId)) {
+			return getCachedUser(userId);
+		}
+
+		userCacheQueue.offer(userId);
+		int len = userCacheQueueLength.incrementAndGet();
+		if (len > MAX_USERS_PER_LOOKUP_REQUEST) {
+			runUserFetcher(len, true);
+		}
+		return new DelayedUserImpl(userId);
+	}
+
+	/**
+	 * delaying notifier lock: will be notified when new user cached.
+	 *
+	 * @return lock object. you should use this instance with synchronized block statement
+	 */
+	public Object getDelayingNotifierLock() {
+		return delayingNotifierLock;
 	}
 
 	/**
@@ -365,6 +424,9 @@ public class CacheManager {
 	/**
 	 * Userを遅延取得する。
 	 *
+	 * <p>Userに関しては、最大100までキューに入れるため、すぐに取得されるとは限りません。必要があるようなら、
+	 * {@link #runUserFetcher(boolean)}を呼び出して、即フェッチさせてください。</p>
+	 *
 	 * @param userId User ID
 	 */
 	public void queueFetchingUser(long userId) {
@@ -395,6 +457,24 @@ public class CacheManager {
 	 */
 	public void removeCachedUser(long userId) {
 		userCacheMap.remove(userId);
+	}
+
+
+	/**
+	 * UserFetcherを走らせる。
+	 *
+	 * @param intoQueue trueの場合ジョブキューに追加する。falseの場合UserFetcherが完了するまでブロックします。
+	 */
+	public void runUserFetcher(boolean intoQueue) {
+		while (true) {
+			int len = userCacheQueueLength.get();
+			if (len < 0) {
+				break;
+			} else {
+				runUserFetcher(len, intoQueue);
+			}
+
+		}
 	}
 
 	/**

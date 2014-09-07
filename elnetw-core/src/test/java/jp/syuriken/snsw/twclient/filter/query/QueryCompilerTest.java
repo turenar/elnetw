@@ -35,7 +35,7 @@ public class QueryCompilerTest extends FilterConstants {
 		QueryCompiler.putFilterProperty("rt_count", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("retweeted", StandardPropertyFactory.SINGLETON);
 
-		QueryDispatcherBase compiledObject = QueryCompiler.getCompiledObject("and(rt_count<100, retweeted!?)");
+		QueryDispatcherBase compiledObject = QueryCompiler.getCompiledObject("and(rt_count<100, retweeted!?)", null);
 		assertTrue(compiledObject.filter(STATUS_1));
 		assertFalse(compiledObject.filter(STATUS_4));
 		assertTrue(compiledObject.filter(DM_1));
