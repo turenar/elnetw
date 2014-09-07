@@ -33,6 +33,18 @@ import twitter4j.User;
  */
 public abstract class TwitterUser implements User, TwitterExtendedObject {
 
+	/**
+	 * get TwitterUser from specified user.
+	 *
+	 * <ul>
+	 * <li>First, return just user if user instanceof TwitterUser.</li>
+	 * <li>Second, check user is in cache. if user is cached, return that instance updated by user.</li>
+	 * <li>Otherwise, make instance from user.</li>
+	 * </ul>
+	 *
+	 * @param user user
+	 * @return TwitterUser instance
+	 */
 	public static TwitterUser getInstance(User user) {
 		if (user instanceof TwitterUser) {
 			return (TwitterUser) user;
@@ -46,6 +58,8 @@ public abstract class TwitterUser implements User, TwitterExtendedObject {
 			if (cachedUser == null) {
 				cachedUser = twitterUser;
 			}
+		} else {
+			cachedUser.update(user);
 		}
 		return cachedUser;
 	}
@@ -95,6 +109,13 @@ public abstract class TwitterUser implements User, TwitterExtendedObject {
 	 * @return url
 	 */
 	public abstract String getProfileBannerSmallURL();
+
+	/**
+	 * last updated timestamp
+	 *
+	 * @return timestamp
+	 */
+	public abstract long getTimestamp();
 
 	@Override
 	public int hashCode() {

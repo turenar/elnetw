@@ -39,7 +39,7 @@ import static jp.syuriken.snsw.twclient.twitter.URLEntityImpl.getEntitiesFromDir
  */
 public class TwitterUserImpl extends TwitterUser {
 
-	private static final long serialVersionUID = 1893110786616307437L;
+	private static final long serialVersionUID = -1546636227286362016L;
 
 	private final long createdAt;
 	private final long id;
@@ -372,11 +372,7 @@ public class TwitterUserImpl extends TwitterUser {
 		return timeZone;
 	}
 
-	/**
-	 * last updated timestamp
-	 *
-	 * @return timestamp
-	 */
+	@Override
 	public long getTimestamp() {
 		return timestamp;
 	}
@@ -511,7 +507,7 @@ public class TwitterUserImpl extends TwitterUser {
 		if (originalUser.getId() != id) {
 			throw new IllegalArgumentException("illegal user id: " + originalUser.getId());
 		}
-		if (originalUser instanceof TwitterUserImpl && timestamp > ((TwitterUserImpl) originalUser).getTimestamp()) {
+		if (originalUser instanceof TwitterUser && timestamp >= ((TwitterUser) originalUser).getTimestamp()) {
 			return;
 		}
 		timestamp = originalUser instanceof TwitterUserImpl

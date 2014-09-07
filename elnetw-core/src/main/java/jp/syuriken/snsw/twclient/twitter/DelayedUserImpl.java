@@ -296,6 +296,11 @@ public class DelayedUserImpl extends TwitterUser {
 	}
 
 	@Override
+	public long getTimestamp() {
+		return getTarget().getTimestamp();
+	}
+
+	@Override
 	public String getURL() {
 		return getTarget().getURL();
 	}
