@@ -33,7 +33,11 @@ import jp.syuriken.snsw.twclient.gui.tab.TimelineViewTab;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TimelineViewTabFactory implements ClientTabFactory {
+	/**
+	 * priority for adding tab menu
+	 */
 
+	public static final int TAB_PRIORITY = -0x10000000;
 
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
@@ -48,6 +52,11 @@ public class TimelineViewTabFactory implements ClientTabFactory {
 	@Override
 	public JComponent getOtherConfigurationComponent() {
 		return null;
+	}
+
+	@Override
+	public int getPriority() {
+		return TAB_PRIORITY;
 	}
 
 	@Override

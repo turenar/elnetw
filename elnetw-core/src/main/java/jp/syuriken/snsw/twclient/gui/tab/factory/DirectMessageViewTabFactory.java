@@ -33,6 +33,11 @@ import jp.syuriken.snsw.twclient.gui.tab.DirectMessageViewTab;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirectMessageViewTabFactory implements ClientTabFactory {
+	/**
+	 * priority for adding tab menu
+	 */
+	public static final int TAB_PRIORITY = TimelineViewTabFactory.TAB_PRIORITY + 2;
+
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
 		return new DirectMessageViewTab(tabId, uniqId);
@@ -46,6 +51,11 @@ public class DirectMessageViewTabFactory implements ClientTabFactory {
 	@Override
 	public JComponent getOtherConfigurationComponent() {
 		return null;
+	}
+
+	@Override
+	public int getPriority() {
+		return TAB_PRIORITY;
 	}
 
 	@Override

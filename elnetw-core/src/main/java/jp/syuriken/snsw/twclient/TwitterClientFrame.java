@@ -39,9 +39,11 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -103,6 +105,14 @@ import twitter4j.User;
 		@Override
 		public ViewFactory getViewFactory() {
 			return viewFactory;
+		}
+	}
+
+	private static class TabFactoryEntryComparator implements Comparator<Map.Entry<String, ClientTabFactory>> {
+
+		@Override
+		public int compare(Map.Entry<String, ClientTabFactory> o1, Map.Entry<String, ClientTabFactory> o2) {
+			return o1.getValue().getPriority() - o2.getValue().getPriority();
 		}
 	}
 
@@ -659,7 +669,10 @@ import twitter4j.User;
 
 	private JMenu getMenuAddTab() {
 		JMenu tabMenu = new JMenu("タブ");
-		for (Map.Entry<String, ClientTabFactory> factoryEntry : ClientConfiguration.getClientTabFactories().entrySet()) {
+		TreeSet<Map.Entry<String, ClientTabFactory>> entries = new TreeSet<>(new TabFactoryEntryComparator());
+		entries.addAll(ClientConfiguration.getClientTabFactories().entrySet());
+
+		for (Map.Entry<String, ClientTabFactory> factoryEntry : entries) {
 			String tabId = factoryEntry.getKey();
 			ClientTabFactory factory = factoryEntry.getValue();
 			JMenuItem factoryItem = new JMenuItem(factory.getName());

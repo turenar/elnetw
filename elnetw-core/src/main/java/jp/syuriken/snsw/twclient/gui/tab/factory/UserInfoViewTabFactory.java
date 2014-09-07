@@ -39,6 +39,7 @@ import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class UserInfoViewTabFactory implements ClientTabFactory {
+
 	protected static class UserInfoConfigPanel extends JPanel {
 
 		private JLabel userLabel;
@@ -89,6 +90,10 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 									.addComponent(getComponentUserTextField()))));
 		}
 	}
+	/**
+	 * priority for adding tab menu
+	 */
+	public static final int TAB_PRIORITY = TimelineViewTabFactory.TAB_PRIORITY + 10;
 
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
@@ -103,6 +108,11 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 	@Override
 	public JComponent getOtherConfigurationComponent() {
 		return new UserInfoConfigPanel();
+	}
+
+	@Override
+	public int getPriority() {
+		return TAB_PRIORITY;
 	}
 
 	@Override
