@@ -672,12 +672,18 @@ import twitter4j.User;
 		TreeSet<Map.Entry<String, ClientTabFactory>> entries = new TreeSet<>(new TabFactoryEntryComparator());
 		entries.addAll(ClientConfiguration.getClientTabFactories().entrySet());
 
+		int lastPriority = Integer.MIN_VALUE;
 		for (Map.Entry<String, ClientTabFactory> factoryEntry : entries) {
 			String tabId = factoryEntry.getKey();
 			ClientTabFactory factory = factoryEntry.getValue();
+			if (lastPriority != Integer.MIN_VALUE
+					&& (lastPriority & PRIO_BITMASK) != (factory.getPriority() & PRIO_BITMASK)) {
+				tabMenu.addSeparator();
+			}
 			JMenuItem factoryItem = new JMenuItem(factory.getName());
 			factoryItem.addActionListener(new IntentActionListener("tab_add").putExtra("tabId", tabId));
 			tabMenu.add(factoryItem);
+			lastPriority = factory.getPriority();
 		}
 		return tabMenu;
 	}

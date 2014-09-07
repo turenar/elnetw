@@ -93,7 +93,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 	/**
 	 * priority for adding tab menu
 	 */
-	public static final int TAB_PRIORITY = TimelineViewTabFactory.TAB_PRIORITY + 10;
+	public static final int TAB_PRIORITY = -0x0ffff000;
 
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
