@@ -23,7 +23,6 @@ package jp.syuriken.snsw.twclient.gui.tab;
 
 import javax.swing.Icon;
 
-import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import twitter4j.DirectMessage;
 
@@ -48,8 +47,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 			// do nothing
 		}
 	};
-	private boolean focusGained;
-	private boolean isDirty;
 
 
 	/**
@@ -74,36 +71,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
 
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		super.addStatus(renderObject);
-		if (!(focusGained || isDirty)) {
-			isDirty = true;
-			runInDispatcherThread(new Runnable() {
-				@Override
-				public void run() {
-					configuration.refreshTab(DirectMessageViewTab.this);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void focusGained() {
-		focusGained = true;
-		isDirty = false;
-		runInDispatcherThread(new Runnable() {
-			@Override
-			public void run() {
-				configuration.refreshTab(DirectMessageViewTab.this);
-			}
-		});
-	}
-
-	@Override
-	public void focusLost() {
-		focusGained = false;
-	}
 
 	@Override
 	public DelegateRenderer getDelegateRenderer() {
@@ -121,8 +88,8 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	}
 
 	@Override
-	public String getTitle() {
-		return isDirty ? "DM*" : "DM";
+	protected String getTitle() {
+		return "DM";
 	}
 
 	@Override

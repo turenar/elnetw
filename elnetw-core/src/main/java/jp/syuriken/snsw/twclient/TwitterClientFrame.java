@@ -513,7 +513,8 @@ import twitter4j.User;
 	}
 
 	protected void addTab(ClientTab tab) {
-		getViewTab().add(tab.getTitle(), tab.getTabComponent());
+		getViewTab().addTab(null, tab.getIcon(), tab.getTabComponent());
+		getViewTab().setTabComponentAt(getViewTab().getTabCount() - 1, tab.getTitleComponent());
 		tab.initTimeline();
 	}
 
@@ -1085,7 +1086,7 @@ import twitter4j.User;
 	/*package*/void refreshTab(int indexOf, ClientTab tab) {
 		JTabbedPane tabbedPane = getViewTab();
 		tabbedPane.setIconAt(indexOf, tab.getIcon());
-		tabbedPane.setTitleAt(indexOf, tab.getTitle());
+		tabbedPane.setTabComponentAt(indexOf, tab.getTitleComponent());
 		tabbedPane.setToolTipTextAt(indexOf, tab.getToolTip());
 	}
 

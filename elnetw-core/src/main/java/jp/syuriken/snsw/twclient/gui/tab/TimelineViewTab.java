@@ -21,11 +21,8 @@
 
 package jp.syuriken.snsw.twclient.gui.tab;
 
-import java.awt.EventQueue;
-
 import javax.swing.Icon;
 
-import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,8 +85,6 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 			actualRenderer.onUnfavorite(source, target, unfavoritedStatus);
 		}
 	};
-	private volatile boolean focusGained;
-	private volatile boolean isDirty;
 
 	/**
 	 * インスタンスを生成する。
@@ -113,37 +108,6 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
-
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		super.addStatus(renderObject);
-		if (!(focusGained || isDirty)) {
-			isDirty = true;
-			EventQueue.invokeLater(new Runnable() {
-				public void run() {
-					configuration.refreshTab(TimelineViewTab.this);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void focusGained() {
-		super.focusGained();
-		focusGained = true;
-		isDirty = false;
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				configuration.refreshTab(TimelineViewTab.this);
-			}
-		});
-	}
-
-	@Override
-	public void focusLost() {
-		focusGained = false;
-	}
-
 	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
@@ -161,7 +125,7 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 
 	@Override
 	public String getTitle() {
-		return isDirty ? "Timeline*" : "Timeline";
+		return "Timeline";
 	}
 
 	@Override

@@ -68,7 +68,6 @@ import jp.syuriken.snsw.twclient.cache.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.gui.BackgroundImagePanel;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
-import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -137,8 +136,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	private JLabel componentUserURL;
 	private BackgroundImagePanel componentUserInfoPanel;
 	private JPanel tabComponent;
-	private boolean focusGained;
-	private boolean isDirty;
 	/*package*/ JCheckBoxMenuItem muteCheckBox;
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
@@ -167,6 +164,9 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	/**
 	 * インスタンスを生成する。
+	 * @param accountId account id
+	 *                  @param targetScreenName target screen name
+	 *                                          @see #UserInfoFrameTab(String, jp.syuriken.snsw.twclient.twitter.TwitterUser)
 	 */
 	public UserInfoFrameTab(final String accountId, final String targetScreenName) {
 		super(accountId);
@@ -188,39 +188,13 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param accountId reader account id
 	 * @param user ユーザー
 	 */
 	public UserInfoFrameTab(String accountId, TwitterUser user) {
 		super(accountId);
 		setUser(user);
 		urlIntentMap = new HashMap<>();
-	}
-
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		super.addStatus(renderObject);
-		if (!(focusGained || isDirty)) {
-			isDirty = true;
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					configuration.refreshTab(UserInfoFrameTab.this);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void focusGained() {
-		super.focusGained();
-		focusGained = true;
-		isDirty = false;
-		configuration.refreshTab(this);
-	}
-
-	@Override
-	public void focusLost() {
-		focusGained = false;
 	}
 
 	private String getBioHtml() {
@@ -585,10 +559,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		} else {
 			stringBuilder.append('@').append(user.getScreenName());
 		}
-
-		if (isDirty) {
-			stringBuilder.append('*');
-		}
 		return stringBuilder.toString();
 	}
 
@@ -698,6 +668,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				} else {
 					showHeaderItem.setEnabled(false);
 				}
+				titleLabel.setText(getTitle());
 			}
 		});
 

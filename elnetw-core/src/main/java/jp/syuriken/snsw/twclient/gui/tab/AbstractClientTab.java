@@ -34,6 +34,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -42,6 +44,7 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -362,6 +365,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	public final Font uiFont;
 	/** UI更新キュー */
 	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
+	protected JLabel titleLabel = createTitleLabel();
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<RenderPanel> inReplyToStack = new Stack<>();
 	/** 現在選択しているポスト */
@@ -408,8 +412,14 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 * 選択しているポストへスクロールするべきかどうか
 	 */
 	protected boolean shouldBeScrollToPost;
+	private volatile boolean focusGained;
+	private volatile boolean isDirty;
 
-	/** インスタンスを生成する。 */
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param accountId account id
+	 */
 	protected AbstractClientTab(String accountId) {
 		this.configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -466,11 +476,48 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 			RenderPanel component = renderObject.getComponent();
 			postListAddQueue.add(component);
 		}
+
+		if (!(focusGained || isDirty)) {
+			isDirty = true;
+			runInDispatcherThread(new Runnable() {
+				@Override
+				public void run() {
+					getTitleComponent().setText(getTitle() + "*");
+				}
+			});
+		}
 	}
 
 	@Override
 	public void close() {
 		configProperties.removePrefixed(getPropertyPrefix());
+	}
+
+	protected JLabel createTitleLabel() {
+		JLabel label = new JLabel(getTitle());
+		label.setComponentPopupMenu(createTitleLabelPopup());
+		label.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
+					configuration.focusFrameTab(AbstractClientTab.this);
+				}
+			}
+		});
+		return label;
+	}
+
+	protected JPopupMenu createTitleLabelPopup() {
+		JPopupMenu popupMenu = new JPopupMenu();
+		JMenuItem closeMenu = new JMenuItem("閉じる");
+		closeMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.removeFrameTab(AbstractClientTab.this);
+			}
+		});
+		popupMenu.add(closeMenu);
+		return popupMenu;
 	}
 
 	/**
@@ -494,9 +541,19 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	@Override
 	public void focusGained() {
-		if (selectingPost != null) {
-			selectingPost.requestFocusInWindow();
-		}
+		focusGained = true;
+		isDirty = false;
+		runInDispatcherThread(new Runnable() {
+			@Override
+			public void run() {
+				getTitleComponent().setText(getTitle());
+			}
+		});
+	}
+
+	@Override
+	public void focusLost() {
+		focusGained = false;
 	}
 
 	/**
@@ -633,6 +690,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	@Override
 	public JComponent getTabComponent() {
 		return getScrollPane();
+	}
+
+	protected abstract String getTitle();
+
+	@Override
+	public JLabel getTitleComponent() {
+		return titleLabel;
 	}
 
 	@Override
