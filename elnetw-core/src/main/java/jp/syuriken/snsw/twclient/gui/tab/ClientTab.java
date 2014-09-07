@@ -76,6 +76,12 @@ public interface ClientTab {
 	String getTabId();
 
 	/**
+	 * タブのタイトルを取得する
+	 * @return タイトル
+	 */
+	String getTitle();
+
+	/**
 	 * タブタイトルとして表示するコンポーネントを取得する
 	 *
 	 * @return タイトルコンポーネント

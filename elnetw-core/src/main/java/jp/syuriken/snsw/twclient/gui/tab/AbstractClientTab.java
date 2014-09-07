@@ -692,7 +692,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		return getScrollPane();
 	}
 
-	protected abstract String getTitle();
+	@Override
+	public abstract String getTitle();
 
 	@Override
 	public JLabel getTitleComponent() {

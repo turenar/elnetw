@@ -101,7 +101,7 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
-	protected String getTitle() {
+	public String getTitle() {
 		return "Mention";
 	}
 

@@ -51,6 +51,7 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 
 	/**
 	 * インスタンスを生成する。
+	 *
 	 * @param accountId account id
 	 */
 	public DirectMessageViewTab(String accountId) {
@@ -88,7 +89,7 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	}
 
 	@Override
-	protected String getTitle() {
+	public String getTitle() {
 		return "DM";
 	}
 

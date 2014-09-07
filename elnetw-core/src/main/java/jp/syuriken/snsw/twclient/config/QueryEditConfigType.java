@@ -121,7 +121,7 @@ public class QueryEditConfigType implements ConfigType, ActionListener {
 			int count = configuration.getFrameTabCount();
 			for (int i = 0; i < count; i++) {
 				ClientTab tab = configuration.getFrameTab(i);
-				filterChooser.addItem(new KVItem(tab.getTitleComponent() + " (" + tab.getUniqId() + ")", "gui.tabs.data."
+				filterChooser.addItem(new KVItem(tab.getTitle() + " (" + tab.getUniqId() + ")", "gui.tabs.data."
 						+ tab.getUniqId() + ".filter.query"));
 			}
 		}
