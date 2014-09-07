@@ -24,6 +24,7 @@ package jp.syuriken.snsw.twclient.handler;
 import jp.syuriken.snsw.twclient.ActionHandler;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.gui.render.RenderObject;
+import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 
 /**
@@ -55,7 +56,7 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 	 * @param arguments arguments
 	 * @return status or null
 	 */
-	protected Status getStatus(IntentArguments arguments) {
+	protected TwitterStatus getStatus(IntentArguments arguments) {
 		RenderObject renderObject = arguments.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA,
 				RenderObject.class);
 		Status status = null;
@@ -69,7 +70,7 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 			}
 		}
 
-		return status;
+		return TwitterStatus.getInstance(status);
 	}
 
 

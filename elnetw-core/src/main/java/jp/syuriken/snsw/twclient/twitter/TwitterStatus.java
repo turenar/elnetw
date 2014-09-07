@@ -51,9 +51,42 @@ import twitter4j.UserMentionEntity;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TwitterStatus implements Status {
-	private static final long serialVersionUID = 1598784104742222367L;
+	private static final long serialVersionUID = 6149133579765335552L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
+
+	/**
+	 * get TwitterStatus from specified status.
+	 *
+	 * <ul>
+	 * <li>First, return just status if status instanceof TwitterStatus.</li>
+	 * <li>Second, check status is in cache. if status is cached, return that instance updated by status.</li>
+	 * <li>Otherwise, make instance from status.</li>
+	 * </ul>
+	 *
+	 * @param status status
+	 * @return TwitterStatus instance
+	 */
+	public static TwitterStatus getInstance(Status status) {
+		if (status instanceof TwitterStatus) {
+			return (TwitterStatus) status;
+		}
+
+		CacheManager cacheManager = configuration.getCacheManager();
+		TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
+		if (cachedStatus == null) {
+			TwitterStatus twitterStatus = new TwitterStatus(status);
+			cachedStatus = cacheManager.cacheStatus(twitterStatus);
+			/* // update user cache
+			cacheManager.cacheUser(twitterStatus.getUser());
+			if (twitterStatus.isRetweet()) {
+				cacheManager.cacheUser(twitterStatus.getRetweetedStatus().getUser());
+			}*/
+		} else {
+			cachedStatus.update(status);
+		}
+		return cachedStatus;
+	}
 
 	private static JSONObject getJsonObject(Status originalStatus)
 			throws AssertionError {
@@ -86,7 +119,7 @@ public class TwitterStatus implements Status {
 	private final long inReplyToUserId;
 	private final boolean isTruncated;
 	private final TwitterStatus retweetedStatus;
-	private final User user;
+	private final TwitterUser user;
 	private/*final*/ GeoLocation geoLocation;
 	private/*final*/ HashtagEntity[] hashtagEntities;
 	private/*final*/ String inReplyToScreenName;
@@ -336,7 +369,7 @@ public class TwitterStatus implements Status {
 	}
 
 	@Override
-	public User getUser() {
+	public TwitterUser getUser() {
 		return user;
 	}
 

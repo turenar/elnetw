@@ -120,6 +120,7 @@ public class ImageCacher {
 
 		/**
 		 * get setter
+		 * @return setter
 		 */
 		public synchronized ImageSetter getSetter() {
 			return setter;
@@ -219,9 +220,12 @@ public class ImageCacher {
 		 * @param entry フェッチエントリ
 		 * @throws InterruptedException コネクション確立中に割り込まれた
 		 */
-		public ImageFetcher(FetchEntry entry) throws InterruptedException {
+		public ImageFetcher(FetchEntry entry) throws InterruptedException, IOException {
 			this.entry = entry;
 			entry.connectionInfo = NetworkSupport.openConnection(entry.url, this);
+			if (entry.connectionInfo == null) {
+				throw new IOException();
+			}
 		}
 
 		@Override
@@ -241,8 +245,10 @@ public class ImageCacher {
 						if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
 							logger.warn("not found: url={}", url);
 						} else {
-							logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode);
+							logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode, e);
 						}
+					} else {
+						logger.warn("Error while fetching: url={}, statusCode={}", url, responseCode, e);
 					}
 				} catch (IOException responseCodeException) {
 					logger.warn("Cannot retrieve http status code", responseCodeException);
@@ -516,7 +522,11 @@ public class ImageCacher {
 			}
 			if (fetchEntry == null) {
 				newEntry.addSetter(imageSetter);
-				configuration.addJob(JobQueue.PRIORITY_UI, new ImageFetcher(newEntry));
+				try {
+					configuration.addJob(JobQueue.PRIORITY_UI, new ImageFetcher(newEntry));
+				} catch (IOException e) {
+					imageSetter.onException(e, null);
+				}
 				return false;
 			} else {
 				synchronized (fetchEntry) {

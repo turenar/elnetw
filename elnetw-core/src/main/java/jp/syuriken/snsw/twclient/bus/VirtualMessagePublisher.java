@@ -28,7 +28,6 @@ import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientMessageListener;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
-import jp.syuriken.snsw.twclient.twitter.TwitterUserImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -85,28 +84,18 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	}
 
 	private Status getStatus(Status status, ClientMessageListener[] listeners) {
-		if (!(listeners.length == 0 || status instanceof TwitterStatus)) {
-			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
-			if (cachedStatus == null) {
-				return cacheManager.cacheStatus(new TwitterStatus(status));
-			} else {
-				return cachedStatus;
-			}
-		} else {
+		if (listeners.length == 0) {
 			return status;
+		} else {
+			return TwitterStatus.getInstance(status);
 		}
 	}
 
 	private User getUser(User user, ClientMessageListener[] listeners) {
-		if (!(listeners.length == 0 || user instanceof TwitterUser)) {
-			TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
-			if (cachedUser == null) {
-				return cacheManager.cacheUser(new TwitterUserImpl(user));
-			} else {
-				return cachedUser;
-			}
-		} else {
+		if (listeners.length == 0) {
 			return user;
+		} else {
+			return TwitterUser.getInstance(user);
 		}
 	}
 
