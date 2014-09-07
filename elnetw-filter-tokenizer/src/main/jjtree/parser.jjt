@@ -10,7 +10,7 @@ options{
 }
 
 PARSER_BEGIN(FilterParser)
-package jp.syuriken.snsw.twclient.filter.tokenizer;
+package jp.mydns.turenar.twclient.filter.tokenizer;
 
 public class FilterParser{
 	public static void main(String[] args) throws ParseException {

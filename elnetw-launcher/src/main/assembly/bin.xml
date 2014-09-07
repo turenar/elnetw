@@ -15,7 +15,7 @@
 				${artifact.artifactId}-${artifact.version}${dashClassifier?}.${artifact.extension}
 			</outputFileNameMapping>
 			<excludes>
-				<exclude>jp.syuriken.snsw:*</exclude>
+				<exclude>jp.mydns.turenar:*</exclude>
 			</excludes>
 		</dependencySet>
 		<dependencySet>
@@ -25,11 +25,11 @@
 				${artifact.artifactId}-${describedVersion}${dashClassifier?}.${artifact.extension}
 			</outputFileNameMapping>
 			<includes>
-				<include>jp.syuriken.snsw:*</include>
+				<include>jp.mydns.turenar:*</include>
 			</includes>
 			<excludes>
-				<exclude>jp.syuriken.snsw:elnetw-launcher</exclude>
-				<exclude>jp.syuriken.snsw:elnetw-common</exclude>
+				<exclude>jp.mydns.turenar:elnetw-launcher</exclude>
+				<exclude>jp.mydns.turenar:elnetw-common</exclude>
 			</excludes>
 		</dependencySet>
 		<dependencySet>
@@ -37,7 +37,7 @@
 			<outputDirectory>bin</outputDirectory>
 			<outputFileNameMapping>launcher.${artifact.extension}</outputFileNameMapping>
 			<includes>
-				<include>jp.syuriken.snsw:elnetw-launcher</include>
+				<include>jp.mydns.turenar:elnetw-launcher</include>
 			</includes>
 		</dependencySet>
 		<dependencySet>
@@ -45,7 +45,7 @@
 			<outputDirectory>bin</outputDirectory>
 			<outputFileNameMapping>library.${artifact.extension}</outputFileNameMapping>
 			<includes>
-				<include>jp.syuriken.snsw:elnetw-common</include>
+				<include>jp.mydns.turenar:elnetw-common</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>

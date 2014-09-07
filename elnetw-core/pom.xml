@@ -30,7 +30,7 @@
 	<url>http://github.com/turenar/elnetw</url>
 	<packaging>jar</packaging>
 	<parent>
-		<groupId>jp.syuriken.snsw</groupId>
+		<groupId>jp.mydns.turenar</groupId>
 		<artifactId>elnetw</artifactId>
 		<version>0.2-SNAPSHOT</version>
 	</parent>
@@ -125,11 +125,11 @@
 		</dependency>
 		<!-- flag: /ignore-packaging -->
 		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
+			<groupId>jp.mydns.turenar</groupId>
 			<artifactId>elnetw-filter-tokenizer</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>jp.syuriken.snsw</groupId>
+			<groupId>jp.mydns.turenar</groupId>
 			<artifactId>elnetw-common</artifactId>
 		</dependency>
 		<dependency>
@@ -181,7 +181,7 @@
 		<directory>target</directory>
 		<extensions>
 			<extension>
-				<groupId>jp.syuriken.snsw</groupId>
+				<groupId>jp.mydns.turenar</groupId>
 				<artifactId>srccheck-rules</artifactId>
 				<version>5</version>
 			</extension>

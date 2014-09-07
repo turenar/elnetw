@@ -24,7 +24,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>jp.syuriken.snsw</groupId>
+	<groupId>jp.mydns.turenar</groupId>
 	<artifactId>elnetw</artifactId>
 	<version>0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -97,17 +97,17 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>jp.syuriken.snsw</groupId>
+				<groupId>jp.mydns.turenar</groupId>
 				<artifactId>elnetw-filter-tokenizer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>jp.syuriken.snsw</groupId>
+				<groupId>jp.mydns.turenar</groupId>
 				<artifactId>elnetw-common</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>jp.syuriken.snsw</groupId>
+				<groupId>jp.mydns.turenar</groupId>
 				<artifactId>elnetw-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>

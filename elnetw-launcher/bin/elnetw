@@ -7,7 +7,7 @@
 #+-----------------------
 
 # consts
-: ${TT_MAIN_CLASS:=jp.syuriken.snsw.launcher.TwitterClientLauncher}
+: ${TT_MAIN_CLASS:=jp.mydns.turenar.launcher.TwitterClientLauncher}
 
 # functions
 

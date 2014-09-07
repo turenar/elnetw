@@ -110,11 +110,11 @@ goto error
 set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% %TURETWCL_JAVA_ARGS%
 
 if "%TURETWCL_VIEW_LOG%"=="1" (
-  echo "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
-  "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
+  echo "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.mydns.turenar.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
+  "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.mydns.turenar.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
   pause
 ) else (
-  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.syuriken.snsw.launcher.TwitterClientLauncher -L %BATCH_PARENT_DIR%\lib %*
+  start "elnetw" "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.mydns.turenar.launcher.TwitterClientLauncher -L %BATCH_PARENT_DIR%\lib %*
 )
 if not errorlevel 0 goto error
 goto end

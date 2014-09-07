@@ -16,7 +16,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="jp.syuriken.snsw">
+	<logger name="jp.mydns.turenar">
 		<level value="TRACE"/>
 	</logger>
 

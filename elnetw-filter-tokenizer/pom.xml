@@ -11,7 +11,7 @@
 
 	<packaging>jar</packaging>
 	<parent>
-		<groupId>jp.syuriken.snsw</groupId>
+		<groupId>jp.mydns.turenar</groupId>
 		<artifactId>elnetw</artifactId>
 		<version>0.2-SNAPSHOT</version>
 	</parent>
