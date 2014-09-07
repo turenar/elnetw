@@ -281,15 +281,18 @@ import twitter4j.User;
 					label.setForeground(Color.BLUE);
 				}
 				if ((flag & UNDERLINE) != 0) {
-					StringBuilder stringBuilder = new StringBuilder(label.getText());
-					if (stringBuilder.indexOf("<html>") == 0) {
-						stringBuilder.insert("<html>".length(), UNDERLINE_TAG);
-						stringBuilder.append(END_TAG);
-					} else {
-						stringBuilder.insert(0, HTML_UNDERLINE_TAG);
-						stringBuilder.append(END_TAG);
+					String text = label.getText();
+					if (text != null) {
+						StringBuilder stringBuilder = new StringBuilder(text);
+						if (stringBuilder.indexOf("<html>") == 0) {
+							stringBuilder.insert("<html>".length(), UNDERLINE_TAG);
+							stringBuilder.append(END_TAG);
+						} else {
+							stringBuilder.insert(0, HTML_UNDERLINE_TAG);
+							stringBuilder.append(END_TAG);
+						}
+						label.setText(stringBuilder.toString());
 					}
-					label.setText(stringBuilder.toString());
 				}
 			}
 		}
