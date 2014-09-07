@@ -33,7 +33,7 @@ import jp.syuriken.snsw.twclient.bus.MessageChannelFactory;
 public class BlockingUsersChannelTestFactory implements MessageChannelFactory {
 
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
 		return new BlockingUsersChannelTestImpl(messageBus, accountId, path);
 	}
 }

@@ -21,12 +21,8 @@
 
 package jp.syuriken.snsw.twclient.gui.tab;
 
-import java.awt.EventQueue;
-
 import javax.swing.Icon;
 
-import jp.syuriken.snsw.twclient.filter.IllegalSyntaxException;
-import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.gui.render.RenderTarget;
 import twitter4j.Status;
 
@@ -62,58 +58,31 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	private static final String TAB_ID = "mention";
 	/** レンダラ */
 	protected DelegateRenderer renderer = new MentionRenderer();
-	private volatile boolean focusGained;
-	private volatile boolean isDirty;
-
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @throws IllegalSyntaxException クエリエラー
+	 * @param accountId accountId
 	 */
-	public MentionViewTab() throws IllegalSyntaxException {
-		super();
+	public MentionViewTab(String accountId) {
+		super(accountId);
 		establishTweetPipe();
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
+	 * @param tabId  ignored
 	 * @param uniqId unique identifier
 	 */
-	public MentionViewTab(String uniqId) {
-		super(uniqId);
+	public MentionViewTab(String tabId, String uniqId) {
+		super(tabId, uniqId);
 		establishTweetPipe();
-	}
-
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		super.addStatus(renderObject);
-		if (!(focusGained || isDirty)) {
-			isDirty = true;
-			EventQueue.invokeLater(new Runnable() {
-				public void run() {
-					configuration.refreshTab(MentionViewTab.this);
-				}
-			});
-		}
 	}
 
 	private void establishTweetPipe() {
 		configuration.getMessageBus().establish(accountId, "statuses/mentions", getRenderer());
 		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
-	}
-
-	@Override
-	public void focusGained() {
-		focusGained = true;
-		isDirty = false;
-		configuration.refreshTab(this);
-	}
-
-	@Override
-	public void focusLost() {
-		focusGained = false;
 	}
 
 	@Override
@@ -133,7 +102,7 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 
 	@Override
 	public String getTitle() {
-		return isDirty ? "Mention*" : "Mention";
+		return "Mention";
 	}
 
 	@Override

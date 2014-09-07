@@ -147,8 +147,8 @@ public class MessageBusTest {
 
 	private static class TestFetcherFactory implements MessageChannelFactory {
 		@Override
-		public TestFetcherAdapter getInstance(MessageBus messageBus, String accountId, String path) {
-			switch (path) {
+		public TestFetcherAdapter getInstance(MessageBus messageBus, String accountId, String path, String arg) {
+			switch (MessageBus.getPathWithoutArg(path)) {
 				case "OnInitializedTest":
 					return new OnInitializedTestFetcher();
 				case "OnCleanUpTest":
@@ -157,6 +157,12 @@ public class MessageBusTest {
 					return new GetListeners();
 				case "OnChangeAccount":
 					return new OnChangeAccountTestFetcher();
+				case "ArgTest":
+					assertEquals("arg", arg);
+					return new GetListeners();
+				case "ArgNullTest":
+					assertNull(arg);
+					return new GetListeners();
 			}
 			throw new AssertionError();
 		}
@@ -191,15 +197,15 @@ public class MessageBusTest {
 		assertEquals(expected, configuration.getName());
 	}
 
+
 	@Test
 	public void testCleanUp() throws Exception {
 		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("OnCleanUpTest", new TestFetcherFactory());
-		messageBus.establish("test", "OnCleanUpTest", new MessageAdapter());
+		assertTrue(messageBus.establish("test", "OnCleanUpTest", new MessageAdapter()));
 		messageBus.cleanUp();
 		assertTrue(OnCleanUpTestFetcher.isDisconnected);
 	}
-
 
 	@Test
 	public void testGetActualUsers() throws Exception {
@@ -233,10 +239,10 @@ public class MessageBusTest {
 		messageBus.addChannelFactory("GetListeners", new TestFetcherFactory());
 
 		MessageAdapter allListener = new GetInternalListenersMessageListener();
-		messageBus.establish(ACCOUNT_ID, "all", allListener);
+		assertTrue(messageBus.establish(ACCOUNT_ID, "all", allListener));
 
 		MessageAdapter singleListener = new GetInternalListenersMessageListener();
-		messageBus.establish(ACCOUNT_ID, "GetListeners", singleListener);
+		assertTrue(messageBus.establish(ACCOUNT_ID, "GetListeners", singleListener));
 
 		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
 		ClientMessageListener recursiveDispatcher = getListeners(messageBus, "GetListeners", true);
@@ -256,10 +262,10 @@ public class MessageBusTest {
 		messageBus.addChannelFactory("GetListeners", new TestFetcherFactory());
 
 		MessageAdapter listenerA = new GetInternalListenersMessageListener();
-		messageBus.establish(ACCOUNT_ID, "GetListeners", listenerA);
+		assertTrue(messageBus.establish(ACCOUNT_ID, "GetListeners", listenerA));
 
 		MessageAdapter listenerB = new GetInternalListenersMessageListener();
-		messageBus.establish(ACCOUNT_ID, "GetListeners", listenerB);
+		assertTrue(messageBus.establish(ACCOUNT_ID, "GetListeners", listenerB));
 
 		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
 
@@ -273,7 +279,7 @@ public class MessageBusTest {
 		MessageBus messageBus = new TestMessageBus();
 
 		MessageAdapter listener = new GetInternalListenersMessageListener();
-		messageBus.establish(ACCOUNT_ID, "GetListeners", listener);
+		assertFalse(messageBus.establish(ACCOUNT_ID, "GetListeners", listener));
 
 		ClientMessageListener singleDispatcher = getListeners(messageBus, "GetListeners", false);
 
@@ -283,22 +289,20 @@ public class MessageBusTest {
 
 	@Test
 	public void testGetPath() throws Exception {
-		MessageBus messageBus = new TestMessageBus();
-		assertEquals("a:b", messageBus.getPath("a", "b"));
+		assertEquals("a:b", MessageBus.getPath("a", "b"));
 	}
 
 	@Test
 	public void testGetRecursivePaths() throws Exception {
-		MessageBus messageBus = new TestMessageBus();
-		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b"),
+		assertArrayItemsEquals(MessageBus.getRecursivePaths("a", "b"),
 				"a:b", "a:all", "$all:all", "$all:b");
-		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c"),
+		assertArrayItemsEquals(MessageBus.getRecursivePaths("a", "b/c"),
 				"a:b/c", "a:b/all", "a:all", "$all:all", "$all:b/c");
-		assertArrayItemsEquals(messageBus.getRecursivePaths("a", "b/c/d"),
+		assertArrayItemsEquals(MessageBus.getRecursivePaths("a", "b/c/d"),
 				"a:b/c/d", "a:b/c/all", "a:b/all", "a:all", "$all:b/c/d", "$all:all");
 
 		TreeSet<String> treeSet = new TreeSet<>();
-		messageBus.getRecursivePaths(treeSet, "a", "b/c/d/e");
+		MessageBus.getRecursivePaths(treeSet, "a", "b/c/d/e");
 		assertArrayItemsEquals(treeSet,
 				"a:b/c/d/e", "a:b/c/d/all", "a:b/c/all", "a:b/all", "a:all",
 				"$all:b/c/d/e", "$all:all");
@@ -342,8 +346,22 @@ public class MessageBusTest {
 	public void testOnInitialized() throws Exception {
 		MessageBus messageBus = new TestMessageBus();
 		messageBus.addChannelFactory("OnInitializedTest", new TestFetcherFactory());
-		messageBus.establish("test", "OnInitializedTest", new MessageAdapter());
+		assertTrue(messageBus.establish("test", "OnInitializedTest", new MessageAdapter()));
 		messageBus.onInitialized();
 		assertTrue(OnInitializedTestFetcher.isRealConnected);
+	}
+
+	@Test
+	public void testPathWithArg() throws Exception {
+		MessageBus messageBus = new TestMessageBus();
+		messageBus.addChannelFactory("ArgTest", new TestFetcherFactory());
+		assertTrue(messageBus.establish("test", "ArgTest?arg", new MessageAdapter()));
+	}
+
+	@Test
+	public void testPathWithoutArg() throws Exception {
+		MessageBus messageBus = new TestMessageBus();
+		messageBus.addChannelFactory("ArgNullTest", new TestFetcherFactory());
+		assertTrue(messageBus.establish("test", "ArgNullTest", new MessageAdapter()));
 	}
 }

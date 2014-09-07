@@ -49,6 +49,10 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	/*public static final*/ int UNDERLINE = 1 << 1;
 	/** ポインタ時にはcursorをHANDに設定する */
 	/*public static final*/ int SET_CURSOR_HAND = 1 << 2;
+	/**
+	 * このビットマスクの結果が違うと、セパレーターが挿入される。
+	 */
+	int PRIO_BITMASK = 0xfffff000;
 
 	/**
 	 * ショートカットキーとアクションコマンドを関連付ける

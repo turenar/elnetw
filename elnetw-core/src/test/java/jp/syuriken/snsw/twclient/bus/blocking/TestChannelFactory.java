@@ -42,7 +42,7 @@ public class TestChannelFactory implements MessageChannelFactory {
 	}
 
 	@Override
-	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path) {
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
 		instance = new TestChanel(messageBus, accountId, path);
 		return instance;
 	}

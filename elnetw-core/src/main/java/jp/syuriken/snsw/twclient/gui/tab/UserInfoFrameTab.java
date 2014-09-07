@@ -62,12 +62,11 @@ import javax.swing.text.html.StyleSheet;
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.JobQueue;
+import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.cache.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.gui.BackgroundImagePanel;
 import jp.syuriken.snsw.twclient.gui.ImageResource;
 import jp.syuriken.snsw.twclient.gui.ImageViewerFrame;
-import jp.syuriken.snsw.twclient.gui.render.RenderObject;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 import jp.syuriken.snsw.twclient.handler.UserInfoViewActionHandler;
 import jp.syuriken.snsw.twclient.internal.HTMLFactoryDelegator;
@@ -75,9 +74,9 @@ import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
@@ -136,8 +135,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	private JLabel componentUserURL;
 	private BackgroundImagePanel componentUserInfoPanel;
 	private JPanel tabComponent;
-	private boolean focusGained;
-	private boolean isDirty;
 	/*package*/ JCheckBoxMenuItem muteCheckBox;
 	private JLabel componentTwitterLogo;
 	private JEditorPane componentBioEditorPane;
@@ -154,23 +151,11 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	public UserInfoFrameTab(String uniqId) {
 		super(uniqId);
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
-
-		configuration.addJob(new TwitterRunnable() {
-			@Override
-			protected void access() throws TwitterException {
-				TwitterUser user = configuration.getCacheManager().getUser(userId);
-				setUser(user);
-			}
-
-			@Override
-			protected void onException(TwitterException ex) {
-				UserInfoFrameTab.this.getRenderer().onException(ex);
-			}
-
+		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + userId, getRenderer());
+		configuration.addJob(new ParallelRunnable() {
 			@Override
 			public void run() {
 				setUser(configuration.getCacheManager().getUser(userId));
-				super.run();
 			}
 		});
 		urlIntentMap = new HashMap<>();
@@ -179,39 +164,39 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param user ユーザー
+	 * @param accountId        account id
+	 * @param targetScreenName target screen name
+	 * @see #UserInfoFrameTab(String, jp.syuriken.snsw.twclient.twitter.TwitterUser)
 	 */
-	public UserInfoFrameTab(TwitterUser user) {
-		super();
-		setUser(user);
+	public UserInfoFrameTab(final String accountId, final String targetScreenName) {
+		super(accountId);
+		configuration.addJob(new TwitterRunnable() {
+			@Override
+			protected void access() throws TwitterException {
+				User userInfo = configuration.getTwitter(configuration.getMessageBus().getActualUserIdString(accountId))
+						.showUser(targetScreenName);
+				TwitterUser user = TwitterUser.getInstance(userInfo);
+				setUser(configuration.getCacheManager().cacheUser(user));
+			}
+
+			@Override
+			protected void onException(TwitterException ex) {
+				UserInfoFrameTab.this.getRenderer().onException(ex);
+			}
+		});
 		urlIntentMap = new HashMap<>();
 	}
 
-	@Override
-	public void addStatus(RenderObject renderObject) {
-		super.addStatus(renderObject);
-		if (!(focusGained || isDirty)) {
-			isDirty = true;
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					configuration.refreshTab(UserInfoFrameTab.this);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void focusGained() {
-		super.focusGained();
-		focusGained = true;
-		isDirty = false;
-		configuration.refreshTab(this);
-	}
-
-	@Override
-	public void focusLost() {
-		focusGained = false;
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param accountId reader account id
+	 * @param user      ユーザー
+	 */
+	public UserInfoFrameTab(String accountId, TwitterUser user) {
+		super(accountId);
+		setUser(user);
+		urlIntentMap = new HashMap<>();
 	}
 
 	private String getBioHtml() {
@@ -576,10 +561,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		} else {
 			stringBuilder.append('@').append(user.getScreenName());
 		}
-
-		if (isDirty) {
-			stringBuilder.append('*');
-		}
 		return stringBuilder.toString();
 	}
 
@@ -603,6 +584,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	/*package*/ void setUser(final TwitterUser user) {
 		this.user = user;
 		configuration.getMessageBus().establish(accountId, "all", getRenderer());
+		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + user.getId(), getRenderer());
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -688,17 +670,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				} else {
 					showHeaderItem.setEnabled(false);
 				}
-			}
-		});
-
-		configuration.addJob(JobQueue.PRIORITY_LOW, new TwitterRunnable() {
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> timeline = getClientConfiguration().getTwitterForRead().getUserTimeline(user.getId());
-				TabRenderer renderer = getRenderer();
-				for (Status status : timeline) {
-					renderer.onStatus(status);
-				}
+				titleLabel.setText(getTitle());
 			}
 		});
 	}

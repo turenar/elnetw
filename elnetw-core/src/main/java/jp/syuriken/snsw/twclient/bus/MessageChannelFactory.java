@@ -33,7 +33,8 @@ public interface MessageChannelFactory {
 	 * @param messageBus スケジューラー
 	 * @param accountId  アカウントID (long)
 	 * @param path       "my/timeline"など
+	 * @param arg        pathに付随した&quot;?&quot;以降の文字列。ない場合はnull
 	 * @return DataFetcherインスタンス。nullを投げるくらいなら例外をくれ
 	 */
-	MessageChannel getInstance(MessageBus messageBus, String accountId, String path);
+	MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg);
 }

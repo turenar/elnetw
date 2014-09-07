@@ -24,6 +24,7 @@ package jp.syuriken.snsw.twclient.gui.tab;
 import java.awt.Component;
 
 import javax.swing.Icon;
+import javax.swing.JComponent;
 
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
 
@@ -75,11 +76,17 @@ public interface ClientTab {
 	String getTabId();
 
 	/**
-	 * タブタイトルを取得する。"Timeline"とか
-	 *
+	 * タブのタイトルを取得する
 	 * @return タイトル
 	 */
 	String getTitle();
+
+	/**
+	 * タブタイトルとして表示するコンポーネントを取得する
+	 *
+	 * @return タイトルコンポーネント
+	 */
+	JComponent getTitleComponent();
 
 	/**
 	 * タブの上にマウスを置いた時のツールチップを設定する。

@@ -234,6 +234,78 @@ public class MessageBus {
 		return ret;
 	}
 
+	/**
+	 * アカウントIDと通知Identifierから通知に使用するパスを生成する。
+	 *
+	 * @param accountId    アカウントID
+	 * @param notifierName 通知Identifier
+	 * @return パス
+	 */
+	public static String getPath(String accountId, String notifierName) {
+		return accountId + ":" + notifierName;
+	}
+
+	/**
+	 * 引数を取得する
+	 *
+	 * @param path パス
+	 * @return 引数。ない場合はnull
+	 */
+	public static String getPathArg(String path) {
+		int indexOf = path.indexOf('?');
+		return indexOf < 0 ? null : path.substring(indexOf + 1);
+	}
+
+	/**
+	 * 引数がない (?以降がカットされた) パスを取得する
+	 *
+	 * @param path パス
+	 * @return 引数がないパス
+	 */
+	public static String getPathWithoutArg(String path) {
+		int indexOf = path.indexOf('?');
+		return indexOf < 0 ? path : path.substring(0, indexOf);
+	}
+
+	/**
+	 * get recursive path from accountId and notifierName
+	 *
+	 * @param accountId    アカウントID
+	 * @param notifierName notifier name
+	 * @return パスの配列 (** / all..)
+	 */
+	public static String[] getRecursivePaths(String accountId, String notifierName) {
+		TreeSet<String> paths = new TreeSet<>();
+		getRecursivePaths(paths, accountId, notifierName);
+		return paths.toArray(new String[paths.size()]);
+	}
+
+	/**
+	 * get recursive path from accountId and notifierName, and add them into paths
+	 *
+	 * @param paths        path collection
+	 * @param accountId    アカウントID
+	 * @param notifierName notifier name
+	 */
+	public static void getRecursivePaths(Collection<String> paths, String accountId, String notifierName) {
+		String[] notifierDirs = notifierName.split("/");
+		StringBuilder builder = new StringBuilder(accountId).append(':');
+		paths.add(getAppended(builder, "all"));
+
+		final int max = notifierDirs.length - 1;
+		for (int i = 0; i < max; i++) {
+			if (i != 0) {
+				builder.append('/');
+			}
+			builder.append(notifierDirs[i]);
+
+			paths.add(getAppended(builder, "/all"));
+		}
+		paths.add(getPath(accountId, notifierName));
+		paths.add(getPath(ALL_ACCOUNT_ID, notifierName));
+		paths.add(getPath(ALL_ACCOUNT_ID, "all"));
+	}
+
 	/*package*/final ClientConfiguration configuration;
 	/** {String=notifierName, MessageChannelFactory=channelFactory} */
 	protected HashMap<String, MessageChannelFactory> channelMap = new HashMap<>();
@@ -285,6 +357,7 @@ public class MessageBus {
 	 */
 	public synchronized boolean establish(String accountId, String notifierName, ClientMessageListener listener) {
 		String path = getPath(accountId, notifierName);
+		String pathArg = getPathArg(notifierName);
 
 		ArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
 		if (messageListeners == null) {
@@ -297,15 +370,15 @@ public class MessageBus {
 		boolean ret = true;
 		// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
 		if (!accountId.equals(ALL_ACCOUNT_ID) && (messageChannel == null)) {
-			MessageChannelFactory factory = channelMap.get(notifierName);
+			MessageChannelFactory factory = channelMap.get(getPathWithoutArg(notifierName));
 			if (factory == null) {
 				if (!notifierName.endsWith("all")) {
 					logger.warn("MessageChannel `{}' is not found.", notifierName);
+					ret = false;
 				}
 				factory = NullMessageChannelFactory.INSTANCE;
-				ret = false;
 			}
-			messageChannel = factory.getInstance(this, accountId, notifierName);
+			messageChannel = factory.getInstance(this, accountId, notifierName, pathArg);
 			pathMap.put(path, messageChannel);
 
 			messageChannel.connect();
@@ -337,7 +410,13 @@ public class MessageBus {
 		return Long.parseLong(getActualUserIdString(accountId));
 	}
 
-	private String getActualUserIdString(String accountId) {
+	/**
+	 * accountIdの実際のユーザーIDを取得する
+	 *
+	 * @param accountId アカウントID (long|$reader|$writer)
+	 * @return Twitter User ID
+	 */
+	public String getActualUserIdString(String accountId) {
 		switch (accountId) {
 			case READER_ACCOUNT_ID:
 				return configuration.getAccountIdForRead();
@@ -410,56 +489,6 @@ public class MessageBus {
 
 	public int getModifiedCount() {
 		return modifiedCount.get();
-	}
-
-	/**
-	 * アカウントIDと通知Identifierから通知に使用するパスを生成する。
-	 *
-	 * @param accountId    アカウントID
-	 * @param notifierName 通知Identifier
-	 * @return パス
-	 */
-	public String getPath(String accountId, String notifierName) {
-		return accountId + ":" + notifierName;
-	}
-
-	/**
-	 * get recursive path from accountId and notifierName
-	 *
-	 * @param accountId    アカウントID
-	 * @param notifierName notifier name
-	 * @return パスの配列 (** / all..)
-	 */
-	public String[] getRecursivePaths(String accountId, String notifierName) {
-		TreeSet<String> paths = new TreeSet<>();
-		getRecursivePaths(paths, accountId, notifierName);
-		return paths.toArray(new String[paths.size()]);
-	}
-
-	/**
-	 * get recursive path from accountId and notifierName, and add them into paths
-	 *
-	 * @param paths        path collection
-	 * @param accountId    アカウントID
-	 * @param notifierName notifier name
-	 */
-	public void getRecursivePaths(Collection<String> paths, String accountId, String notifierName) {
-		String[] notifierDirs = notifierName.split("/");
-		StringBuilder builder = new StringBuilder(accountId).append(':');
-		paths.add(getAppended(builder, "all"));
-
-		final int max = notifierDirs.length - 1;
-		for (int i = 0; i < max; i++) {
-			if (i != 0) {
-				builder.append('/');
-			}
-			builder.append(notifierDirs[i]);
-
-			paths.add(getAppended(builder, "/all"));
-		}
-		paths.add(getPath(accountId, notifierName));
-		paths.add(getPath(ALL_ACCOUNT_ID, notifierName));
-		paths.add(getPath(ALL_ACCOUNT_ID, "all"));
 	}
 
 	/**

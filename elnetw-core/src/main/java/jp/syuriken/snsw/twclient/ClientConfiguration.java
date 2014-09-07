@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -93,6 +94,10 @@ public class ClientConfiguration {
 	public static final String PROPERTY_PAGING_DIRECT_MESSAGES = "twitter.dm.count";
 	/** ダイレクトメッセージ取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_DIRECT_MESSAGES = "twitter.dm.interval";
+	/** ユーザータイムライン取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_USER_TIMELINE = "twitter.userTimeline.count";
+	/** ユーザータイムライン取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_USER_TIMELINE = "twitter.userTimeline.interval";
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
@@ -111,7 +116,16 @@ public class ClientConfiguration {
 	 */
 	public static final String PROPERTY_BLOCKING_USER_MUTE_ENABLED = "core.mute.blocking";
 	private static ClientConfiguration singleton;
-	private static HashMap<String, ClientTabFactory> clientTabConstructorsMap = new HashMap<>();
+	private static HashMap<String, ClientTabFactory> clientTabFactoryMap = new HashMap<>();
+
+	/**
+	 * タブ復元に使用する{@link jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory}のマップを取得する
+	 *
+	 * @return ファクトリのマップ
+	 */
+	public static Map<String, ClientTabFactory> getClientTabFactories() {
+		return clientTabFactoryMap;
+	}
 
 	/**
 	 * タブ復元に使用する{@link jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory}を取得する
@@ -119,8 +133,8 @@ public class ClientConfiguration {
 	 * @param id タブID
 	 * @return ファクトリ。idに関連付けられたファクトリがない場合 <code>null</code>
 	 */
-	public static ClientTabFactory getClientTabConstructor(String id) {
-		return clientTabConstructorsMap.get(id);
+	public static ClientTabFactory getClientTabFactory(String id) {
+		return clientTabFactoryMap.get(id);
 	}
 
 	/**
@@ -142,11 +156,11 @@ public class ClientConfiguration {
 	 * @param factory factory for client tab
 	 * @return 以前 id に関連付けられていたコンストラクタ
 	 */
-	public static ClientTabFactory putClientTabConstructor(String id, ClientTabFactory factory) {
+	public static ClientTabFactory putClientTabFactory(String id, ClientTabFactory factory) {
 		if (factory == null) {
 			throw new NullPointerException();
 		} else {
-			return clientTabConstructorsMap.put(id, factory);
+			return clientTabFactoryMap.put(id, factory);
 		}
 	}
 
@@ -917,15 +931,6 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * デフォルト設定を格納するプロパティを設定する。
-	 *
-	 * @param configDefaultProperties the configDefaultProperties to set
-	 */
-	public synchronized void setConfigDefaultProperties(ClientProperties configDefaultProperties) {
-		this.configDefaultProperties = configDefaultProperties;
-	}
-
-	/**
 	 * 現在のユーザー設定を格納するプロパティを設定する。
 	 *
 	 * @param configProperties the configProperties to set
@@ -965,6 +970,7 @@ public class ClientConfiguration {
 	synchronized void setMessageBus(MessageBus messageBus) {
 		this.messageBus = messageBus;
 	}
+
 
 	/*package*/ void setParsedArguments(ParsedArguments parsedArguments) {
 		this.parsedArguments = parsedArguments;

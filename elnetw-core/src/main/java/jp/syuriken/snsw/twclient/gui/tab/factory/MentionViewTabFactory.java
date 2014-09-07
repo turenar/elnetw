@@ -21,6 +21,8 @@
 
 package jp.syuriken.snsw.twclient.gui.tab.factory;
 
+import javax.swing.JComponent;
+
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.gui.tab.MentionViewTab;
@@ -31,8 +33,34 @@ import jp.syuriken.snsw.twclient.gui.tab.MentionViewTab;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MentionViewTabFactory implements ClientTabFactory {
+
+	/**
+	 * priority for adding tab menu
+	 */
+	public static final int TAB_PRIORITY = TimelineViewTabFactory.TAB_PRIORITY + 1;
+
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {
-		return new MentionViewTab(uniqId);
+		return new MentionViewTab(tabId, uniqId);
+	}
+
+	@Override
+	public String getName() {
+		return "メンション";
+	}
+
+	@Override
+	public JComponent getOtherConfigurationComponent() {
+		return null;
+	}
+
+	@Override
+	public int getPriority() {
+		return TAB_PRIORITY;
+	}
+
+	@Override
+	public ClientTab newTab(String tabId, String accountId, JComponent otherConfigurationComponent) {
+		return new MentionViewTab(accountId);
 	}
 }
