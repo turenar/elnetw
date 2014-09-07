@@ -20,9 +20,7 @@ import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 2014/09/07
- * Time: 0:07
+ * frame that confirm adding client tab
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

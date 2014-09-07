@@ -410,7 +410,13 @@ public class MessageBus {
 		return Long.parseLong(getActualUserIdString(accountId));
 	}
 
-	private String getActualUserIdString(String accountId) {
+	/**
+	 * accountIdの実際のユーザーIDを取得する
+	 *
+	 * @param accountId アカウントID (long|$reader|$writer)
+	 * @return Twitter User ID
+	 */
+	public String getActualUserIdString(String accountId) {
 		switch (accountId) {
 			case READER_ACCOUNT_ID:
 				return configuration.getAccountIdForRead();

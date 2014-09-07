@@ -62,7 +62,6 @@ import javax.swing.text.html.StyleSheet;
 import com.twitter.Regex;
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientProperties;
-import jp.syuriken.snsw.twclient.JobQueue;
 import jp.syuriken.snsw.twclient.ParallelRunnable;
 import jp.syuriken.snsw.twclient.cache.AbstractImageSetter;
 import jp.syuriken.snsw.twclient.gui.BackgroundImagePanel;
@@ -75,9 +74,9 @@ import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
@@ -164,16 +163,19 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	/**
 	 * インスタンスを生成する。
-	 * @param accountId account id
-	 *                  @param targetScreenName target screen name
-	 *                                          @see #UserInfoFrameTab(String, jp.syuriken.snsw.twclient.twitter.TwitterUser)
+	 *
+	 * @param accountId        account id
+	 * @param targetScreenName target screen name
+	 * @see #UserInfoFrameTab(String, jp.syuriken.snsw.twclient.twitter.TwitterUser)
 	 */
 	public UserInfoFrameTab(final String accountId, final String targetScreenName) {
 		super(accountId);
 		configuration.addJob(new TwitterRunnable() {
 			@Override
 			protected void access() throws TwitterException {
-				TwitterUser user = TwitterUser.getInstance(configuration.getTwitter(accountId).showUser(targetScreenName));
+				User userInfo = configuration.getTwitter(configuration.getMessageBus().getActualUserIdString(accountId))
+						.showUser(targetScreenName);
+				TwitterUser user = TwitterUser.getInstance(userInfo);
 				setUser(configuration.getCacheManager().cacheUser(user));
 			}
 
@@ -189,7 +191,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	 * インスタンスを生成する。
 	 *
 	 * @param accountId reader account id
-	 * @param user ユーザー
+	 * @param user      ユーザー
 	 */
 	public UserInfoFrameTab(String accountId, TwitterUser user) {
 		super(accountId);
@@ -669,17 +671,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 					showHeaderItem.setEnabled(false);
 				}
 				titleLabel.setText(getTitle());
-			}
-		});
-
-		configuration.addJob(JobQueue.PRIORITY_LOW, new TwitterRunnable() {
-			@Override
-			protected void access() throws TwitterException {
-				ResponseList<Status> timeline = getClientConfiguration().getTwitterForRead().getUserTimeline(user.getId());
-				TabRenderer renderer = getRenderer();
-				for (Status status : timeline) {
-					renderer.onStatus(status);
-				}
 			}
 		});
 	}
