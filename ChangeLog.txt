@@ -1,6 +1,10 @@
-Version 0.1-rc2
+Version 0.1
 
+	+ DM's name now navigates you to userinfo
+	+ Add shutdown hook for proper termination
+	* Fix wrong app home dir
 	* Fix inf-loop in JobQueue without #shutdown multi invocation
+	* Fix log flusher is not working
 
 Version 0.1-rc1 (Mon Aug 18 19:29:10 JST 2014)
 
