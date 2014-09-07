@@ -40,39 +40,45 @@ import jp.syuriken.snsw.twclient.gui.tab.UserInfoFrameTab;
  */
 public class UserInfoViewTabFactory implements ClientTabFactory {
 
+	/**
+	 * ユーザー情報を設定するためのパネル
+	 */
 	protected static class UserInfoConfigPanel extends JPanel {
 
 		private JLabel userLabel;
 		private JLabel userAtMarkLabel;
 		private JTextField userTextField;
 
+		/**
+		 * インスタンスを生成する
+		 */
 		public UserInfoConfigPanel() {
 			setBorder(new TitledBorder("固有の設定"));
 			initComponents();
 		}
 
-		protected JLabel getComponentUserAtMarkLabel() {
+		private JLabel getComponentUserAtMarkLabel() {
 			if (userAtMarkLabel == null) {
 				userAtMarkLabel = new JLabel("@");
 			}
 			return userAtMarkLabel;
 		}
 
-		protected JLabel getComponentUserLabel() {
+		private JLabel getComponentUserLabel() {
 			if (userLabel == null) {
 				userLabel = new JLabel("スクリーンネーム");
 			}
 			return userLabel;
 		}
 
-		protected JTextField getComponentUserTextField() {
+		private JTextField getComponentUserTextField() {
 			if (userTextField == null) {
 				userTextField = new JTextField();
 			}
 			return userTextField;
 		}
 
-		protected void initComponents() {
+		private void initComponents() {
 			GroupLayout layout = new GroupLayout(this);
 			setLayout(layout);
 			layout.setVerticalGroup(layout.createSequentialGroup()

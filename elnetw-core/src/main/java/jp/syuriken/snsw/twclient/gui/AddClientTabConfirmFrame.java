@@ -12,7 +12,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.LayoutStyle;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
@@ -25,13 +24,28 @@ import jp.syuriken.snsw.twclient.twitter.TwitterUser;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class AddClientTabConfirmFrame extends JFrame {
+	/**
+	 * あかうんとえんとりー
+	 */
 	protected class AccountEntry extends AbstractMap.SimpleEntry<String, String> {
+		/**
+		 * いんすたんすをせいせいする
+		 *
+		 * @param user      ゆーざーめい
+		 * @param accountId たいおうするあかうんとあいでぃー
+		 */
 		public AccountEntry(TwitterUser user, String accountId) {
 			this("@" + user.getScreenName() + " (" + user.getName() + ")", accountId);
 		}
 
-		public AccountEntry(String key, String value) {
-			super(key, value);
+		/**
+		 * いんすたんすをせいせいする
+		 *
+		 * @param viewData  ひょうじするないよう
+		 * @param accountId あかうんとあいでぃー
+		 */
+		public AccountEntry(String viewData, String accountId) {
+			super(viewData, accountId);
 		}
 
 		@Override
@@ -49,6 +63,11 @@ public class AddClientTabConfirmFrame extends JFrame {
 	private JButton okButton;
 	private JComponent otherConfigurationComponent;
 
+	/**
+	 * make instance
+	 *
+	 * @param tabId target tab id
+	 */
 	public AddClientTabConfirmFrame(String tabId) {
 		if (tabId == null) {
 			throw new NullPointerException();
@@ -135,9 +154,11 @@ public class AddClientTabConfirmFrame extends JFrame {
 								.addComponent(getAccountChooser())))
 				.addComponent(otherConfigurationComponent)
 				.addGroup(layout.createSequentialGroup()
+						.addGap(4, 16, 16)
 						.addComponent(getOkButton())
-						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-						.addComponent(getCancelButton())));
+						.addGap(4, 4, Short.MAX_VALUE)
+						.addComponent(getCancelButton())
+						.addGap(4, 16, 16)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createBaselineGroup(true, false)
 						.addComponent(getAccountLabel())
