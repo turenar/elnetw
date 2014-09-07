@@ -87,7 +87,7 @@ class VirtualMessagePublisher implements ClientMessageListener {
 		if (!(listeners.length == 0 || status instanceof TwitterStatus)) {
 			TwitterStatus cachedStatus = cacheManager.getCachedStatus(status.getId());
 			if (cachedStatus == null) {
-				return cacheManager.getCachedStatus(new TwitterStatus(status));
+				return cacheManager.cacheStatus(new TwitterStatus(status));
 			} else {
 				return cachedStatus;
 			}
@@ -100,7 +100,7 @@ class VirtualMessagePublisher implements ClientMessageListener {
 		if (!(listeners.length == 0 || user instanceof TwitterUser)) {
 			TwitterUser cachedUser = cacheManager.getCachedUser(user.getId());
 			if (cachedUser == null) {
-				return cacheManager.getCachedUser(new TwitterUser(user));
+				return cacheManager.cacheUser(new TwitterUser(user));
 			} else {
 				return cachedUser;
 			}

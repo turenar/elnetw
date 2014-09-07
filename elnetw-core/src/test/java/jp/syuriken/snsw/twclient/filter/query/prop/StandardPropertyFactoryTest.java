@@ -23,6 +23,7 @@ package jp.syuriken.snsw.twclient.filter.query.prop;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import jp.syuriken.snsw.twclient.ClientConfiguration;
 import jp.syuriken.snsw.twclient.ClientConfigurationTestImpl;
@@ -68,8 +69,9 @@ public class StandardPropertyFactoryTest extends FilterConstants {
 
 		configuration.setConfigDefaultProperties(defaultProperties);
 		ClientProperties properties = new ClientProperties(defaultProperties);
-		properties
-				.setProperty("twitter.oauth.access_token.list", STATUS_2.getUser().getId() + " " + DM_1.getSenderId());
+		List<String> list = properties.getList(ClientConfiguration.PROPERTY_ACCOUNT_LIST);
+		list.add(String.valueOf(STATUS_2.getUser().getId()));
+		list.add(String.valueOf(DM_1.getSenderId()));
 		configuration.setConfigProperties(properties);
 	}
 

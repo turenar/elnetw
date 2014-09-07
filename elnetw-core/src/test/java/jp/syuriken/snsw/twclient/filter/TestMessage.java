@@ -57,6 +57,11 @@ class TestMessage implements DirectMessage {
 	}
 
 	@Override
+	public MediaEntity[] getExtendedMediaEntities() {
+		return new MediaEntity[0];
+	}
+
+	@Override
 	public HashtagEntity[] getHashtagEntities() {
 		return null;
 	}

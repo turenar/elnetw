@@ -835,8 +835,10 @@ public class JobQueue {
 			setPhase(PHASE_STOPPING);
 		}
 		if (phaseOf(state) == PHASE_NEW) {
-			logger.warn("JobQueue which initialized but not started is requested to exit. Queue has {} job(s)."
-					+ " Running remain jobs...", size);
+			if (size.get() != 0) {
+				logger.warn("JobQueue which initialized but not started is requested to exit. Queue has {} job(s)."
+						+ " Running remain jobs...", size);
+			}
 			Runnable job;
 			while ((job = getJob()) != null) {
 				try {

@@ -79,6 +79,11 @@ public class NullStatus implements Status {
 	}
 
 	@Override
+	public MediaEntity[] getExtendedMediaEntities() {
+		return null;
+	}
+
+	@Override
 	public int getFavoriteCount() {
 		return 0;
 	}

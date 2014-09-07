@@ -19,35 +19,22 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
-
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+package jp.syuriken.snsw.twclient.storage;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * convert to string
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
+public class StringConverter implements Converter<String> {
 	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
-	}
-
-	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
+	public String convert(Object obj) {
+		if (obj == null) {
+			return null;
+		} else if (obj instanceof String) {
+			return (String) obj;
+		} else {
+			return obj.toString();
 		}
-		return list;
 	}
 }

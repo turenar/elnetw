@@ -372,12 +372,9 @@ public class JobQueueTest {
 
 	@Test
 	public void testKeepAlive() throws Throwable {
-		JobQueueTestImpl jobQueue = null;
-		AssertionHandler handler = null;
-		AtomicInteger callCount = null;
-		jobQueue = new JobQueueTestImpl();
-		callCount = new AtomicInteger();
-		handler = new AssertionHandler();
+		JobQueueTestImpl jobQueue = new JobQueueTestImpl();
+		AssertionHandler handler = new AssertionHandler();
+		AtomicInteger callCount = new AtomicInteger();
 
 		Runnable job = new SimpleJob(callCount);
 		for (int i = 0; i < 100; i++) {
@@ -405,8 +402,14 @@ public class JobQueueTest {
 		do {
 			Thread.sleep(2); // wait for all jobs consumed
 		} while (jobQueue.size() != 0);
-
-		Thread.sleep(5); // wait for worker timeout
+		for (int i = 0; i < 101; i++) {
+			if (jobQueue.getWorkerCount() == 2) {
+				break;
+			} else if (i == 100) {
+				fail("KeepAlive test failed");
+			}
+			Thread.sleep(1);
+		}
 		assertEquals(0, jobQueue.size());
 		assertEquals(2, jobQueue.getWorkerCount());
 		assertEquals(211, callCount.get());

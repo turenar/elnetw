@@ -19,35 +19,31 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
-
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+package jp.syuriken.snsw.twclient.storage;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * Converter for long
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
+public class LongConverter extends NumberConverter<Long> {
 	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
+	protected boolean checkRange(long l) {
+		return true;
 	}
 
 	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
-		}
-		return list;
+	protected Long getNumber(String obj) {
+		return Long.valueOf(obj);
+	}
+
+	@Override
+	protected Long getNumber(long l) {
+		return l;
+	}
+
+	@Override
+	protected boolean instanceOf(Object obj) {
+		return obj instanceof Long;
 	}
 }

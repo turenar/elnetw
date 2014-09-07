@@ -87,7 +87,7 @@ public class NullUser implements User {
 
 	@Override
 	public Date getCreatedAt() {
-		return null;
+		return new Date();
 	}
 
 	@Override
@@ -282,6 +282,16 @@ public class NullUser implements User {
 
 	@Override
 	public boolean isContributorsEnabled() {
+		return false;
+	}
+
+	@Override
+	public boolean isDefaultProfile() {
+		return false;
+	}
+
+	@Override
+	public boolean isDefaultProfileImage() {
 		return false;
 	}
 

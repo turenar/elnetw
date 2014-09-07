@@ -19,35 +19,56 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
-
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+package jp.syuriken.snsw.twclient.storage;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * Number converter for generic instance
  *
+ * @param <T> ex. Long, Integer
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
-	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
-	}
+public abstract class NumberConverter<T extends Number> implements Converter<T> {
+	protected abstract boolean checkRange(long l);
 
 	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
+	public T convert(Object obj) {
+		if (instanceOf(obj)) {
+			return DirEntryImpl.cast(obj);
+		} else if (obj instanceof Number) {
+			long l = ((Number) obj).longValue();
+			if (checkRange(l)) {
+				return getNumber(l);
+			} else {
+				throw new ClassCastException(l + " cannot convert into int");
+			}
+		} else if (obj instanceof String) {
+			return getNumber((String) obj);
+		} else {
+			return getNumber(obj.toString());
 		}
-		return list;
 	}
+
+	/**
+	 * get number instance from string
+	 *
+	 * @param obj string instance
+	 * @return Number instance
+	 */
+	protected abstract T getNumber(String obj);
+
+	/**
+	 * get number instance from long
+	 *
+	 * @param l long
+	 * @return Number instance
+	 */
+	protected abstract T getNumber(long l);
+
+	/**
+	 * check if obj is T?
+	 *
+	 * @param obj obj
+	 * @return obj instanceof T
+	 */
+	protected abstract boolean instanceOf(Object obj);
 }

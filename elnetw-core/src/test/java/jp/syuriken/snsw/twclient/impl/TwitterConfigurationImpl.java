@@ -100,6 +100,11 @@ public class TwitterConfigurationImpl implements Configuration {
 	}
 
 	@Override
+	public String getOAuth2Scope() {
+		return null;
+	}
+
+	@Override
 	public String getOAuth2TokenType() {
 		return null;
 	}
@@ -166,6 +171,11 @@ public class TwitterConfigurationImpl implements Configuration {
 
 	@Override
 	public String getStreamBaseURL() {
+		return null;
+	}
+
+	@Override
+	public String getUploadBaseURL() {
 		return null;
 	}
 

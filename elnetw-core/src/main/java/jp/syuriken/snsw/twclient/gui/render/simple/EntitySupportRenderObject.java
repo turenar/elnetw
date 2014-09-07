@@ -21,6 +21,7 @@
 
 package jp.syuriken.snsw.twclient.gui.render.simple;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.JLabel;
@@ -66,6 +67,12 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
 
 		TweetEntity[] entities = sortEntities(entitySupport);
+		MediaEntity[] extendedMediaEntities = entitySupport.getExtendedMediaEntities();
+		if (extendedMediaEntities.length == 0) {
+			extendedMediaEntities = null; // clearer condition
+		}
+
+
 		int offset = 0;
 		for (TweetEntity entity : entities) {
 			int start = entity.getStart();
@@ -92,9 +99,34 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 				boolean isMediaFile;
 				// entityがMediaEntity (=pic.twitter.com)かどうかを調べる。
 				// MediaEntityの場合は無条件で画像ファイルとみなす。
+				// さらに、extendedMediaEntityが付いている場合は、それも考慮。
 				// URLEntityの場合は、UrlResolverManagerに#initComponents()で問い合わせた結果を元に判断。
 				if (urlEntity instanceof MediaEntity) {
 					MediaEntity mediaEntity = (MediaEntity) urlEntity;
+					if (extendedMediaEntities != null && mediaEntity.getStart() == extendedMediaEntities[0].getStart()) {
+						IntentArguments intent = getIntentArguments("openimg");
+						ArrayList<String> imageLists = new ArrayList<>();
+						intent.putExtra("urls", imageLists);
+						url = getFrameApi().getCommandUrl(intent);
+						stringBuilder.append("<a href='")
+								.append(url)
+								.append("'>")
+								.append(escapeHTML(urlEntity.getDisplayURL()))
+								.append("</a>");
+						for (MediaEntity extendedMediaEntity : extendedMediaEntities) {
+							IntentArguments oneImageIntent = getIntentArguments("openimg");
+							imageLists.add(extendedMediaEntity.getMediaURLHttps());
+							oneImageIntent.putExtra("url", extendedMediaEntity.getMediaURLHttps());
+							String imgUrl = getFrameApi().getCommandUrl(oneImageIntent);
+							stringBuilder.append("<a href='")
+									.append(imgUrl)
+									.append("'><img src='")
+									.append(ImageResource.getUrlImageFileIcon())
+									.append("' border='0'></a>");
+						}
+						offset = end;
+						continue;
+					}
 					IntentArguments intent = getIntentArguments("openimg");
 					intent.putExtra("url", mediaEntity.getMediaURL());
 					url = getFrameApi().getCommandUrl(intent);
@@ -131,6 +163,7 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 				throw new AssertionError();
 			}
 
+			// don't forget update extendedMediaEntity case
 			offset = end;
 		}
 		escapeHTML(text.substring(offset), stringBuilder);

@@ -46,6 +46,16 @@ public class OpenImageActionHandler implements ActionHandler {
 
 	@Override
 	public void handleAction(IntentArguments args) {
+		Object urls = args.getExtra("urls");
+		if (urls instanceof Iterable) {
+			Iterable<?> urlList = (Iterable<?>) urls;
+			for (Object url : urlList) {
+				showFrame(toUrl(url));
+			}
+			return;
+		} else if (urls != null) {
+			throw new IllegalArgumentException("arg `urls' must be Iterable");
+		}
 		Object urlObject = args.getExtra("url");
 		URL url;
 		if (urlObject instanceof URL) {
@@ -57,12 +67,30 @@ public class OpenImageActionHandler implements ActionHandler {
 				throw new IllegalArgumentException(e);
 			}
 		} else {
-			throw new IllegalArgumentException("arg `url' is missing");
+			throw new IllegalArgumentException("arg `url' or `urls' is missing");
 		}
-		new ImageViewerFrame(url).setVisible(true);
+		showFrame(url);
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+	}
+
+	private void showFrame(URL url) {
+		new ImageViewerFrame(url).setVisible(true);
+	}
+
+	private URL toUrl(Object url) {
+		try {
+			if (url instanceof URL) {
+				return (URL) url;
+			} else if (url instanceof String) {
+				return new URL((String) url);
+			} else {
+				throw new RuntimeException("url must be URL or String");
+			}
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

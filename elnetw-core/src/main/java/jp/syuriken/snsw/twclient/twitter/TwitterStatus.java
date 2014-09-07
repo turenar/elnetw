@@ -50,8 +50,8 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TwitterStatus implements Status, TwitterExtendedObject {
-	private static final long serialVersionUID = -188757917578787367L;
+public class TwitterStatus implements Status {
+	private static final long serialVersionUID = 1598784104742222367L;
 	private static final Logger logger = LoggerFactory.getLogger(TwitterStatus.class);
 	public static final ClientConfiguration configuration = ClientConfiguration.getInstance();
 
@@ -87,11 +87,9 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private final boolean isTruncated;
 	private final TwitterStatus retweetedStatus;
 	private final User user;
-	private final String json;
 	private/*final*/ GeoLocation geoLocation;
 	private/*final*/ HashtagEntity[] hashtagEntities;
 	private/*final*/ String inReplyToScreenName;
-	private boolean loadedInitialization;
 	private/*final*/ MediaEntity[] mediaEntities;
 	private/*final*/ Place place;
 	private/*final*/ String source;
@@ -108,6 +106,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	private String lang;
 	private SymbolEntity[] symbolEntities;
 	private transient Scopes scopes;
+	private MediaEntity[] extendedMediaEntities;
 
 	/**
 	 * インスタンスを生成する。
@@ -136,7 +135,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	 * @param user           getUser()
 	 */
 	public TwitterStatus(Status originalStatus, JSONObject jsonObject, User user) {
-		json = jsonObject == null ? null : jsonObject.toString();
 		favorited = originalStatus.isFavorited();
 		retweetedByMe = originalStatus.isRetweetedByMe();
 		urlEntities = originalStatus.getURLEntities();
@@ -165,6 +163,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		lang = originalStatus.getLang();
 		symbolEntities = originalStatus.getSymbolEntities();
 		scopes = originalStatus.getScopes();
+		extendedMediaEntities = originalStatus.getExtendedMediaEntities();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (!(originalStatus instanceof TwitterStatus)) {
@@ -173,7 +172,7 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 				TwitterStatus cachedStatus = cacheManager.getCachedStatus(retweetedStatus.getId());
 				if (cachedStatus == null) {
 					TwitterStatus status = new TwitterStatus(retweetedStatus, getRetweetJSONObject(jsonObject));
-					cachedStatus = cacheManager.getCachedStatus(status);
+					cachedStatus = cacheManager.cacheStatus(status);
 				}
 				retweetedStatus = cachedStatus;
 			}
@@ -233,6 +232,11 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	}
 
 	@Override
+	public MediaEntity[] getExtendedMediaEntities() {
+		return extendedMediaEntities;
+	}
+
+	@Override
 	public int getFavoriteCount() {
 		return favoriteCount;
 	}
@@ -266,11 +270,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 	@Override
 	public long getInReplyToUserId() {
 		return inReplyToUserId;
-	}
-
-	@Override
-	public String getJson() {
-		return json;
 	}
 
 	@Override
@@ -357,15 +356,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		return favorited;
 	}
 
-	/**
-	 * このステータスが起動時に読み込まれたものかどうかを調べる
-	 *
-	 * @return 起動時に読み込まれたならtrue
-	 */
-	public boolean isLoadedInitialization() {
-		return loadedInitialization;
-	}
-
 	@Override
 	public boolean isPossiblySensitive() {
 		return possiblySensitive;
@@ -400,14 +390,6 @@ public class TwitterStatus implements Status, TwitterExtendedObject {
 		this.favorited = favorited;
 	}
 
-	/**
-	 * このステータスは起動時に読み込まれたものです
-	 *
-	 * @param loadedInitialization 起動時に読み込まれたならtrue
-	 */
-	public void setLoadedInitialization(boolean loadedInitialization) {
-		this.loadedInitialization = loadedInitialization;
-	}
 
 	/**
 	 * ユーザーがリツイートしたかどうかを設定する

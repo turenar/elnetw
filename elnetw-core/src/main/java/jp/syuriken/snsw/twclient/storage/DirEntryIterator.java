@@ -19,35 +19,67 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.syuriken.snsw.twclient.bus.blocking;
+package jp.syuriken.snsw.twclient.storage;
 
-import jp.syuriken.snsw.twclient.impl.AbstractTwitter;
-import jp.syuriken.snsw.twclient.impl.UserPagableResponseListImpl;
-import jp.syuriken.snsw.twclient.internal.NullUser;
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * twitter implementation for BlockingUsersChannelTest
+ * DirEntry Iterator
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUsersTwitterImpl extends AbstractTwitter {
-	@Override
-	public PagableResponseList<User> getBlocksList() throws TwitterException {
-		return getBlocksList(-1L);
+class DirEntryIterator<T> implements Iterator<Map.Entry<String, T>> {
+
+	private class EntryImpl implements Map.Entry<String, T> {
+		private final String path;
+		private final Converter<T> converter;
+
+		public EntryImpl(String path, Converter<T> converter) {
+			this.path = path;
+			this.converter = converter;
+		}
+
+		@Override
+		public String getKey() {
+			return path;
+		}
+
+		@Override
+		public T getValue() {
+			return converter.convert(target.getRaw(path));
+		}
+
+		@Override
+		public T setValue(T value) {
+			return null;
+		}
+	}
+
+	protected final DirEntryImpl target;
+	protected final Converter<T> converter;
+	protected final Iterator keys;
+
+
+	public DirEntryIterator(DirEntryImpl target, Converter<T> converter) {
+		this.target = target;
+		this.converter = converter;
+		keys = target.readDir();
 	}
 
 	@Override
-	public PagableResponseList<User> getBlocksList(long cursor) throws TwitterException {
-		UserPagableResponseListImpl list = new UserPagableResponseListImpl();
-		if (cursor == -1) {
-			list.setNextCursor(1L);
-			list.add(new NullUser(2L));
-		} else if (cursor == 1) {
-			list.add(new NullUser(3L));
-		}
-		return list;
+	public boolean hasNext() {
+		return keys.hasNext();
+	}
+
+	@Override
+	public Map.Entry<String, T> next() {
+		String nextKey = (String) keys.next();
+		return new EntryImpl(nextKey, converter);
+	}
+
+	@Override
+	public void remove() {
+		keys.remove();
 	}
 }

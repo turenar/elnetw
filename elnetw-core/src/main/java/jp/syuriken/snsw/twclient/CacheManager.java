@@ -32,6 +32,8 @@ import jp.syuriken.snsw.twclient.internal.ConcurrentSoftHashMap;
 import jp.syuriken.snsw.twclient.internal.NullStatus;
 import jp.syuriken.snsw.twclient.internal.NullUser;
 import jp.syuriken.snsw.twclient.internal.TwitterRunnable;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
+import jp.syuriken.snsw.twclient.storage.DirEntry;
 import jp.syuriken.snsw.twclient.twitter.TwitterStatus;
 import jp.syuriken.snsw.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
@@ -125,6 +127,23 @@ public class CacheManager {
 	protected static final Status ERROR_STATUS = new NullStatus();
 	/** リクエストごとの最大User要求数 */
 	protected static final int MAX_USERS_PER_LOOKUP_REQUEST = 100;
+
+	private static TwitterStatus extract(Status status) {
+		if (status == ERROR_STATUS) {
+			return null;
+		} else {
+			return (TwitterStatus) status;
+		}
+	}
+
+	private static TwitterUser extract(User user) {
+		if (user == ERROR_USER) {
+			return null;
+		} else {
+			return (TwitterUser) user;
+		}
+	}
+
 	/** StatusをキャッシュするMap */
 	protected final ConcurrentSoftHashMap<Long, Status> statusCacheMap;
 	/** UserをキャッシュするMap */
@@ -137,6 +156,7 @@ public class CacheManager {
 	protected final Twitter twitter;
 	/** 設定 */
 	protected final ClientConfiguration configuration;
+	private final CacheStorage cacheStorage;
 
 	/**
 	 * インスタンスを生成する。
@@ -145,6 +165,7 @@ public class CacheManager {
 	 */
 	public CacheManager(ClientConfiguration configuration) {
 		this.configuration = configuration;
+		cacheStorage = configuration.getCacheStorage();
 		ClientProperties properties = configuration.getConfigProperties();
 		int concurrency = properties.getInteger("core.cache.data.concurrency");
 		float loadFactor = properties.getFloat("core.cache.data.load_factor");
@@ -161,69 +182,58 @@ public class CacheManager {
 	 * Statusをキャッシュする。
 	 *
 	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
+	 * @return キャッシュされていたStatus。キャッシュされていなければ引数をそのまま返す。
 	 */
-	public void cacheStatus(TwitterStatus status) {
+	public TwitterStatus cacheStatus(TwitterStatus status) {
 		if (status == null) {
 			throw new NullPointerException();
 		}
-		statusCacheMap.put(status.getId(), status);
+		TwitterStatus cachedStatus = extract(statusCacheMap.putIfAbsent(status.getId(), status));
+		if (cachedStatus != null) {
+			cachedStatus.update(status);
+		}
 		if (status.isRetweeted()) {
-			statusCacheMap.put(status.getRetweetedStatus().getId(), status);
+			TwitterStatus retweetedStatus = status.getRetweetedStatus();
+			TwitterStatus cachedRetweetedStatus = extract(statusCacheMap.putIfAbsent(retweetedStatus.getId(), status));
+			if (cachedRetweetedStatus != null) {
+				cachedRetweetedStatus.update(retweetedStatus);
+			}
 		}
-	}
-
-	/**
-	 * キャッシュされていない場合のみStatusをキャッシュする。
-	 *
-	 * @param status キャッシュするStatus。nullだとぬるぽ投げます。
-	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
-	 */
-	public TwitterStatus cacheStatusIfAbsent(TwitterStatus status) {
-		if (status == null) {
-			throw new NullPointerException();
-		}
-		return extract(statusCacheMap.putIfAbsent(status.getId(), status));
+		return cachedStatus == null ? status : cachedStatus;
 	}
 
 	/**
 	 * Userをキャッシュする
 	 *
 	 * @param user キャッシュするUser。nullだとぬるぽ投げます。
+	 * @return キャッシュされていたStatus。キャッシュされていなければ引数をそのまま返す。
 	 */
-	public void cacheUser(TwitterUser user) {
+	public TwitterUser cacheUser(TwitterUser user) {
 		if (user == null) {
 			throw new NullPointerException();
 		}
-		userCacheMap.put(user.getId(), user);
-	}
-
-	/**
-	 * キャッシュされていない場合のみUserをキャッシュする。
-	 *
-	 * @param user キャッシュするStatus。nullだとぬるぽ投げます。
-	 * @return すでにキャッシュされていた場合、キャッシュされたStatus。キャッシュされていなかった場合null。
-	 */
-	public TwitterUser cacheUserIfAbsent(TwitterUser user) {
-		if (user == null) {
-			throw new NullPointerException();
-		}
-		return extract(userCacheMap.putIfAbsent(user.getId(), user));
-	}
-
-	private TwitterStatus extract(Status status) {
-		if (status == ERROR_STATUS) {
-			return null;
+		TwitterUser cachedUser = extract(userCacheMap.putIfAbsent(user.getId(), user));
+		if (cachedUser != null) {
+			cachedUser.update(user);
+			return cachedUser;
 		} else {
-			return (TwitterStatus) status;
+			return user;
 		}
 	}
 
-	private TwitterUser extract(User user) {
-		if (user == ERROR_USER) {
-			return null;
-		} else {
-			return (TwitterUser) user;
+	public void flush() {
+		DirEntry dirEntry = cacheStorage.mkdir("/cache/user", true);
+		for (User user : getUserSet()) {
+			TwitterUser twitterUser = extract(user);
+			if (twitterUser != null) {
+				dirEntry.mkdir(Long.toHexString(twitterUser.getId() & 0xff));
+				twitterUser.write(dirEntry.mkdir(getCachePath(twitterUser.getId())));
+			}
 		}
+	}
+
+	private String getCachePath(long userId) {
+		return "/cache/user/" + Long.toHexString(userId & 0xff) + "/" + userId;
 	}
 
 	/**
@@ -238,17 +248,6 @@ public class CacheManager {
 	}
 
 	/**
-	 * キャッシュ済みStatusを取得する。キャッシュされていなかったりStatusが存在しない(404)場合は引数のTwitterStatusインスタンスを返す。
-	 *
-	 * @param status キャッシュ済みStatus
-	 * @return TwitterStatusインスタンス
-	 */
-	public TwitterStatus getCachedStatus(TwitterStatus status) {
-		TwitterStatus twitterStatus = cacheStatusIfAbsent(status);
-		return twitterStatus == null ? status : twitterStatus.update(status);
-	}
-
-	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
 	 *
@@ -256,18 +255,14 @@ public class CacheManager {
 	 * @return Userインスタンス。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 */
 	public TwitterUser getCachedUser(long userId) {
-		return extract(userCacheMap.get(userId));
-	}
-
-	/**
-	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合は引数のTwitterUserインスタンスを返す。
-	 *
-	 * @param user キャッシュ済みUser
-	 * @return TwitterUserインスタンス
-	 */
-	public TwitterUser getCachedUser(TwitterUser user) {
-		TwitterUser twitterUser = cacheUserIfAbsent(user);
-		return twitterUser == null ? user : twitterUser.updateUser(user);
+		TwitterUser user = extract(userCacheMap.get(userId));
+		if (user == null) {
+			String cachePath = getCachePath(userId);
+			if (cacheStorage.exists(cachePath)) {
+				user = cacheUser(new TwitterUser(cacheStorage.getDirEntry(cachePath)));
+			}
+		}
+		return extract(user);
 	}
 
 	/**
@@ -305,7 +300,7 @@ public class CacheManager {
 	 * @return Userインスタンス。
 	 */
 	public TwitterUser getUser(long userId) {
-		User user = userCacheMap.get(userId);
+		User user = getCachedUser(userId);
 		if (user == null) {
 			userCacheQueue.add(userId);
 			int len = userCacheQueueLength.incrementAndGet();

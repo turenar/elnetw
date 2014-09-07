@@ -45,6 +45,7 @@ import jp.syuriken.snsw.twclient.filter.MessageFilter;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTab;
 import jp.syuriken.snsw.twclient.gui.tab.ClientTabFactory;
 import jp.syuriken.snsw.twclient.handler.IntentArguments;
+import jp.syuriken.snsw.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -190,6 +191,7 @@ public class ClientConfiguration {
 	private MessageFilter messageFilters = null;
 	private ParsedArguments parsedArguments;
 	private ArgParser argParser;
+	private CacheStorage cacheStorage;
 
 	/** インスタンスを生成する。テスト以外この関数の直接の呼び出しは禁止。素直に {@link #getInstance()} */
 	protected ClientConfiguration() {
@@ -325,8 +327,8 @@ public class ClientConfiguration {
 	 *
 	 * @return アカウントリスト。
 	 */
-	public String[] getAccountList() {
-		return configProperties.getArray(PROPERTY_ACCOUNT_LIST);
+	public List<String> getAccountList() {
+		return configProperties.getList(PROPERTY_ACCOUNT_LIST);
 	}
 
 	/**
@@ -355,6 +357,10 @@ public class ClientConfiguration {
 	 */
 	public synchronized CacheManager getCacheManager() {
 		return cacheManager;
+	}
+
+	public synchronized CacheStorage getCacheStorage() {
+		return cacheStorage;
 	}
 
 	/**
@@ -412,9 +418,9 @@ public class ClientConfiguration {
 	public String getDefaultAccountId() {
 		String accountId = configProperties.getProperty("twitter.oauth.access_token.default");
 		if (accountId == null || accountId.isEmpty()) {
-			String[] accountList = getAccountList();
-			if (accountList.length > 0) {
-				accountId = accountList[0];
+			List<String> accountList = getAccountList();
+			if (accountList.size() > 0) {
+				accountId = accountList.get(0);
 			} else {
 				accountId = null;
 			}
@@ -798,7 +804,7 @@ public class ClientConfiguration {
 	 * @see #isMyAccount(long)
 	 */
 	public boolean isMyAccount(String accountId) {
-		String[] accountList = getAccountList();
+		List<String> accountList = getAccountList();
 		for (String account : accountList) {
 			if (accountId.equals(account)) {
 				return true;
@@ -898,6 +904,11 @@ public class ClientConfiguration {
 	/*package*/
 	synchronized void setCacheManager(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
+	}
+
+	/*package*/
+	synchronized void setCacheStorage(CacheStorage cacheStorage) {
+		this.cacheStorage = cacheStorage;
 	}
 
 	/*package*/
@@ -1019,7 +1030,7 @@ public class ClientConfiguration {
 			return e1;
 		}
 		synchronized (configProperties) {
-			String[] accountList = getAccountList();
+			List<String> accountList = getAccountList();
 			boolean updateAccountList = true;
 			for (String accountId : accountList) {
 				if (accountId.equals(userId)) {
