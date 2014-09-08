@@ -51,6 +51,7 @@ public interface ClientTabFactory {
 	 * @return component or null. null shows no specific configuration
 	 */
 	JComponent getOtherConfigurationComponent();
+
 	/**
 	 * get priority for adding tab menu. smaller will be above larger
 	 */

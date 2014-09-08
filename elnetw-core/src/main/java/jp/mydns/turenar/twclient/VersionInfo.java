@@ -101,6 +101,7 @@ public final class VersionInfo {
 
 	/**
 	 * get major version (different major version will return different code name)
+	 *
 	 * @return major version
 	 */
 	public static String getMajorVersion() {

@@ -99,6 +99,7 @@ public abstract class InitializeService {
 	/**
 	 * check if service is uninitialized. If this function returns true,
 	 * other functions which do some operation may throw {@link java.lang.IllegalStateException}
+	 *
 	 * @return uninitialized?
 	 */
 	public abstract boolean isUninitialized();

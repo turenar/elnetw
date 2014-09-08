@@ -108,6 +108,7 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 		configuration.getMessageBus().establish(accountId, "my/timeline", getRenderer());
 		configuration.getMessageBus().establish(accountId, "error", getRenderer());
 	}
+
 	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;

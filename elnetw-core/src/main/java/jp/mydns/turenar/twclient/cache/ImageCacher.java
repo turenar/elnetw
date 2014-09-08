@@ -120,6 +120,7 @@ public class ImageCacher {
 
 		/**
 		 * get setter
+		 *
 		 * @return setter
 		 */
 		public synchronized ImageSetter getSetter() {

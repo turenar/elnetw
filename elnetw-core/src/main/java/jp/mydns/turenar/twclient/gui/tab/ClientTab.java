@@ -77,6 +77,7 @@ public interface ClientTab {
 
 	/**
 	 * タブのタイトルを取得する
+	 *
 	 * @return タイトル
 	 */
 	String getTitle();

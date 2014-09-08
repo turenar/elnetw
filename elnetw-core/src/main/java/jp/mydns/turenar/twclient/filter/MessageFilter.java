@@ -39,6 +39,7 @@ public interface MessageFilter extends ClientMessageListener, Cloneable {
 
 	/**
 	 * clone this instance. this interface implementation should be cloneable.
+	 *
 	 * @return cloned instance
 	 * @throws CloneNotSupportedException clone operation is not supported
 	 */

@@ -42,6 +42,7 @@ public interface InitCondition {
 
 	/**
 	 * get if should be uninit fast? fast uninit should not wait for blocking operation, such as stream finalize
+	 *
 	 * @return fast uninit?
 	 */
 	boolean isFastUninit();

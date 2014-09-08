@@ -23,7 +23,6 @@ package jp.mydns.turenar.twclient.filter;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.TreeSet;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.ClientConfiguration;

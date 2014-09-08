@@ -96,6 +96,7 @@ public interface DirEntry {
 
 	/**
 	 * create new map
+	 *
 	 * @param path path
 	 * @return this
 	 */

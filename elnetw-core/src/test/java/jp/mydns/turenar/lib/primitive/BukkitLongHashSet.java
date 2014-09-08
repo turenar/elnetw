@@ -79,13 +79,13 @@ public class BukkitLongHashSet {
 	}
 
 	private final static int INITIAL_SIZE = 3;
-    private final static double LOAD_FACTOR = 0.75;
-    private final static long FREE = 0;
-    private final static long REMOVED = Long.MIN_VALUE;
-    private int freeEntries;
-    private int elements;
-    private long[] values;
-    private int modCount;
+	private final static double LOAD_FACTOR = 0.75;
+	private final static long FREE = 0;
+	private final static long REMOVED = Long.MIN_VALUE;
+	private int freeEntries;
+	private int elements;
+	private long[] values;
+	private int modCount;
 
 	public BukkitLongHashSet() {
 		this(INITIAL_SIZE);
@@ -151,23 +151,23 @@ public class BukkitLongHashSet {
 		modCount++;
 	}
 
-    public boolean contains(long value) {
-        int hash = hash(value);
-        int index = (hash & 0x7FFFFFFF) % values.length;
-        int offset = 1;
+	public boolean contains(long value) {
+		int hash = hash(value);
+		int index = (hash & 0x7FFFFFFF) % values.length;
+		int offset = 1;
 
-        // search for the object (continue while !null and !this object)
-        while(values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
-            index = ((index + offset) & 0x7FFFFFFF) % values.length;
-            offset = offset * 2 + 1;
+		// search for the object (continue while !null and !this object)
+		while (values[index] != FREE && !(hash(values[index]) == hash && values[index] == value)) {
+			index = ((index + offset) & 0x7FFFFFFF) % values.length;
+			offset = offset * 2 + 1;
 
-            if (offset == -1) {
-                offset = 2;
-            }
-        }
+			if (offset == -1) {
+				offset = 2;
+			}
+		}
 
-        return values[index] != FREE;
-    }
+		return values[index] != FREE;
+	}
 
 	// This method copied from Murmur3, written by Austin Appleby released under Public Domain
 	private int hash(long value) {
@@ -179,7 +179,7 @@ public class BukkitLongHashSet {
 		return (int) value;
 	}
 
-    public boolean isEmpty() {
+	public boolean isEmpty() {
 		return elements == 0;
 	}
 
@@ -187,16 +187,16 @@ public class BukkitLongHashSet {
 		return new Itr();
 	}
 
-    public long popFirst() {
-        for (long value : values) {
-            if (value != FREE && value != REMOVED) {
-                remove(value);
-                return value;
-            }
-        }
+	public long popFirst() {
+		for (long value : values) {
+			if (value != FREE && value != REMOVED) {
+				remove(value);
+				return value;
+			}
+		}
 
-        return 0;
-    }
+		return 0;
+	}
 
 	private void rehash() {
 		int gargagecells = values.length - (elements + freeEntries);
@@ -249,7 +249,7 @@ public class BukkitLongHashSet {
 			if (offset == -1) {
 				offset = 2;
 			}
-        }
+		}
 
 		if (values[index] != FREE) {
 			values[index] = REMOVED;

@@ -83,9 +83,9 @@ public class QueryCompiler implements FilterParserVisitor {
 	/**
 	 * コンパイルされたクエリオブジェクトを取得する。
 	 *
-	 * @param query クエリ
-	 *              @param controller query controller instance. some query requires user information.
-	 *                                some query requires networking. so controller should be passed
+	 * @param query      クエリ
+	 * @param controller query controller instance. some query requires user information.
+	 *                   some query requires networking. so controller should be passed
 	 * @return コンパイル済みのオブジェクト。単にツリーを作って返すだけ
 	 * @throws jp.mydns.turenar.twclient.filter.IllegalSyntaxException 正しくない文法のクエリ
 	 */

@@ -96,6 +96,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 									.addComponent(getComponentUserTextField()))));
 		}
 	}
+
 	/**
 	 * priority for adding tab menu
 	 */
