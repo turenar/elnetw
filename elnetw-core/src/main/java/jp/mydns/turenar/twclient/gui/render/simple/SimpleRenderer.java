@@ -26,6 +26,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.FocusEvent;
+import java.util.Date;
 
 import javax.swing.JLabel;
 
@@ -83,7 +84,8 @@ public class SimpleRenderer implements TabRenderer {
 	private final String userId;
 	private volatile long actualUserId;
 	private AbstractRenderObject focusOwner;
-	protected LongHashSet statusSet = new LongHashSet();
+	private LongHashSet statusSet = new LongHashSet();
+	private DateFormatter dateFormatter = new DateFormatter();
 
 	/**
 	 * init
@@ -484,5 +486,16 @@ public class SimpleRenderer implements TabRenderer {
 	 */
 	public void setFocusOwner(AbstractRenderObject focusOwner) {
 		this.focusOwner = focusOwner;
+	}
+
+	/**
+	 * converts createdAt into string
+	 *
+	 * @param createdAt create at
+	 * @param html      insert html tag?
+	 * @return date string
+	 */
+	public String toDateString(Date createdAt, boolean html) {
+		return dateFormatter.toDateString(createdAt, html);
 	}
 }

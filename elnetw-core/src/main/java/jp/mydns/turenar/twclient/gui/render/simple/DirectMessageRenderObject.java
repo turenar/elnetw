@@ -37,7 +37,6 @@ import javax.swing.JPopupMenu;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
-import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import jp.mydns.turenar.twclient.handler.IntentArguments;
 import org.slf4j.Logger;
@@ -87,7 +86,7 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 		String createdBy = String.format("@%1$s (%2$s) -> @%3$s (%4$s)",
 				directMessage.getSender().getScreenName(), directMessage.getSender().getName(),
 				directMessage.getRecipient().getScreenName(), directMessage.getRecipient().getName());
-		String createdAt = Utility.getDateString(directMessage.getCreatedAt(), true);
+		String createdAt = renderer.toDateString(directMessage.getCreatedAt(), true);
 		Icon userProfileIcon = componentUserIcon.getIcon();
 
 		getFrameApi().setTweetViewCreatedAt(createdAt, null, DO_NOTHING_WHEN_POINTED);

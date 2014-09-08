@@ -115,6 +115,14 @@ public class Utility {
 	};
 	private static final int VISIBLE_CHAR_CODE_MIN = 0x20;
 	private static final int VISIBLE_CHAR_CODE_MAX = 0x7e;
+	/**
+	 * epoch offset for snowflake
+	 */
+	public static final long SNOWFLAKE_EPOCH_OFFSET = 1288834974657L;
+	/**
+	 * date bit shift for snowflake
+	 */
+	public static final int SNOWFLAKE_DATE_BITSHIFT = 22;
 	private static volatile OSType ostype;
 	private static KVEntry[] privacyEntries;
 	/** DateFormatを管理する */
@@ -194,7 +202,7 @@ public class Utility {
 	 * @param image   original image
 	 * @param tracker image tracker
 	 * @return buffered image
-	 * @throws InterruptedException
+	 * @throws InterruptedException interrupted
 	 */
 	public static BufferedImage createBufferedImage(Image image, MediaTracker tracker) throws InterruptedException {
 		if (image instanceof BufferedImage) {
@@ -226,54 +234,6 @@ public class Utility {
 			ostype = OSType.WINDOWS;
 		} else {
 			ostype = OSType.OTHER;
-		}
-	}
-
-	/**
-	 * yyyy/MM/dd HH:mm:ssな {@link SimpleDateFormat} を取得する。
-	 *
-	 * このメソッドはマルチスレッド対応ですが、このメソッドで返されるインスタンスは<strong>スレッドローカルなので
-	 * 複数スレッドで使いまわさないでください</strong>。
-	 *
-	 * @return 日付フォーマッタ
-	 */
-	public static SimpleDateFormat getDateFormat() {
-		return dateFormat.get();
-	}
-
-	/**
-	 * 日時をあらわす文字列を短い形式を含めて取得する。
-	 *
-	 * <p>
-	 * このメソッドで返す文字列は&quot;(\d{2}[smh])?(&lt;small&gt;)? \(yyyy/MM/dd HH:mm:ss\)(&lt;/small&gt;)?&quot;です
-	 * </p>
-	 *
-	 * @param date 日時
-	 * @param html HTMLタグを使用するかどうか。trueの場合、<strong>返す文字列には&lt;html&gt;がつきます</strong>。
-	 * @return 日時を表す文字列
-	 */
-	public static String getDateString(Date date, boolean html) {
-		long timeDiff = System.currentTimeMillis() - date.getTime();
-		String dateFormatted = dateFormat.get().format(date);
-		if (timeDiff < 0 || timeDiff > DAY2MS) {
-			// date is future or older than 24hours
-			return dateFormatted;
-		} else {
-			StringBuilder stringBuilder = new StringBuilder();
-			if (html) {
-				stringBuilder.append("<html>");
-			}
-
-			if (timeDiff < MINUTE2MS) {
-				stringBuilder.append(timeDiff / SEC2MS).append("秒前");
-			} else if (timeDiff < HOUR2MS) {
-				stringBuilder.append(timeDiff / MINUTE2MS).append("分前");
-			} else {
-				stringBuilder.append(timeDiff / HOUR2MS).append("時間前");
-			}
-
-			stringBuilder.append(" (").append(dateFormatted).append(')');
-			return stringBuilder.toString();
 		}
 	}
 
@@ -432,6 +392,21 @@ public class Utility {
 	}
 
 	/**
+	 * tear snowflake id into epoch time
+	 * @param createdAtDate created at
+	 * @param snowflakeId snowflake id
+	 * @return snowflake
+	 */
+	public static Date snowflakeIdToMilliSec(Date createdAtDate, long snowflakeId) {
+		if (createdAtDate.getTime() < SNOWFLAKE_EPOCH_OFFSET) {
+			return createdAtDate;
+		} else {
+			long date = (snowflakeId >> SNOWFLAKE_DATE_BITSHIFT) + SNOWFLAKE_EPOCH_OFFSET;
+			return new Date(date);
+		}
+	}
+
+	/**
 	 * キーをキー文字列に変換する
 	 *
 	 * @param e キーイベント
@@ -468,10 +443,22 @@ public class Utility {
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * unchecked cast. IT IS DANGEROUS!!!
+	 *
+	 * @param value object
+	 * @param <T>   type to cast
+	 * @return casted object
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T uncheckedCast(Object value) {
+		return (T) value;
+}
 	private final ClientConfiguration configuration;
 	private String detectedBrowser = null;
 	/** 通知を送信するクラス */
 	public volatile MessageNotifier notifySender = null;
+
 
 	/**
 	 * インスタンスを生成する。
@@ -481,7 +468,6 @@ public class Utility {
 	public Utility(ClientConfiguration configuration) {
 		this.configuration = configuration;
 	}
-
 
 	/**
 	 * インストールされているブラウザを確定する。

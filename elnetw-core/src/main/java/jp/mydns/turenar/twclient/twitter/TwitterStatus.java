@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.mydns.turenar.twclient.CacheManager;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.GeoLocation;
@@ -175,7 +176,7 @@ public class TwitterStatus implements Status {
 		mediaEntities = originalStatus.getMediaEntities();
 		userMentionEntities = originalStatus.getUserMentionEntities();
 		text = originalStatus.getText();
-		createdAt = originalStatus.getCreatedAt();
+		createdAt = Utility.snowflakeIdToMilliSec(originalStatus.getCreatedAt(), originalStatus.getId());
 		id = originalStatus.getId();
 		source = originalStatus.getSource();
 		isTruncated = originalStatus.isTruncated();

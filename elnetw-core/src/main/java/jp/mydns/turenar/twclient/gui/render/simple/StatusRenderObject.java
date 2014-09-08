@@ -42,7 +42,6 @@ import javax.swing.event.AncestorListener;
 
 import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import jp.mydns.turenar.twclient.gui.render.RendererManager;
@@ -113,7 +112,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
 		String createdAtToolTip = getViaString(originalStatus);
-		String createdAt = Utility.getDateString(status.getCreatedAt(), true);
+		String createdAt = renderer.toDateString(status.getCreatedAt(), true);
 		String overlayString;
 		if (originalStatus.isRetweet()) {
 			overlayString =
