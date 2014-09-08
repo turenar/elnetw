@@ -34,6 +34,7 @@ import twitter4j.IDs;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 
 /**
  * following users channel
@@ -79,12 +80,26 @@ public class FollowingUsersChannel extends TwitterRunnable implements MessageCha
 
 	private class FollowingUsersDispatcher extends ClientMessageAdapter {
 		@Override
+		public void onFollow(User source, User followedUser) {
+			if (actualUser.equals(source)) {
+				followingList.add(followedUser.getId());
+			}
+		}
+
+		@Override
 		public void onFriendList(long[] friendIds) {
 			LongHashSet list = new LongHashSet();
 			for (long friendId : friendIds) {
 				list.add(friendId);
 			}
 			followingList = list;
+		}
+
+		@Override
+		public void onUnfollow(User source, User unfollowedUser) {
+			if (actualUser.equals(source)) {
+				followingList.remove(unfollowedUser.getId());
+			}
 		}
 	}
 

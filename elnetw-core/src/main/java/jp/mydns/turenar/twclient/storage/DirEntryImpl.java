@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -141,6 +142,7 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	@SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_INFERRED")
 	public DirEntry newMap(String path) {
 		mkdir(path);
 		return this;

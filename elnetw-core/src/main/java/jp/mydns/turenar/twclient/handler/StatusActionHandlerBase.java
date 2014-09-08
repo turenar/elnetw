@@ -70,7 +70,7 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 			}
 		}
 
-		return TwitterStatus.getInstance(status);
+		return status == null ? null : TwitterStatus.getInstance(status);
 	}
 
 

@@ -265,6 +265,7 @@ public class TwitterStatus implements Status {
 	}
 
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public MediaEntity[] getExtendedMediaEntities() {
 		return extendedMediaEntities;
 	}

@@ -38,6 +38,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -108,7 +109,10 @@ import twitter4j.User;
 		}
 	}
 
-	private static class TabFactoryEntryComparator implements Comparator<Map.Entry<String, ClientTabFactory>> {
+	private static class TabFactoryEntryComparator implements Comparator<Map.Entry<String, ClientTabFactory>>,
+			Serializable {
+
+		private static final long serialVersionUID = -9038414469346041741L;
 
 		@Override
 		public int compare(Map.Entry<String, ClientTabFactory> o1, Map.Entry<String, ClientTabFactory> o2) {
@@ -474,7 +478,7 @@ import twitter4j.User;
 	/*package*/ JButton postActionButton;
 	/*package*/ JTextArea postBox;
 	/*package*/ JTabbedPane viewTab;
-	/*package*/ ClientProperties configProperties;
+	/*package*/transient ClientProperties configProperties;
 	/*package*/ JMenuBar clientMenu;
 	/*package*/ JPanel tweetViewPanel;
 	/*package*/ JMenu accountMenu;

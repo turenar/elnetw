@@ -79,7 +79,7 @@ public class ClientProperties implements Map<String, String> {
 	 * Method returns the char length of the "logical line" and stores
 	 * the line in "lineBuf".
 	 */
-	/*package*/ class LineReader {
+	/*package*/static class LineReader {
 		protected static final int IN_CHAR_BUF_SIZE = 8192;
 		protected static final int LINE_BUF_SIZE = 1024;
 		protected char[] lineBuf = new char[LINE_BUF_SIZE];
@@ -197,6 +197,30 @@ public class ClientProperties implements Map<String, String> {
 		}
 	}
 
+	/**
+	 * weak reference which supports #equals()
+	 *
+	 * @param <T> referent type
+	 */
+	protected static class WeakReferenceEx<T> extends WeakReference<T> {
+		private int hash;
+
+		public WeakReferenceEx(T referent) {
+			super(referent);
+			hash = referent.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof WeakReferenceEx && ((WeakReferenceEx) obj).get() == get();
+		}
+
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+	}
+
 	private class PropWrappedList extends AbstractList<String> implements PropertyChangeListener {
 		private final String key;
 		private int len;
@@ -290,30 +314,6 @@ public class ClientProperties implements Map<String, String> {
 		private void updateLen(int delta) {
 			len += delta;
 			setProperty(key, "#list:" + len);
-		}
-	}
-
-	/**
-	 * weak reference which supports #equals()
-	 *
-	 * @param <T> referent type
-	 */
-	protected class WeakReferenceEx<T> extends WeakReference<T> {
-		private int hash;
-
-		public WeakReferenceEx(T referent) {
-			super(referent);
-			hash = referent.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return obj instanceof WeakReferenceEx && ((WeakReferenceEx) obj).get() == get();
-		}
-
-		@Override
-		public int hashCode() {
-			return hash;
 		}
 	}
 

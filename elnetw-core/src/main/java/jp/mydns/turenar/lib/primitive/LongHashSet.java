@@ -21,15 +21,7 @@
 
 package jp.mydns.turenar.lib.primitive;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/**
- * hash set for primitive long
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public class LongHashSet {
+public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
 	 */
@@ -46,7 +38,6 @@ public class LongHashSet {
 	 * default load factor. usually, 0.5 is faster than 0.3, 0.7 with random long value.
 	 */
 	protected static final double LOAD_FACTOR = 0.5;
-	private static final Logger logger = LoggerFactory.getLogger(LongHashSet.class);
 
 	/*package*/
 	static int powerOf(int initialCapacity) {
@@ -65,7 +56,7 @@ public class LongHashSet {
 	/**
 	 * size
 	 */
-	protected volatile int size;
+	protected int size;
 	/**
 	 * hash bit set: pow2(n) - 1 (0b0000..0111..1)
 	 */

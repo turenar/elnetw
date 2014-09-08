@@ -91,14 +91,9 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
+		TwitterStatus status = getStatus(arguments);
 		if (status != null) {
-			if (status instanceof TwitterStatus) {
-				TwitterStatus tag = (TwitterStatus) status;
-				menuItem.setText(tag.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
-			} else {
-				menuItem.setText("ふぁぼる(F)");
-			}
+			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

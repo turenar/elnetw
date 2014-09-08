@@ -114,10 +114,8 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 
 	@Override
 	public void onClientMessage(String name, Object arg) {
-		switch (name) { // CS-IGNORE
-			case INIT_UI:
-				query.init();
-				break;
+		if (name.equals(INIT_UI)) {
+			query.init();
 		}
 		super.onClientMessage(name, arg);
 	}

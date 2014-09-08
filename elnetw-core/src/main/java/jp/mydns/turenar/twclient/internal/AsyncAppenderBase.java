@@ -49,7 +49,6 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.spi.AppenderAttachable;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ParallelRunnable;
 
 /**
  * Async Appender for slf4j/logback. Original source code is derived from logback
@@ -66,15 +65,6 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 */
 	protected class TimerWorker implements Runnable {
 		@Override
-		public void run() {
-			flush();
-		}
-	}
-
-	/**
-	 * default flusher
-	 */
-	protected class Worker implements ParallelRunnable {
 		public void run() {
 			flush();
 		}
@@ -112,10 +102,6 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 * appender-ref count
 	 */
 	protected int appenderCount = 0;
-	/**
-	 * flusher instance
-	 */
-	protected Worker worker = new Worker();
 	/**
 	 * timed flusher instance
 	 */

@@ -136,7 +136,7 @@ public class ImageCacher {
 			return imageEntry.image != null;
 		}
 
-		public void setAlternateEntry(FetchEntry alternateEntry) {
+		public synchronized void setAlternateEntry(FetchEntry alternateEntry) {
 			this.alternateEntry = alternateEntry;
 		}
 

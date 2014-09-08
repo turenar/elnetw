@@ -50,17 +50,16 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 
 		@Override
 		public void onClientMessage(String name, Object arg) {
-			switch (name) {
-				case BlockingUsersChannel.BLOCKING_FETCH_FINISHED_ID:
-					EventQueue.invokeLater(
-							new Runnable() {
-								@Override
-								public void run() {
-									child.onClientMessage(RENDER_DELETE_OBJECT, FILTER_BLOCKING_USER_WAIT_MESSAGE);
-								}
+			if (name.equals(BlockingUsersChannel.BLOCKING_FETCH_FINISHED_ID)) {
+				EventQueue.invokeLater(
+						new Runnable() {
+							@Override
+							public void run() {
+								child.onClientMessage(RENDER_DELETE_OBJECT, FILTER_BLOCKING_USER_WAIT_MESSAGE);
 							}
-					);
-					stopDelay();
+						}
+				);
+				stopDelay();
 			}
 		}
 
@@ -116,14 +115,12 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 
 	@Override
 	public void onClientMessage(String name, Object arg) {
-		switch (name) { // CS-IGNORE
-			case INIT_UI:
-				if (isEnabled) {
-					showFetchingBlocking();
-				} else {
-					stopDelay();
-				}
-				break;
+		if (name.equals(INIT_UI)) {
+			if (isEnabled) {
+				showFetchingBlocking();
+			} else {
+				stopDelay();
+			}
 		}
 		super.onClientMessage(name, arg);
 	}

@@ -75,13 +75,7 @@ public class FilterQueryNormalizer implements FilterParserVisitor {
 		int childrenCount = node.jjtGetNumChildren();
 		for (int i = 0; i < childrenCount; i++) {
 			Node childNode = node.jjtGetChild(i);
-			if (childNode instanceof QueryTokenFunctionLeftParenthesis
-					|| childNode instanceof QueryTokenFunctionArgSeparator
-					|| childNode instanceof QueryTokenFunctionRightParenthesis) {
-				childNode.jjtAccept(this, data);
-			} else {
-				childNode.jjtAccept(this, data);
-			}
+			childNode.jjtAccept(this, data);
 		}
 		return null;
 	}

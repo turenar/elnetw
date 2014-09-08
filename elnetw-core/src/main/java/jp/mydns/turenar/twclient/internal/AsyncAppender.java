@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
+import jp.mydns.turenar.twclient.ParallelRunnable;
 
 /**
  * AsyncAppenderBase implementation
@@ -36,12 +37,12 @@ public class AsyncAppender extends AsyncAppenderBase<ILoggingEvent> {
 	/**
 	 * high priority flusher. this stores queued flag
 	 */
-	protected class HighPriorityWorker extends Worker {
+	protected class HighPriorityWorker implements ParallelRunnable {
 		public volatile AtomicBoolean isQueued = new AtomicBoolean();
 
 		@Override
 		public void run() {
-			super.run();
+			flush();
 			isQueued.set(false);
 		}
 	}

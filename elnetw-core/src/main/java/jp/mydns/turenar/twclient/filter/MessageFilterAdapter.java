@@ -66,7 +66,7 @@ public abstract class MessageFilterAdapter extends ClientMessageAdapter implemen
 	}
 
 	@Override
-	public MessageFilter getChild() {
+	public synchronized MessageFilter getChild() {
 		return child;
 	}
 
