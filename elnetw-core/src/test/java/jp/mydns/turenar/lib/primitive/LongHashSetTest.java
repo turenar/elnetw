@@ -81,6 +81,19 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testClone() throws Exception {
+		LongHashSet base = new LongHashSet();
+		base.add(0L);
+		base.add(2L);
+		LongHashSet clone = base.clone();
+		clone.add(1L);
+		assertTrue(clone.contains(1L));
+		assertEquals(3, clone.size());
+		assertFalse(base.contains(1L));
+		assertEquals(2, base.size());
+	}
+
+	@Test
 	public void testContains() throws Exception {
 		LongHashSet longHashSet = new LongHashSet();
 		assertEquals(0, longHashSet.size());

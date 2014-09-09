@@ -21,6 +21,9 @@
 
 package jp.mydns.turenar.lib.primitive;
 
+/**
+ * HashSet for primitive long.
+ */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -106,8 +109,7 @@ public class LongHashSet implements Cloneable {
 		if (aLong == 0) {
 			aLong = ZERO;
 		}
-		int hash = hash(aLong);
-		int index = hash & bitSet;
+		int index = hash(aLong) & bitSet;
 		while (values[index] != FREE && values[index] != aLong) {
 			index = (index + 1) & bitSet;
 			hashConflict++;
@@ -142,7 +144,9 @@ public class LongHashSet implements Cloneable {
 
 	@Override
 	public LongHashSet clone() throws CloneNotSupportedException {
-		return (LongHashSet) super.clone();
+		LongHashSet clone = (LongHashSet) super.clone();
+		clone.values = values.clone();
+		return clone;
 	}
 
 	/**
@@ -155,8 +159,7 @@ public class LongHashSet implements Cloneable {
 		if (o == 0) {
 			o = ZERO;
 		}
-		int hash = hash(o);
-		int index = hash & bitSet;
+		int index = hash(o) & bitSet;
 		while (values[index] != FREE && values[index] != o) {
 			index = (index + 1) & bitSet;
 		}
@@ -195,8 +198,7 @@ public class LongHashSet implements Cloneable {
 		long[] newArray = new long[values.length << 1];
 		bitSet = (bitSet << 1) + 1;
 		for (long aLong : values) {
-			int hash = hash(aLong);
-			int index = hash & bitSet;
+			int index = hash(aLong) & bitSet;
 			while (newArray[index] != FREE) {
 				index = (index + 1) & bitSet;
 				hashConflict++;
@@ -216,8 +218,7 @@ public class LongHashSet implements Cloneable {
 		if (o == 0) {
 			o = ZERO;
 		}
-		int hash = hash(o);
-		int index = hash & bitSet;
+		int index = hash(o) & bitSet;
 		while (values[index] != FREE && values[index] != o) {
 			index = (index + 1) & bitSet;
 		}
@@ -239,6 +240,10 @@ public class LongHashSet implements Cloneable {
 		return size;
 	}
 
+	/**
+	 * make array from this set
+	 * @return values array
+	 */
 	public synchronized long[] toArray() {
 		long[] hashedTable = values;
 		long[] array = new long[size];
