@@ -84,6 +84,7 @@ import jp.mydns.turenar.twclient.config.ConfigFrameBuilder;
 import jp.mydns.turenar.twclient.config.ConsumerTokenConfigType;
 import jp.mydns.turenar.twclient.config.IntegerConfigType;
 import jp.mydns.turenar.twclient.config.QueryEditConfigType;
+import jp.mydns.turenar.twclient.filter.ExtendedMuteFilter;
 import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
 import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
@@ -871,6 +872,7 @@ public final class TwitterClientMain {
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
 		configuration.addFilter(new BlockingUserFilter(true));
+		configuration.addFilter(new ExtendedMuteFilter());
 	}
 
 	/**
