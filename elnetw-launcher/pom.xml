@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>jp.syuriken.snsw</groupId>
 		<artifactId>elnetw</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>0.1.1</version>
 	</parent>
 
 	<licenses>
