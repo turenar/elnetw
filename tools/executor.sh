@@ -1,5 +1,5 @@
 #!/bin/sh
-cpcachef=tools/.classpath.cache
+cpcachef=elnetw-core/target/.classpath.cache
 
 test -d elnetw-core/target/bin || mvn install
 test -f ${cpcachef} || ( \
