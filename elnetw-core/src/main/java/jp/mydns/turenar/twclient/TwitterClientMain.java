@@ -1212,8 +1212,11 @@ public final class TwitterClientMain {
 					}
 				}
 				configProperties.setProperty("cfg.version", "5");
-				case 5:
-					// latest
+				case 5: // fall-through
+					logger.info("Updating config to v6");
+					convertOldPropArrayToList("core.filter.user.ids");
+					configProperties.setProperty("cfg.version", "6");
+				case 6: // latest
 					break;
 				default:
 					int i = JOptionPane.showConfirmDialog(null,

@@ -308,9 +308,11 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 					logger.warn("handler {} is not found.", commandName);
 				} else {
 					JMenuItem menuItem = handler.createJMenuItem(intentArguments);
-					menuItem.setActionCommand(commandName);
-					menuItem.addActionListener(this);
-					stack.peek().add(menuItem);
+					if (menuItem != null) {
+						menuItem.setActionCommand(commandName);
+						menuItem.addActionListener(this);
+						stack.peek().add(menuItem);
+					}
 				}
 				if (subMenuStart.equals("}")) {
 					stack.pop();

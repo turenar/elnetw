@@ -23,7 +23,7 @@ package jp.mydns.turenar.twclient.handler;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.MessageFormat;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -63,8 +63,7 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 			status = status.getRetweetedStatus();
 		}
 		final User user = status.getUser();
-		boolean isTweetedByMe = user.getId() == getLoginUserId();
-		if (isTweetedByMe == false) {
+		if (configuration.isMyAccount(user.getId())) {
 			JPanel panel = new JPanel();
 			BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 			panel.setLayout(layout);
@@ -82,11 +81,8 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 					if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 						if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
 							ClientProperties configProperties = configuration.getConfigProperties();
-							String idsString = configProperties.getProperty("core.filter.user.ids");
-							idsString =
-									idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
-											: idsString + " " + user.getId();
-							configProperties.setProperty("core.filter.user.ids", idsString);
+							List<String> idsString = configProperties.getList("core.filter.user.ids");
+							idsString.add(String.valueOf(user.getId()));
 						}
 					}
 				}
@@ -106,11 +102,10 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 
 			boolean isTweetedByMe = user.getId() == getLoginUserId();
 
-			String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
-			String[] ids = idsString.split(" ");
+			List<String> idsList = configuration.getConfigProperties().getList("core.filter.user.ids");
 			String userIdString = String.valueOf(user.getId());
 			boolean filtered = false;
-			for (String id : ids) {
+			for (String id : idsList) {
 				if (id.equals(userIdString)) {
 					filtered = true;
 					break;

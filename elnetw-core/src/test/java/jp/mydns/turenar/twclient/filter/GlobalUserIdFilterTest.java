@@ -21,6 +21,8 @@
 
 package jp.mydns.turenar.twclient.filter;
 
+import java.util.List;
+
 import jp.mydns.turenar.twclient.ClientConfigurationTestImpl;
 import jp.mydns.turenar.twclient.ClientProperties;
 import org.junit.Test;
@@ -96,7 +98,10 @@ public class GlobalUserIdFilterTest extends MessageFilterAdapter {
 	public void tearUp() {
 		configuration = new ClientConfigurationTestImpl();
 		properties = new ClientProperties();
-		properties.setProperty(PROPERTY_FILTER_ID_NAME, "1 2 3");
+		List<String> list = properties.getList(PROPERTY_FILTER_ID_NAME);
+		list.add("1");
+		list.add("2");
+		list.add("3");
 		configuration.setConfigProperties(properties);
 		configuration.setGlobalInstance();
 		globalUserIdFilter = new GlobalUserIdFilter();
@@ -111,7 +116,10 @@ public class GlobalUserIdFilterTest extends MessageFilterAdapter {
 			globalUserIdFilter.onStatus(new TestStatus(0, null, -1));
 			assertCalled();
 
-			properties.setProperty(PROPERTY_FILTER_ID_NAME, "a 1");
+			List<String> list = properties.getList(PROPERTY_FILTER_ID_NAME);
+			list.clear();
+			list.add("a");
+			list.add("1");
 			globalUserIdFilter = new GlobalUserIdFilter();
 			globalUserIdFilter.addChild(this);
 			globalUserIdFilter.onStatus(new TestStatus(0, null, -1));
