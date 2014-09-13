@@ -28,6 +28,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -302,12 +303,15 @@ public class PropertyEditorFrame extends JFrame {
 		tableModel.setRowCount(0);
 
 		ClientProperties configProperties = configuration.getConfigProperties();
+		HashSet<String> metKeys = new HashSet<String>();
 		do {
 			for (String key : configProperties.keySet()) {
-				tableModel.addRow(new Object[]{
-						key,
-						configProperties.getProperty(key)
-				});
+				if (metKeys.add(key)) {
+					tableModel.addRow(new Object[]{
+							key,
+							configProperties.getProperty(key)
+					});
+				}
 			}
 			configProperties = configProperties.getDefaults();
 		} while (configProperties != null);
