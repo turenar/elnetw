@@ -21,12 +21,12 @@
 
 package jp.mydns.turenar.twclient.filter.delayed;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import jp.mydns.turenar.twclient.filter.IllegalSyntaxException;
 import jp.mydns.turenar.twclient.filter.NullQueryDispatcher;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
@@ -42,7 +42,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QueryFilter extends DelayedFilter implements PropertyChangeListener, QueryController {
+public class QueryFilter extends DelayedFilter implements PropertyUpdateListener, QueryController {
 	private static final Logger logger = LoggerFactory.getLogger(QueryFilter.class);
 	/**
 	 * property name for global filter
@@ -64,7 +64,7 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 		this.userId = userId;
 		this.queryPropertyKey = queryPropertyKey;
 		configProperties = ClientConfiguration.getInstance().getConfigProperties();
-		configProperties.addPropertyChangedListener(this);
+		configProperties.addPropertyUpdatedListener(this);
 		initFilterQueries();
 		stopDelay();
 	}
@@ -133,7 +133,7 @@ public class QueryFilter extends DelayedFilter implements PropertyChangeListener
 
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+	public void propertyUpdate(PropertyUpdateEvent evt) {
 		if (evt.getPropertyName().equals(queryPropertyKey)) {
 			initFilterQueries();
 		}

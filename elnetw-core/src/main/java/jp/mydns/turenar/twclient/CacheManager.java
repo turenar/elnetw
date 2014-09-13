@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.ConcurrentSoftHashMap;
 import jp.mydns.turenar.twclient.internal.NullStatus;
 import jp.mydns.turenar.twclient.internal.NullUser;

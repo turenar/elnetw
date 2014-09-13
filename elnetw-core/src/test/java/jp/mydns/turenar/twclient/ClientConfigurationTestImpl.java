@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
 import twitter4j.Twitter;
 

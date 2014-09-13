@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageListener;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
 import jp.mydns.turenar.twclient.gui.tab.TabRenderer;

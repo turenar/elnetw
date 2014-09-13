@@ -190,7 +190,7 @@ public class InListProperty implements QueryProperty {
 		listFetcher = new UserFollewedByListFetcher(listIdentifier);
 		listFetcher.run();
 		configuration.getTimer().scheduleWithFixedDelay(new ListFetcherScheduler(), 60, 60,
-				TimeUnit.MINUTES); // TODO from config
+				TimeUnit.MINUTES); // TODO from conf
 	}
 
 	@Override

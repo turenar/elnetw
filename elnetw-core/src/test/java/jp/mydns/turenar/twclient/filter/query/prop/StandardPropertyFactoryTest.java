@@ -27,7 +27,7 @@ import java.util.List;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientConfigurationTestImpl;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.filter.FilterConstants;
 import jp.mydns.turenar.twclient.filter.IllegalSyntaxException;
 import org.junit.BeforeClass;

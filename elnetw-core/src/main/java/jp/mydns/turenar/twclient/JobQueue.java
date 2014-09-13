@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

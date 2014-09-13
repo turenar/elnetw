@@ -19,9 +19,19 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package jp.mydns.turenar.twclient.conf;
+
 /**
- * 設定画面に使うクラスのパッケージ。
+ * client properties' property updated
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-package jp.mydns.turenar.twclient.config;
+public interface PropertyUpdateListener {
+	/**
+	 * property updated
+	 *
+	 * @param evt description for update
+	 */
+
+	void propertyUpdate(PropertyUpdateEvent evt);
+}

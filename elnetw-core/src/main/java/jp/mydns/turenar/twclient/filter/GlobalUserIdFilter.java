@@ -21,11 +21,10 @@
 
 package jp.mydns.turenar.twclient.filter;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class GlobalUserIdFilter extends AbstractMessageFilter implements PropertyChangeListener {
+public class GlobalUserIdFilter extends AbstractMessageFilter implements PropertyUpdateListener {
 
 	/**
 	 * property name for user ids
@@ -50,7 +49,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 	 */
 	public GlobalUserIdFilter() {
 		this.configuration = ClientConfiguration.getInstance();
-		configuration.getConfigProperties().addPropertyChangedListener(this);
+		configuration.getConfigProperties().addPropertyUpdatedListener(this);
 		filterIds = new LongHashSet();
 		initFilterIds();
 	}
@@ -82,7 +81,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+	public void propertyUpdate(PropertyUpdateEvent evt) {
 		if (evt.getPropertyName().equals(PROPERTY_KEY_FILTER_IDS)) {
 			initFilterIds();
 		}

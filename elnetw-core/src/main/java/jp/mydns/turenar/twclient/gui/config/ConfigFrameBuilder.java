@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.config;
+package jp.mydns.turenar.twclient.gui.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;

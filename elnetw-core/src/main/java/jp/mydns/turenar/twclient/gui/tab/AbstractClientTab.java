@@ -59,7 +59,7 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.ClientFrameApi;
 import jp.mydns.turenar.twclient.ClientMessageAdapter;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.filter.MessageFilter;
@@ -348,7 +348,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	/** {@link ClientConfiguration#getImageCacher()} */
 	protected final ImageCacher imageCacher;
 	/*package*/final Logger logger = LoggerFactory.getLogger(AbstractClientTab.class);
-	/** {@link jp.mydns.turenar.twclient.ClientProperties} */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties} */
 	protected final ClientProperties configProperties;
 	/**
 	 * 他のタブと区別するためのユニークなID。

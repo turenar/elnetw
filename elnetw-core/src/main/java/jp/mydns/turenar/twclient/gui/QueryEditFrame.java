@@ -32,7 +32,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.filter.IllegalSyntaxException;
 import jp.mydns.turenar.twclient.filter.query.FilterQueryFormatter;
 import jp.mydns.turenar.twclient.filter.query.FilterQueryNormalizer;

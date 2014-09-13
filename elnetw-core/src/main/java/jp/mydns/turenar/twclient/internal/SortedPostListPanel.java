@@ -24,8 +24,6 @@ package jp.mydns.turenar.twclient.internal;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -36,6 +34,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import jp.mydns.turenar.twclient.gui.render.RenderPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +97,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SortedPostListPanel extends JPanel implements PropertyChangeListener {
+public class SortedPostListPanel extends JPanel implements PropertyUpdateListener {
 	private static class Bucket {
 		private static final Logger logger = LoggerFactory.getLogger(Bucket.class);
 		private RenderPanel[] bucket;
@@ -264,7 +264,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 		this.leafSize = leafSize;
 		maxContainSize = maxSize;
 		branches = new LinkedList<>();
-		ClientConfiguration.getInstance().getConfigProperties().addPropertyChangedListener(this);
+		ClientConfiguration.getInstance().getConfigProperties().addPropertyUpdatedListener(this);
 		limitElapsedTime = getProperty(PROPERTY_LIMIT_ELAPSED_TIME);
 		bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);
 		bucket = new Bucket(bucketMaxSize);
@@ -480,7 +480,7 @@ public class SortedPostListPanel extends JPanel implements PropertyChangeListene
 	}
 
 	@Override
-	public synchronized void propertyChange(PropertyChangeEvent evt) {
+	public synchronized void propertyUpdate(PropertyUpdateEvent evt) {
 		switch (evt.getPropertyName()) {
 			case PROPERTY_BUCKET_SIZE:
 				bucketMaxSize = getProperty(PROPERTY_BUCKET_SIZE);

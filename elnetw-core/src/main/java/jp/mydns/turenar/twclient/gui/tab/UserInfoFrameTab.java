@@ -61,7 +61,7 @@ import javax.swing.text.html.StyleSheet;
 
 import com.twitter.Regex;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;

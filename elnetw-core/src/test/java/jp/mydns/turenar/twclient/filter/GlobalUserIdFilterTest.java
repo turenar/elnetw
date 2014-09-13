@@ -22,7 +22,7 @@
 package jp.mydns.turenar.twclient.filter;
 
 import jp.mydns.turenar.twclient.ClientConfigurationTestImpl;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import org.junit.Test;
 import twitter4j.DirectMessage;
 import twitter4j.Status;

@@ -24,8 +24,6 @@ package jp.mydns.turenar.twclient;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
@@ -35,6 +33,9 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -45,12 +46,12 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientPropertiesTest {
-	/*package*/static final class PropertyChangeListenerTestImpl implements PropertyChangeListener {
+	/*package*/static final class PropertyUpdateListenerTestImpl implements PropertyUpdateListener {
 
-		private PropertyChangeEvent evt;
+		private PropertyUpdateEvent evt;
 
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
+		public void propertyUpdate(PropertyUpdateEvent evt) {
 			this.evt = evt;
 		}
 
@@ -87,12 +88,12 @@ public class ClientPropertiesTest {
 		System.out.println(configProperties.getProperty(key));
 	}
 
-	/** {@link ClientProperties#addPropertyChangedListener(PropertyChangeListener)} のためのテスト・メソッド。 */
+	/** {@link ClientProperties#addPropertyUpdatedListener(PropertyUpdateListener)} のためのテスト・メソッド。 */
 	@Test
-	public void testAddPropertyChangedListener() {
+	public void testAddPropertyUpdatedListener() {
 		ClientProperties clientProperties = new ClientProperties();
-		PropertyChangeListenerTestImpl listener = new PropertyChangeListenerTestImpl();
-		clientProperties.addPropertyChangedListener(listener);
+		PropertyUpdateListenerTestImpl listener = new PropertyUpdateListenerTestImpl();
+		clientProperties.addPropertyUpdatedListener(listener);
 		clientProperties.setProperty("test", "aaa");
 		listener.test("test", null, clientProperties.getProperty("test"));
 		clientProperties.setProperty("test", "bbb");
@@ -110,7 +111,7 @@ public class ClientPropertiesTest {
 		assertFalse(clientProperties.getBoolean("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetColor() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -121,7 +122,7 @@ public class ClientPropertiesTest {
 		assertEquals(Color.white, clientProperties.getColor("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetDimension() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -206,7 +207,7 @@ public class ClientPropertiesTest {
 		assertEquals(Font.PLAIN, fontH.getStyle());
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetInteger() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -217,7 +218,7 @@ public class ClientPropertiesTest {
 		assertEquals(Integer.MIN_VALUE, clientProperties.getInteger("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetLong() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -370,13 +371,13 @@ public class ClientPropertiesTest {
 	}
 
 	@Test
-	public void testRemovePropertyChangedListener() {
+	public void testRemovePropertyUpdatedListener() {
 		ClientProperties clientProperties = new ClientProperties();
-		PropertyChangeListenerTestImpl listener = new PropertyChangeListenerTestImpl();
-		clientProperties.addPropertyChangedListener(listener);
+		PropertyUpdateListenerTestImpl listener = new PropertyUpdateListenerTestImpl();
+		clientProperties.addPropertyUpdatedListener(listener);
 		clientProperties.setProperty("test", "aaa");
 		listener.test("test", null, clientProperties.getProperty("test"));
-		clientProperties.removePropertyChangedListener(listener);
+		clientProperties.removePropertyUpdatedListener(listener);
 		clientProperties.setProperty("test", "bbb");
 		listener.testNotCalled();
 	}
