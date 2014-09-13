@@ -29,7 +29,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
-import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +84,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 	@Override
 	public void focusGained(FocusEvent e) {
 		super.focusGained(e);
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(getDate(), true), null,
+		getFrameApi().setTweetViewCreatedAt(renderer.toDateString(getDate(), true), null,
 				DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), longCreatedBy, null,
 				DO_NOTHING_WHEN_POINTED);

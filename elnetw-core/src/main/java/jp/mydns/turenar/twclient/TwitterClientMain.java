@@ -475,7 +475,13 @@ public final class TwitterClientMain {
 						new IntegerConfigType(1, 200));
 		configBuilder.getGroup("UI")
 				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
-				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100));
+				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100))
+				.addConfig("gui.date.type", "時間表示形式", null, new ComboBoxConfigType()
+						.addItem("秒", "sec")
+						.addItem("ミリ秒", "ms")
+						.addItem("秒+相対形式", "sec+rel")
+						.addItem("ミリ秒+相対形式", "ms+rel")
+						.addItem("相対形式", "rel"));
 		configBuilder.getGroup("core")
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
 						new IntegerConfigType(1, 60, 1000))

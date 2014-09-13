@@ -26,7 +26,6 @@ import java.awt.event.FocusEvent;
 import java.util.Date;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jp.mydns.turenar.twclient.Utility;
 import twitter4j.TwitterException;
 
 import static jp.mydns.turenar.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
@@ -60,7 +59,7 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 		StringBuilder escaped = escapeHTML(stringBuilder);
 
 		getFrameApi().setTweetViewText(escaped.toString(), null, DO_NOTHING_WHEN_POINTED);
-		getFrameApi().setTweetViewCreatedAt(Utility.getDateString(date, true), null,
+		getFrameApi().setTweetViewCreatedAt(renderer.toDateString(date, true), null,
 				DO_NOTHING_WHEN_POINTED);
 		getFrameApi().setTweetViewCreatedBy(componentUserIcon.getIcon(), ex.getClass().getName(), null,
 				DO_NOTHING_WHEN_POINTED);
