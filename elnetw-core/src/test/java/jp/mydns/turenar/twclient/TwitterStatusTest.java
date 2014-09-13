@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import org.junit.BeforeClass;

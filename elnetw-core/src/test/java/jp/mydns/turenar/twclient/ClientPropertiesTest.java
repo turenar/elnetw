@@ -35,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -110,7 +111,7 @@ public class ClientPropertiesTest {
 		assertFalse(clientProperties.getBoolean("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getColor(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetColor() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -121,7 +122,7 @@ public class ClientPropertiesTest {
 		assertEquals(Color.white, clientProperties.getColor("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getDimension(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetDimension() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -206,7 +207,7 @@ public class ClientPropertiesTest {
 		assertEquals(Font.PLAIN, fontH.getStyle());
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getInteger(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetInteger() {
 		ClientProperties clientProperties = new ClientProperties();
@@ -217,7 +218,7 @@ public class ClientPropertiesTest {
 		assertEquals(Integer.MIN_VALUE, clientProperties.getInteger("bbb"));
 	}
 
-	/** {@link jp.mydns.turenar.twclient.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。 */
+	/** {@link jp.mydns.turenar.twclient.conf.ClientProperties#getLong(java.lang.String)} のためのテスト・メソッド。 */
 	@Test
 	public void testGetLong() {
 		ClientProperties clientProperties = new ClientProperties();

@@ -74,6 +74,7 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import jp.mydns.turenar.twclient.JobQueue.Priority;
 import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.VersionInfoFrame;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;

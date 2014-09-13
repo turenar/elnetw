@@ -19,49 +19,47 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.config;
+package jp.mydns.turenar.twclient.gui.config;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
 /**
- * 真偽値を設定するタイプ。JCheckBoxを使用
+ * コンポーネントとかを生成するクラスインターフェース。設定用。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BooleanConfigType implements ConfigType {
+public interface ConfigType {
 
-	@Override
-	public JComponent getComponent(final String configKey, String nowValue, final ConfigFrame listener) {
-		final JCheckBox checkBox = new JCheckBox();
-		checkBox.setSelected(Boolean.parseBoolean(nowValue));
-		checkBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				listener.setValue(configKey, String.valueOf(checkBox.isSelected()));
-			}
-		});
-		return checkBox;
-	}
+	/**
+	 * コンポーネントを取得する。値が変更されたかどうかは実装元が判断してlistenerに投げること
+	 *
+	 * @param configKey 設定キー
+	 * @param nowValue  現在の値
+	 * @param listener  リスナ
+	 * @return コンポーネント
+	 */
+	JComponent getComponent(String configKey, String nowValue, ConfigFrame listener);
 
-	@Override
-	public String getValue(JComponent component) {
-		if (!(component instanceof JCheckBox)) {
-			throw new AssertionError();
-		}
-		return String.valueOf(((JCheckBox) component).isSelected());
-	}
+	/**
+	 * 指定されたコンポーネントの値を取得する。
+	 *
+	 * @param component コンポーネント
+	 * @return 値
+	 */
+	String getValue(JComponent component);
 
-	@Override
-	public boolean isPreferredAsMultiline() {
-		return false;
-	}
+	/**
+	 * 複数行 (説明とコンポーネントを別の行) にしたほうがいいかを返す。
+	 *
+	 * @return 複数行にしてもらいときはtrue
+	 */
+	boolean isPreferredAsMultiline();
 
-	@Override
-	public boolean isValid(JComponent component) {
-		return true;
-	}
+	/**
+	 * 正しいあたいかどうかを判定する
+	 *
+	 * @param component コンポーネント
+	 * @return 正しいかどうか
+	 */
+	boolean isValid(JComponent component);
 }

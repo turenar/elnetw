@@ -19,66 +19,45 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.config;
+package jp.mydns.turenar.twclient.gui.config;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
-
 /**
- * アクションコマンドを指定したコンフィグタイプ
+ * 真偽値を設定するタイプ。JCheckBoxを使用
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ActionButtonConfigType implements ConfigType {
-
-	private final String buttonText;
-	/*package*/final String actionCommand;
-	private final ActionListener actionListener = new ActionListener() {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			ClientConfiguration.getInstance().handleAction(new IntentArguments(actionCommand));
-		}
-	};
-	/*package*/final ClientFrameApi frameApi;
-
-
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param buttonText    ボタンに表示するテキスト
-	 * @param actionCommand アクションコマンド
-	 * @param frameApi      フレーム操作用API
-	 */
-	public ActionButtonConfigType(String buttonText, String actionCommand, ClientFrameApi frameApi) {
-		this.buttonText = buttonText;
-		this.actionCommand = actionCommand;
-		this.frameApi = frameApi;
-	}
+public class BooleanConfigType implements ConfigType {
 
 	@Override
-	public JComponent getComponent(String configKey, String nowValue, ConfigFrame listener) {
-		JButton button = new JButton(buttonText);
-		button.setActionCommand(actionCommand);
-		button.addActionListener(actionListener);
-		return button;
+	public JComponent getComponent(final String configKey, String nowValue, final ConfigFrame listener) {
+		final JCheckBox checkBox = new JCheckBox();
+		checkBox.setSelected(Boolean.parseBoolean(nowValue));
+		checkBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				listener.setValue(configKey, String.valueOf(checkBox.isSelected()));
+			}
+		});
+		return checkBox;
 	}
 
 	@Override
 	public String getValue(JComponent component) {
-		return null;
+		if (!(component instanceof JCheckBox)) {
+			throw new AssertionError();
+		}
+		return String.valueOf(((JCheckBox) component).isSelected());
 	}
 
 	@Override
 	public boolean isPreferredAsMultiline() {
-		return true;
+		return false;
 	}
 
 	@Override

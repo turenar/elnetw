@@ -57,7 +57,7 @@ import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
@@ -375,7 +375,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	}
 
 	/**
-	 * get {@link jp.mydns.turenar.twclient.ClientProperties} instance
+	 * get {@link jp.mydns.turenar.twclient.conf.ClientProperties} instance
 	 *
 	 * @return getRenderer().getConfigProperties()
 	 */

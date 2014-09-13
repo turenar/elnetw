@@ -32,7 +32,7 @@ import javax.swing.JLabel;
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.CacheManager;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.filter.MessageFilter;
 import jp.mydns.turenar.twclient.gui.ImageResource;

@@ -78,12 +78,13 @@ import jp.mydns.turenar.twclient.bus.factory.TwitterStreamChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.UserTimelineChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.VirtualChannelFactory;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
-import jp.mydns.turenar.twclient.config.ActionButtonConfigType;
-import jp.mydns.turenar.twclient.config.BooleanConfigType;
-import jp.mydns.turenar.twclient.config.ConfigFrameBuilder;
-import jp.mydns.turenar.twclient.config.ConsumerTokenConfigType;
-import jp.mydns.turenar.twclient.config.IntegerConfigType;
-import jp.mydns.turenar.twclient.config.QueryEditConfigType;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.gui.config.ActionButtonConfigType;
+import jp.mydns.turenar.twclient.gui.config.BooleanConfigType;
+import jp.mydns.turenar.twclient.gui.config.ConfigFrameBuilder;
+import jp.mydns.turenar.twclient.gui.config.ConsumerTokenConfigType;
+import jp.mydns.turenar.twclient.gui.config.IntegerConfigType;
+import jp.mydns.turenar.twclient.gui.config.QueryEditConfigType;
 import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
 import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
@@ -445,7 +446,7 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * init config builder
+	 * init conf builder
 	 */
 	@Initializer(name = "gui/config/builder", phase = "preinit")
 	public void initConfigBuilder() {
@@ -785,7 +786,7 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * set config properties
+	 * set conf properties
 	 *
 	 * @param condition init condition
 	 */
@@ -832,7 +833,7 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * set default config properties
+	 * set default conf properties
 	 */
 	@Initializer(name = "config/default", dependencies = "internal/portableConfig", phase = "earlyinit")
 	public void setDefaultConfigProperties() {
