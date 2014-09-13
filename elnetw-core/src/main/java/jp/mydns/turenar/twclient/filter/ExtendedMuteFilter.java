@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientProperties;
 import org.slf4j.Logger;
@@ -46,13 +45,12 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 	/**
 	 * property name for user ids
 	 */
-	public static final String PROPERTY_KEY_FILTER_CLIENT = "core.filter.client";
+	public static final String PROPERTY_KEY_FILTER_CLIENT = "core.filter.clients";
 	public static final String PROPERTY_KEY_FILTER_WORDS = "core.filter.words";
 	private final ClientConfiguration configuration;
 	private final Logger logger = LoggerFactory.getLogger(ExtendedMuteFilter.class);
-	private volatile LongHashSet filterIds;
-	private HashSet<String> clients;
-	private Pattern wordPatterns;
+	private volatile HashSet<String> clients;
+	private volatile Pattern wordPatterns;
 
 
 	/**
@@ -61,8 +59,14 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 	public ExtendedMuteFilter() {
 		this.configuration = ClientConfiguration.getInstance();
 		configuration.getConfigProperties().addPropertyChangedListener(this);
-		filterIds = new LongHashSet();
 		initFilter();
+	}
+
+	@Override
+	public ExtendedMuteFilter clone() throws CloneNotSupportedException {
+		ExtendedMuteFilter clone = (ExtendedMuteFilter) super.clone();
+		configuration.getConfigProperties().addPropertyChangedListener(clone);
+		return clone;
 	}
 
 	/**
@@ -85,7 +89,7 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 
 	@Override
 	protected boolean filterUser(long userId) {
-		return filterIds.contains(userId);
+		return false;
 	}
 
 	/**
@@ -100,7 +104,8 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 
 	private void initFilter() {
 		ClientProperties configProperties = configuration.getConfigProperties();
-		HashSet<String> clients = new HashSet<>(configProperties.getList(PROPERTY_KEY_FILTER_CLIENT));
+		this.clients = new HashSet<>(configProperties.getList(PROPERTY_KEY_FILTER_CLIENT));
+
 		List<String> wordList = configProperties.getList(PROPERTY_KEY_FILTER_WORDS);
 		if (!wordList.isEmpty()) {
 			StringBuilder wordMuteBuilder = new StringBuilder();
@@ -121,7 +126,6 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 					logger.warn("Illegal regex syntax: {}", word);
 				}
 			}
-			this.clients = clients;
 			this.wordPatterns = Pattern.compile(wordMuteBuilder.toString());
 		} else {
 			this.wordPatterns = null;

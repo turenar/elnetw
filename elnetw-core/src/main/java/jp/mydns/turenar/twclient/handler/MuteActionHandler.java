@@ -24,6 +24,8 @@ package jp.mydns.turenar.twclient.handler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -34,8 +36,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import jp.mydns.turenar.twclient.ClientProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jp.mydns.turenar.twclient.filter.ExtendedMuteFilter;
+import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -45,12 +47,40 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MuteActionHandler extends StatusActionHandlerBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(MuteActionHandler.class);
-
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("ミュートに追加する");
+		Status status = getStatus(arguments);
+		if (status == null) {
+			throwIllegalArgument();
+		}
+		String arg = arguments.getExtraObj("_arg", String.class, "user");
+		String text;
+		switch (arg) {
+			case "user":
+				text = toMenuText(status.getUser());
+				break;
+			case "rt_user":
+				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getUser()) : null;
+				break;
+			case "client":
+				text = toMenuText(status.getSource());
+				break;
+			case "rt_client":
+				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getSource()) : null;
+				break;
+			case "text":
+				text = "ワード...";
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported mute type: " + arg);
+		}
+		return text == null ? null : new JMenuItem(text);
+	}
+
+	private String getClientName(String source) {
+		int startTagEnd = source.indexOf('>');
+		int endTagStart = source.lastIndexOf('<');
+		return startTagEnd < 0 ? source : source.substring(startTagEnd + 1, endTagStart);
 	}
 
 	@Override
@@ -59,66 +89,147 @@ public class MuteActionHandler extends StatusActionHandlerBase {
 		if (status == null) {
 			throwIllegalArgument();
 		}
-		if (status.isRetweet()) {
-			status = status.getRetweetedStatus();
+		String arg = arguments.getExtraObj("_arg", String.class, "user");
+		final String propName;
+		final String propValue;
+		String text;
+		switch (arg) {
+			case "user":
+				text = toMenuText(status.getUser());
+				propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+				propValue = String.valueOf(status.getUser().getId());
+				break;
+			case "rt_user":
+				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getUser()) : null;
+				propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+				propValue = status.isRetweet() ? String.valueOf(status.getRetweetedStatus().getUser().getId()) : null;
+				break;
+			case "client":
+				text = toMenuText(status.getSource());
+				propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+				propValue = getClientName(status.getSource());
+				break;
+			case "rt_client":
+				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getSource()) : null;
+				propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+				propValue = status.isRetweet() ? getClientName(status.getRetweetedStatus().getSource()) : null;
+				break;
+			case "text":
+				showMuteTextInput();
+				return;
+			default:
+				throw new IllegalArgumentException("Unsupported mute type: " + arg);
 		}
-		final User user = status.getUser();
-		if (configuration.isMyAccount(user.getId())) {
-			JPanel panel = new JPanel();
-			BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
-			panel.setLayout(layout);
-			panel.add(new JLabel("次のツイートをミュートしますか？"));
-			panel.add(Box.createVerticalStrut(15));
-			panel.add(new JLabel(MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName())));
-			final JOptionPane pane =
-					new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-			JDialog dialog = pane.createDialog(null, "確認");
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			pane.addPropertyChangeListener(new PropertyChangeListener() {
+		JPanel panel = new JPanel();
+		BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+		panel.setLayout(layout);
+		panel.add(new JLabel("次をミュートしますか？"));
+		panel.add(Box.createVerticalStrut(15));
+		panel.add(new JLabel(text));
+		final JOptionPane pane =
+				new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+		JDialog dialog = pane.createDialog(null, "確認");
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		pane.addPropertyChangeListener(new PropertyChangeListener() {
 
-				@Override
-				public void propertyChange(PropertyChangeEvent evt) {
-					if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
-						if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-							ClientProperties configProperties = configuration.getConfigProperties();
-							List<String> idsString = configProperties.getList("core.filter.user.ids");
-							idsString.add(String.valueOf(user.getId()));
-						}
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
+					if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
+						ClientProperties configProperties = configuration.getConfigProperties();
+						List<String> idsString = configProperties.getList(propName);
+						idsString.add(propValue);
 					}
 				}
-			});
-			dialog.setVisible(true);
-		}
+			}
+		});
+		dialog.setVisible(true);
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 		Status status = getStatus(arguments);
 		if (status != null) {
-			if (status.isRetweet()) {
-				status = status.getRetweetedStatus();
-			}
-			User user = status.getUser();
-
-			boolean isTweetedByMe = user.getId() == getLoginUserId();
-
-			List<String> idsList = configuration.getConfigProperties().getList("core.filter.user.ids");
-			String userIdString = String.valueOf(user.getId());
-			boolean filtered = false;
-			for (String id : idsList) {
-				if (id.equals(userIdString)) {
-					filtered = true;
-					break;
+			String arg = arguments.getExtraObj("_arg", String.class);
+			final String propName;
+			final String propValue;
+			String text;
+			if (arg.startsWith("rt_")) {
+				if (!status.isRetweet()) {
+					menuItem.setVisible(false);
+					return;
 				}
+
+				status = status.getRetweetedStatus();
+				arg = arg.substring("rt_".length());
 			}
-			logger.trace("filtered: {}", filtered);
-			menuItem.setText("ミュートに追加する");
+			boolean isTweetedByMe = false;
+			switch (arg) {
+				case "user":
+					text = toMenuText(status.getUser());
+					propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+					propValue = String.valueOf(status.getUser().getId());
+					isTweetedByMe = configuration.isMyAccount(status.getUser().getId());
+					break;
+				case "client":
+					text = toMenuText(status.getSource());
+					propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+					propValue = getClientName(status.getSource());
+					break;
+				case "text":
+					text = "ワード...";
+					propName = null;
+					propValue = ""; // stub: this value is not checked at all
+					break;
+				default:
+					throw new IllegalArgumentException("Unsupported mute type: " + arg);
+			}
+
+			boolean filtered = false;
+			if (propName != null) {
+				List<String> idsList = configuration.getConfigProperties().getList(propName);
+				filtered = idsList.contains(propValue);
+				isTweetedByMe = configuration.isMyAccount(propValue);
+			}
+			menuItem.setText(text);
 			menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
-			menuItem.setVisible(!isTweetedByMe);
-			menuItem.setEnabled((isTweetedByMe || filtered) == false);
+			menuItem.setVisible(true);
+			menuItem.setEnabled(!(isTweetedByMe || filtered));
 		} else {
 			menuItem.setVisible(false);
 			menuItem.setEnabled(false);
 		}
+	}
+
+	private void showMuteTextInput() {
+		String message = "";
+		String lastRegex = null;
+		do {
+			String muteRegexStr = (String) JOptionPane.showInputDialog(null,
+					"ミュートするテキストを正規表現で指定してください。" + message, "ミュート", JOptionPane.QUESTION_MESSAGE,
+					null, null, lastRegex);
+			try {
+				if (muteRegexStr == null) {
+					// user cancelled
+					return;
+				}
+				// check compilable
+				Pattern pattern = Pattern.compile(muteRegexStr);
+				List<String> muteList = configuration.getConfigProperties().getList("core.filter.words");
+				muteList.add(pattern.toString());
+				return;
+			} catch (PatternSyntaxException e) {
+				message = "\n\n" + e.getLocalizedMessage();
+				lastRegex = muteRegexStr;
+			}
+		} while (true);
+	}
+
+	private String toMenuText(String source) {
+		return "クライアント: " + getClientName(source);
+	}
+
+	private String toMenuText(User user) {
+		return "ユーザー: @" + user.getScreenName() + " (" + user.getName() + ")";
 	}
 }
