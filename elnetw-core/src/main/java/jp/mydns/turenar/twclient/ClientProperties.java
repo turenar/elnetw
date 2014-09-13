@@ -286,6 +286,16 @@ public class ClientProperties implements Map<String, String> {
 		}
 
 		@Override
+		public String set(int index, String element) {
+			synchronized (ClientProperties.this) {
+				checkRange(index, false);
+				String oldValue = setProperty(getKeyOf(index), element);
+				firePropertyChanged(key);
+				return oldValue;
+			}
+		}
+
+		@Override
 		public String remove(int index) {
 			synchronized (ClientProperties.this) {
 				checkRange(index, false);
@@ -315,6 +325,11 @@ public class ClientProperties implements Map<String, String> {
 			len += delta;
 			setProperty(key, "#list:" + len);
 		}
+	}
+
+	/*package*/ void firePropertyChanged(String key) {
+		String value = getProperty(key);
+		firePropertyChanged(key, value, value);
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
