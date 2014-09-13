@@ -24,8 +24,6 @@ package jp.mydns.turenar.twclient.conf;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -221,13 +219,13 @@ public class ClientProperties implements Map<String, String> {
 		}
 	}
 
-	private class PropWrappedList extends AbstractList<String> implements PropertyChangeListener {
+	private class PropWrappedList extends AbstractList<String> implements PropertyUpdateListener {
 		private final String key;
 		private int len;
 
 		public PropWrappedList(String key) {
 			this.key = key;
-			addPropertyChangedListener(this);
+			addPropertyUpdatedListener(this);
 			updateLen();
 		}
 
@@ -279,19 +277,9 @@ public class ClientProperties implements Map<String, String> {
 		}
 
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
+		public void propertyUpdate(PropertyUpdateEvent evt) {
 			if (evt.getPropertyName().equals(key)) {
 				updateLen();
-			}
-		}
-
-		@Override
-		public String set(int index, String element) {
-			synchronized (ClientProperties.this) {
-				checkRange(index, false);
-				String oldValue = setProperty(getKeyOf(index), element);
-				firePropertyChanged(key);
-				return oldValue;
 			}
 		}
 
@@ -312,6 +300,16 @@ public class ClientProperties implements Map<String, String> {
 		}
 
 		@Override
+		public String set(int index, String element) {
+			synchronized (ClientProperties.this) {
+				checkRange(index, false);
+				String oldValue = setProperty(getKeyOf(index), element);
+				firePropertyUpdated(key);
+				return oldValue;
+			}
+		}
+
+		@Override
 		public int size() {
 			return len;
 		}
@@ -325,11 +323,6 @@ public class ClientProperties implements Map<String, String> {
 			len += delta;
 			setProperty(key, "#list:" + len);
 		}
-	}
-
-	/*package*/ void firePropertyChanged(String key) {
-		String value = getProperty(key);
-		firePropertyChanged(key, value, value);
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ClientProperties.class);
@@ -411,7 +404,7 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	protected final ClientProperties defaults;
 	/** リスナの配列 */
-	protected transient ConcurrentLinkedQueue<WeakReferenceEx<PropertyChangeListener>> listeners;
+	protected transient ConcurrentLinkedQueue<WeakReferenceEx<PropertyUpdateListener>> listeners;
 	/** 保存先のファイル */
 	protected Path storePath;
 	/**
@@ -435,11 +428,11 @@ public class ClientProperties implements Map<String, String> {
 	}
 
 	/**
-	 * PropertyChangedListnerを追加する
+	 * PropertyUpdatedListnerを追加する
 	 *
 	 * @param listener リスナ。nullは不可
 	 */
-	public synchronized void addPropertyChangedListener(PropertyChangeListener listener) {
+	public synchronized void addPropertyUpdatedListener(PropertyUpdateListener listener) {
 		if (listener == null) {
 			throw new IllegalArgumentException("listenerはnullであってはいけません。");
 		}
@@ -486,6 +479,11 @@ public class ClientProperties implements Map<String, String> {
 		return true;
 	}
 
+	/*package*/ void firePropertyUpdated(String key) {
+		String value = getProperty(key);
+		firePropertyUpdated(key, value, value);
+	}
+
 	/**
 	 * プロパティーが変更されたことを通知する。
 	 *
@@ -493,15 +491,15 @@ public class ClientProperties implements Map<String, String> {
 	 * @param oldValue 古い値
 	 * @param newValue 新しい値
 	 */
-	public synchronized void firePropertyChanged(String key, String oldValue, String newValue) {
-		PropertyChangeEvent evt = new PropertyChangeEvent(this, key, oldValue, newValue);
-		for (Iterator<WeakReferenceEx<PropertyChangeListener>> iterator = listeners.iterator(); iterator.hasNext(); ) {
-			WeakReferenceEx<PropertyChangeListener> ref = iterator.next();
-			PropertyChangeListener listener = ref.get();
+	public synchronized void firePropertyUpdated(String key, String oldValue, String newValue) {
+		PropertyUpdateEvent evt = new PropertyUpdateEvent(this, key, oldValue, newValue);
+		for (Iterator<WeakReferenceEx<PropertyUpdateListener>> iterator = listeners.iterator(); iterator.hasNext(); ) {
+			WeakReferenceEx<PropertyUpdateListener> ref = iterator.next();
+			PropertyUpdateListener listener = ref.get();
 			if (listener == null) {
 				iterator.remove();
 			} else {
-				listener.propertyChange(evt);
+				listener.propertyUpdate(evt);
 			}
 		}
 	}
@@ -1234,7 +1232,7 @@ public class ClientProperties implements Map<String, String> {
 
 	@Override
 	public synchronized String remove(Object key) {
-		firePropertyChanged((String) key, getProperty((String) key), null);
+		firePropertyUpdated((String) key, getProperty((String) key), null);
 		return properties.remove(key);
 	}
 
@@ -1267,12 +1265,12 @@ public class ClientProperties implements Map<String, String> {
 	}
 
 	/**
-	 * 登録済みの {@link PropertyChangeListener}を削除する
+	 * 登録済みの {@link PropertyUpdateListener}を削除する
 	 *
 	 * @param listener リスナ
 	 * @return 登録されて削除された場合true
 	 */
-	public synchronized boolean removePropertyChangedListener(PropertyChangeListener listener) {
+	public synchronized boolean removePropertyUpdatedListener(PropertyUpdateListener listener) {
 		return listeners.remove(new WeakReferenceEx<>(listener));
 	}
 
@@ -1454,7 +1452,7 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized String setProperty(String key, String newValue) {
 		String oldValue = properties.put(key, newValue);
-		firePropertyChanged(key, oldValue, newValue);
+		firePropertyUpdated(key, oldValue, newValue);
 		return oldValue;
 	}
 

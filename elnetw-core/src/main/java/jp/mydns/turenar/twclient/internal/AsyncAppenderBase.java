@@ -36,8 +36,6 @@
  */
 package jp.mydns.turenar.twclient.internal;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -49,6 +47,8 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.spi.AppenderAttachable;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 
 /**
  * Async Appender for slf4j/logback. Original source code is derived from logback
@@ -58,7 +58,7 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
-		implements AppenderAttachable<E>, PropertyChangeListener {
+		implements AppenderAttachable<E>, PropertyUpdateListener {
 
 	/**
 	 * timed worker
@@ -252,13 +252,13 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	}
 
 	@Override
-	public synchronized void propertyChange(PropertyChangeEvent evt) {
+	public synchronized void propertyUpdate(PropertyUpdateEvent evt) {
 		if (PROPERTY_FLUSH_INTERVAL.equals(evt.getPropertyName())) {
 			if (timerWorkerFuture != null) {
 				timerWorkerFuture.cancel(false);
 			}
 			ClientConfiguration configuration = ClientConfiguration.getInstance();
-			long interval = configuration.getConfigProperties().getTime(PROPERTY_FLUSH_INTERVAL);
+			long interval = evt.getSource().getTime(PROPERTY_FLUSH_INTERVAL);
 			timerWorkerFuture = configuration.getTimer()
 					.scheduleWithFixedDelay(timerWorker, interval, interval, TimeUnit.MILLISECONDS);
 		}
@@ -311,7 +311,7 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 
 		// don't queue into Timer: not initialized
 		ClientConfiguration configuration = ClientConfiguration.getInstance();
-		configuration.getConfigProperties().addPropertyChangedListener(this);
+		configuration.getConfigProperties().addPropertyUpdatedListener(this);
 		Runtime.getRuntime().addShutdownHook(new Thread("logger-flusher") {
 			@Override
 			public void run() {

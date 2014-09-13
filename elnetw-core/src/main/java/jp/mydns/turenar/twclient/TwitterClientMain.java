@@ -79,17 +79,17 @@ import jp.mydns.turenar.twclient.bus.factory.UserTimelineChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.VirtualChannelFactory;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
+import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
+import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
+import jp.mydns.turenar.twclient.filter.query.func.StandardFunctionFactory;
+import jp.mydns.turenar.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.mydns.turenar.twclient.gui.config.ActionButtonConfigType;
 import jp.mydns.turenar.twclient.gui.config.BooleanConfigType;
 import jp.mydns.turenar.twclient.gui.config.ConfigFrameBuilder;
 import jp.mydns.turenar.twclient.gui.config.ConsumerTokenConfigType;
 import jp.mydns.turenar.twclient.gui.config.IntegerConfigType;
 import jp.mydns.turenar.twclient.gui.config.QueryEditConfigType;
-import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
-import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
-import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
-import jp.mydns.turenar.twclient.filter.query.func.StandardFunctionFactory;
-import jp.mydns.turenar.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.mydns.turenar.twclient.gui.render.simple.RenderObjectHandler;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
@@ -652,7 +652,7 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "log/flush", dependencies = {"timer", "config/default", "config"}, phase = "earlyinit")
 	public void registerLogFlusher() {
-		configProperties.firePropertyChanged(AsyncAppender.PROPERTY_FLUSH_INTERVAL, null, null);
+		configProperties.firePropertyUpdated(AsyncAppender.PROPERTY_FLUSH_INTERVAL, null, null);
 	}
 
 	/**

@@ -23,14 +23,14 @@ package jp.mydns.turenar.twclient.filter.delayed;
 
 import java.awt.Color;
 import java.awt.EventQueue;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageAdapter;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.channel.BlockingUsersChannel;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import jp.mydns.turenar.twclient.filter.AbstractMessageFilter;
 import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
 import twitter4j.User;
@@ -40,7 +40,7 @@ import twitter4j.User;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class BlockingUserFilter extends DelayedFilter implements PropertyChangeListener {
+public class BlockingUserFilter extends DelayedFilter implements PropertyUpdateListener {
 
 	private class BlockingUsersListener extends ClientMessageAdapter {
 		@Override
@@ -106,7 +106,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 	 */
 	private void init() {
 		if (!isGlobal) {
-			configuration.getConfigProperties().addPropertyChangedListener(this);
+			configuration.getConfigProperties().addPropertyUpdatedListener(this);
 			if (isEnabled) {
 				queueBlockingFetcher();
 			}
@@ -126,10 +126,9 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyChangeL
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+	public void propertyUpdate(PropertyUpdateEvent evt) {
 		if (evt.getPropertyName().equals(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED)) {
-			isEnabled = configuration.getConfigProperties()
-					.getBoolean(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED);
+			isEnabled = evt.getSource().getBoolean(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED);
 			if (isEnabled) {
 				startDelay();
 				showFetchingBlocking();
