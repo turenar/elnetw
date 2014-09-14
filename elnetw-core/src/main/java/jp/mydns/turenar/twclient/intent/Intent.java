@@ -19,55 +19,40 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
-
 /**
- * リログインするためのアクションハンドラ
+ * アクションハンドラ。
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ReloginActionHandler implements ActionHandler {
-
-	private final boolean forWrite;
-	private final ClientConfiguration configuration;
+public interface Intent {
+	/** 現在選択しているポストのデータ。StatusData */
+	/*public static final*/ String INTENT_ARG_NAME_SELECTING_POST_DATA = "selectingPost";
 
 	/**
-	 * インスタンスを生成する。
+	 * JMenuItemを作成する。これはキャッシュしないで下さい。予想外のエラーが発生する可能性があります。
+	 * また、ActionCommandは設定する必要はありません。呼び出し元でoverrideされます。
 	 *
-	 * @param forWrite 書き込み用
+	 * @param args 引数
+	 * @return JMenuItem
 	 */
-	public ReloginActionHandler(boolean forWrite) {
-		this.forWrite = forWrite;
-		configuration = ClientConfiguration.getInstance();
-	}
+	JMenuItem createJMenuItem(IntentArguments args);
 
-	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
-	}
+	/**
+	 * 動作させる
+	 *
+	 * @param args 引数
+	 */
+	void handleAction(IntentArguments args);
 
-	@Override
-	public void handleAction(IntentArguments args) {
-		String accountId = args.getExtraObj("accountId", String.class);
-		if (accountId == null) {
-			throw new IllegalArgumentException("Required arg: `accountId'");
-		}
-
-		if (forWrite) {
-			configuration.setAccountIdForWrite(accountId);
-		} else {
-			configuration.setAccountIdForRead(accountId);
-		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// TODO Auto-generated method stub
-
-	}
+	/**
+	 * メニューが表示される前に呼ばれる関数。
+	 *
+	 * @param menuItem メニューアイテム
+	 * @param args     引数
+	 */
+	void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args);
 }

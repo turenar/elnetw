@@ -68,8 +68,8 @@ import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
-import jp.mydns.turenar.twclient.handler.UserInfoViewActionHandler;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.UserInfoViewIntent;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
@@ -399,7 +399,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 			try {
 				final JLabel closeIcon =
-						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewActionHandler.class
+						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewIntent.class
 								.getResource("/jp/mydns/turenar/twclient/img/close16.png"))));
 				closeIcon.setText("閉じる");
 				closeIcon.setFont(operationFont);

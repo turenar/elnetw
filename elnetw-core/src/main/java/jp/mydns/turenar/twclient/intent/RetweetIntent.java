@@ -19,27 +19,69 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
+
+import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
+import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.internal.TwitterRunnable;
+import twitter4j.Status;
+import twitter4j.TwitterException;
 
 /**
- * 何もしないActionHandler
+ * 公式リツイートするためのアクションハンドラ
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DoNothingActionHandler implements ActionHandler {
+public class RetweetIntent extends StatusIntentBase {
+
+	private static class RetweetTask extends TwitterRunnable {
+
+		private final Status status;
+
+		public RetweetTask(Status status) {
+			this.status = status;
+		}
+
+		@Override
+		public void access() throws TwitterException {
+			configuration.getTwitterForWrite().retweetStatus(status.getId());
+		}
+	}
+
+	private final ClientConfiguration configuration;
+
+	public RetweetIntent() {
+		configuration = ClientConfiguration.getInstance();
+	}
+
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
+		return retweetMenuItem;
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
+		}
+
+		configuration.addJob(new RetweetTask(status));
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		menuItem.setEnabled(false);
+		Status status = getStatus(args);
+		if (status == null) {
+			menuItem.setVisible(false);
+			menuItem.setEnabled(false);
+		} else {
+			menuItem.setEnabled(status.getUser().isProtected() == false);
+			menuItem.setVisible(status.getUser().getId() != getLoginUserId());
+		}
 	}
 }

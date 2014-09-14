@@ -26,7 +26,7 @@ import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 
 /**
  * タブのデータを管理するクラス
@@ -111,7 +111,7 @@ public interface ClientTab {
 	 * </p>
 	 *
 	 * @param command コマンド名
-	 * @deprecated use {@link #handleAction(jp.mydns.turenar.twclient.handler.IntentArguments)}
+	 * @deprecated use {@link #handleAction(jp.mydns.turenar.twclient.intent.IntentArguments)}
 	 */
 	@Deprecated
 	void handleAction(String command);

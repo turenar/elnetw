@@ -19,42 +19,43 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.gui.AddClientTabConfirmFrame;
+import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
+import jp.mydns.turenar.twclient.internal.IntentActionListener;
 
 /**
- * アクションハンドラ。
+ * action intent for adding client tab
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface ActionHandler {
-	/** 現在選択しているポストのデータ。StatusData */
-	/*public static final*/ String INTENT_ARG_NAME_SELECTING_POST_DATA = "selectingPost";
+public class AddClientTabIntent implements Intent {
+	@Override
+	public JMenuItem createJMenuItem(IntentArguments args) {
+		String tabId = args.getExtraObj("tabId", String.class);
+		if (tabId == null) {
+			throw new IllegalArgumentException("tabId is not specified!");
+		}
+		ClientTabFactory factory = ClientConfiguration.getClientTabFactory(tabId);
+		if (factory == null) {
+			throw new IllegalArgumentException("tabId[" + tabId + "] is unknown!");
+		}
+		JMenuItem factoryItem = new JMenuItem(factory.getName());
+		factoryItem.addActionListener(new IntentActionListener("tab_add").putExtra("tabId", tabId));
+		return factoryItem;
+	}
 
-	/**
-	 * JMenuItemを作成する。これはキャッシュしないで下さい。予想外のエラーが発生する可能性があります。
-	 * また、ActionCommandは設定する必要はありません。呼び出し元でoverrideされます。
-	 *
-	 * @param args 引数
-	 * @return JMenuItem
-	 */
-	JMenuItem createJMenuItem(IntentArguments args);
+	@Override
+	public void handleAction(IntentArguments args) {
+		new AddClientTabConfirmFrame(args.getExtraObj("tabId", String.class)).setVisible(true);
+	}
 
-	/**
-	 * 動作させる
-	 *
-	 * @param args 引数
-	 */
-	void handleAction(IntentArguments args);
+	@Override
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 
-	/**
-	 * メニューが表示される前に呼ばれる関数。
-	 *
-	 * @param menuItem メニューアイテム
-	 * @param args     引数
-	 */
-	void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args);
+	}
 }

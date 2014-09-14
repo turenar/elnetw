@@ -19,9 +19,32 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package jp.mydns.turenar.twclient.intent;
+
+import javax.swing.JMenuItem;
+
+import jp.mydns.turenar.twclient.ClientFrameApi;
+
 /**
- * ActionHandler用のパッケージ。
+ * Clear text in PostBox
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-package jp.mydns.turenar.twclient.handler;
+public class ClearPostBoxIntent extends StatusIntentBase {
+
+	@Override
+	public JMenuItem createJMenuItem(IntentArguments arguments) {
+		return null;
+	}
+
+	@Override
+	public void handleAction(IntentArguments arguments) {
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setPostText("");
+		api.setTweetLengthCalculator(null);
+	}
+
+	@Override
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+	}
+}

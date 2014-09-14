@@ -19,49 +19,44 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import java.awt.event.KeyEvent;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
-import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.internal.QuoteTweetLengthCalculator;
-import twitter4j.Status;
+import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
- * QTするためのアクションハンドラ
+ * アカウント認証するアクションハンドラ
  *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class QuoteTweetActionHandler extends StatusActionHandlerBase {
+public class AccountVerifierIntent implements Intent {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
-		return quoteMenuItem;
+	public JMenuItem createJMenuItem(IntentArguments args) {
+		return null;
 	}
 
 	@Override
-	public void handleAction(IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status == null) {
-			throwIllegalArgument();
-		}
+	public void handleAction(IntentArguments args) {
+		final ClientConfiguration configuration = ClientConfiguration.getInstance();
+		Thread thread = new Thread(new Runnable() {
 
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setInReplyToStatus(status);
-		api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-		api.focusPostBox();
-		api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
+			@Override
+			public void run() {
+				Exception exception = configuration.tryGetOAuthToken();
+				if (exception != null) {
+					JOptionPane.showMessageDialog(configuration.getFrameApi().getFrame(),
+							"認証に失敗しました: " + exception.getMessage(), "エラー",
+							JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}, "oauth-thread");
+		thread.start();
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		if (getStatus(arguments) != null) {
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 }

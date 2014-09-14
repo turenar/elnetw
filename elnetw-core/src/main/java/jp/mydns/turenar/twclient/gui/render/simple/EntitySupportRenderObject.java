@@ -27,7 +27,7 @@ import java.util.HashMap;
 import javax.swing.JLabel;
 
 import jp.mydns.turenar.twclient.gui.ImageResource;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.media.MediaUrlDispatcher;
 import jp.mydns.turenar.twclient.media.UrlInfo;
 import jp.mydns.turenar.twclient.media.UrlResolverManager;

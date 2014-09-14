@@ -19,39 +19,51 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ClientFrameApi;
-import twitter4j.Status;
+import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.bus.MessageBus;
 
 /**
- * Unofficial RT (like QT:) Action Handler
+ * 検索するアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
+public class SearchIntent implements Intent {
+
+	private final ClientConfiguration configuration;
+
+	public SearchIntent() {
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {
-		return new JMenuItem("非公式RT");
+		return null;
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		Status status = getStatus(args);
-		if (status == null) {
-			throwIllegalArgument();
+		String queryStr = args.getExtraObj("query", String.class);
+		if (queryStr == null) {
+			throw new IllegalArgumentException("arg `query' is required.");
 		}
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-		api.focusPostBox();
+		try {
+			configuration.getUtility().openBrowser(
+					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
+		} catch (URISyntaxException e) {
+			throw new AssertionError(e);
+		} catch (Exception e) {
+			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
+		}
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		Status status = getStatus(args);
-		menuItem.setEnabled(status != null);
 	}
 }

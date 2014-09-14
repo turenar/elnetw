@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -46,7 +46,7 @@ import twitter4j.User;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MuteActionHandler extends StatusActionHandlerBase {
+public class MuteIntent extends StatusIntentBase {
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
 		Status status = getStatus(arguments);

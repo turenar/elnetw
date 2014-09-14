@@ -26,9 +26,9 @@ import java.awt.Component;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RenderObjectHandler implements ActionHandler {
+public class RenderObjectHandler implements Intent {
 	private static final Logger logger = LoggerFactory.getLogger(RenderObjectHandler.class);
 
 	@Override
@@ -65,7 +65,7 @@ public class RenderObjectHandler implements ActionHandler {
 					AbstractRenderObject renderObject = args.getExtraObj(INTENT_ARG_NAME_SELECTING_POST_DATA,
 							AbstractRenderObject.class);
 					IntentArguments intentArguments = renderObject.getIntentArguments(actionCommand);
-					ClientConfiguration.getInstance().getActionHandler(intentArguments).popupMenuWillBecomeVisible(
+					ClientConfiguration.getInstance().getIntent(intentArguments).popupMenuWillBecomeVisible(
 							subMenuItem,
 							intentArguments);
 				}

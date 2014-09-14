@@ -19,20 +19,14 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.internal;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
-
 /**
- * 設定フレームを表示するアクションハンドラ
- *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * 何もしないActionHandler
  */
-public class MenuConfiguratorActionHandler implements ActionHandler {
+public class DoNothingIntent implements Intent {
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {
 		return null;
@@ -40,11 +34,10 @@ public class MenuConfiguratorActionHandler implements ActionHandler {
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		ClientConfiguration.getInstance().getConfigBuilder().show();
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled.
+		menuItem.setEnabled(false);
 	}
 }

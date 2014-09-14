@@ -19,45 +19,39 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.ClientFrameApi;
+import twitter4j.Status;
 
 /**
- * アカウント認証するアクションハンドラ
+ * Unofficial RT (like QT:) Action Handler
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class AccountVerifierActionHandler implements ActionHandler {
+public class UnofficialRetweetIntent extends StatusIntentBase {
 
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+		return new JMenuItem("非公式RT");
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		final ClientConfiguration configuration = ClientConfiguration.getInstance();
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				Exception exception = configuration.tryGetOAuthToken();
-				if (exception != null) {
-					JOptionPane.showMessageDialog(configuration.getFrameApi().getFrame(),
-							"認証に失敗しました: " + exception.getMessage(), "エラー",
-							JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		}, "oauth-thread");
-		thread.start();
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
+		}
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+		api.focusPostBox();
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		Status status = getStatus(args);
+		menuItem.setEnabled(status != null);
 	}
 }

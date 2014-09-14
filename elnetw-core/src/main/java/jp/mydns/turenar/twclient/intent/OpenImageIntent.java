@@ -19,14 +19,13 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com
  */
-public class OpenImageActionHandler implements ActionHandler {
-	private static final Logger logger = LoggerFactory.getLogger(OpenImageActionHandler.class);
+public class OpenImageIntent implements Intent {
+	private static final Logger logger = LoggerFactory.getLogger(OpenImageIntent.class);
 
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {

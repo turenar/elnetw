@@ -19,46 +19,31 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.internal;
+package jp.mydns.turenar.twclient.intent;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.TwitterClientMain;
 
 /**
- * actionPerformedでIntentArgumentをhandleするActionListener
+ * 終了するためのアクションハンドラ
  *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public final class IntentActionListener implements ActionListener {
-	private IntentArguments intentArguments;
+public class MenuQuitIntent implements Intent {
 
-	public IntentActionListener(String intentName) {
-		intentArguments = new IntentArguments(intentName);
+	@Override
+	public JMenuItem createJMenuItem(IntentArguments args) {
+		return null;
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		/* StatusData statusData;
-		 if (selectingPost == null) {
-		statusData = null;
-		} else {
-		statusData = statusMap.get(selectingPost.getRenderObject().id);
-		} */
-		ClientConfiguration.getInstance().handleAction(intentArguments);
+	public void handleAction(IntentArguments args) {
+		TwitterClientMain.quit();
 	}
 
-	/**
-	 * put extra message into intent argument
-	 *
-	 * @param name name
-	 * @param arg  argument
-	 * @return this instance
-	 */
-	public IntentActionListener putExtra(String name, Object arg) {
-		intentArguments.putExtra(name, arg);
-		return this;
+	@Override
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		// This is always enabled
 	}
 }

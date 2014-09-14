@@ -19,25 +19,24 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 
 /**
- * abstract action handler which uses status argument
+ * abstract action intent which uses status argument
  */
-public abstract class StatusActionHandlerBase implements ActionHandler {
+public abstract class StatusIntentBase implements Intent {
 
 	protected final ClientConfiguration configuration;
 
 	/**
 	 * init
 	 */
-	public StatusActionHandlerBase() {
+	public StatusIntentBase() {
 		configuration = ClientConfiguration.getInstance();
 	}
 
@@ -81,7 +80,7 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 	 */
 	protected void throwIllegalArgument() throws IllegalArgumentException {
 		throw new IllegalArgumentException(
-				"Specify arg `status`(Status) or `" + ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA
+				"Specify arg `status`(Status) or `" + Intent.INTENT_ARG_NAME_SELECTING_POST_DATA
 						+ "`(RenderPanel)"
 		);
 	}

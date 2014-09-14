@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
@@ -42,7 +42,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RemoveTweetActionHandler extends StatusActionHandlerBase {
+public class RemoveTweetIntent extends StatusIntentBase {
 
 	private class TweetDeleteTask implements ParallelRunnable {
 

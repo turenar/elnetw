@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.awt.event.ActionListener;
 
@@ -37,12 +37,12 @@ import twitter4j.URLEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UrlActionHandler extends StatusActionHandlerBase {
+public class UrlIntent extends StatusIntentBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(UrlActionHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(UrlIntent.class);
 	private final ClientConfiguration configuration;
 
-	public UrlActionHandler() {
+	public UrlIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}
 

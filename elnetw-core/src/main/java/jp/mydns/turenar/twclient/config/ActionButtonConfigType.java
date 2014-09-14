@@ -29,7 +29,7 @@ import javax.swing.JComponent;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 
 /**
  * アクションコマンドを指定したコンフィグタイプ

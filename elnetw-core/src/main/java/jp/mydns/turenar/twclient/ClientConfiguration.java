@@ -45,7 +45,8 @@ import jp.mydns.turenar.twclient.config.ConfigFrameBuilder;
 import jp.mydns.turenar.twclient.filter.MessageFilter;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -185,7 +186,7 @@ public class ClientConfiguration {
 		}
 	});
 	private transient JobQueue jobQueue = new JobQueue();
-	private transient Hashtable<String, ActionHandler> actionHandlerTable = new Hashtable<>();
+	private transient Hashtable<String, Intent> intentTable = new Hashtable<>();
 	/** for test implementations, do not mark as 'final' */
 	/*package*//*final*/ ClientProperties configProperties;
 	/*package*//*final*/ ClientProperties configDefaultProperties;
@@ -211,17 +212,6 @@ public class ClientConfiguration {
 	protected ClientConfiguration() {
 		configDefaultProperties = new ClientProperties();
 		configProperties = new ClientProperties(configDefaultProperties);
-	}
-
-	/**
-	 * アクションハンドラを追加する
-	 *
-	 * @param name    ハンドラ名
-	 * @param handler ハンドラ
-	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
-	 */
-	public ActionHandler addActionHandler(String name, ActionHandler handler) {
-		return actionHandlerTable.put(name, handler);
 	}
 
 	/**
@@ -262,6 +252,17 @@ public class ClientConfiguration {
 			tabsListLock.writeLock().unlock();
 		}
 		return result;
+	}
+
+	/**
+	 * アクションハンドラを追加する
+	 *
+	 * @param name    ハンドラ名
+	 * @param handler ハンドラ
+	 * @return 同名のハンドラが以前関連付けられていたらそのインスタンス、そうでない場合null
+	 */
+	public Intent addIntent(String name, Intent handler) {
+		return intentTable.put(name, handler);
 	}
 
 	/**
@@ -343,16 +344,6 @@ public class ClientConfiguration {
 	 */
 	public List<String> getAccountList() {
 		return configProperties.getList(PROPERTY_ACCOUNT_LIST);
-	}
-
-	/**
-	 * アクションハンドラを取得する
-	 *
-	 * @param intent IntentArguments
-	 * @return アクションハンドラ
-	 */
-	public ActionHandler getActionHandler(IntentArguments intent) {
-		return actionHandlerTable.get(intent.getIntentName());
 	}
 
 	/**
@@ -522,6 +513,16 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * アクションハンドラを取得する
+	 *
+	 * @param intent IntentArguments
+	 * @return アクションハンドラ
+	 */
+	public Intent getIntent(IntentArguments intent) {
+		return intentTable.get(intent.getIntentName());
+	}
+
+	/**
 	 * ジョブキューを取得する。
 	 *
 	 * @return ジョブキュー
@@ -682,16 +683,16 @@ public class ClientConfiguration {
 	 * @param intentArguments intent
 	 */
 	public void handleAction(IntentArguments intentArguments) {
-		ActionHandler actionHandler = getActionHandler(intentArguments);
-		if (actionHandler != null) {
+		Intent intent = getIntent(intentArguments);
+		if (intent != null) {
 			try {
 				logger.trace("call {}", intentArguments);
-				actionHandler.handleAction(intentArguments);
+				intent.handleAction(intentArguments);
 			} catch (RuntimeException e) {
 				logger.error("Uncaught exception", e);
 			}
 		} else {
-			logger.warn("ActionHandler {} is not found", intentArguments.getIntentName());
+			logger.warn("Intent {} is not found", intentArguments.getIntentName());
 		}
 	}
 

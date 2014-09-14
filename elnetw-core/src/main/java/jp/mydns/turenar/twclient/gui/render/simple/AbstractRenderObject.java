@@ -53,7 +53,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.ClientFrameApi;
@@ -63,7 +62,8 @@ import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.gui.render.RenderPanel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.EntitySupport;
@@ -303,9 +303,9 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 				stack.push(jMenu);
 			} else {
 				IntentArguments intentArguments = getIntentArguments(commandName);
-				ActionHandler handler = renderer.getConfiguration().getActionHandler(intentArguments);
+				Intent handler = renderer.getConfiguration().getIntent(intentArguments);
 				if (handler == null) {
-					logger.warn("handler {} is not found.", commandName);
+					logger.warn("intent {} is not found.", commandName);
 				} else {
 					JMenuItem menuItem = handler.createJMenuItem(intentArguments);
 					if (menuItem != null) {
@@ -426,7 +426,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	 */
 	protected IntentArguments getIntentArguments(String actionCommand) {
 		IntentArguments intentArguments = Utility.getIntentArguments(actionCommand);
-		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
+		intentArguments.putExtra(Intent.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		return intentArguments;
 	}
 
@@ -520,9 +520,9 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 		for (Component component : components) {
 			JMenuItem menuItem = (JMenuItem) component;
 			IntentArguments intentArguments = getIntentArguments(menuItem.getActionCommand());
-			ActionHandler actionHandler = renderer.getConfiguration().getActionHandler(intentArguments);
-			if (actionHandler != null) {
-				actionHandler.popupMenuWillBecomeVisible(menuItem, intentArguments);
+			Intent intent = renderer.getConfiguration().getIntent(intentArguments);
+			if (intent != null) {
+				intent.popupMenuWillBecomeVisible(menuItem, intentArguments);
 			} else {
 				logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
 				menuItem.setEnabled(false);

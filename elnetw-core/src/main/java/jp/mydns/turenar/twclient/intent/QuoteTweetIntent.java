@@ -19,63 +19,49 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
+
+import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ClientMessageListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jp.mydns.turenar.twclient.ClientFrameApi;
+import jp.mydns.turenar.twclient.internal.QuoteTweetLengthCalculator;
+import twitter4j.Status;
 
 /**
- * ツイートをどうにかするアクションハンドラ
+ * QTするためのアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TweetActionHandler extends StatusActionHandlerBase {
-
-	private static Logger logger = LoggerFactory.getLogger(TweetActionHandler.class);
+public class QuoteTweetIntent extends StatusIntentBase {
 
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
+		return quoteMenuItem;
 	}
 
 	@Override
 	public void handleAction(IntentArguments arguments) {
-		String actionName = arguments.getExtraObj("_arg", String.class);
-		String messageName;
-		switch (actionName) {
-			case "copy":
-				messageName = ClientMessageListener.REQUEST_COPY;
-				break;
-			case "copyurl":
-				messageName = ClientMessageListener.REQUEST_COPY_URL;
-				break;
-			case "copyuserid":
-				messageName = ClientMessageListener.REQUEST_COPY_USERID;
-				break;
-			case "browser_user":
-				messageName = ClientMessageListener.REQUEST_BROWSER_USER_HOME;
-				break;
-			case "browser_status":
-				messageName = ClientMessageListener.REQUEST_BROWSER_STATUS;
-				break;
-			case "browser_replyTo":
-				messageName = ClientMessageListener.REQUEST_BROWSER_IN_REPLY_TO;
-				break;
-			case "openurls":
-				messageName = ClientMessageListener.REQUEST_BROWSER_OPENURLS;
-				break;
-			default:
-				logger.warn("{} is not action", actionName);
-				return;
+		Status status = getStatus(arguments);
+		if (status == null) {
+			throwIllegalArgument();
 		}
-		configuration.getFrameApi().getSelectingTab().getRenderer().onClientMessage(messageName, null);
+
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setInReplyToStatus(status);
+		api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+		api.focusPostBox();
+		api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		// do nothing
+		if (getStatus(arguments) != null) {
+			menuItem.setEnabled(true);
+		} else {
+			menuItem.setEnabled(false);
+		}
 	}
 }

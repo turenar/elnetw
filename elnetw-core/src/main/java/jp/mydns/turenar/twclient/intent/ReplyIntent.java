@@ -19,43 +19,75 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
+
+import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.ClientFrameApi;
+import twitter4j.Status;
 
 /**
- * ハッシュタグを処理するアクションハンドラ
+ * リプライするためのアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class HashtagActionHandler implements ActionHandler {
+public class ReplyIntent extends StatusIntentBase {
 
 	private final ClientConfiguration configuration;
+	private final ClientFrameApi frameApi;
 
-	public HashtagActionHandler() {
+	public ReplyIntent() {
 		configuration = ClientConfiguration.getInstance();
+		frameApi = configuration.getFrameApi();
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+	public JMenuItem createJMenuItem(IntentArguments args) {
+		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
+		return replyMenuItem;
 	}
 
 	@Override
-	public void handleAction(IntentArguments arguments) {
-		String name = arguments.getExtraObj("name", String.class);
-		if (name == null) {
-			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
+	public void handleAction(IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
 		}
 
-		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
-		configuration.handleAction(query); //TODO
+		String text;
+		String screenName = status.getUser().getScreenName();
+
+		Object appendFlagObj = args.getExtra("append");
+		boolean appendFlag;
+		if (appendFlagObj instanceof Boolean) {
+			appendFlag = (Boolean) appendFlagObj;
+		} else if (appendFlagObj != null) {
+			appendFlag = true;
+		} else {
+			appendFlag = false;
+		}
+		if (appendFlag) {
+			String postText = configuration.getFrameApi().getPostText();
+			if (postText.trim().isEmpty()) {
+				text = String.format(".@%s ", screenName);
+			} else {
+				text = String.format("%s@%s ", postText, screenName);
+			}
+			frameApi.setPostText(text);
+		} else {
+			text = String.format("@%s ", screenName);
+			frameApi.focusPostBox();
+		}
+		frameApi.setPostText(text, text.length(), text.length());
+		frameApi.setInReplyToStatus(status);
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+		Status status = getStatus(arguments);
+		menuItem.setEnabled(status != null);
 	}
 }

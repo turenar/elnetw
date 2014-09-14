@@ -19,30 +19,20 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import java.net.URI;
-import java.net.URISyntaxException;
+package jp.mydns.turenar.twclient.internal;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 
 /**
- * 検索するアクションハンドラ
+ * 設定フレームを表示するアクションハンドラ
  *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class SearchActionHandler implements ActionHandler {
-
-	private final ClientConfiguration configuration;
-
-	public SearchActionHandler() {
-		configuration = ClientConfiguration.getInstance();
-	}
-
+public class MenuConfiguratorIntent implements Intent {
 	@Override
 	public JMenuItem createJMenuItem(IntentArguments args) {
 		return null;
@@ -50,21 +40,11 @@ public class SearchActionHandler implements ActionHandler {
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		String queryStr = args.getExtraObj("query", String.class);
-		if (queryStr == null) {
-			throw new IllegalArgumentException("arg `query' is required.");
-		}
-		try {
-			configuration.getUtility().openBrowser(
-					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
-		} catch (URISyntaxException e) {
-			throw new AssertionError(e);
-		} catch (Exception e) {
-			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
-		}
+		ClientConfiguration.getInstance().getConfigBuilder().show();
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		// This is always enabled.
 	}
 }

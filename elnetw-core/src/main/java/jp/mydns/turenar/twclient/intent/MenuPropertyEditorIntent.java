@@ -19,32 +19,32 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ClientFrameApi;
+import jp.mydns.turenar.twclient.gui.PropertyEditorFrame;
 
 /**
- * Clear text in PostBox
+ * メニューのプロパティエディタを開くためのアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ClearPostBoxActionHandler extends StatusActionHandlerBase {
+public class MenuPropertyEditorIntent implements Intent {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
+	public JMenuItem createJMenuItem(IntentArguments args) {
 		return null;
 	}
 
 	@Override
-	public void handleAction(IntentArguments arguments) {
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setPostText("");
-		api.setTweetLengthCalculator(null);
+	public void handleAction(IntentArguments args) {
+		PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame();
+		propertyEditorFrame.setVisible(true);
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
+		// This is always enabled.
 	}
 }

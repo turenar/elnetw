@@ -43,7 +43,7 @@ import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.notifier.MessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

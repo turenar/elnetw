@@ -40,13 +40,13 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import jp.mydns.turenar.twclient.gui.render.RendererManager;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -355,7 +355,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 	}
 
 	private void handleAction(IntentArguments intentArguments) {
-		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
+		intentArguments.putExtra(Intent.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		getConfiguration().handleAction(intentArguments);
 	}
 

@@ -54,7 +54,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.ClientFrameApi;
@@ -68,7 +67,8 @@ import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.gui.render.RenderPanel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
 import jp.mydns.turenar.twclient.gui.render.RendererManager;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.internal.ScrollUtility;
 import jp.mydns.turenar.twclient.internal.ScrollUtility.BoundsTranslator;
 import jp.mydns.turenar.twclient.internal.SortedPostListPanel;
@@ -315,9 +315,9 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 					menuItem.setEnabled(false);
 				} else {
 					IntentArguments intentArguments = getIntentArguments(menuItem.getActionCommand());
-					ActionHandler actionHandler = configuration.getActionHandler(intentArguments);
-					if (actionHandler != null) {
-						actionHandler.popupMenuWillBecomeVisible(menuItem, intentArguments);
+					Intent intent = configuration.getIntent(intentArguments);
+					if (intent != null) {
+						intent.popupMenuWillBecomeVisible(menuItem, intentArguments);
 					} else {
 						logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
 						menuItem.setEnabled(false);
@@ -592,7 +592,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		IntentArguments intentArguments = Utility.getIntentArguments(actionCommand);
 
 		if (selectingPost != null) {
-			intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA,
+			intentArguments.putExtra(Intent.INTENT_ARG_NAME_SELECTING_POST_DATA,
 					selectingPost.getRenderObject());
 		}
 		return intentArguments;
@@ -713,7 +713,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		args.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA,
+		args.putExtra(Intent.INTENT_ARG_NAME_SELECTING_POST_DATA,
 				selectingPost == null ? null : selectingPost.getRenderObject());
 		configuration.handleAction(args);
 	}
