@@ -21,23 +21,21 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import jp.mydns.turenar.twclient.ClientFrameApi;
+import javax.swing.JMenuItem;
 
 /**
- * Clear text in PostBox
+ * Created with IntelliJ IDEA.
+ * Date: 9/14/14
+ * Time: 2:27 PM
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ClearPostBoxIntent extends StatusIntentBase {
-
-	@Override
-	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-	}
-
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setPostText("");
-		api.setTweetLengthCalculator(null);
-	}
+public interface PopupMenuDispatcher {
+	/**
+	 * add menu into popup. This sets handlers to call intent if the menu is selected.
+	 *
+	 * @param menu   menu
+	 * @param intent intent arguments
+	 */
+	public void addMenu(JMenuItem menu, IntentArguments intent);
 }

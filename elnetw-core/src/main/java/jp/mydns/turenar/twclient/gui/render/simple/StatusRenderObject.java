@@ -65,7 +65,6 @@ import static jp.mydns.turenar.twclient.ClientFrameApi.UNDERLINE;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StatusRenderObject extends EntitySupportRenderObject {
-
 	public static final int OP_BUTTON_SIZE = 32;
 	private static final Dimension OPERATION_PANEL_SIZE = new Dimension(OP_BUTTON_SIZE, OP_BUTTON_SIZE);
 	private static final Logger logger = LoggerFactory.getLogger(StatusRenderObject.class);
@@ -496,5 +495,10 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		} catch (Exception e) {
 			renderer.onException(e);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "StatusRenderObject{statusId=" + status.getId() + "}";
 	}
 }

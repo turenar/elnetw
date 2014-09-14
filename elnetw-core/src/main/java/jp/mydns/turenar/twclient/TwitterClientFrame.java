@@ -79,6 +79,7 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.intent.Intent;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.PopupMenuDispatcher;
 import jp.mydns.turenar.twclient.internal.DefaultTweetLengthCalculator;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
 import jp.mydns.turenar.twclient.internal.IntentActionListener;
@@ -127,10 +128,8 @@ import twitter4j.User;
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
 	public class CoreFrameIntent implements Intent {
-
 		@Override
-		public JMenuItem createJMenuItem(IntentArguments args) {
-			return null;
+		public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		}
 
 		@Override
@@ -217,10 +216,6 @@ import twitter4j.User;
 					}
 					getSelectingTab().getRenderer().onClientMessage(messageName, null);
 			}
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 		}
 	}
 

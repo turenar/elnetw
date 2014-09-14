@@ -45,9 +45,10 @@ public class ReplyIntent extends StatusIntentBase {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
-		return replyMenuItem;
+		replyMenuItem.setEnabled(getStatus(args) != null);
+		dispatcher.addMenu(replyMenuItem, args);
 	}
 
 	@Override
@@ -83,11 +84,5 @@ public class ReplyIntent extends StatusIntentBase {
 		}
 		frameApi.setPostText(text, text.length(), text.length());
 		frameApi.setInReplyToStatus(status);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		menuItem.setEnabled(status != null);
 	}
 }

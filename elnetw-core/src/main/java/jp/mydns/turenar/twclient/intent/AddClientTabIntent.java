@@ -26,7 +26,6 @@ import javax.swing.JMenuItem;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.gui.AddClientTabConfirmFrame;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
-import jp.mydns.turenar.twclient.internal.IntentActionListener;
 
 /**
  * action intent for adding client tab
@@ -35,7 +34,7 @@ import jp.mydns.turenar.twclient.internal.IntentActionListener;
  */
 public class AddClientTabIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		String tabId = args.getExtraObj("tabId", String.class);
 		if (tabId == null) {
 			throw new IllegalArgumentException("tabId is not specified!");
@@ -45,17 +44,11 @@ public class AddClientTabIntent implements Intent {
 			throw new IllegalArgumentException("tabId[" + tabId + "] is unknown!");
 		}
 		JMenuItem factoryItem = new JMenuItem(factory.getName());
-		factoryItem.addActionListener(new IntentActionListener("tab_add").putExtra("tabId", tabId));
-		return factoryItem;
+		dispatcher.addMenu(factoryItem, new IntentArguments("tab_add").putExtra("tabId", tabId));
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
 		new AddClientTabConfirmFrame(args.getExtraObj("tabId", String.class)).setVisible(true);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-
 	}
 }

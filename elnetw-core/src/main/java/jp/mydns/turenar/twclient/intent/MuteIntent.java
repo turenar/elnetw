@@ -48,33 +48,55 @@ import twitter4j.User;
  */
 public class MuteIntent extends StatusIntentBase {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments arguments) {
 		Status status = getStatus(arguments);
-		if (status == null) {
-			throwIllegalArgument();
+		if (status != null) {
+			String arg = arguments.getExtraObj("_arg", String.class);
+			final String propName;
+			final String propValue;
+			String text;
+			if (arg.startsWith("rt_")) {
+				if (!status.isRetweet()) {
+					return;
+				}
+
+				status = status.getRetweetedStatus();
+				arg = arg.substring("rt_".length());
+			}
+			boolean isTweetedByMe = false;
+			switch (arg) {
+				case "user":
+					text = toMenuText(status.getUser());
+					propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+					propValue = String.valueOf(status.getUser().getId());
+					isTweetedByMe = configuration.isMyAccount(status.getUser().getId());
+					break;
+				case "client":
+					text = toMenuText(status.getSource());
+					propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+					propValue = getClientName(status.getSource());
+					break;
+				case "text":
+					text = "ワード...";
+					propName = null;
+					propValue = ""; // stub: this value is not checked at all
+					break;
+				default:
+					throw new IllegalArgumentException("Unsupported mute type: " + arg);
+			}
+
+			boolean filtered = false;
+			if (propName != null) {
+				List<String> idsList = configuration.getConfigProperties().getList(propName);
+				filtered = idsList.contains(propValue);
+				isTweetedByMe = configuration.isMyAccount(propValue);
+			}
+			JMenuItem menuItem = new JMenuItem();
+			menuItem.setText(text);
+			menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
+			menuItem.setEnabled(!(isTweetedByMe || filtered));
+			dispatcher.addMenu(menuItem, arguments);
 		}
-		String arg = arguments.getExtraObj("_arg", String.class, "user");
-		String text;
-		switch (arg) {
-			case "user":
-				text = toMenuText(status.getUser());
-				break;
-			case "rt_user":
-				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getUser()) : null;
-				break;
-			case "client":
-				text = toMenuText(status.getSource());
-				break;
-			case "rt_client":
-				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getSource()) : null;
-				break;
-			case "text":
-				text = "ワード...";
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported mute type: " + arg);
-		}
-		return text == null ? null : new JMenuItem(text);
 	}
 
 	private String getClientName(String source) {
@@ -144,61 +166,6 @@ public class MuteIntent extends StatusIntentBase {
 			}
 		});
 		dialog.setVisible(true);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status != null) {
-			String arg = arguments.getExtraObj("_arg", String.class);
-			final String propName;
-			final String propValue;
-			String text;
-			if (arg.startsWith("rt_")) {
-				if (!status.isRetweet()) {
-					menuItem.setVisible(false);
-					return;
-				}
-
-				status = status.getRetweetedStatus();
-				arg = arg.substring("rt_".length());
-			}
-			boolean isTweetedByMe = false;
-			switch (arg) {
-				case "user":
-					text = toMenuText(status.getUser());
-					propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
-					propValue = String.valueOf(status.getUser().getId());
-					isTweetedByMe = configuration.isMyAccount(status.getUser().getId());
-					break;
-				case "client":
-					text = toMenuText(status.getSource());
-					propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
-					propValue = getClientName(status.getSource());
-					break;
-				case "text":
-					text = "ワード...";
-					propName = null;
-					propValue = ""; // stub: this value is not checked at all
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported mute type: " + arg);
-			}
-
-			boolean filtered = false;
-			if (propName != null) {
-				List<String> idsList = configuration.getConfigProperties().getList(propName);
-				filtered = idsList.contains(propValue);
-				isTweetedByMe = configuration.isMyAccount(propValue);
-			}
-			menuItem.setText(text);
-			menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
-			menuItem.setVisible(true);
-			menuItem.setEnabled(!(isTweetedByMe || filtered));
-		} else {
-			menuItem.setVisible(false);
-			menuItem.setEnabled(false);
-		}
 	}
 
 	private void showMuteTextInput() {

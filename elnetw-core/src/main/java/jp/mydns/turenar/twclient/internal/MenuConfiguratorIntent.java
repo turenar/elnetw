@@ -21,11 +21,10 @@
 
 package jp.mydns.turenar.twclient.internal;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.intent.Intent;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.PopupMenuDispatcher;
 
 /**
  * 設定フレームを表示するアクションハンドラ
@@ -34,17 +33,11 @@ import jp.mydns.turenar.twclient.intent.IntentArguments;
  */
 public class MenuConfiguratorIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
 		ClientConfiguration.getInstance().getConfigBuilder().show();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled.
 	}
 }

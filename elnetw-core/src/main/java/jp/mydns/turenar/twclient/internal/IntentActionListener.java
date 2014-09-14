@@ -33,10 +33,24 @@ import jp.mydns.turenar.twclient.intent.IntentArguments;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public final class IntentActionListener implements ActionListener {
-	private IntentArguments intentArguments;
+	private final IntentArguments intentArguments;
 
+	/**
+	 * create instance
+	 *
+	 * @param intentName intent "name"
+	 */
 	public IntentActionListener(String intentName) {
 		intentArguments = new IntentArguments(intentName);
+	}
+
+	/**
+	 * create instance
+	 *
+	 * @param intentArguments intent argument
+	 */
+	public IntentActionListener(IntentArguments intentArguments) {
+		this.intentArguments = intentArguments;
 	}
 
 	@Override

@@ -21,7 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
@@ -32,10 +31,9 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
 public class AccountVerifierIntent implements Intent {
-
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		// do nothing
 	}
 
 	@Override
@@ -54,9 +52,5 @@ public class AccountVerifierIntent implements Intent {
 			}
 		}, "oauth-thread");
 		thread.start();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 }

@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 /**
  * アクションハンドラ。
  *
@@ -34,12 +32,11 @@ public interface Intent {
 
 	/**
 	 * JMenuItemを作成する。これはキャッシュしないで下さい。予想外のエラーが発生する可能性があります。
-	 * また、ActionCommandは設定する必要はありません。呼び出し元でoverrideされます。
 	 *
-	 * @param args 引数
-	 * @return JMenuItem
+	 * @param args       引数
+	 * @param dispatcher dispatcher for popup menu
 	 */
-	JMenuItem createJMenuItem(IntentArguments args);
+	void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args);
 
 	/**
 	 * 動作させる
@@ -47,12 +44,4 @@ public interface Intent {
 	 * @param args 引数
 	 */
 	void handleAction(IntentArguments args);
-
-	/**
-	 * メニューが表示される前に呼ばれる関数。
-	 *
-	 * @param menuItem メニューアイテム
-	 * @param args     引数
-	 */
-	void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args);
 }

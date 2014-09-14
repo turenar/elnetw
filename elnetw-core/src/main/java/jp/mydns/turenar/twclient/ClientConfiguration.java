@@ -364,6 +364,11 @@ public class ClientConfiguration {
 		return cacheManager;
 	}
 
+	/**
+	 * get cache storage
+	 *
+	 * @return cache storage
+	 */
 	public synchronized CacheStorage getCacheStorage() {
 		return cacheStorage;
 	}
@@ -513,10 +518,10 @@ public class ClientConfiguration {
 	}
 
 	/**
-	 * アクションハンドラを取得する
+	 * get intent for name
 	 *
 	 * @param intent IntentArguments
-	 * @return アクションハンドラ
+	 * @return intent
 	 */
 	public Intent getIntent(IntentArguments intent) {
 		return intentTable.get(intent.getIntentName());

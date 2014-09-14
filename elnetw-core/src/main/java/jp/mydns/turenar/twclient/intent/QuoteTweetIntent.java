@@ -37,9 +37,10 @@ import twitter4j.Status;
 public class QuoteTweetIntent extends StatusIntentBase {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
-		return quoteMenuItem;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem menuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
+		menuItem.setEnabled(getStatus(args) != null);
+		dispatcher.addMenu(menuItem, args);
 	}
 
 	@Override
@@ -54,14 +55,5 @@ public class QuoteTweetIntent extends StatusIntentBase {
 		api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
 		api.focusPostBox();
 		api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		if (getStatus(arguments) != null) {
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
 	}
 }

@@ -24,8 +24,6 @@ package jp.mydns.turenar.twclient.intent;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 
@@ -43,8 +41,7 @@ public class SearchIntent implements Intent {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -61,9 +58,5 @@ public class SearchIntent implements Intent {
 		} catch (Exception e) {
 			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
 		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 }

@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.gui.PropertyEditorFrame;
 
 /**
@@ -33,18 +31,12 @@ import jp.mydns.turenar.twclient.gui.PropertyEditorFrame;
 public class MenuPropertyEditorIntent implements Intent {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
 		PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame();
 		propertyEditorFrame.setVisible(true);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled.
 	}
 }

@@ -24,11 +24,7 @@ package jp.mydns.turenar.twclient.intent;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Open Image
@@ -36,11 +32,8 @@ import org.slf4j.LoggerFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com
  */
 public class OpenImageIntent implements Intent {
-	private static final Logger logger = LoggerFactory.getLogger(OpenImageIntent.class);
-
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -69,10 +62,6 @@ public class OpenImageIntent implements Intent {
 			throw new IllegalArgumentException("arg `url' or `urls' is missing");
 		}
 		showFrame(url);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 
 	private void showFrame(URL url) {

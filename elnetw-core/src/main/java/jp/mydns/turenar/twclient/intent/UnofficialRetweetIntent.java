@@ -34,8 +34,10 @@ import twitter4j.Status;
 public class UnofficialRetweetIntent extends StatusIntentBase {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return new JMenuItem("非公式RT");
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem menuItem = new JMenuItem("非公式RT");
+		menuItem.setEnabled(getStatus(args) != null);
+		dispatcher.addMenu(menuItem, args);
 	}
 
 	@Override
@@ -47,11 +49,5 @@ public class UnofficialRetweetIntent extends StatusIntentBase {
 		ClientFrameApi api = configuration.getFrameApi();
 		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
 		api.focusPostBox();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		Status status = getStatus(args);
-		menuItem.setEnabled(status != null);
 	}
 }

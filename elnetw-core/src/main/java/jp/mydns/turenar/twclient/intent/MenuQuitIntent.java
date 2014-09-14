@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.TwitterClientMain;
 
 /**
@@ -33,17 +31,11 @@ import jp.mydns.turenar.twclient.TwitterClientMain;
 public class MenuQuitIntent implements Intent {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
 		TwitterClientMain.quit();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled
 	}
 }

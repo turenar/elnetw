@@ -21,7 +21,6 @@
 
 package jp.mydns.turenar.twclient.gui.tab;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -51,8 +50,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
@@ -279,54 +276,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
-	/**
-	 * RenderPanelのポップアップメニューリスナ
-	 *
-	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
-	 */
-	protected class TweetPopupMenuListener implements PopupMenuListener, ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			String actionName = e.getActionCommand();
-			IntentArguments intentArguments = getIntentArguments(actionName);
-			configuration.handleAction(intentArguments);
-		}
-
-		@Override
-		public void popupMenuCanceled(PopupMenuEvent arg0) {
-		}
-
-		@Override
-		public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(PopupMenuEvent arg0) {
-			if (selectingPost == null) {
-				getSortedPostListPanel().requestFocusFirstComponent();
-			}
-			JPopupMenu popupMenu = (JPopupMenu) arg0.getSource();
-			Component[] components = popupMenu.getComponents();
-			for (Component component : components) {
-				JMenuItem menuItem = (JMenuItem) component;
-				RenderObject renderObject = selectingPost.getRenderObject();
-				if (renderObject == null) {
-					menuItem.setEnabled(false);
-				} else {
-					IntentArguments intentArguments = getIntentArguments(menuItem.getActionCommand());
-					Intent intent = configuration.getIntent(intentArguments);
-					if (intent != null) {
-						intent.popupMenuWillBecomeVisible(menuItem, intentArguments);
-					} else {
-						logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
-						menuItem.setEnabled(false);
-					}
-				}
-			}
-		}
-	}
-
 	/** クリップボード */
 	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
@@ -400,10 +349,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 * </p>
 	 */
 	protected TabRenderer teeFilter;
-	/**
-	 * ポップアップメニューリスナ
-	 */
-	protected TweetPopupMenuListener tweetPopupMenuListener;
 	/**
 	 * 実際に描画処理・移譲を行うタブレンダラ
 	 */
@@ -493,6 +438,11 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		configProperties.removePrefixed(getPropertyPrefix());
 	}
 
+	/**
+	 * create label for tab title
+	 *
+	 * @return label
+	 */
 	protected JLabel createTitleLabel() {
 		JLabel label = new JLabel(getTitle());
 		label.setComponentPopupMenu(createTitleLabelPopup());
@@ -507,6 +457,10 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		return label;
 	}
 
+	/**
+	 * create popup menu for tab title label
+	 * @return popup menu
+	 */
 	protected JPopupMenu createTitleLabelPopup() {
 		JPopupMenu popupMenu = new JPopupMenu();
 		JMenuItem closeMenu = new JMenuItem("閉じる");
@@ -609,6 +563,10 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
+	/**
+	 * get the prefix of properties for this tab.
+	 * @return prefix
+	 */
 	protected String getPropertyPrefix() {
 		return "gui.tabs.data." + uniqId;
 	}
@@ -729,7 +687,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				TimeUnit.MILLISECONDS);
-		tweetPopupMenuListener = new TweetPopupMenuListener();
 		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
 
 			@Override

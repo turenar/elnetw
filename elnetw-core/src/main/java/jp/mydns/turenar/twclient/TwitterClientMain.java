@@ -90,7 +90,6 @@ import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
 import jp.mydns.turenar.twclient.filter.query.func.StandardFunctionFactory;
 import jp.mydns.turenar.twclient.filter.query.prop.StandardPropertyFactory;
-import jp.mydns.turenar.twclient.gui.render.simple.RenderObjectHandler;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.DirectMessageViewTab;
@@ -566,7 +565,6 @@ public final class TwitterClientMain {
 		configuration.addIntent("menu_login_read", new ReloginIntent(false));
 		configuration.addIntent("menu_login_write", new ReloginIntent(true));
 		configuration.addIntent("menu_config", new MenuConfiguratorIntent());
-		configuration.addIntent("<elnetw>.gui.render.simple.RenderObjectHandler", new RenderObjectHandler());
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

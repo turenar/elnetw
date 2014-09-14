@@ -65,8 +65,16 @@ public class FavoriteIntent extends StatusIntentBase {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem menuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+		TwitterStatus status = getStatus(args);
+		if (status != null) {
+			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
+			menuItem.setEnabled(true);
+		} else {
+			menuItem.setEnabled(false);
+		}
+		dispatcher.addMenu(menuItem, args);
 	}
 
 	@Override
@@ -87,16 +95,5 @@ public class FavoriteIntent extends StatusIntentBase {
 		}
 
 		ClientConfiguration.getInstance().addJob(new FavTask(favFlag, status));
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		TwitterStatus status = getStatus(arguments);
-		if (status != null) {
-			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
 	}
 }

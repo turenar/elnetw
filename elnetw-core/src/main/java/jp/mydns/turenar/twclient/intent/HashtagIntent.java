@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
@@ -39,8 +37,7 @@ public class HashtagIntent implements Intent {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -52,9 +49,5 @@ public class HashtagIntent implements Intent {
 
 		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
 		configuration.handleAction(query); //TODO
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
 }

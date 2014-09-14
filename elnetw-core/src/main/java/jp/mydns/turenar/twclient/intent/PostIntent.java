@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
- * TODO snsoftware
+ * intent for posting
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
@@ -41,16 +41,12 @@ public class PostIntent implements Intent {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("投稿(P)", KeyEvent.VK_P);
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		dispatcher.addMenu(new JMenuItem("投稿(P)", KeyEvent.VK_P), args);
 	}
 
 	@Override
 	public void handleAction(IntentArguments arguments) {
 		configuration.getFrameApi().doPost();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
 	}
 }

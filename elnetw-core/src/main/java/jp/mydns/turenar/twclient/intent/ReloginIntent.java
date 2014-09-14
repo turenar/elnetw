@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
@@ -46,8 +44,7 @@ public class ReloginIntent implements Intent {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -62,11 +59,5 @@ public class ReloginIntent implements Intent {
 		} else {
 			configuration.setAccountIdForRead(accountId);
 		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// TODO Auto-generated method stub
-
 	}
 }

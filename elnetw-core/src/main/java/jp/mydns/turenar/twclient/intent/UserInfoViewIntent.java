@@ -21,7 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.awt.event.KeyEvent;
 import java.text.MessageFormat;
 
 import javax.swing.JMenuItem;
@@ -42,8 +41,20 @@ import twitter4j.User;
 public class UserInfoViewIntent extends StatusIntentBase {
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("ユーザーについて(A)...", KeyEvent.VK_A);
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments arguments) {
+		JMenuItem menuItem = new JMenuItem();
+		Status status = getStatus(arguments);
+		if (status != null) {
+			if (status.isRetweet()) {
+				status = status.getRetweetedStatus();
+			}
+			menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
+					.getUser().getName()));
+			menuItem.setEnabled(true);
+		} else {
+			menuItem.setEnabled(false);
+		}
+		dispatcher.addMenu(menuItem, arguments);
 	}
 
 	@Override
@@ -78,18 +89,4 @@ public class UserInfoViewIntent extends StatusIntentBase {
 		configuration.focusFrameTab(tab);
 	}
 
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status != null) {
-			if (status.isRetweet()) {
-				status = status.getRetweetedStatus();
-			}
-			menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
-					.getUser().getName()));
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
-	}
 }

@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
 import jp.mydns.turenar.twclient.ClientMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +35,7 @@ public class TweetIntent extends StatusIntentBase {
 	private static Logger logger = LoggerFactory.getLogger(TweetIntent.class);
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -72,10 +69,5 @@ public class TweetIntent extends StatusIntentBase {
 				return;
 		}
 		configuration.getFrameApi().getSelectingTab().getRenderer().onClientMessage(messageName, null);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		// do nothing
 	}
 }

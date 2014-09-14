@@ -58,9 +58,17 @@ public class RetweetIntent extends StatusIntentBase {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
-		return retweetMenuItem;
+		Status status = getStatus(args);
+		if (status == null) {
+			retweetMenuItem.setVisible(false);
+			retweetMenuItem.setEnabled(false);
+		} else {
+			retweetMenuItem.setEnabled(!status.getUser().isProtected());
+			retweetMenuItem.setVisible(status.getUser().getId() != getLoginUserId());
+		}
+		dispatcher.addMenu(retweetMenuItem, args);
 	}
 
 	@Override
@@ -71,17 +79,5 @@ public class RetweetIntent extends StatusIntentBase {
 		}
 
 		configuration.addJob(new RetweetTask(status));
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		Status status = getStatus(args);
-		if (status == null) {
-			menuItem.setVisible(false);
-			menuItem.setEnabled(false);
-		} else {
-			menuItem.setEnabled(status.getUser().isProtected() == false);
-			menuItem.setVisible(status.getUser().getId() != getLoginUserId());
-		}
 	}
 }
