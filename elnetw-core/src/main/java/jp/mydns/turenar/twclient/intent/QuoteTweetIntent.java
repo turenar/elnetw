@@ -34,7 +34,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QuoteTweetIntent extends StatusIntentBase {
+public class QuoteTweetIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {

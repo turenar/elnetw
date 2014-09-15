@@ -42,7 +42,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RemoveTweetIntent extends StatusIntentBase {
+public class RemoveTweetIntent extends AbstractIntent {
 
 	private class TweetDeleteTask implements ParallelRunnable {
 

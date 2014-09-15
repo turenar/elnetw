@@ -29,15 +29,52 @@ import twitter4j.Status;
 /**
  * abstract action intent which uses status argument
  */
-public abstract class StatusIntentBase implements Intent {
+public abstract class AbstractIntent implements Intent {
 
 	protected final ClientConfiguration configuration;
 
 	/**
 	 * init
 	 */
-	public StatusIntentBase() {
+	public AbstractIntent() {
 		configuration = ClientConfiguration.getInstance();
+	}
+
+	/**
+	 * get argument for arg name
+	 *
+	 * @param arguments    argument
+	 * @param argName      name
+	 * @param defaultValue value
+	 * @return boolean
+	 * @throws IllegalArgumentException arg is not Boolean or String
+	 */
+	protected boolean getBoolean(IntentArguments arguments, String argName, boolean defaultValue)
+			throws IllegalArgumentException {
+		Object obj = arguments.getExtra(argName);
+		if (obj == null) {
+			return defaultValue;
+		} else if (obj instanceof Boolean) {
+			return (Boolean) obj;
+		} else if (obj instanceof String) {
+			String str = (String) obj;
+			switch (str) {
+				case "y":
+				case "yes":
+				case "t":
+				case "true":
+					return true;
+				case "n":
+				case "no":
+				case "f":
+				case "false":
+					return false;
+				default:
+					return defaultValue;
+			}
+		} else {
+			throw new IllegalArgumentException("argument[" + argName + "] is not valid boolean");
+		}
 	}
 
 	/**

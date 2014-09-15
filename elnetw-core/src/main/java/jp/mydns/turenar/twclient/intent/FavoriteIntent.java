@@ -36,7 +36,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FavoriteIntent extends StatusIntentBase {
+public class FavoriteIntent extends AbstractIntent {
 
 	private static class FavTask extends TwitterRunnable {
 

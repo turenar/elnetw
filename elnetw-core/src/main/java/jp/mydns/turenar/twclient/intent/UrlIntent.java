@@ -36,7 +36,7 @@ import twitter4j.URLEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UrlIntent extends StatusIntentBase {
+public class UrlIntent extends AbstractIntent {
 
 	private static final Logger logger = LoggerFactory.getLogger(UrlIntent.class);
 	private final ClientConfiguration configuration;

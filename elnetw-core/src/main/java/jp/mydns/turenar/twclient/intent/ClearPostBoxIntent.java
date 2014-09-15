@@ -28,7 +28,7 @@ import jp.mydns.turenar.twclient.ClientFrameApi;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ClearPostBoxIntent extends StatusIntentBase {
+public class ClearPostBoxIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {

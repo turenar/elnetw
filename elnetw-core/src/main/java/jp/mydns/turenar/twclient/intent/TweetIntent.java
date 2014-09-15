@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TweetIntent extends StatusIntentBase {
+public class TweetIntent extends AbstractIntent {
 
 	private static Logger logger = LoggerFactory.getLogger(TweetIntent.class);
 

@@ -31,7 +31,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UnofficialRetweetIntent extends StatusIntentBase {
+public class UnofficialRetweetIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {

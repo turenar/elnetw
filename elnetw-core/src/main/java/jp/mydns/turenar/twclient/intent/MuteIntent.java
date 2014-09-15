@@ -23,6 +23,7 @@ package jp.mydns.turenar.twclient.intent;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -35,68 +36,155 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientProperties;
 import jp.mydns.turenar.twclient.filter.ExtendedMuteFilter;
 import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
+import jp.mydns.turenar.twclient.internal.NullUser;
 import twitter4j.Status;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * ミュートするオプションを提供するアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MuteIntent extends StatusIntentBase {
+public class MuteIntent extends AbstractIntent {
+	private class EntityUser extends NullUser {
+
+		private final String screenName;
+		private final String name;
+		private final long id;
+
+		public EntityUser(UserMentionEntity entity) {
+			screenName = entity.getScreenName();
+			name = entity.getName();
+			id = entity.getId();
+		}
+
+		@Override
+		public long getId() {
+			return id;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getScreenName() {
+			return screenName;
+		}
+	}
+
+	protected ClientConfiguration configuration = ClientConfiguration.getInstance();
+
+	private void addMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, String text,
+			boolean isTweetedByMe, boolean filtered) {
+		JMenuItem menuItem = new JMenuItem();
+		menuItem.setText(text);
+		menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
+		menuItem.setEnabled(!(isTweetedByMe || filtered));
+		dispatcher.addMenu(menuItem, arguments);
+	}
+
+	private boolean checkAlreadyFiltered(String propName, String propValue) {
+		boolean filtered;
+		List<String> idsList = configuration.getConfigProperties().getList(propName);
+		filtered = idsList.contains(propValue);
+		return filtered;
+	}
+
+	private void createClientJMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, String source) {
+		String text = toMenuText(source);
+		String propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+		String propValue = getClientName(source);
+		boolean filtered = checkAlreadyFiltered(propName, propValue);
+
+		addMenu(dispatcher, getCleanArgument(arguments).putExtra("client", propValue), text, false, filtered);
+
+	}
+
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status != null) {
-			String arg = arguments.getExtraObj("_arg", String.class);
-			final String propName;
-			final String propValue;
-			String text;
-			if (arg.startsWith("rt_")) {
-				if (!status.isRetweet()) {
-					return;
-				}
-
-				status = status.getRetweetedStatus();
-				arg = arg.substring("rt_".length());
+		boolean auto = getBoolean(arguments, "auto", false)
+				|| arguments.getExtraObj("_arg", String.class).equals("auto");
+		if (auto) {
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "user"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_user"));
+			if (getStatus(arguments).isRetweet()) {
+				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_mention"));
+			} else {
+				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "mention"));
 			}
-			boolean isTweetedByMe = false;
-			switch (arg) {
-				case "user":
-					text = toMenuText(status.getUser());
-					propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
-					propValue = String.valueOf(status.getUser().getId());
-					isTweetedByMe = configuration.isMyAccount(status.getUser().getId());
-					break;
-				case "client":
-					text = toMenuText(status.getSource());
-					propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
-					propValue = getClientName(status.getSource());
-					break;
-				case "text":
-					text = "ワード...";
-					propName = null;
-					propValue = ""; // stub: this value is not checked at all
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported mute type: " + arg);
-			}
-
-			boolean filtered = false;
-			if (propName != null) {
-				List<String> idsList = configuration.getConfigProperties().getList(propName);
-				filtered = idsList.contains(propValue);
-				isTweetedByMe = configuration.isMyAccount(propValue);
-			}
-			JMenuItem menuItem = new JMenuItem();
-			menuItem.setText(text);
-			menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
-			menuItem.setEnabled(!(isTweetedByMe || filtered));
-			dispatcher.addMenu(menuItem, arguments);
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "client"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_client"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "text"));
+			return;
 		}
+		if (arguments.getExtraObj("user", User.class) != null) {
+			createUserJMenu(dispatcher, arguments, arguments.getExtraObj("user", User.class));
+		} else if (arguments.getExtraObj("client", String.class) != null) {
+			createClientJMenu(dispatcher, arguments, arguments.getExtraObj("client", String.class));
+		} else {
+			Status status = getStatus(arguments);
+			if (status != null) {
+				String arg = arguments.getExtraObj("_arg", String.class, "user");
+				if (arg.startsWith("rt_")) {
+					if (!status.isRetweet()) {
+						return;
+					}
+
+					status = status.getRetweetedStatus();
+					arg = arg.substring("rt_".length());
+				}
+				switch (arg) {
+					case "user":
+						createUserJMenu(dispatcher, arguments, status.getUser());
+						break;
+					case "mention":
+						UserMentionEntity[] entities = status.getUserMentionEntities();
+						HashSet<Long> set = new HashSet<>();
+						if (!(entities == null || entities.length == 0)) {
+							for (UserMentionEntity entity : entities) {
+								if (set.add(entity.getId())) {
+									createUserJMenu(dispatcher, arguments, new EntityUser(entity));
+								}
+							}
+						}
+						break;
+					case "client":
+						createClientJMenu(dispatcher, arguments, status.getSource());
+						break;
+					case "text":
+						createTextJMenu(dispatcher, arguments, status);
+						break;
+					default:
+						throw new IllegalArgumentException("Unsupported mute type: " + arg);
+				}
+			}
+		}
+	}
+
+	private void createTextJMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, Status status) {
+		addMenu(dispatcher, getCleanArgument(arguments).putExtra("confirm", "text"), "ワード...", false, false);
+
+	}
+
+	private void createUserJMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, User user) {
+		String text = toMenuText(user);
+		String propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+		String propValue = String.valueOf(user.getId());
+		boolean isTweetedByMe = configuration.isMyAccount(user.getId());
+		boolean filtered = checkAlreadyFiltered(propName, propValue);
+
+		addMenu(dispatcher, getCleanArgument(arguments).putExtra("user", user), text, isTweetedByMe, filtered);
+	}
+
+	private IntentArguments getCleanArgument(IntentArguments arguments) {
+		return arguments.clone().removeExtra("_arg").removeExtra("auto");
 	}
 
 	private String getClientName(String source) {
@@ -107,41 +195,30 @@ public class MuteIntent extends StatusIntentBase {
 
 	@Override
 	public void handleAction(IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status == null) {
-			throwIllegalArgument();
-		}
-		String arg = arguments.getExtraObj("_arg", String.class, "user");
-		final String propName;
-		final String propValue;
 		String text;
-		switch (arg) {
-			case "user":
-				text = toMenuText(status.getUser());
-				propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
-				propValue = String.valueOf(status.getUser().getId());
-				break;
-			case "rt_user":
-				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getUser()) : null;
-				propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
-				propValue = status.isRetweet() ? String.valueOf(status.getRetweetedStatus().getUser().getId()) : null;
-				break;
-			case "client":
-				text = toMenuText(status.getSource());
-				propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
-				propValue = getClientName(status.getSource());
-				break;
-			case "rt_client":
-				text = status.isRetweet() ? toMenuText(status.getRetweetedStatus().getSource()) : null;
-				propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
-				propValue = status.isRetweet() ? getClientName(status.getRetweetedStatus().getSource()) : null;
-				break;
-			case "text":
-				showMuteTextInput();
-				return;
-			default:
-				throw new IllegalArgumentException("Unsupported mute type: " + arg);
+		String propName;
+		String propValue;
+		if (arguments.hasExtraObj("user", User.class)) {
+			User user = arguments.getExtraObj("user", User.class);
+			text = toMenuText(user);
+			propName = GlobalUserIdFilter.PROPERTY_KEY_FILTER_IDS;
+			propValue = String.valueOf(user.getId());
+		} else if (arguments.hasExtraObj("client", String.class)) {
+			String source = arguments.getExtraObj("client", String.class);
+			text = toMenuText(source);
+			propName = ExtendedMuteFilter.PROPERTY_KEY_FILTER_CLIENT;
+			propValue = getClientName(source);
+		} else if (arguments.getExtraObj("confirm", String.class).equals("text")) {
+			showMuteTextInput();
+			return;
+		} else {
+			throw new IllegalArgumentException("Unsupported argument");
 		}
+		showConfirmDialog(propName, propValue, text);
+	}
+
+
+	private void showConfirmDialog(final String propName, final String propValue, String text) {
 		JPanel panel = new JPanel();
 		BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 		panel.setLayout(layout);

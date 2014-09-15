@@ -38,7 +38,7 @@ import twitter4j.User;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UserInfoViewIntent extends StatusIntentBase {
+public class UserInfoViewIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments arguments) {

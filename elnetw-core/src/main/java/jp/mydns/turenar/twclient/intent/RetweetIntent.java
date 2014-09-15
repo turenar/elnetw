@@ -35,7 +35,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RetweetIntent extends StatusIntentBase {
+public class RetweetIntent extends AbstractIntent {
 
 	private static class RetweetTask extends TwitterRunnable {
 

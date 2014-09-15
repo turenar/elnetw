@@ -34,7 +34,7 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ReplyIntent extends StatusIntentBase {
+public class ReplyIntent extends AbstractIntent {
 
 	private final ClientConfiguration configuration;
 	private final ClientFrameApi frameApi;
@@ -65,10 +65,8 @@ public class ReplyIntent extends StatusIntentBase {
 		boolean appendFlag;
 		if (appendFlagObj instanceof Boolean) {
 			appendFlag = (Boolean) appendFlagObj;
-		} else if (appendFlagObj != null) {
-			appendFlag = true;
 		} else {
-			appendFlag = false;
+			appendFlag = appendFlagObj != null;
 		}
 		if (appendFlag) {
 			String postText = configuration.getFrameApi().getPostText();
