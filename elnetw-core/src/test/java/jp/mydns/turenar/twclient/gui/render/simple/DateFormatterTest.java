@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import jp.mydns.turenar.twclient.ClientConfigurationTestImpl;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

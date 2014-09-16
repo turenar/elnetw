@@ -86,6 +86,7 @@ import jp.mydns.turenar.twclient.filter.query.func.StandardFunctionFactory;
 import jp.mydns.turenar.twclient.filter.query.prop.StandardPropertyFactory;
 import jp.mydns.turenar.twclient.gui.config.ActionButtonConfigType;
 import jp.mydns.turenar.twclient.gui.config.BooleanConfigType;
+import jp.mydns.turenar.twclient.gui.config.ComboBoxConfigType;
 import jp.mydns.turenar.twclient.gui.config.ConfigFrameBuilder;
 import jp.mydns.turenar.twclient.gui.config.ConsumerTokenConfigType;
 import jp.mydns.turenar.twclient.gui.config.IntegerConfigType;

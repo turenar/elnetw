@@ -21,14 +21,14 @@
 
 package jp.mydns.turenar.twclient.gui.render.simple;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.ClientProperties;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 
 import static jp.mydns.turenar.twclient.Utility.DAY2MS;
 import static jp.mydns.turenar.twclient.Utility.HOUR2MS;
@@ -40,7 +40,7 @@ import static jp.mydns.turenar.twclient.Utility.SEC2MS;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class DateFormatter implements PropertyChangeListener {
+public class DateFormatter implements PropertyUpdateListener {
 	/**
 	 * thread local storage of simple date format
 	 */
@@ -110,7 +110,7 @@ public class DateFormatter implements PropertyChangeListener {
 
 	public DateFormatter() {
 		ClientProperties configProperties = ClientConfiguration.getInstance().getConfigProperties();
-		configProperties.addPropertyChangedListener(this);
+		configProperties.addPropertyUpdatedListener(this);
 		setFormat(configProperties.getProperty("gui.date.type"));
 	}
 
@@ -130,9 +130,9 @@ public class DateFormatter implements PropertyChangeListener {
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+	public void propertyUpdate(PropertyUpdateEvent evt) {
 		if (evt.getPropertyName().equals("gui.date.type")) {
-			setFormat((String) evt.getNewValue());
+			setFormat(evt.getNewValue());
 		}
 	}
 
