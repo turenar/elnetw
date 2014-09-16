@@ -754,6 +754,11 @@ public final class TwitterClientMain {
 					.enterPhase("poststart");
 		} catch (InitializeException e) {
 			logger.error("failed initialization", e);
+			try {
+				initializeService.uninit();
+			} catch (InitializeException e1) {
+				logger.error("failed uninit", e1);
+			}
 			return getResultMap(e.getExitCode(), true);
 		}
 		if (!initializeService.isInitialized("gui/main/show")) {
