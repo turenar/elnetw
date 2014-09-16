@@ -21,9 +21,6 @@
 
 package jp.mydns.turenar.lib.primitive;
 
-/**
- * HashSet for primitive long.
- */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -34,6 +31,10 @@ public class LongHashSet implements Cloneable {
 	 */
 	protected static final long ZERO = Long.MIN_VALUE;
 	/**
+	 * this indicates removed element. this shows next element may be equals with...
+	 */
+	protected static final long REMOVED = Long.MIN_VALUE + 1;
+	/**
 	 * default initial capacity. should be power of two.
 	 */
 	protected static final int INITIAL_CAPACITY = 16;
@@ -42,12 +43,22 @@ public class LongHashSet implements Cloneable {
 	 */
 	protected static final double LOAD_FACTOR = 0.5;
 
+	// This method copied from Murmur3, written by Austin Appleby released under Public Domain
+	/*package*/
+	static int hash(long value) {
+		value ^= value >>> 33; // CS-IGNORE
+		value *= 0xff51afd7ed558ccdL; // CS-IGNORE
+		value ^= value >>> 33; // CS-IGNORE
+		value *= 0xc4ceb9fe1a85ec53L; // CS-IGNORE
+		value ^= value >>> 33; // CS-IGNORE
+		return (int) value;
+	}
+
 	/*package*/
 	static int powerOf(int initialCapacity) {
 		int l = Integer.highestOneBit(initialCapacity);
 		return l < initialCapacity ? l << 1 : l;
 	}
-
 	/**
 	 * load factor
 	 */
@@ -110,19 +121,20 @@ public class LongHashSet implements Cloneable {
 			aLong = ZERO;
 		}
 		int index = hash(aLong) & bitSet;
-		while (values[index] != FREE && values[index] != aLong) {
-			index = (index + 1) & bitSet;
+		long indexedValue = values[index];
+		while (!(indexedValue == FREE || indexedValue == REMOVED || indexedValue == aLong)) {
+			indexedValue = values[index = (index + 1) & bitSet];
 			hashConflict++;
 		}
-		if (values[index] == FREE) {
+		if (indexedValue == aLong) {
+			return false;
+		} else { // removed or free
 			values[index] = aLong;
 			size++;
 			if (size > values.length * loadFactor) {
 				rehash();
 			}
 			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -160,7 +172,7 @@ public class LongHashSet implements Cloneable {
 			o = ZERO;
 		}
 		int index = hash(o) & bitSet;
-		while (values[index] != FREE && values[index] != o) {
+		while (!(values[index] == FREE || values[index] == o)) {
 			index = (index + 1) & bitSet;
 		}
 		return values[index] == o;
@@ -173,16 +185,6 @@ public class LongHashSet implements Cloneable {
 	 */
 	public int getHashConflict() {
 		return hashConflict;
-	}
-
-	// This method copied from Murmur3, written by Austin Appleby released under Public Domain
-	private int hash(long value) {
-		value ^= value >>> 33; // CS-IGNORE
-		value *= 0xff51afd7ed558ccdL; // CS-IGNORE
-		value ^= value >>> 33; // CS-IGNORE
-		value *= 0xc4ceb9fe1a85ec53L; // CS-IGNORE
-		value ^= value >>> 33; // CS-IGNORE
-		return (int) value;
 	}
 
 	/**
@@ -199,7 +201,7 @@ public class LongHashSet implements Cloneable {
 		bitSet = (bitSet << 1) + 1;
 		for (long aLong : values) {
 			int index = hash(aLong) & bitSet;
-			while (newArray[index] != FREE) {
+			while (!(newArray[index] == FREE || newArray[index] == REMOVED)) {
 				index = (index + 1) & bitSet;
 				hashConflict++;
 			}
@@ -219,11 +221,11 @@ public class LongHashSet implements Cloneable {
 			o = ZERO;
 		}
 		int index = hash(o) & bitSet;
-		while (values[index] != FREE && values[index] != o) {
+		while (!(values[index] == FREE || values[index] == o)) {
 			index = (index + 1) & bitSet;
 		}
 		if (values[index] == o) {
-			values[index] = FREE;
+			values[index] = REMOVED;
 			size--;
 			return true;
 		} else {
@@ -251,7 +253,7 @@ public class LongHashSet implements Cloneable {
 		for (long element : hashedTable) {
 			if (element == ZERO) {
 				array[i++] = 0;
-			} else if (element != 0) {
+			} else if (!(element == REMOVED || element == FREE)) {
 				array[i++] = element;
 			}
 		}
