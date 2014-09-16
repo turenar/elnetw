@@ -276,6 +276,7 @@ public final class TwitterClientMain {
 	private DeadlockMonitor deadlockMonitor;
 	private CacheStorage cacheStorage;
 	private FileLock configFileLock;
+	private FileLock cacheFileLock;
 
 	/**
 	 * インスタンスを生成する。
@@ -392,7 +393,7 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "clean/cache/icon", dependencies = {"cache/image", "config"}, phase = "poststart")
 	public void cleanOldUserIconCache() {
-		Path userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user").toPath();
+		Path userIconCacheDir = new File(configuration.getCacheDir(), "user").toPath();
 		try {
 			Files.walkFileTree(userIconCacheDir, new CacheCleanerVisitor());
 		} catch (IOException e) {
@@ -468,7 +469,23 @@ public final class TwitterClientMain {
 	@Initializer(name = "cache/db", dependencies = "config", phase = "preinit")
 	public void initCacheStorage(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
-			Path dbPath = Paths.get(System.getProperty("elnetw.cache.dir"), "cache.db");
+			try {
+				Path lockPath = Paths.get(configuration.getCacheDir(), "cache.db.lock");
+				FileChannel channel = FileChannel.open(lockPath, EnumSet.of(CREATE, WRITE));
+				cacheFileLock = channel.tryLock();
+				if (cacheFileLock == null) {
+					JOptionPane.showMessageDialog(null,
+							"同じキャッシュディレクトリからの多重起動を検知しました。終了します。\n\n"
+									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+					condition.setFailStatus("MultiInstanceRunning", 1);
+					return;
+				}
+			} catch (IOException e) {
+				logger.warn("Lock failed", e);
+			}
+
+			Path dbPath = Paths.get(configuration.getCacheDir(), "cache.db");
 			cacheStorage = new CacheStorage(dbPath);
 			configuration.setCacheStorage(cacheStorage);
 		} else {
@@ -476,6 +493,13 @@ public final class TwitterClientMain {
 				cacheStorage.store();
 			} catch (IOException e) {
 				logger.error("Error occurred while storing database", e);
+			}
+			if (cacheFileLock != null) {
+				try {
+					cacheFileLock.release();
+				} catch (IOException e) {
+					logger.warn("Unlock failed", e);
+				}
 			}
 		}
 	}
