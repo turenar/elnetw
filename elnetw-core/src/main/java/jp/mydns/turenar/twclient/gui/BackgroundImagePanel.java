@@ -41,9 +41,13 @@ public class BackgroundImagePanel extends JPanel {
 	 * 背景画像の上に見やすいように塗る色
 	 */
 	public static final Color IMAGE_OVERLAY_COLOR = new Color(0f, 0f, 0f, 0.3f);
-	private static final long serialVersionUID = -3176015401705848989L;
+	private static final long serialVersionUID = -1823351354878928758L;
 	// 描画する画像
 	private BufferedImage image;
+	/**
+	 * 縦横比を一定にするかどうか
+	 */
+	private boolean fixedAspect = true;
 
 	/**
 	 * インスタンスの生成
@@ -61,6 +65,15 @@ public class BackgroundImagePanel extends JPanel {
 		this(null);
 	}
 
+	/**
+	 * show image with fixed aspect
+	 *
+	 * @return fixed aspect?
+	 */
+	public boolean isFixedAspect() {
+		return fixedAspect;
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -76,6 +89,9 @@ public class BackgroundImagePanel extends JPanel {
 			// 画像がコンポーネントの何倍の大きさか計算
 			double sx = panelWidth / imageWidth;
 			double sy = panelHeight / imageHeight;
+			if (fixedAspect) {
+				sx = sy = Math.min(sx, sy);
+			}
 
 			// スケーリング
 			AffineTransform af = AffineTransform.getScaleInstance(sx, sy);
@@ -99,5 +115,14 @@ public class BackgroundImagePanel extends JPanel {
 		this.image = Utility.createBufferedImage(image, tracker);
 		tracker.waitForAll();
 		repaint();
+	}
+
+	/**
+	 * set if show image with fixed aspect
+	 *
+	 * @param fixedAspect fixed aspect?
+	 */
+	public void setFixedAspect(boolean fixedAspect) {
+		this.fixedAspect = fixedAspect;
 	}
 }

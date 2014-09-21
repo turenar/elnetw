@@ -71,6 +71,7 @@ import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
+import jp.mydns.turenar.twclient.internal.IntentActionListener;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
@@ -97,6 +98,23 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		@Override
 		public ViewFactory getViewFactory() {
 			return viewFactory;
+		}
+	}
+
+	private class BackgroundImageSetter extends AbstractImageSetter {
+		private final BackgroundImagePanel component;
+
+		public BackgroundImageSetter(BackgroundImagePanel component) {
+			this.component = component;
+		}
+
+		@Override
+		public void setImage(Image image) {
+			try {
+				component.setBackgroundImage(image);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
@@ -198,6 +216,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	private JMenuItem showHeaderItem;
 	private JMenuItem componentProfileUpdate;
 	private HTMLEditorKitExtension kit;
+	private JMenuItem componentBackgroundShow;
 
 	/**
 	 * インスタンスを生成する。
@@ -333,6 +352,14 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		return url;
 	}
 
+	private JMenuItem getComponentBackgroundShow() {
+		if (componentBackgroundShow == null) {
+			componentBackgroundShow = new JMenuItem("背景を表示");
+			componentBackgroundShow.setVisible(false);
+		}
+		return componentBackgroundShow;
+	}
+
 	private JScrollPane getComponentBio() {
 		if (componentBio == null) {
 			componentBio = new JScrollPane();
@@ -441,6 +468,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			jPopupMenu.add(showHeaderItem);
 			jPopupMenu.add(getComponentMuteCheckBox());
 			jPopupMenu.add(getComponentProfileUpdate());
+			jPopupMenu.add(getComponentBackgroundShow());
 			componentOperationBox.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
@@ -692,16 +720,14 @@ public class UserInfoFrameTab extends AbstractClientTab {
 					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
 					String profileBannerURL = user.getProfileBannerMediumURL();
 					if (profileBannerURL != null) {
-						configuration.getImageCacher().setImageIcon(new AbstractImageSetter() {
-							@Override
-							public void setImage(Image image) {
-								try {
-									getComponentUserInfo().setBackgroundImage(image);
-								} catch (InterruptedException e) {
-									Thread.currentThread().interrupt();
-								}
-							}
-						}, new URL(profileBannerURL));
+						configuration.getImageCacher().setImageIcon(new BackgroundImageSetter(getComponentUserInfo()),
+								new URL(profileBannerURL));
+					}
+					String backgroundImageUrl = user.getProfileBackgroundImageUrlHttps();
+					if (backgroundImageUrl != null) {
+						getComponentBackgroundShow().setVisible(true);
+						getComponentBackgroundShow().addActionListener(new IntentActionListener("openimg")
+								.putExtra("url", backgroundImageUrl));
 					}
 				} catch (InterruptedException e) {
 					logger.warn("Interrupted", e);
