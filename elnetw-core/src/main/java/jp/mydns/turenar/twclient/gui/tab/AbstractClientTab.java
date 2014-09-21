@@ -459,6 +459,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	/**
 	 * create popup menu for tab title label
+	 *
 	 * @return popup menu
 	 */
 	protected JPopupMenu createTitleLabelPopup() {
@@ -565,6 +566,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	/**
 	 * get the prefix of properties for this tab.
+	 *
 	 * @return prefix
 	 */
 	protected String getPropertyPrefix() {
@@ -621,6 +623,17 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 			postListScrollPane.getViewport().setView(getChildComponent());
 			postListScrollPane.getVerticalScrollBar().setUnitIncrement(
 					configProperties.getInteger(ClientConfiguration.PROPERTY_LIST_SCROLL));
+			scroller = new ScrollUtility(postListScrollPane, new BoundsTranslator() {
+
+				@Override
+				public Rectangle translate(JComponent component) {
+					if (!(component instanceof RenderPanel)) {
+						throw new AssertionError();
+					}
+					return sortedPostListPanel.getBoundsOf((RenderPanel) component);
+				}
+			}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
+
 		}
 		return postListScrollPane;
 	}
@@ -687,16 +700,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				TimeUnit.MILLISECONDS);
-		scroller = new ScrollUtility(getScrollPane(), new BoundsTranslator() {
-
-			@Override
-			public Rectangle translate(JComponent component) {
-				if (!(component instanceof RenderPanel)) {
-					throw new AssertionError();
-				}
-				return sortedPostListPanel.getBoundsOf((RenderPanel) component);
-			}
-		}, configuration.getConfigProperties().getBoolean("gui.scrool.momentumEnabled"));
 		actualRenderer = RendererManager.get(accountId, this);
 	}
 

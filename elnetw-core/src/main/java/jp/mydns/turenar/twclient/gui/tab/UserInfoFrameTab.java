@@ -37,7 +37,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
@@ -54,6 +53,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.ViewFactory;
@@ -62,6 +62,7 @@ import javax.swing.text.html.StyleSheet;
 
 import com.twitter.Regex;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
@@ -69,13 +70,13 @@ import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
-import jp.mydns.turenar.twclient.intent.UserInfoViewIntent;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -96,6 +97,58 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		@Override
 		public ViewFactory getViewFactory() {
 			return viewFactory;
+		}
+	}
+
+	private class EditMenuActionListener implements ActionListener {
+		private final TwitterUser user;
+		boolean isEditing;
+
+		public EditMenuActionListener(TwitterUser user) {
+			this.user = user;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (isEditing) {
+				componentBioEditorPane.setEnabled(false);
+				final TwitterUser user1 = user;
+				configuration.addJob(JobQueue.PRIORITY_MAX, new TwitterRunnable(true) {
+					private final TwitterUser user = user1;
+
+					@Override
+					protected void access() throws TwitterException {
+						Twitter twitter = configuration.getTwitter(String.valueOf(user.getId()));
+						user.update(twitter.updateProfile(user.getName(), user.getURL(),
+								user.getLocation(), componentBioEditorPane.getText()));
+						finishEdit();
+					}
+
+					@Override
+					protected void onException(TwitterException ex) {
+						finishEdit();
+					}
+
+					private void finishEdit() {
+						componentBioEditorPane.setContentType("text/html");
+						componentBioEditorPane.setEditorKit(kit);
+						componentBioEditorPane.setText(getBioHtml());
+						componentBioEditorPane.setEnabled(true);
+						componentBioEditorPane.setEditable(false);
+						componentBioEditorPane.setOpaque(false);
+						componentBioEditorPane.setBackground(new Color(0, 0, 0, 0));
+						isEditing = false;
+					}
+				});
+			} else {
+				componentBioEditorPane.setContentType("text/plain");
+				componentBioEditorPane.setText(user.getDescription());
+				componentBioEditorPane.setEditable(true);
+				componentBioEditorPane.setOpaque(true);
+				componentBioEditorPane.setBackground(Color.WHITE);
+				componentBioEditorPane.setForeground(Color.BLACK);
+				isEditing = true;
+			}
 		}
 	}
 
@@ -143,6 +196,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	private int nextUrlId = 0;
 	private JComponent componentOperationBox;
 	private JMenuItem showHeaderItem;
+	private JMenuItem componentProfileUpdate;
+	private HTMLEditorKitExtension kit;
 
 	/**
 	 * インスタンスを生成する。
@@ -286,7 +341,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		if (componentBio == null) {
 			componentBio = new JScrollPane();
 			componentBio.setOpaque(false);
+			componentBio.setBorder(new LineBorder(Color.WHITE, 1));
+			componentBio.setViewportBorder(null);
 			componentBio.getViewport().setOpaque(false);
+			componentBio.getViewport().setBorder(null);
 			componentBio.getViewport().setView(getComponentBioEditorPane());
 		}
 		return componentBio;
@@ -295,13 +353,13 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	private JEditorPane getComponentBioEditorPane() {
 		if (componentBioEditorPane == null) {
 			componentBioEditorPane = new JEditorPane();
-			HTMLEditorKitExtension kit = new HTMLEditorKitExtension();
+			componentBioEditorPane.setContentType("text/html");
+			kit = new HTMLEditorKitExtension();
 			StyleSheet styleSheet = new StyleSheet();
 			styleSheet.addRule("span { color: #ffffff; }");
 			styleSheet.addRule("a { color: #80ffff; }");
 			kit.setStyleSheet(styleSheet);
 			componentBioEditorPane.setEditorKit(kit);
-			componentBioEditorPane.setContentType("text/html");
 			componentBioEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			componentBioEditorPane.setEditable(false);
 			componentBioEditorPane.setFont(frameApi.getUiFont());
@@ -329,6 +387,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentBioEditorPane.setOpaque(false);
 			componentBioEditorPane.setForeground(Color.WHITE);
 			componentBioEditorPane.setText("読込中...");
+			componentBioEditorPane.setBackground(null);
 		}
 		return componentBioEditorPane;
 	}
@@ -350,12 +409,15 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					ClientProperties configProperties = getConfiguration().getConfigProperties();
-					List<String> idsList = configProperties.getList("core.filter.user.ids");
+					String idsString = configProperties.getProperty("core.filter.user.ids");
 					if (muteCheckBox.isSelected()) {
-						idsList.add(String.valueOf(user.getId()));
+						idsString =
+								idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
+										: idsString + " " + user.getId();
 					} else {
-						idsList.remove(String.valueOf(user.getId()));
+						idsString = idsString == null ? "" : idsString.replace(String.valueOf(user.getId()), "");
 					}
+					configProperties.setProperty("core.filter.user.ids", idsString);
 				}
 			});
 		}
@@ -382,6 +444,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 			jPopupMenu.add(showHeaderItem);
 			jPopupMenu.add(getComponentMuteCheckBox());
+			jPopupMenu.add(getComponentProfileUpdate());
 			componentOperationBox.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
@@ -399,7 +462,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 			try {
 				final JLabel closeIcon =
-						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewIntent.class
+						new JLabel(new ImageIcon(ImageIO.read(UserInfoFrameTab.class
 								.getResource("/jp/mydns/turenar/twclient/img/close16.png"))));
 				closeIcon.setText("閉じる");
 				closeIcon.setFont(operationFont);
@@ -418,6 +481,20 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentOperationsPanel.add(getComponentOperationBox());
 		}
 		return componentOperationsPanel;
+	}
+
+	private JMenuItem getComponentProfileUpdate() {
+		if (componentProfileUpdate == null) {
+			componentProfileUpdate = new JMenuItem("プロフィールを更新する");
+			componentProfileUpdate.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					new IntentArguments("update_profile").putExtra("user", user).invoke();
+				}
+			});
+			componentProfileUpdate.setVisible(false);
+		}
+		return componentProfileUpdate;
 	}
 
 	private Component getComponentTweetsScrollPane() {
@@ -499,6 +576,18 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		if (componentUserURL == null) {
 			componentUserURL = new JLabel();
 			componentUserURL.setForeground(Color.WHITE);
+			componentUserURL.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			componentUserURL.addMouseListener(new MouseAdapter() {
+
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (user.getURL() != null) {
+						IntentArguments arg = getIntentArguments("url").putExtra("url", user.getURL());
+						handleAction(arg);
+					}
+				}
+			});
+
 		}
 		return componentUserURL;
 	}
@@ -590,8 +679,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 				String location = user.getLocation();
 				if (location != null) {
-					stringBuilder.append("<html><i>Location: </i>").append(location);
-					getComponentLocation().setText(stringBuilder.toString());
+					getComponentLocation().setText("<html><i>Location: </i>" + location);
 				}
 
 				getComponentUserName().setText(
@@ -604,17 +692,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 					stringBuilder.append(user.getURL()).append("</a>");
 					componentUserURL.setText(stringBuilder.toString());
 				}
-				componentUserURL.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				componentUserURL.addMouseListener(new MouseAdapter() {
-
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						if (user.getURL() != null) {
-							IntentArguments arg = getIntentArguments("url").putExtra("url", user.getURL());
-							handleAction(arg);
-						}
-					}
-				});
 				try {
 					configuration.getImageCacher().setImageIcon(getComponentUserIcon(), user);
 					String profileBannerURL = user.getProfileBannerMediumURL();
@@ -641,11 +718,19 @@ public class UserInfoFrameTab extends AbstractClientTab {
 						MessageFormat.format("@{0} ({1})", user.getScreenName(), user.getName()));
 
 				getComponentBioEditorPane().setText(getBioHtml());
+				if (configuration.isMyAccount(user.getId())) {
+					JPopupMenu popup = new JPopupMenu();
+					JMenuItem editMenu = new JMenuItem("編集");
+					editMenu.addActionListener(new EditMenuActionListener(user));
+					popup.add(editMenu);
+					componentBioEditorPane.setComponentPopupMenu(popup);
+				}
 
-				List<String> idsList = configuration.getConfigProperties().getList("core.filter.user.ids");
+				String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
+				String[] ids = idsString.split(" ");
 				String userIdString = String.valueOf(user.getId());
 				boolean filtered = false;
-				for (String id : idsList) {
+				for (String id : ids) {
 					if (id.equals(userIdString)) {
 						filtered = true;
 						break;
@@ -653,7 +738,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				}
 				JCheckBoxMenuItem componentMuteCheckBox = getComponentMuteCheckBox();
 				componentMuteCheckBox.setSelected(filtered);
-				if (configuration.isMyAccount(user.getId())) {
+				if (frameApi.getLoginUser().getId() == user.getId()) {
 					componentMuteCheckBox.setEnabled(false);
 					componentMuteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
 				} else {
@@ -668,6 +753,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 					showHeaderItem.setEnabled(false);
 				}
 				titleLabel.setText(getTitle());
+
+				if (configuration.isMyAccount(user.getId())) {
+					getComponentProfileUpdate().setVisible(true);
+				}
 			}
 		});
 	}

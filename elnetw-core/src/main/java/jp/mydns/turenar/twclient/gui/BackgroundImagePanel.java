@@ -95,6 +95,9 @@ public class BackgroundImagePanel extends JPanel {
 	 * @throws InterruptedException 読み込まれる前に割り込まれた
 	 */
 	public void setBackgroundImage(Image image) throws InterruptedException {
-		this.image = Utility.createBufferedImage(image, new MediaTracker(this));
+		MediaTracker tracker = new MediaTracker(this);
+		this.image = Utility.createBufferedImage(image, tracker);
+		tracker.waitForAll();
+		repaint();
 	}
 }
