@@ -2,14 +2,19 @@ Version 0.2-alpha1
 
 	!! Update config version. Some of your configuration may be dropped.
 	++ Prohibit multi instance (#38)
-	++ Add BlockingUserFilter. You can see its option in SettingFrame
+	++ Add BlockingUserFilter. You can see its option in SettingFrame (#40)
 	++ Add is_following query property. This causes your TL delayed (#40)
 	++ Support comment in query statement (#4)
-	++ Add interface to add tab (#41)
+	++ Add extended mute operation popup menu (#32)
+	++ Add creating tab interface (#41)
 	 + Add disk cache mechanism to store misc data (#35)
 	 + Update tab configuration. Don't use json
+	 + elnetw.cfg supports easy-readable list syntax (but not
+	     easy-writable) (#47)
+	 + Now we can see millisecond time (#45)
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
+	 * Fix not checking force tag in FavoriteIntent (fav!force=?) (#49)
 	 * Fix operator ignored in bool query property
 	 * Support LowerCaseName of query system
 	 * Update filter system
