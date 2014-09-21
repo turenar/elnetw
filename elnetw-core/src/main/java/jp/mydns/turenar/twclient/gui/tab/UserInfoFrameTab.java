@@ -150,7 +150,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	 * @param uniqId unique identifier
 	 */
 	public UserInfoFrameTab(String uniqId) {
-		super(uniqId);
+		super(TAB_ID, uniqId);
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
 		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + userId, getRenderer());
 		configuration.addJob(new ParallelRunnable() {
