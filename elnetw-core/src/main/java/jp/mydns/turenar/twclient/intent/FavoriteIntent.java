@@ -69,7 +69,22 @@ public class FavoriteIntent extends AbstractIntent {
 		JMenuItem menuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
 		TwitterStatus status = getStatus(args);
 		if (status != null) {
-			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
+			String forceFlag = args.getExtraObj("force", String.class);
+			boolean favFlag;
+			switch (forceFlag) {
+				case "f":
+				case "fav":
+					favFlag = false; // unfav->fav
+					break;
+				case "u":
+				case "unfav":
+					favFlag = true; // fav->unfav
+					break;
+				default:
+					favFlag = status.isFavorited();
+					break;
+			}
+			menuItem.setText(favFlag ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);
