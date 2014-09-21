@@ -40,7 +40,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -57,6 +59,7 @@ import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
 import jp.mydns.turenar.twclient.gui.FileChooserUtil;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
+import jp.mydns.turenar.twclient.internal.IntentActionListener;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -98,6 +101,123 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 		@Override
 		public void setChild(MessageFilter child) throws UnsupportedOperationException {
+		}
+	}
+
+	private abstract class AbstractImageUploadActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			FileChooserUtil fileChooserUtil = FileChooserUtil.newInstance();
+			fileChooserUtil.setTitle(getChooserTitle());
+			fileChooserUtil.addFilter("画像ファイル", "gif", "jpg", "jpeg", "png", "bmp");
+			File selectedFile = fileChooserUtil.openDialog(false, getTabComponent());
+			if (selectedFile != null) {
+//					JFileChooser fileChooser = new JFileChooser();
+//					fileChooser.addChoosableFileFilter(
+//							new FileNameExtensionFilter("画像ファイル", "gif", "jpg", "jpeg", "png", "bmp"));
+//					int result = fileChooser.showOpenDialog(componentUserIcon);
+//					if (result == JFileChooser.APPROVE_OPTION) {
+//						File selectedFile = fileChooser.getSelectedFile();
+				if (selectedFile.exists()) {
+					uploadImage(configuration.getTwitter(String.valueOf(account.getId())), selectedFile);
+				}
+			}
+		}
+
+		public abstract String getChooserTitle();
+
+		protected void updateText(final String text) {
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					componentMessage.setText(text);
+				}
+			});
+		}
+
+		protected abstract void uploadImage(Twitter twitter, File selectedFile);
+	}
+
+	private class BackgroundEditActionListener extends AbstractImageUploadActionListener {
+		@Override
+		public String getChooserTitle() {
+			return "背景として設定する画像を選択してください";
+		}
+
+		@Override
+		protected void uploadImage(final Twitter twitter, final File selectedFile) {
+			final int result = JOptionPane.showConfirmDialog(getTabComponent(), "指定した画像をタイル状に並べて表示しますか？",
+					"背景設定", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if (result == JOptionPane.CANCEL_OPTION) {
+				return;
+			}
+			updateText("背景画像の設定中...");
+
+			configuration.addJob(new ParallelRunnable() {
+				@Override
+				public void run() {
+					try {
+						account.update(twitter.updateProfileBackgroundImage(selectedFile,
+								result == JOptionPane.YES_OPTION));
+						updateText("背景画像の設定完了！");
+					} catch (TwitterException e1) {
+						updateText(e1.getLocalizedMessage());
+						logger.warn("Failed to update profile image", e1);
+					}
+				}
+			});
+		}
+	}
+
+	private class BannerEditActionListener extends AbstractImageUploadActionListener {
+		@Override
+		public String getChooserTitle() {
+			return "ヘッダーとして設定する画像を選択してください";
+		}
+
+		@Override
+		protected void uploadImage(final Twitter twitter, final File selectedFile) {
+			updateText("ヘッダー画像の設定中...");
+
+			configuration.addJob(new ParallelRunnable() {
+				@Override
+				public void run() {
+					try {
+						twitter.updateProfileBanner(selectedFile);
+						updateText("ヘッダー画像の設定完了！");
+					} catch (TwitterException e1) {
+						updateText(e1.getLocalizedMessage());
+						logger.warn("Failed to update profile image", e1);
+
+					}
+
+				}
+			});
+		}
+	}
+
+	private class UserIconEditActionListener extends AbstractImageUploadActionListener {
+		@Override
+		public String getChooserTitle() {
+			return "ユーザーアイコンに設定する画像を選択してください";
+		}
+
+		@Override
+		protected void uploadImage(final Twitter twitter, final File selectedFile) {
+			updateText("ユーザーアイコンの設定中...");
+
+			configuration.addJob(new ParallelRunnable() {
+				@Override
+				public void run() {
+					try {
+						account.update(twitter.updateProfileImage(selectedFile));
+						updateText("ユーザーアイコンの設定完了！");
+					} catch (TwitterException e1) {
+						updateText(e1.getLocalizedMessage());
+						logger.warn("Failed to update profile image", e1);
+					}
+				}
+			});
 		}
 	}
 
@@ -151,6 +271,53 @@ public class UpdateProfileTab extends AbstractClientTab {
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
 		account = configuration.getCacheManager().getUser(userId);
 		initUserIcon();
+	}
+
+	private JPopupMenu createMainPanelPopup() {
+		JPopupMenu popup = new JPopupMenu();
+		{
+			JMenu headerMenu = new JMenu("ヘッダー");
+
+			JMenuItem headerShowMenu = new JMenuItem("表示");
+			headerShowMenu.addActionListener(new IntentActionListener("openimg")
+					.putExtra("url", account.getProfileBannerLargeURL()));
+			headerMenu.add(headerShowMenu);
+
+			JMenuItem headerChangeMenu = new JMenuItem("変更");
+			headerChangeMenu.addActionListener(new BannerEditActionListener());
+			headerMenu.add(headerChangeMenu);
+
+			popup.add(headerMenu);
+		}
+		{
+			JMenu backgroundMenu = new JMenu("背景");
+
+			JMenuItem backgroundShowMenu = new JMenuItem("表示");
+			backgroundShowMenu.addActionListener(new IntentActionListener("openimg")
+					.putExtra("url", account.getProfileBackgroundImageUrlHttps()));
+			backgroundMenu.add(backgroundShowMenu);
+
+			JMenuItem backgroundEditMenu = new JMenuItem("変更");
+			backgroundEditMenu.addActionListener(new BackgroundEditActionListener());
+			backgroundMenu.add(backgroundEditMenu);
+
+			popup.add(backgroundMenu);
+		}
+		{
+			JMenu iconMenu = new JMenu("アイコン");
+
+			JMenuItem iconShowMenu = new JMenuItem("表示");
+			iconShowMenu.addActionListener(new IntentActionListener("openimg")
+					.putExtra("url", account.getOriginalProfileImageURLHttps()));
+			iconMenu.add(iconShowMenu);
+
+			JMenuItem iconEditMenu = new JMenuItem("変更");
+			iconEditMenu.addActionListener(new UserIconEditActionListener());
+			iconMenu.add(iconEditMenu);
+
+			popup.add(iconMenu);
+		}
+		return popup;
 	}
 
 	@Override
@@ -258,6 +425,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 					getComponentMessage().setText(e.getLocalizedMessage());
 				}
 			}
+			componentMainPanel.setComponentPopupMenu(createMainPanelPopup());
 
 			GroupLayout layout = new GroupLayout(componentMainPanel);
 			componentMainPanel.setLayout(layout);
@@ -426,31 +594,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 			componentUserIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			JPopupMenu popup = new JPopupMenu();
 			JMenuItem editMenu = new JMenuItem("編集");
-			editMenu.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					FileChooserUtil fileChooserUtil = FileChooserUtil.newInstance();
-					fileChooserUtil.addFilter("画像ファイル", "gif", "jpg", "jpeg", "png", "bmp");
-					File selectedFile = fileChooserUtil.openDialog(false, getTabComponent());
-					if (selectedFile != null) {
-//					JFileChooser fileChooser = new JFileChooser();
-//					fileChooser.addChoosableFileFilter(
-//							new FileNameExtensionFilter("画像ファイル", "gif", "jpg", "jpeg", "png", "bmp"));
-//					int result = fileChooser.showOpenDialog(componentUserIcon);
-//					if (result == JFileChooser.APPROVE_OPTION) {
-//						File selectedFile = fileChooser.getSelectedFile();
-						if (selectedFile.exists()) {
-							Twitter twitter = configuration.getTwitter(String.valueOf(account.getId()));
-							try {
-								twitter.updateProfileImage(selectedFile);
-							} catch (TwitterException e1) {
-								componentMessage.setText(e1.getLocalizedMessage());
-								logger.warn("Failed to update profile image", e1);
-							}
-						}
-					}
-				}
-			});
+			editMenu.addActionListener(new UserIconEditActionListener());
 			popup.add(editMenu);
 			componentUserIcon.setComponentPopupMenu(popup);
 			componentUserIcon.addMouseListener(new MouseAdapter() {

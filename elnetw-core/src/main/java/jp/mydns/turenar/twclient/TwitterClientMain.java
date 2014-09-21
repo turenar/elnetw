@@ -610,7 +610,7 @@ public final class TwitterClientMain {
 	/**
 	 * init action handlers
 	 */
-	@Initializer(name = "intent", phase = "init")
+	@Initializer(name = "intent", dependencies = "gui/main", phase = "init")
 	public void initIntentTable() {
 		configuration.addIntent("reply", new ReplyIntent());
 		configuration.addIntent("qt", new QuoteTweetIntent());
