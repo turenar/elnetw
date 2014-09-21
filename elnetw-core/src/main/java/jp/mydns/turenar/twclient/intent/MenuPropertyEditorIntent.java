@@ -19,32 +19,24 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.internal;
+package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.gui.PropertyEditorFrame;
 
 /**
- * 設定フレームを表示するアクションハンドラ
+ * メニューのプロパティエディタを開くためのアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class MenuConfiguratorActionHandler implements ActionHandler {
+public class MenuPropertyEditorIntent implements Intent {
+
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		ClientConfiguration.getInstance().getConfigBuilder().show();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled.
+		PropertyEditorFrame propertyEditorFrame = new PropertyEditorFrame();
+		propertyEditorFrame.setVisible(true);
 	}
 }

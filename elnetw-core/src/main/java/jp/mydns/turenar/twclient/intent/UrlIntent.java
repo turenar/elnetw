@@ -19,14 +19,13 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import java.awt.event.ActionListener;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.internal.IntentActionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Status;
@@ -37,19 +36,41 @@ import twitter4j.URLEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UrlActionHandler extends StatusActionHandlerBase {
+public class UrlIntent extends AbstractIntent {
 
-	private static final Logger logger = LoggerFactory.getLogger(UrlActionHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(UrlIntent.class);
 	private final ClientConfiguration configuration;
 
-	public UrlActionHandler() {
+	public UrlIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		JMenu openUrlMenu = new JMenu("ツイートのURLをブラウザで開く");
-		return openUrlMenu;
+
+		Status status = getStatus(args);
+		if (status != null) {
+			URLEntity[] urlEntities = status.getURLEntities();
+			if (urlEntities == null || urlEntities.length == 0) {
+				openUrlMenu.setEnabled(false);
+			} else {
+				for (URLEntity entity : status.getURLEntities()) {
+					JMenuItem urlMenu = new JMenuItem();
+					if (entity.getDisplayURL() == null) {
+						urlMenu.setText(entity.getURL());
+					} else {
+						urlMenu.setText(entity.getDisplayURL());
+					}
+					urlMenu.addActionListener(new IntentActionListener("url").putExtra("url", entity.getURL()));
+					openUrlMenu.add(urlMenu);
+				}
+				openUrlMenu.setEnabled(true);
+			}
+		} else {
+			openUrlMenu.setEnabled(false);
+		}
+		dispatcher.addMenu(openUrlMenu, args);
 	}
 
 	@Override
@@ -62,41 +83,6 @@ public class UrlActionHandler extends StatusActionHandlerBase {
 			configuration.getUtility().openBrowser(url);
 		} catch (Exception e) {
 			logger.warn("Failed open browser", e);
-		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		if (menuItem instanceof JMenu == false) {
-			throw new AssertionError("UrlActionHandler#pMWBV transfered menuItem which is not instanceof JMenu");
-		}
-		JMenu menu = (JMenu) menuItem;
-
-		Status status = getStatus(arguments);
-		if (status != null) {
-			menu.removeAll();
-
-			URLEntity[] urlEntities = status.getURLEntities();
-			if (urlEntities == null || urlEntities.length == 0) {
-				menu.setEnabled(false);
-			} else {
-				for (URLEntity entity : status.getURLEntities()) {
-					JMenuItem urlMenu = new JMenuItem();
-					if (entity.getDisplayURL() == null) {
-						urlMenu.setText(entity.getURL());
-					} else {
-						urlMenu.setText(entity.getDisplayURL());
-					}
-					urlMenu.setActionCommand("url!" + entity.getURL());
-					for (ActionListener listener : menu.getActionListeners()) {
-						urlMenu.addActionListener(listener);
-					}
-					menu.add(urlMenu);
-				}
-				menu.setEnabled(true);
-			}
-		} else {
-			menu.setEnabled(false);
 		}
 	}
 }

@@ -19,23 +19,56 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
+
+import java.awt.event.KeyEvent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ClientFrameApi;
+import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import twitter4j.Status;
+import twitter4j.TwitterException;
 
 /**
- * Unofficial RT (like QT:) Action Handler
+ * 公式リツイートするためのアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
+public class RetweetIntent extends AbstractIntent {
+
+	private static class RetweetTask extends TwitterRunnable {
+
+		private final Status status;
+
+		public RetweetTask(Status status) {
+			this.status = status;
+		}
+
+		@Override
+		public void access() throws TwitterException {
+			configuration.getTwitterForWrite().retweetStatus(status.getId());
+		}
+	}
+
+	private final ClientConfiguration configuration;
+
+	public RetweetIntent() {
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return new JMenuItem("非公式RT");
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
+		Status status = getStatus(args);
+		if (status == null) {
+			retweetMenuItem.setVisible(false);
+			retweetMenuItem.setEnabled(false);
+		} else {
+			retweetMenuItem.setEnabled(!status.getUser().isProtected());
+			retweetMenuItem.setVisible(status.getUser().getId() != getLoginUserId());
+		}
+		dispatcher.addMenu(retweetMenuItem, args);
 	}
 
 	@Override
@@ -44,14 +77,7 @@ public class UnofficialRetweetActionHandler extends StatusActionHandlerBase {
 		if (status == null) {
 			throwIllegalArgument();
 		}
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-		api.focusPostBox();
-	}
 
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		Status status = getStatus(args);
-		menuItem.setEnabled(status != null);
+		configuration.addJob(new RetweetTask(status));
 	}
 }

@@ -38,7 +38,7 @@ import javax.swing.JPopupMenu;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;

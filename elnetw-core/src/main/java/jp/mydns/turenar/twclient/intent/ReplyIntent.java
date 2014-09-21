@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.awt.event.KeyEvent;
 
@@ -34,20 +34,21 @@ import twitter4j.Status;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ReplyActionHandler extends StatusActionHandlerBase {
+public class ReplyIntent extends AbstractIntent {
 
 	private final ClientConfiguration configuration;
 	private final ClientFrameApi frameApi;
 
-	public ReplyActionHandler() {
+	public ReplyIntent() {
 		configuration = ClientConfiguration.getInstance();
 		frameApi = configuration.getFrameApi();
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		JMenuItem replyMenuItem = new JMenuItem("Reply", KeyEvent.VK_R);
-		return replyMenuItem;
+		replyMenuItem.setEnabled(getStatus(args) != null);
+		dispatcher.addMenu(replyMenuItem, args);
 	}
 
 	@Override
@@ -64,10 +65,8 @@ public class ReplyActionHandler extends StatusActionHandlerBase {
 		boolean appendFlag;
 		if (appendFlagObj instanceof Boolean) {
 			appendFlag = (Boolean) appendFlagObj;
-		} else if (appendFlagObj != null) {
-			appendFlag = true;
 		} else {
-			appendFlag = false;
+			appendFlag = appendFlagObj != null;
 		}
 		if (appendFlag) {
 			String postText = configuration.getFrameApi().getPostText();
@@ -83,11 +82,5 @@ public class ReplyActionHandler extends StatusActionHandlerBase {
 		}
 		frameApi.setPostText(text, text.length(), text.length());
 		frameApi.setInReplyToStatus(status);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		menuItem.setEnabled(status != null);
 	}
 }

@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.util.HashMap;
 
@@ -44,6 +44,7 @@ public class IntentArguments implements Cloneable {
 		this.intentName = intentName;
 	}
 
+	@SuppressWarnings("CloneDoesntDeclareCloneNotSupportedException")
 	@Override
 	public IntentArguments clone() {
 		IntentArguments newInstance;
@@ -129,6 +130,27 @@ public class IntentArguments implements Cloneable {
 	}
 
 	/**
+	 * check if argument 'name' is put
+	 *
+	 * @param name argument name
+	 * @return put?
+	 */
+	public boolean hasExtra(String name) {
+		return extraArgs.containsKey(name);
+	}
+
+	/**
+	 * check if argument 'name' is put and argument is not null and cast-able into clazz
+	 *
+	 * @param name  argument name
+	 * @param clazz class to check cast
+	 * @return getExtraObj(name, clazz) !=null
+	 */
+	public boolean hasExtraObj(String name, Class<?> clazz) {
+		return getExtraObj(name, clazz) != null;
+	}
+
+	/**
 	 * delegate for {@link jp.mydns.turenar.twclient.ClientConfiguration#handleAction(IntentArguments)}
 	 */
 	public void invoke() {
@@ -147,6 +169,11 @@ public class IntentArguments implements Cloneable {
 			extraArgs = new HashMap<>();
 		}
 		extraArgs.put(name, value);
+		return this;
+	}
+
+	public IntentArguments removeExtra(String name) {
+		extraArgs.remove(name);
 		return this;
 	}
 

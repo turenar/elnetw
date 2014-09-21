@@ -37,6 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
@@ -61,14 +62,14 @@ import javax.swing.text.html.StyleSheet;
 
 import com.twitter.Regex;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
-import jp.mydns.turenar.twclient.handler.UserInfoViewActionHandler;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.UserInfoViewIntent;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
@@ -349,15 +350,12 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					ClientProperties configProperties = getConfiguration().getConfigProperties();
-					String idsString = configProperties.getProperty("core.filter.user.ids");
+					List<String> idsList = configProperties.getList("core.filter.user.ids");
 					if (muteCheckBox.isSelected()) {
-						idsString =
-								idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
-										: idsString + " " + user.getId();
+						idsList.add(String.valueOf(user.getId()));
 					} else {
-						idsString = idsString == null ? "" : idsString.replace(String.valueOf(user.getId()), "");
+						idsList.remove(String.valueOf(user.getId()));
 					}
-					configProperties.setProperty("core.filter.user.ids", idsString);
 				}
 			});
 		}
@@ -401,7 +399,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentOperationsPanel.setLayout(new BoxLayout(componentOperationsPanel, BoxLayout.Y_AXIS));
 			try {
 				final JLabel closeIcon =
-						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewActionHandler.class
+						new JLabel(new ImageIcon(ImageIO.read(UserInfoViewIntent.class
 								.getResource("/jp/mydns/turenar/twclient/img/close16.png"))));
 				closeIcon.setText("閉じる");
 				closeIcon.setFont(operationFont);
@@ -644,11 +642,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 				getComponentBioEditorPane().setText(getBioHtml());
 
-				String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
-				String[] ids = idsString.split(" ");
+				List<String> idsList = configuration.getConfigProperties().getList("core.filter.user.ids");
 				String userIdString = String.valueOf(user.getId());
 				boolean filtered = false;
-				for (String id : ids) {
+				for (String id : idsList) {
 					if (id.equals(userIdString)) {
 						filtered = true;
 						break;
@@ -656,7 +653,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				}
 				JCheckBoxMenuItem componentMuteCheckBox = getComponentMuteCheckBox();
 				componentMuteCheckBox.setSelected(filtered);
-				if (frameApi.getLoginUser().getId() == user.getId()) {
+				if (configuration.isMyAccount(user.getId())) {
 					componentMuteCheckBox.setEnabled(false);
 					componentMuteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
 				} else {

@@ -29,12 +29,13 @@ import java.awt.event.FocusEvent;
 import java.util.Date;
 
 import javax.swing.JLabel;
+import javax.swing.JPopupMenu;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.CacheManager;
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.filter.MessageFilter;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
@@ -86,6 +87,7 @@ public class SimpleRenderer implements TabRenderer {
 	private AbstractRenderObject focusOwner;
 	private LongHashSet statusSet = new LongHashSet();
 	private DateFormatter dateFormatter = new DateFormatter();
+	private PopupMenuGenerator popupMenuGenerator = new PopupMenuGenerator(this);
 
 	/**
 	 * init
@@ -131,6 +133,15 @@ public class SimpleRenderer implements TabRenderer {
 	 */
 	public void fireFocusEvent(FocusEvent e, RenderObject renderObject) {
 		renderTarget.focusGained(new RendererFocusEvent(e, renderObject));
+	}
+
+	/**
+	 * generate popup menu from popup menu kind
+	 *
+	 * @param popupMenuKind kind of popup menu. for example, 'status', 'default'
+	 */
+	public void generatePopupMenu(String popupMenuKind) {
+		popupMenuGenerator.generatePopupMenu(popupMenuKind);
 	}
 
 	private long getActualUserId() {
@@ -222,6 +233,16 @@ public class SimpleRenderer implements TabRenderer {
 	 */
 	protected Dimension getLinePanelSizeOfSentBy() {
 		return linePanelSizeOfSentBy;
+	}
+
+	/**
+	 * get popup menu. You must call {@link #generatePopupMenu(String)}
+	 * in {@link AbstractRenderObject#popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent)}
+	 *
+	 * @return popup menu
+	 */
+	public JPopupMenu getPopupMenu() {
+		return popupMenuGenerator.getPopupMenu();
 	}
 
 	/**

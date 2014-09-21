@@ -22,12 +22,9 @@
 package jp.mydns.turenar.twclient.gui.render.simple;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -39,31 +36,26 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.gui.render.RenderPanel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.EntitySupport;
@@ -80,7 +72,7 @@ import twitter4j.UserMentionEntity;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class AbstractRenderObject implements RenderObject, KeyListener,
-		FocusListener, MouseListener, ClientEventConstants, ActionListener, PopupMenuListener {
+		FocusListener, MouseListener, ClientEventConstants, PopupMenuListener {
 	/** Entityの開始位置を比較する */
 	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
 		private static final long serialVersionUID = -6063590113086378960L;
@@ -253,11 +245,6 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		renderer.getConfiguration().handleAction(getIntentArguments(e.getActionCommand()));
-	}
-
-	@Override
 	public void focusGained(FocusEvent e) {
 		getFrameApi().clearTweetView();
 		if (renderer.getFocusOwner() != null) {
@@ -272,52 +259,6 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	@Override
 	public void focusLost(FocusEvent e) {
-	}
-
-	/**
-	 * menuTypeからポップアップメニューを作成する
-	 *
-	 * @param menuType メニュータイプ
-	 * @return ポップアップメニュー ({@link #popupMenu})
-	 */
-	protected JPopupMenu generatePopupMenu(String menuType) {
-		popupMenu.removeAll();
-
-		Stack<JComponent> stack = new Stack<>();
-		stack.push(popupMenu);
-		String popupMenuStr = renderer.getConfigProperties().getProperty("gui.menu.popup." + menuType);
-
-		Pattern pattern = Pattern.compile("([^;{}]+)([{}]?)");
-		Matcher matcher = pattern.matcher(popupMenuStr);
-
-		while (matcher.find()) {
-			String commandName = matcher.group(1).trim();
-			String subMenuStart = matcher.group(2);
-			if (commandName.isEmpty()) {
-				continue;
-			}
-			if (subMenuStart.equals("{")) {
-				JMenu jMenu = new JMenu(commandName);
-				jMenu.setActionCommand("<elnetw>.gui.render.simple.RenderObjectHandler!submenu");
-				stack.peek().add(jMenu);
-				stack.push(jMenu);
-			} else {
-				IntentArguments intentArguments = getIntentArguments(commandName);
-				ActionHandler handler = renderer.getConfiguration().getActionHandler(intentArguments);
-				if (handler == null) {
-					logger.warn("handler {} is not found.", commandName);
-				} else {
-					JMenuItem menuItem = handler.createJMenuItem(intentArguments);
-					menuItem.setActionCommand(commandName);
-					menuItem.addActionListener(this);
-					stack.peek().add(menuItem);
-				}
-				if (subMenuStart.equals("}")) {
-					stack.pop();
-				}
-			}
-		}
-		return popupMenu;
 	}
 
 	@Override
@@ -350,10 +291,8 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 			int dataWidth = renderer.getFontMetrics().stringWidth(componentStatusText.getText());
 
 			linePanel.add(componentStatusText);
-			popupMenu = new JPopupMenu();
-			popupMenu.addPopupMenuListener(this);
-			linePanel.setComponentPopupMenu(this.popupMenu);
-
+			popupMenu = renderer.getPopupMenu();
+			linePanel.setComponentPopupMenu(popupMenu);
 			linePanel.setBackground(backgroundColor);
 			int height = renderer.getIconSize().height + PADDING_OF_POSTLIST;
 			Dimension minSize = new Dimension(
@@ -424,7 +363,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	 */
 	protected IntentArguments getIntentArguments(String actionCommand) {
 		IntentArguments intentArguments = Utility.getIntentArguments(actionCommand);
-		intentArguments.putExtra(ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
+		intentArguments.putExtra(Intent.INTENT_ARG_NAME_SELECTING_POST_DATA, this);
 		return intentArguments;
 	}
 
@@ -510,22 +449,9 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+		getComponent().requestFocusInWindow();
 		this.focusGained(new FocusEvent(getComponent(), FocusEvent.FOCUS_GAINED, true));
-		this.linePanel.requestFocusInWindow();
-		generatePopupMenu(getPopupMenuType());
-
-		Component[] components = popupMenu.getComponents();
-		for (Component component : components) {
-			JMenuItem menuItem = (JMenuItem) component;
-			IntentArguments intentArguments = getIntentArguments(menuItem.getActionCommand());
-			ActionHandler actionHandler = renderer.getConfiguration().getActionHandler(intentArguments);
-			if (actionHandler != null) {
-				actionHandler.popupMenuWillBecomeVisible(menuItem, intentArguments);
-			} else {
-				logger.warn("ActionHandler is not found: {}", menuItem.getActionCommand());
-				menuItem.setEnabled(false);
-			}
-		}
+		logger.info("popupMenuWillBecomeVisible");
+		renderer.generatePopupMenu(getPopupMenuType());
 	}
-
 }

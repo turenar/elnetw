@@ -29,7 +29,7 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.internal.TweetLengthUpdater;
 import twitter4j.Status;
 import twitter4j.TwitterException;

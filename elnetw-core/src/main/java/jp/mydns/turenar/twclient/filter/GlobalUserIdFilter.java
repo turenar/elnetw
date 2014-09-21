@@ -21,6 +21,8 @@
 
 package jp.mydns.turenar.twclient.filter;
 
+import java.util.List;
+
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
@@ -59,23 +61,15 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 	}
 
 	private void initFilterIds() {
-		String idsString = configuration.getConfigProperties().getProperty(PROPERTY_KEY_FILTER_IDS);
-		if (idsString == null) {
-			return;
-		}
+		List<String> idsList = configuration.getConfigProperties().getList(PROPERTY_KEY_FILTER_IDS);
 		LongHashSet filterIds = new LongHashSet();
-		for (int offset = 0; offset < idsString.length(); ) {
-			int end = idsString.indexOf(' ', offset);
-			if (end < 0) {
-				end = idsString.length();
-			}
-			String idString = idsString.substring(offset, end);
+		for (String userId : idsList) {
 			try {
-				filterIds.add(Long.parseLong(idString));
+				filterIds.add(Long.parseLong(userId));
 			} catch (NumberFormatException e) {
-				logger.warn("filterIdsの読み込み中にエラー: {} は数値ではありません", idString);
+				logger.warn("filterIdsの読み込み中にエラー: {} は数値ではありません", userId);
 			}
-			offset = end + 1;
+
 		}
 		this.filterIds = filterIds;
 	}

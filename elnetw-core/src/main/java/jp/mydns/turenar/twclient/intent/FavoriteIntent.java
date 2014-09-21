@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.awt.event.KeyEvent;
 
@@ -36,7 +36,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class FavoriteActionHandler extends StatusActionHandlerBase {
+public class FavoriteIntent extends AbstractIntent {
 
 	private static class FavTask extends TwitterRunnable {
 
@@ -65,8 +65,16 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem menuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+		TwitterStatus status = getStatus(args);
+		if (status != null) {
+			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
+			menuItem.setEnabled(true);
+		} else {
+			menuItem.setEnabled(false);
+		}
+		dispatcher.addMenu(menuItem, args);
 	}
 
 	@Override
@@ -87,16 +95,5 @@ public class FavoriteActionHandler extends StatusActionHandlerBase {
 		}
 
 		ClientConfiguration.getInstance().addJob(new FavTask(favFlag, status));
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		TwitterStatus status = getStatus(arguments);
-		if (status != null) {
-			menuItem.setText(status.isFavorited() ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
 	}
 }

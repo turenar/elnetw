@@ -19,49 +19,29 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import java.awt.event.KeyEvent;
-
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ClientFrameApi;
-import jp.mydns.turenar.twclient.internal.QuoteTweetLengthCalculator;
-import twitter4j.Status;
+package jp.mydns.turenar.twclient.intent;
 
 /**
- * QTするためのアクションハンドラ
+ * アクションハンドラ。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class QuoteTweetActionHandler extends StatusActionHandlerBase {
+public interface Intent {
+	/** 現在選択しているポストのデータ。StatusData */
+	/*public static final*/ String INTENT_ARG_NAME_SELECTING_POST_DATA = "selectingPost";
 
-	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		JMenuItem quoteMenuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
-		return quoteMenuItem;
-	}
+	/**
+	 * JMenuItemを作成する。これはキャッシュしないで下さい。予想外のエラーが発生する可能性があります。
+	 *
+	 * @param args       引数
+	 * @param dispatcher dispatcher for popup menu
+	 */
+	void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args);
 
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status == null) {
-			throwIllegalArgument();
-		}
-
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setInReplyToStatus(status);
-		api.setPostText(String.format(" QT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
-		api.focusPostBox();
-		api.setTweetLengthCalculator(new QuoteTweetLengthCalculator(api));
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		if (getStatus(arguments) != null) {
-			menuItem.setEnabled(true);
-		} else {
-			menuItem.setEnabled(false);
-		}
-	}
+	/**
+	 * 動作させる
+	 *
+	 * @param args 引数
+	 */
+	void handleAction(IntentArguments args);
 }

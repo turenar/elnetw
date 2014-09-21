@@ -19,65 +19,44 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 
 /**
- * リストを閲覧するアクションハンドラ
+ * 検索するアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ListActionHandler implements ActionHandler {
+public class SearchIntent implements Intent {
+
+	private final ClientConfiguration configuration;
+
+	public SearchIntent() {
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		Object user = args.getExtra("user");
-		String userName;
-		if (user == null) {
-			throw new IllegalArgumentException("Specify extraArg `user`");
-		} else if (user instanceof String) {
-			userName = (String) user;
-		} else {
-			throw new IllegalArgumentException("extraArg `user` must be String");
+		String queryStr = args.getExtraObj("query", String.class);
+		if (queryStr == null) {
+			throw new IllegalArgumentException("arg `query' is required.");
 		}
-		Object listNameObj = args.getExtra("listName");
-		String listName;
-		if (listNameObj == null) {
-			throw new IllegalArgumentException("Specify extraArg `listName`");
-		} else if (listNameObj instanceof String) {
-			listName = (String) listNameObj;
-		} else {
-			throw new IllegalArgumentException("extraArg `listName` must be String");
-		}
-
 		try {
-			if (listName.startsWith("/")) {
-				listName = listName.substring(1);
-			}
-			ClientConfiguration.getInstance().getUtility().openBrowser(
-					new URI("https", "twitter.com", "/" + userName + "/lists/" + listName, null).toASCIIString());
+			configuration.getUtility().openBrowser(
+					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
 		} catch (URISyntaxException e) {
 			throw new AssertionError(e);
 		} catch (Exception e) {
-			ClientConfiguration.getInstance().getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID,
-					"error").onException(e);
+			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
 		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 	}
 }

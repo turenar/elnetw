@@ -19,9 +19,35 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package jp.mydns.turenar.twclient.intent;
+
+import javax.swing.JMenuItem;
+
+import jp.mydns.turenar.twclient.ClientFrameApi;
+import twitter4j.Status;
+
 /**
- * ActionHandler用のパッケージ。
+ * Unofficial RT (like QT:) Action Handler
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-package jp.mydns.turenar.twclient.handler;
+public class UnofficialRetweetIntent extends AbstractIntent {
+
+	@Override
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem menuItem = new JMenuItem("非公式RT");
+		menuItem.setEnabled(getStatus(args) != null);
+		dispatcher.addMenu(menuItem, args);
+	}
+
+	@Override
+	public void handleAction(IntentArguments args) {
+		Status status = getStatus(args);
+		if (status == null) {
+			throwIllegalArgument();
+		}
+		ClientFrameApi api = configuration.getFrameApi();
+		api.setPostText(String.format(" RT @%s: %s", status.getUser().getScreenName(), status.getText()), 0, 0);
+		api.focusPostBox();
+	}
+}

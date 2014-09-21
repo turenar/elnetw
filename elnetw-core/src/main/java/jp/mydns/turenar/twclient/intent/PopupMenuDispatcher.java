@@ -19,45 +19,23 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
- * アカウント認証するアクションハンドラ
+ * Created with IntelliJ IDEA.
+ * Date: 9/14/14
+ * Time: 2:27 PM
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class AccountVerifierActionHandler implements ActionHandler {
-
-	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
-	}
-
-	@Override
-	public void handleAction(IntentArguments args) {
-		final ClientConfiguration configuration = ClientConfiguration.getInstance();
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				Exception exception = configuration.tryGetOAuthToken();
-				if (exception != null) {
-					JOptionPane.showMessageDialog(configuration.getFrameApi().getFrame(),
-							"認証に失敗しました: " + exception.getMessage(), "エラー",
-							JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		}, "oauth-thread");
-		thread.start();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-	}
+public interface PopupMenuDispatcher {
+	/**
+	 * add menu into popup. This sets handlers to call intent if the menu is selected.
+	 *
+	 * @param menu   menu
+	 * @param intent intent arguments
+	 */
+	public void addMenu(JMenuItem menu, IntentArguments intent);
 }

@@ -19,26 +19,62 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 
 /**
- * abstract action handler which uses status argument
+ * abstract action intent which uses status argument
  */
-public abstract class StatusActionHandlerBase implements ActionHandler {
+public abstract class AbstractIntent implements Intent {
 
 	protected final ClientConfiguration configuration;
 
 	/**
 	 * init
 	 */
-	public StatusActionHandlerBase() {
+	public AbstractIntent() {
 		configuration = ClientConfiguration.getInstance();
+	}
+
+	/**
+	 * get argument for arg name
+	 *
+	 * @param arguments    argument
+	 * @param argName      name
+	 * @param defaultValue value
+	 * @return boolean
+	 * @throws IllegalArgumentException arg is not Boolean or String
+	 */
+	protected boolean getBoolean(IntentArguments arguments, String argName, boolean defaultValue)
+			throws IllegalArgumentException {
+		Object obj = arguments.getExtra(argName);
+		if (obj == null) {
+			return defaultValue;
+		} else if (obj instanceof Boolean) {
+			return (Boolean) obj;
+		} else if (obj instanceof String) {
+			String str = (String) obj;
+			switch (str) {
+				case "y":
+				case "yes":
+				case "t":
+				case "true":
+					return true;
+				case "n":
+				case "no":
+				case "f":
+				case "false":
+					return false;
+				default:
+					return defaultValue;
+			}
+		} else {
+			throw new IllegalArgumentException("argument[" + argName + "] is not valid boolean");
+		}
 	}
 
 	/**
@@ -81,7 +117,7 @@ public abstract class StatusActionHandlerBase implements ActionHandler {
 	 */
 	protected void throwIllegalArgument() throws IllegalArgumentException {
 		throw new IllegalArgumentException(
-				"Specify arg `status`(Status) or `" + ActionHandler.INTENT_ARG_NAME_SELECTING_POST_DATA
+				"Specify arg `status`(Status) or `" + Intent.INTENT_ARG_NAME_SELECTING_POST_DATA
 						+ "`(RenderPanel)"
 		);
 	}

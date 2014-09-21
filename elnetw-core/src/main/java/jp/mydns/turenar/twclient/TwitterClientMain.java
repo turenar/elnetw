@@ -79,6 +79,7 @@ import jp.mydns.turenar.twclient.bus.factory.UserTimelineChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.VirtualChannelFactory;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.filter.ExtendedMuteFilter;
 import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
 import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
@@ -91,7 +92,6 @@ import jp.mydns.turenar.twclient.gui.config.ConfigFrameBuilder;
 import jp.mydns.turenar.twclient.gui.config.ConsumerTokenConfigType;
 import jp.mydns.turenar.twclient.gui.config.IntegerConfigType;
 import jp.mydns.turenar.twclient.gui.config.QueryEditConfigType;
-import jp.mydns.turenar.twclient.gui.render.simple.RenderObjectHandler;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.DirectMessageViewTab;
@@ -101,38 +101,38 @@ import jp.mydns.turenar.twclient.gui.tab.factory.DirectMessageViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.MentionViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
-import jp.mydns.turenar.twclient.handler.AccountVerifierActionHandler;
-import jp.mydns.turenar.twclient.handler.AddClientTabActionHandler;
-import jp.mydns.turenar.twclient.handler.ClearPostBoxActionHandler;
-import jp.mydns.turenar.twclient.handler.DoNothingActionHandler;
-import jp.mydns.turenar.twclient.handler.FavoriteActionHandler;
-import jp.mydns.turenar.twclient.handler.HashtagActionHandler;
-import jp.mydns.turenar.twclient.handler.ListActionHandler;
-import jp.mydns.turenar.twclient.handler.MenuPropertyEditorActionHandler;
-import jp.mydns.turenar.twclient.handler.MenuQuitActionHandler;
-import jp.mydns.turenar.twclient.handler.MuteActionHandler;
-import jp.mydns.turenar.twclient.handler.OpenImageActionHandler;
-import jp.mydns.turenar.twclient.handler.PostActionHandler;
-import jp.mydns.turenar.twclient.handler.QuoteTweetActionHandler;
-import jp.mydns.turenar.twclient.handler.ReloginActionHandler;
-import jp.mydns.turenar.twclient.handler.RemoveTweetActionHandler;
-import jp.mydns.turenar.twclient.handler.ReplyActionHandler;
-import jp.mydns.turenar.twclient.handler.RetweetActionHandler;
-import jp.mydns.turenar.twclient.handler.SearchActionHandler;
-import jp.mydns.turenar.twclient.handler.TweetActionHandler;
-import jp.mydns.turenar.twclient.handler.UnofficialRetweetActionHandler;
-import jp.mydns.turenar.twclient.handler.UrlActionHandler;
-import jp.mydns.turenar.twclient.handler.UserInfoViewActionHandler;
 import jp.mydns.turenar.twclient.init.DynamicInitializeService;
 import jp.mydns.turenar.twclient.init.InitCondition;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
 import jp.mydns.turenar.twclient.init.InitializerInstance;
+import jp.mydns.turenar.twclient.intent.AccountVerifierIntent;
+import jp.mydns.turenar.twclient.intent.AddClientTabIntent;
+import jp.mydns.turenar.twclient.intent.ClearPostBoxIntent;
+import jp.mydns.turenar.twclient.intent.DoNothingIntent;
+import jp.mydns.turenar.twclient.intent.FavoriteIntent;
+import jp.mydns.turenar.twclient.intent.HashtagIntent;
+import jp.mydns.turenar.twclient.intent.ListIntent;
+import jp.mydns.turenar.twclient.intent.MenuPropertyEditorIntent;
+import jp.mydns.turenar.twclient.intent.MenuQuitIntent;
+import jp.mydns.turenar.twclient.intent.MuteIntent;
+import jp.mydns.turenar.twclient.intent.OpenImageIntent;
+import jp.mydns.turenar.twclient.intent.PostIntent;
+import jp.mydns.turenar.twclient.intent.QuoteTweetIntent;
+import jp.mydns.turenar.twclient.intent.ReloginIntent;
+import jp.mydns.turenar.twclient.intent.RemoveTweetIntent;
+import jp.mydns.turenar.twclient.intent.ReplyIntent;
+import jp.mydns.turenar.twclient.intent.RetweetIntent;
+import jp.mydns.turenar.twclient.intent.SearchIntent;
+import jp.mydns.turenar.twclient.intent.TweetIntent;
+import jp.mydns.turenar.twclient.intent.UnofficialRetweetIntent;
+import jp.mydns.turenar.twclient.intent.UrlIntent;
+import jp.mydns.turenar.twclient.intent.UserInfoViewIntent;
 import jp.mydns.turenar.twclient.internal.AsyncAppender;
 import jp.mydns.turenar.twclient.internal.DeadlockMonitor;
 import jp.mydns.turenar.twclient.internal.LoggingConfigurator;
-import jp.mydns.turenar.twclient.internal.MenuConfiguratorActionHandler;
+import jp.mydns.turenar.twclient.internal.MenuConfiguratorIntent;
 import jp.mydns.turenar.twclient.internal.ShutdownHook;
 import jp.mydns.turenar.twclient.jni.LibnotifyMessageNotifier;
 import jp.mydns.turenar.twclient.media.NullMediaResolver;
@@ -381,38 +381,6 @@ public final class TwitterClientMain {
 	}
 
 	/**
-	 * init action handlers
-	 */
-	@Initializer(name = "actionHandler", phase = "init")
-	public void initActionHandlerTable() {
-		configuration.addActionHandler("reply", new ReplyActionHandler());
-		configuration.addActionHandler("qt", new QuoteTweetActionHandler());
-		configuration.addActionHandler("unofficial_rt", new UnofficialRetweetActionHandler());
-		configuration.addActionHandler("rt", new RetweetActionHandler());
-		configuration.addActionHandler("fav", new FavoriteActionHandler());
-		configuration.addActionHandler("remove", new RemoveTweetActionHandler());
-		configuration.addActionHandler("userinfo", new UserInfoViewActionHandler());
-		configuration.addActionHandler("url", new UrlActionHandler());
-		configuration.addActionHandler("clear", new ClearPostBoxActionHandler());
-		configuration.addActionHandler("post", new PostActionHandler());
-		configuration.addActionHandler("mute", new MuteActionHandler());
-		configuration.addActionHandler("tweet", new TweetActionHandler());
-		configuration.addActionHandler("list", new ListActionHandler());
-		configuration.addActionHandler("hashtag", new HashtagActionHandler());
-		configuration.addActionHandler("search", new SearchActionHandler());
-		configuration.addActionHandler("openimg", new OpenImageActionHandler());
-		configuration.addActionHandler("blackhole", new DoNothingActionHandler());
-		configuration.addActionHandler("tab_add", new AddClientTabActionHandler());
-		configuration.addActionHandler("menu_quit", new MenuQuitActionHandler());
-		configuration.addActionHandler("menu_propeditor", new MenuPropertyEditorActionHandler());
-		configuration.addActionHandler("menu_account_verify", new AccountVerifierActionHandler());
-		configuration.addActionHandler("menu_login_read", new ReloginActionHandler(false));
-		configuration.addActionHandler("menu_login_write", new ReloginActionHandler(true));
-		configuration.addActionHandler("menu_config", new MenuConfiguratorActionHandler());
-		configuration.addActionHandler("<elnetw>.gui.render.simple.RenderObjectHandler", new RenderObjectHandler());
-	}
-
-	/**
 	 * init cache manager
 	 *
 	 * @param condition init condition
@@ -574,6 +542,37 @@ public final class TwitterClientMain {
 	@Initializer(name = "cache/image", dependencies = "config", phase = "init")
 	public void initImageCacher() {
 		configuration.setImageCacher(new ImageCacher());
+	}
+
+	/**
+	 * init action handlers
+	 */
+	@Initializer(name = "intent", phase = "init")
+	public void initIntentTable() {
+		configuration.addIntent("reply", new ReplyIntent());
+		configuration.addIntent("qt", new QuoteTweetIntent());
+		configuration.addIntent("unofficial_rt", new UnofficialRetweetIntent());
+		configuration.addIntent("rt", new RetweetIntent());
+		configuration.addIntent("fav", new FavoriteIntent());
+		configuration.addIntent("remove", new RemoveTweetIntent());
+		configuration.addIntent("userinfo", new UserInfoViewIntent());
+		configuration.addIntent("url", new UrlIntent());
+		configuration.addIntent("clear", new ClearPostBoxIntent());
+		configuration.addIntent("post", new PostIntent());
+		configuration.addIntent("mute", new MuteIntent());
+		configuration.addIntent("tweet", new TweetIntent());
+		configuration.addIntent("list", new ListIntent());
+		configuration.addIntent("hashtag", new HashtagIntent());
+		configuration.addIntent("search", new SearchIntent());
+		configuration.addIntent("openimg", new OpenImageIntent());
+		configuration.addIntent("blackhole", new DoNothingIntent());
+		configuration.addIntent("tab_add", new AddClientTabIntent());
+		configuration.addIntent("menu_quit", new MenuQuitIntent());
+		configuration.addIntent("menu_propeditor", new MenuPropertyEditorIntent());
+		configuration.addIntent("menu_account_verify", new AccountVerifierIntent());
+		configuration.addIntent("menu_login_read", new ReloginIntent(false));
+		configuration.addIntent("menu_login_write", new ReloginIntent(true));
+		configuration.addIntent("menu_config", new MenuConfiguratorIntent());
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */
@@ -884,6 +883,7 @@ public final class TwitterClientMain {
 	public void setDefaultFilter() {
 		configuration.addFilter(new GlobalUserIdFilter());
 		configuration.addFilter(new BlockingUserFilter(true));
+		configuration.addFilter(new ExtendedMuteFilter());
 	}
 
 	/**
@@ -1223,8 +1223,11 @@ public final class TwitterClientMain {
 					}
 				}
 				configProperties.setProperty("cfg.version", "5");
-				case 5:
-					// latest
+				case 5: // fall-through
+					logger.info("Updating config to v6");
+					convertOldPropArrayToList("core.filter.user.ids");
+					configProperties.setProperty("cfg.version", "6");
+				case 6: // latest
 					break;
 				default:
 					int i = JOptionPane.showConfirmDialog(null,

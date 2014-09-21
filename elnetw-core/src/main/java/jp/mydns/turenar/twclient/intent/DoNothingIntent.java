@@ -19,27 +19,17 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ActionHandler;
+package jp.mydns.turenar.twclient.intent;
 
 /**
  * 何もしないActionHandler
  */
-public class DoNothingActionHandler implements ActionHandler {
+public class DoNothingIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		menuItem.setEnabled(false);
 	}
 }

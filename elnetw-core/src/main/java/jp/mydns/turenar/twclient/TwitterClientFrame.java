@@ -78,7 +78,9 @@ import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.VersionInfoFrame;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.PopupMenuDispatcher;
 import jp.mydns.turenar.twclient.internal.DefaultTweetLengthCalculator;
 import jp.mydns.turenar.twclient.internal.HTMLFactoryDelegator;
 import jp.mydns.turenar.twclient.internal.IntentActionListener;
@@ -126,11 +128,9 @@ import twitter4j.User;
 	 *
 	 * @author Turenar (snswinhaiku dot lo at gmail dot com)
 	 */
-	public class CoreFrameActionHandler implements ActionHandler {
-
+	public class CoreFrameIntent implements Intent {
 		@Override
-		public JMenuItem createJMenuItem(IntentArguments args) {
-			return null;
+		public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		}
 
 		@Override
@@ -217,10 +217,6 @@ import twitter4j.User;
 					}
 					getSelectingTab().getRenderer().onClientMessage(messageName, null);
 			}
-		}
-
-		@Override
-		public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
 		}
 	}
 
@@ -517,7 +513,7 @@ import twitter4j.User;
 		configProperties = configuration.getConfigProperties();
 		uiFont = configProperties.getFont("gui.font.ui");
 		defaultFont = configProperties.getFont("gui.font.default");
-		initActionHandlerTable();
+		initIntentTable();
 
 		getLoginUser();
 		initComponents();
@@ -1066,11 +1062,6 @@ import twitter4j.User;
 		}
 	}
 
-	/** アクションハンドラーテーブルを初期化する。 */
-	private void initActionHandlerTable() {
-		configuration.addActionHandler("core", new CoreFrameActionHandler());
-	}
-
 	/**
 	 * This method is called from within the constructor to
 	 * initialize the form.
@@ -1101,13 +1092,18 @@ import twitter4j.User;
 		}
 	}
 
+	/** アクションハンドラーテーブルを初期化する。 */
+	private void initIntentTable() {
+		configuration.addIntent("core", new CoreFrameIntent());
+	}
+
 	/*package*/boolean isFocusTab(int index) {
 		return getViewTab().getSelectedIndex() == index;
 	}
 
 	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		initActionHandlerTable();
+		initIntentTable();
 	}
 
 	/*package*/void refreshTab(int indexOf, ClientTab tab) {

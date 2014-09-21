@@ -43,7 +43,7 @@ import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 
-import jp.mydns.turenar.twclient.handler.IntentArguments;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.notifier.MessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -393,8 +393,9 @@ public class Utility {
 
 	/**
 	 * tear snowflake id into epoch time
+	 *
 	 * @param createdAtDate created at
-	 * @param snowflakeId snowflake id
+	 * @param snowflakeId   snowflake id
 	 * @return snowflake
 	 */
 	public static Date snowflakeIdToMilliSec(Date createdAtDate, long snowflakeId) {
@@ -453,7 +454,8 @@ public class Utility {
 	@SuppressWarnings("unchecked")
 	public static <T> T uncheckedCast(Object value) {
 		return (T) value;
-}
+	}
+
 	private final ClientConfiguration configuration;
 	private String detectedBrowser = null;
 	/** 通知を送信するクラス */

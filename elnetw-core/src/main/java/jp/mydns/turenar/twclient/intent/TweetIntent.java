@@ -19,9 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import javax.swing.JMenuItem;
+package jp.mydns.turenar.twclient.intent;
 
 import jp.mydns.turenar.twclient.ClientMessageListener;
 import org.slf4j.Logger;
@@ -32,13 +30,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TweetActionHandler extends StatusActionHandlerBase {
+public class TweetIntent extends AbstractIntent {
 
-	private static Logger logger = LoggerFactory.getLogger(TweetActionHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(TweetIntent.class);
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
@@ -72,10 +69,5 @@ public class TweetActionHandler extends StatusActionHandlerBase {
 				return;
 		}
 		configuration.getFrameApi().getSelectingTab().getRenderer().onClientMessage(messageName, null);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		// do nothing
 	}
 }

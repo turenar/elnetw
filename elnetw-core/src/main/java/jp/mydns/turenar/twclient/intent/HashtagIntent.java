@@ -19,60 +19,35 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.internal;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+package jp.mydns.turenar.twclient.intent;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
-import jp.mydns.turenar.twclient.intent.IntentArguments;
 
 /**
- * actionPerformedでIntentArgumentをhandleするActionListener
+ * ハッシュタグを処理するアクションハンドラ
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public final class IntentActionListener implements ActionListener {
-	private final IntentArguments intentArguments;
+public class HashtagIntent implements Intent {
 
-	/**
-	 * create instance
-	 *
-	 * @param intentName intent "name"
-	 */
-	public IntentActionListener(String intentName) {
-		intentArguments = new IntentArguments(intentName);
-	}
+	private final ClientConfiguration configuration;
 
-	/**
-	 * create instance
-	 *
-	 * @param intentArguments intent argument
-	 */
-	public IntentActionListener(IntentArguments intentArguments) {
-		this.intentArguments = intentArguments;
+	public HashtagIntent() {
+		configuration = ClientConfiguration.getInstance();
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		/* StatusData statusData;
-		 if (selectingPost == null) {
-		statusData = null;
-		} else {
-		statusData = statusMap.get(selectingPost.getRenderObject().id);
-		} */
-		ClientConfiguration.getInstance().handleAction(intentArguments);
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
-	/**
-	 * put extra message into intent argument
-	 *
-	 * @param name name
-	 * @param arg  argument
-	 * @return this instance
-	 */
-	public IntentActionListener putExtra(String name, Object arg) {
-		intentArguments.putExtra(name, arg);
-		return this;
+	@Override
+	public void handleAction(IntentArguments arguments) {
+		String name = arguments.getExtraObj("name", String.class);
+		if (name == null) {
+			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
+		}
+
+		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
+		configuration.handleAction(query); //TODO
 	}
 }

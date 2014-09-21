@@ -19,32 +19,45 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.TwitterClientMain;
+import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
- * 終了するためのアクションハンドラ
+ * リログインするためのアクションハンドラ
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class MenuQuitActionHandler implements ActionHandler {
+public class ReloginIntent implements Intent {
+
+	private final boolean forWrite;
+	private final ClientConfiguration configuration;
+
+	/**
+	 * インスタンスを生成する。
+	 *
+	 * @param forWrite 書き込み用
+	 */
+	public ReloginIntent(boolean forWrite) {
+		this.forWrite = forWrite;
+		configuration = ClientConfiguration.getInstance();
+	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		TwitterClientMain.quit();
-	}
+		String accountId = args.getExtraObj("accountId", String.class);
+		if (accountId == null) {
+			throw new IllegalArgumentException("Required arg: `accountId'");
+		}
 
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// This is always enabled
+		if (forWrite) {
+			configuration.setAccountIdForWrite(accountId);
+		} else {
+			configuration.setAccountIdForRead(accountId);
+		}
 	}
 }

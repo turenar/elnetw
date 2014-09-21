@@ -19,32 +19,25 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.internal;
 
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ClientFrameApi;
+import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.intent.Intent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
+import jp.mydns.turenar.twclient.intent.PopupMenuDispatcher;
 
 /**
- * Clear text in PostBox
+ * 設定フレームを表示するアクションハンドラ
  *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class ClearPostBoxActionHandler extends StatusActionHandlerBase {
-
+public class MenuConfiguratorIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 	}
 
 	@Override
-	public void handleAction(IntentArguments arguments) {
-		ClientFrameApi api = configuration.getFrameApi();
-		api.setPostText("");
-		api.setTweetLengthCalculator(null);
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+	public void handleAction(IntentArguments args) {
+		ClientConfiguration.getInstance().getConfigBuilder().show();
 	}
 }

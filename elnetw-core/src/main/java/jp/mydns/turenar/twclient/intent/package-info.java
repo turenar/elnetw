@@ -19,39 +19,9 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
-
-import java.awt.event.KeyEvent;
-
-import javax.swing.JMenuItem;
-
-import jp.mydns.turenar.twclient.ActionHandler;
-import jp.mydns.turenar.twclient.ClientConfiguration;
-
 /**
- * TODO snsoftware
+ * Intent用のパッケージ。
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class PostActionHandler implements ActionHandler {
-
-	private final ClientConfiguration configuration;
-
-	public PostActionHandler() {
-		configuration = ClientConfiguration.getInstance();
-	}
-
-	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return new JMenuItem("投稿(P)", KeyEvent.VK_P);
-	}
-
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		configuration.getFrameApi().doPost();
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-	}
-}
+package jp.mydns.turenar.twclient.intent;

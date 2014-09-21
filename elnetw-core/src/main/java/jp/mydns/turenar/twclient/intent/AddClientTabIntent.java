@@ -19,43 +19,36 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import javax.swing.JMenuItem;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.gui.AddClientTabConfirmFrame;
+import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 
 /**
- * ハッシュタグを処理するアクションハンドラ
+ * action intent for adding client tab
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class HashtagActionHandler implements ActionHandler {
-
-	private final ClientConfiguration configuration;
-
-	public HashtagActionHandler() {
-		configuration = ClientConfiguration.getInstance();
-	}
-
+public class AddClientTabIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
-		return null;
-	}
-
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		String name = arguments.getExtraObj("name", String.class);
-		if (name == null) {
-			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		String tabId = args.getExtraObj("tabId", String.class);
+		if (tabId == null) {
+			throw new IllegalArgumentException("tabId is not specified!");
 		}
-
-		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
-		configuration.handleAction(query); //TODO
+		ClientTabFactory factory = ClientConfiguration.getClientTabFactory(tabId);
+		if (factory == null) {
+			throw new IllegalArgumentException("tabId[" + tabId + "] is unknown!");
+		}
+		JMenuItem factoryItem = new JMenuItem(factory.getName());
+		dispatcher.addMenu(factoryItem, new IntentArguments("tab_add").putExtra("tabId", tabId));
 	}
 
 	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
+	public void handleAction(IntentArguments args) {
+		new AddClientTabConfirmFrame(args.getExtraObj("tabId", String.class)).setVisible(true);
 	}
 }

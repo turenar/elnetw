@@ -19,7 +19,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
@@ -42,7 +42,7 @@ import twitter4j.TwitterException;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class RemoveTweetActionHandler extends StatusActionHandlerBase {
+public class RemoveTweetIntent extends AbstractIntent {
 
 	private class TweetDeleteTask implements ParallelRunnable {
 
@@ -64,9 +64,19 @@ public class RemoveTweetActionHandler extends StatusActionHandlerBase {
 	}
 
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments arguments) {
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
 		JMenuItem deleteMenuItem = new JMenuItem("削除(D)...", KeyEvent.VK_D);
-		return deleteMenuItem;
+		Status status = getStatus(args);
+		if (status != null) {
+			boolean isTweetedByMe = status.getUser().getId() == getLoginUserId();
+			deleteMenuItem.setVisible(isTweetedByMe);
+			deleteMenuItem.setEnabled(isTweetedByMe);
+		} else {
+			deleteMenuItem.setVisible(false);
+			deleteMenuItem.setEnabled(false);
+		}
+
+		dispatcher.addMenu(deleteMenuItem, args);
 	}
 
 	@Override
@@ -99,19 +109,6 @@ public class RemoveTweetActionHandler extends StatusActionHandlerBase {
 				}
 			});
 			dialog.setVisible(true);
-		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments arguments) {
-		Status status = getStatus(arguments);
-		if (status != null) {
-			boolean isTweetedByMe = status.getUser().getId() == getLoginUserId();
-			menuItem.setVisible(isTweetedByMe);
-			menuItem.setEnabled(isTweetedByMe);
-		} else {
-			menuItem.setVisible(false);
-			menuItem.setEnabled(false);
 		}
 	}
 }

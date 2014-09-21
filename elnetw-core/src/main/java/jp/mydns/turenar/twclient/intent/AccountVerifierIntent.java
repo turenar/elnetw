@@ -19,55 +19,38 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.handler;
+package jp.mydns.turenar.twclient.intent;
 
-import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
-import jp.mydns.turenar.twclient.ActionHandler;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
 /**
- * リログインするためのアクションハンドラ
+ * アカウント認証するアクションハンドラ
  *
  * @author Turenar <snswinhaiku dot lo at gmail dot com>
  */
-public class ReloginActionHandler implements ActionHandler {
-
-	private final boolean forWrite;
-	private final ClientConfiguration configuration;
-
-	/**
-	 * インスタンスを生成する。
-	 *
-	 * @param forWrite 書き込み用
-	 */
-	public ReloginActionHandler(boolean forWrite) {
-		this.forWrite = forWrite;
-		configuration = ClientConfiguration.getInstance();
-	}
-
+public class AccountVerifierIntent implements Intent {
 	@Override
-	public JMenuItem createJMenuItem(IntentArguments args) {
-		return null;
+	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		// do nothing
 	}
 
 	@Override
 	public void handleAction(IntentArguments args) {
-		String accountId = args.getExtraObj("accountId", String.class);
-		if (accountId == null) {
-			throw new IllegalArgumentException("Required arg: `accountId'");
-		}
+		final ClientConfiguration configuration = ClientConfiguration.getInstance();
+		Thread thread = new Thread(new Runnable() {
 
-		if (forWrite) {
-			configuration.setAccountIdForWrite(accountId);
-		} else {
-			configuration.setAccountIdForRead(accountId);
-		}
-	}
-
-	@Override
-	public void popupMenuWillBecomeVisible(JMenuItem menuItem, IntentArguments args) {
-		// TODO Auto-generated method stub
-
+			@Override
+			public void run() {
+				Exception exception = configuration.tryGetOAuthToken();
+				if (exception != null) {
+					JOptionPane.showMessageDialog(configuration.getFrameApi().getFrame(),
+							"認証に失敗しました: " + exception.getMessage(), "エラー",
+							JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}, "oauth-thread");
+		thread.start();
 	}
 }
