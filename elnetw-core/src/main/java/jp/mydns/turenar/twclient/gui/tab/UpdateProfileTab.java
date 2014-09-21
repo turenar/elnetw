@@ -127,6 +127,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 	private JTextArea componentDescriptionArea;
 	private JButton componentUpdateButton;
 	private JButton componentCancelButton;
+	private ImageIcon userIcon;
 
 	/**
 	 * インスタンスを生成する。
@@ -136,6 +137,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 	public UpdateProfileTab(TwitterUser account) {
 		super(String.valueOf(account.getId()));
 		this.account = account;
+		initUserIcon();
 	}
 
 	/**
@@ -148,6 +150,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 		super(tabId, uniqId);
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
 		account = configuration.getCacheManager().getUser(userId);
+		initUserIcon();
 	}
 
 	@Override
@@ -474,7 +477,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	@Override
 	public Icon getIcon() {
-		return new ImageIcon(imageCacher.getImage(account));
+		return userIcon;
 	}
 
 	@Override
@@ -508,5 +511,28 @@ public class UpdateProfileTab extends AbstractClientTab {
 	@Override
 	public String getToolTip() {
 		return "プロフィールを編集する";
+	}
+
+	/**
+	 * init user icon
+	 */
+	protected void initUserIcon() {
+		try {
+			imageCacher.setImageIcon(new AbstractImageSetter() {
+				@Override
+				public void setImage(Image image) {
+					userIcon = new ImageIcon(image);
+					getTitleComponent().setIcon(new ImageIcon(image.getScaledInstance(24, 24, Image.SCALE_AREA_AVERAGING)));
+				}
+			}, account);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	@Override
+	public void serialize() {
+		super.serialize();
+		configProperties.setLong(getPropertyPrefix() + ".targetUserId", account.getId());
 	}
 }

@@ -321,10 +321,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		return buffer.toString();
 	}
 
-	/*package*/ClientConfiguration getClientConfiguration() {
-		return configuration;
-	}
-
 	/**
 	 * get virtual url for intent
 	 *
@@ -752,7 +748,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				} else {
 					showHeaderItem.setEnabled(false);
 				}
-				titleLabel.setText(getTitle());
+				updateTab();
 
 				if (configuration.isMyAccount(user.getId())) {
 					getComponentProfileUpdate().setVisible(true);

@@ -42,6 +42,7 @@ import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -445,6 +446,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 */
 	protected JLabel createTitleLabel() {
 		JLabel label = new JLabel(getTitle());
+		label.setIcon(getIcon());
 		label.setComponentPopupMenu(createTitleLabelPopup());
 		label.addMouseListener(new MouseAdapter() {
 			@Override
@@ -536,6 +538,9 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 * @return インスタンス
 	 */
 	public abstract DelegateRenderer getDelegateRenderer();
+
+	@Override
+	public abstract Icon getIcon();
 
 	/**
 	 * Create IntentArguments
@@ -790,5 +795,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		configProperties.put(propertyPrefix + ".accountId", accountId);
 		configProperties.put(propertyPrefix + ".uniqId", uniqId);
 		configProperties.put(propertyPrefix + ".tabId", getTabId());
+	}
+
+	/**
+	 * update title, icon
+	 */
+	protected void updateTab() {
+		titleLabel.setText(getTitle());
+		titleLabel.setIcon(getIcon());
 	}
 }
