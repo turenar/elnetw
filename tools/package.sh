@@ -38,7 +38,7 @@ function prepare_release() {
 	fi
 
 	_debug "> updating changelog..."
-	sed -i -e '1s/$/ ('"$(LC_ALL=C LANG=C date)"')/' ChangeLog.txt
+	sed -i -e '1s/$/ ('"$(LC_ALL=C LANG=C date -R)"')/' ChangeLog.txt
 	rewrite_package_version ${_release_ver}
 
 	_mvn clean
