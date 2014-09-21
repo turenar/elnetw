@@ -104,6 +104,18 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testHashConflict() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(16);
+		assertTrue(longHashSet.add(4));
+		assertTrue(longHashSet.add(5));
+		assertEquals(1, longHashSet.getHashConflict());
+		assertTrue(longHashSet.contains(4));
+		assertTrue(longHashSet.contains(5));
+		assertTrue(longHashSet.remove(4));
+		assertTrue(longHashSet.contains(5));
+	}
+
+	@Test
 	public void testIsEmpty() throws Exception {
 		LongHashSet longHashSet = new LongHashSet();
 		assertEquals(0, longHashSet.size());
