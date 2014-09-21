@@ -357,6 +357,14 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * get cache dir
+	 * @return System.getProperty(&quot;elnetw.cache.dir&quot;)
+	 */
+	public String getCacheDir() {
+		return System.getProperty("elnetw.cache.dir");
+	}
+
+	/**
 	 * キャッシュマネージャを取得する。
 	 *
 	 * @return キャッシュマネージャ

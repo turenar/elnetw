@@ -142,6 +142,7 @@ import jp.mydns.turenar.twclient.media.XpathMediaResolver;
 import jp.mydns.turenar.twclient.notifier.NotifySendMessageNotifier;
 import jp.mydns.turenar.twclient.notifier.TrayIconMessageNotifier;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
+import jp.mydns.turenar.twclient.storage.DirEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -277,6 +278,7 @@ public final class TwitterClientMain {
 	private DeadlockMonitor deadlockMonitor;
 	private CacheStorage cacheStorage;
 	private FileLock configFileLock;
+	private FileLock cacheFileLock;
 
 	/**
 	 * インスタンスを生成する。
@@ -357,13 +359,43 @@ public final class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * clean old user cache.
+	 */
+	@Initializer(name = "clean/cache/user", dependencies = {"cache/db", "cache"}, phase = "poststart")
+	public void cleanOldUserCache() {
+		ArrayList<String> removeList = new ArrayList<>();
+		DirEntry entry = cacheStorage.getDirEntry("/cache/user");
+		for (String hexSubDirName : entry) {
+			if (entry.isDirEntry(hexSubDirName)) {
+				DirEntry subDirEntry = entry.getDirEntry(hexSubDirName);
+				for (String userCacheName : subDirEntry) {
+					if (subDirEntry.isDirEntry(userCacheName)) {
+						DirEntry userCacheEntry = subDirEntry.getDirEntry(userCacheName);
+						if (!userCacheEntry.exists("timestamp")) {
+							continue; // not user cache?
+						}
+						long cachedTimestamp = userCacheEntry.readLong("timestamp");
+						long expireTime = configProperties.getTime("core.cache.user.expire", TimeUnit.MILLISECONDS);
+						if (cachedTimestamp + expireTime < System.currentTimeMillis()) {
+							removeList.add(userCacheEntry.getPath());
+						}
+					}
+				}
+			}
+		}
+		for (String path : removeList) {
+			entry.rmdir(path, true);
+			logger.debug("clean expired user cache: {}", path);
+		}
+	}
 
 	/**
 	 * ディスクキャッシュから期限切れのユーザーアイコンを削除する。
 	 */
-	@Initializer(name = "clean/iconcache", dependencies = {"cache/image", "config"}, phase = "poststart")
+	@Initializer(name = "clean/cache/icon", dependencies = {"cache/image", "config"}, phase = "poststart")
 	public void cleanOldUserIconCache() {
-		Path userIconCacheDir = new File(System.getProperty("elnetw.cache.dir"), "user").toPath();
+		Path userIconCacheDir = new File(configuration.getCacheDir(), "user").toPath();
 		try {
 			Files.walkFileTree(userIconCacheDir, new CacheCleanerVisitor());
 		} catch (IOException e) {
@@ -371,6 +403,11 @@ public final class TwitterClientMain {
 		}
 	}
 
+	/**
+	 * convert property separated by space into list
+	 *
+	 * @param propName prop name
+	 */
 	protected void convertOldPropArrayToList(String propName) {
 		if (configProperties.containsKey(propName)) {
 			String[] oldArray = configProperties.getProperty(propName).split(" ");
@@ -402,7 +439,23 @@ public final class TwitterClientMain {
 	@Initializer(name = "cache/db", dependencies = "config", phase = "preinit")
 	public void initCacheStorage(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
-			Path dbPath = Paths.get(System.getProperty("elnetw.cache.dir"), "cache.db");
+			try {
+				Path lockPath = Paths.get(configuration.getCacheDir(), "cache.db.lock");
+				FileChannel channel = FileChannel.open(lockPath, EnumSet.of(CREATE, WRITE));
+				cacheFileLock = channel.tryLock();
+				if (cacheFileLock == null) {
+					JOptionPane.showMessageDialog(null,
+							"同じキャッシュディレクトリからの多重起動を検知しました。終了します。\n\n"
+									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
+					condition.setFailStatus("MultiInstanceRunning", 1);
+					return;
+				}
+			} catch (IOException e) {
+				logger.warn("Lock failed", e);
+			}
+
+			Path dbPath = Paths.get(configuration.getCacheDir(), "cache.db");
 			cacheStorage = new CacheStorage(dbPath);
 			configuration.setCacheStorage(cacheStorage);
 		} else {
@@ -410,6 +463,13 @@ public final class TwitterClientMain {
 				cacheStorage.store();
 			} catch (IOException e) {
 				logger.error("Error occurred while storing database", e);
+			}
+			if (cacheFileLock != null) {
+				try {
+					cacheFileLock.release();
+				} catch (IOException e) {
+					logger.warn("Unlock failed", e);
+				}
 			}
 		}
 	}

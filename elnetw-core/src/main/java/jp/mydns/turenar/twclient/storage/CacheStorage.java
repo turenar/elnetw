@@ -119,6 +119,11 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public Iterator<String> iterator() {
+		return rootDirEntry.iterator();
+	}
+
+	@Override
 	public DirEntry mkdir(String path, boolean recursive) {
 		return rootDirEntry.mkdir(path, recursive);
 	}

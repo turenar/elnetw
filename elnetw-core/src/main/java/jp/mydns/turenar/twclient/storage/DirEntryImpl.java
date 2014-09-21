@@ -125,6 +125,11 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	public Iterator<String> iterator() {
+		return traverse();
+	}
+
+	@Override
 	public DirEntryImpl mkdir(String path, boolean recursive) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, recursive, true);
 		String basename = basename(path);

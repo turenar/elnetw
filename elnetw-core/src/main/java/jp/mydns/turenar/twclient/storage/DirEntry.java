@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface DirEntry {
+public interface DirEntry extends Iterable<String> {
 
 	/**
 	 * check if path is exists
