@@ -192,7 +192,7 @@ public class FilterParserTest implements FilterParserVisitor {
 
 	@Test
 	public void test3CommentWithProperty() throws Exception {
-		QueryTokenStart node = tokenize("/**/hoge/**/ == /**/\"cjk\"");
+		QueryTokenStart node = tokenize("/**/hoge/**/ == /**/\"cjk\" /**/");
 		LinkedList<MyNode> list = new LinkedList<>();
 		node.jjtAccept(this, list);
 		assertComment(list);
@@ -201,6 +201,7 @@ public class FilterParserTest implements FilterParserVisitor {
 		assertToken(list, JJTPROPERTYOPERATOR, "==");
 		assertComment(list);
 		assertToken(list, JJTPROPERTYVALUE, "\"cjk\"");
+		assertComment(list);
 		assertNoValidToken(list);
 	}
 

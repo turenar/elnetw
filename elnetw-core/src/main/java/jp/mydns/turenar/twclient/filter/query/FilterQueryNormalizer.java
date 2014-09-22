@@ -45,14 +45,6 @@ public class FilterQueryNormalizer implements FilterParserVisitor {
 		this.stringBuilder = stringBuilder;
 	}
 
-	private boolean checkChar() {
-		if (stringBuilder.length() == 0) {
-			return false;
-		}
-		char c = stringBuilder.charAt(stringBuilder.length() - 1);
-		return c != ' ' && c != '\n';
-	}
-
 	private void handleComment(MyNode node) {
 		Token token = node.getSpecialToken();
 		if (token != null) {

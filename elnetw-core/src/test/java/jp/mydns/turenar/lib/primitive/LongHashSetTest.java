@@ -72,6 +72,25 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testAddWithHashConflict() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(4);
+		for (long i = 0; i < 256; i++) {
+			assertTrue(longHashSet.add(i));
+		}
+		assertEquals(256, longHashSet.size());
+		for (long i = 0; i < 256; i += 2) {
+			assertTrue(longHashSet.remove(i));
+		}
+		assertEquals(128, longHashSet.size());
+		for (int i = 256; i < 65536; i++) {
+			assertTrue(longHashSet.add(i));
+		}
+		for (long i = 0; i < 256; i += 2) {
+			assertTrue(longHashSet.add(i));
+		}
+	}
+
+	@Test
 	public void testClear() throws Exception {
 		LongHashSet longHashSet = new LongHashSet();
 		assertEquals(0, longHashSet.size());

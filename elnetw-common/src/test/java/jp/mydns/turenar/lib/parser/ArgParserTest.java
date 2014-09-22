@@ -74,7 +74,7 @@ public class ArgParserTest {
 	public void testAddLongOpt1OptionalArgumentB() throws Exception {
 		ArgParser parser = new ArgParser();
 		parser.addLongOpt("--hoge", OptionType.OPTIONAL_ARGUMENT);
-		parser.addLongOpt("--fuga", OptionType.NO_ARGUMENT);
+		parser.addLongOpt("--fuga", OptionType.OPTIONAL_ARGUMENT);
 
 		ParsedArguments arguments = parser.parse(a("--hoge --fuga"));
 		assertTrue(arguments.hasOpt("--hoge"));
@@ -108,6 +108,15 @@ public class ArgParserTest {
 		assertEquals("--fuga", arguments.getOptArg("--hoge"));
 		assertArrayEquals(new String[]{}, arguments.getProcessArguments());
 		assertNoError(arguments);
+	}
+
+	@Test
+	public void testAddLongOpt1WithoutDoubleHyphen() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("gender", OptionType.REQUIRED_ARGUMENT);
+		ParsedArguments arguments = parser.parse(a("--gender male"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertEquals("male", arguments.getOptArg("--gender"));
 	}
 
 	@Test
@@ -162,6 +171,26 @@ public class ArgParserTest {
 		assertEquals("Hiei", arguments.getOptArg("--call-as"));
 		assertArrayEquals(a("比叡"), arguments.getProcessArguments());
 		assertNoError(arguments);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testAddShortOptWithIllegalName1() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.NO_ARGUMENT);
+parser.addShortOpt("--gender", "--gender");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testAddShortOptWithIllegalName2() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.NO_ARGUMENT);
+		parser.addShortOpt("", "--gender");
+	}
+	@Test(expected = IllegalArgumentException.class)
+	public void testAddShortOptWithIllegalName3() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.NO_ARGUMENT);
+		parser.addShortOpt("ge", "--gender");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -250,5 +279,53 @@ public class ArgParserTest {
 		assertTrue(iterator.hasNext());
 		assertEquals("female", iterator.next().getArg());
 		assertFalse(iterator.hasNext());
+	}
+
+	@Test
+	public void testParseWithoutRequiredArgument() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT, true);
+
+		ParsedArguments arguments = parser.parse(a("--gender"));
+		assertTrue(arguments.hasOpt("--gender"));
+		assertNull(arguments.getOptArg("--gender"));
+		assertTrue(arguments.hasError());
+		assertEquals(1,arguments.getErrorCount());
+	}
+
+	@Test
+	public void testParseWithUnknownOpt1() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertFalse(parser.isIgnoreUnknownOption());
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		assertFalse(arguments.hasOpt("--gender"));
+		assertNull(arguments.getOptArg("--gender"));
+		assertTrue(arguments.hasError());
+		assertEquals(4, arguments.getProcessArguments().length);
+	}@Test
+	 public void testParseWithUnknownOpt2() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.setIgnoreUnknownOption(true);
+		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
+		assertFalse(arguments.hasOpt("--gender"));
+		assertNull(arguments.getOptArg("--gender"));
+		assertFalse(arguments.hasError());
+		assertEquals(4, arguments.getProcessArguments().length);
+	}
+
+	@Test
+	public void testParseDoubleHyphen() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.addLongOpt("--gender", OptionType.REQUIRED_ARGUMENT);
+		parser.addShortOpt("-g", "--gender");
+
+		ParsedArguments arguments = parser.parse(a("-g male --gender female test -- --gender undefined arg"));
+		assertTrue(arguments.hasOpt("--gender"));
+assertEquals("female", arguments.getOptArg("--gender"));
+		assertEquals(4, arguments.getProcessArguments().length);
+		assertEquals("test",arguments.getProcessArgument());
+		assertEquals("--gender", arguments.getProcessArgument(1));
+		assertEquals("undefined", arguments.getProcessArgument(2));
+		assertEquals("arg", arguments.getProcessArgument(3));
 	}
 }

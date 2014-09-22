@@ -253,7 +253,7 @@ public class LongHashSet implements Cloneable {
 		for (long element : hashedTable) {
 			if (element == ZERO) {
 				array[i++] = 0;
-			} else if (!(element == REMOVED || element == FREE)) {
+			} else if (!(element == FREE || element == REMOVED)) {
 				array[i++] = element;
 			}
 		}
