@@ -167,7 +167,7 @@ public class CacheManager {
 			throw new NullPointerException();
 		}
 		statusCacheMap.put(status.getId(), status);
-		if (status.isRetweeted()) {
+		if (status.isRetweet()) {
 			statusCacheMap.put(status.getRetweetedStatus().getId(), status);
 		}
 	}
