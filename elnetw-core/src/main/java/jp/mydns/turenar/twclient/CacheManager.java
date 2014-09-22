@@ -200,7 +200,7 @@ public class CacheManager {
 		if (cachedStatus != null) {
 			cachedStatus.update(status);
 		}
-		if (status.isRetweeted()) {
+		if (status.isRetweet()) {
 			TwitterStatus retweetedStatus = status.getRetweetedStatus();
 			TwitterStatus cachedRetweetedStatus = extract(statusCacheMap.putIfAbsent(retweetedStatus.getId(), status));
 			if (cachedRetweetedStatus != null) {
