@@ -26,10 +26,11 @@ import java.util.concurrent.TimeUnit;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageListener;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.JobQueue;
+import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.MessageChannel;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -43,7 +44,7 @@ import twitter4j.TwitterFactory;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class TimelineChannel extends TwitterRunnable implements MessageChannel {
+public class TimelineChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
 	private final ClientConfiguration configuration;
 	private final int intervalOfTimeline;
 	private final ClientProperties configProperties;
