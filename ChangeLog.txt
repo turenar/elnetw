@@ -7,11 +7,13 @@ Version 0.2-alpha1
 	++ Support comment in query statement (#4)
 	++ Add extended mute operation popup menu (#32)
 	++ Add creating tab interface (#41)
+	++ Now we can update profile (#7)
 	 + Add disk cache mechanism to store misc data (#35)
 	 + Update tab configuration. Don't use json
 	 + elnetw.cfg supports easy-readable list syntax (but not
 	     easy-writable) (#47)
 	 + Now we can see millisecond time (#45)
+	 + Show user background image from user info operation panel (#52)
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
 	 * Fix not checking force tag in FavoriteIntent (fav!force=?) (#49)

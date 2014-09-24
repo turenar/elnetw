@@ -100,6 +100,7 @@ import jp.mydns.turenar.twclient.gui.tab.TimelineViewTab;
 import jp.mydns.turenar.twclient.gui.tab.factory.DirectMessageViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.MentionViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
+import jp.mydns.turenar.twclient.gui.tab.factory.UpdateProfileTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
 import jp.mydns.turenar.twclient.init.DynamicInitializeService;
 import jp.mydns.turenar.twclient.init.InitCondition;
@@ -127,6 +128,7 @@ import jp.mydns.turenar.twclient.intent.RetweetIntent;
 import jp.mydns.turenar.twclient.intent.SearchIntent;
 import jp.mydns.turenar.twclient.intent.TweetIntent;
 import jp.mydns.turenar.twclient.intent.UnofficialRetweetIntent;
+import jp.mydns.turenar.twclient.intent.UpdateProfileIntent;
 import jp.mydns.turenar.twclient.intent.UrlIntent;
 import jp.mydns.turenar.twclient.intent.UserInfoViewIntent;
 import jp.mydns.turenar.twclient.internal.AsyncAppender;
@@ -314,6 +316,7 @@ public final class TwitterClientMain {
 		ClientConfiguration.putClientTabFactory("mention", new MentionViewTabFactory());
 		ClientConfiguration.putClientTabFactory("directmessage", new DirectMessageViewTabFactory());
 		ClientConfiguration.putClientTabFactory("userinfo", new UserInfoViewTabFactory());
+		ClientConfiguration.putClientTabFactory("update_profile", new UpdateProfileTabFactory());
 	}
 
 	/**
@@ -607,7 +610,7 @@ public final class TwitterClientMain {
 	/**
 	 * init action handlers
 	 */
-	@Initializer(name = "intent", phase = "init")
+	@Initializer(name = "intent", dependencies = "gui/main", phase = "init")
 	public void initIntentTable() {
 		configuration.addIntent("reply", new ReplyIntent());
 		configuration.addIntent("qt", new QuoteTweetIntent());
@@ -627,6 +630,7 @@ public final class TwitterClientMain {
 		configuration.addIntent("openimg", new OpenImageIntent());
 		configuration.addIntent("blackhole", new DoNothingIntent());
 		configuration.addIntent("tab_add", new AddClientTabIntent());
+		configuration.addIntent("update_profile", new UpdateProfileIntent());
 		configuration.addIntent("menu_quit", new MenuQuitIntent());
 		configuration.addIntent("menu_propeditor", new MenuPropertyEditorIntent());
 		configuration.addIntent("menu_account_verify", new AccountVerifierIntent());

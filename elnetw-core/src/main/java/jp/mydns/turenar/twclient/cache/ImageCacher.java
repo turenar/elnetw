@@ -136,6 +136,11 @@ public class ImageCacher {
 			return imageEntry.image != null;
 		}
 
+		/**
+		 * set alternate entry. it will be used if this failed
+		 *
+		 * @param alternateEntry alternate fetch entry
+		 */
 		public synchronized void setAlternateEntry(FetchEntry alternateEntry) {
 			this.alternateEntry = alternateEntry;
 		}
@@ -221,12 +226,9 @@ public class ImageCacher {
 		 * @param entry フェッチエントリ
 		 * @throws InterruptedException コネクション確立中に割り込まれた
 		 */
-		public ImageFetcher(FetchEntry entry) throws InterruptedException, IOException {
+		public ImageFetcher(FetchEntry entry) throws InterruptedException {
 			this.entry = entry;
 			entry.connectionInfo = NetworkSupport.openConnection(entry.url, this);
-			if (entry.connectionInfo == null) {
-				throw new IOException();
-			}
 		}
 
 		@Override
@@ -523,11 +525,7 @@ public class ImageCacher {
 			}
 			if (fetchEntry == null) {
 				newEntry.addSetter(imageSetter);
-				try {
 					configuration.addJob(JobQueue.PRIORITY_UI, new ImageFetcher(newEntry));
-				} catch (IOException e) {
-					imageSetter.onException(e, null);
-				}
 				return false;
 			} else {
 				synchronized (fetchEntry) {
@@ -563,6 +561,23 @@ public class ImageCacher {
 			return setImageIcon(new LabelImageSetter(label), new URL(user.getProfileImageURLHttps()));
 		} catch (MalformedURLException e) {
 			throw new AssertionError(e);
+		}
+	}
+
+	/**
+	 * set image icon
+	 *
+	 * @param imageSetter setter
+	 * @param account     user account
+	 * @return cache hit?
+	 * @throws InterruptedException interrupted
+	 */
+	public boolean setImageIcon(ImageSetter imageSetter, User account) throws InterruptedException {
+		try {
+			return setImageIcon(imageSetter, new URL(account.getProfileImageURLHttps()));
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL: {}", account.getProfileImageURLHttps(), e);
+			throw new RuntimeException(e);
 		}
 	}
 }

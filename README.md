@@ -23,6 +23,7 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
  * 高速なインターネット
  * notify-sendコマンド (Linuxのみ？: Ubuntuではlibnotify-binパッケージ)
  * java-gnome (Linuxのみ: gtk.jarへの(ハードorシンボリック)リンクを~/.elnetw/libに作成してください)
+ * zenityコマンド(Linuxのみ)
 
 ## パッケージのダウンロード
 
@@ -45,7 +46,8 @@ Linux上で動くことを念頭に置いてますが、Java上で動くのでWi
 
 ## 主な機能
 
-なし (簡単なユーザーフィルタ機能はmasterブランチにあります。簡単なクエリフィルタ機能ならfilter-implブランチにあります。)
+ * クエリフィルタ
+ * ブロック中のユーザーのオートミュート
 
 ## FAQ
 ろくにFAQも書けない程度の能力（）
@@ -60,7 +62,7 @@ A.気が向いたら。待てなかったらPull Request投げるとか、[@ture
 ### Q.コーディング規約とかあるの？
 A.タブ文字を使用する以外は特に規約とか作る気ないです。IDEも気に入ってるもの使ってくれていいです。
 ### Q.クライアント名がださいんだけど
-A. http://dev.twitter.com からアプリを作って、設定→プロパティエディタからConsumer(Secret)Keyを設定すれば via 部分が変わるよ！
+A. http://dev.twitter.com からアプリを作って、設定からConsumer(Secret)Keyを設定すれば via 部分が変わるよ！再認証を忘れずに！
 ### Q.FAQがみにくいんだけど
 A.パッチをくれ
 ### Q.ふざけてんの？
@@ -70,11 +72,13 @@ A.当然だ
 
 elnetw は MIT Licence のもとで公開されています。
 
-ライブラリとして、[Twitter4J]、[SLF4J]および[Logback]、[java-getopt]、[twitter-text-java]などを利用しています。
+ライブラリとして、[Twitter4J]、[SLF4J]および[Logback]、[base64]、[htmlparser]、[json]、[twitter-text-java]などを利用しています。
 
 [@ture7]: http://twitter.com/ture7 "ごにょごにょやってるひとのTwitterアカウント"
 [Twitter4J]: http://twitter4j.org/ "Twitter4J - A Java library for the Twitter API"
 [SLF4J]: http://slf4j.org/ "Simple Logging Facade for Java (SLF4J)"
 [Logback]: http://logback.qos.ch/ "Logback"
-[java-getopt]: http://www.urbanophile.com/arenn/hacking/download.html#getopt "GNU Getopt - Java port"
 [twitter-text-java]: https://github.com/twitter/twitter-text-java "A Java implementation of Twitter's text processing library"
+[htmlparser]: http://about.validator.nu/htmlparser/ "The Validator.nu HTML Parser"
+[base64]: http://iharder.sourceforge.net/current/java/base64/ "Base64: Public Domain Base64 Encoder/Decoder"
+[json]: http://www.json.org/java/index.html "JSON in Java"

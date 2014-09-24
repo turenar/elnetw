@@ -25,12 +25,26 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
+import twitter4j.User;
 
 /**
  * abstract action intent which uses status argument
  */
 public abstract class AbstractIntent implements Intent {
 
+	/**
+	 * get string @&lt;screenName&gt; (&lt;name&gt;)
+	 *
+	 * @param user user
+	 * @return string
+	 */
+	protected static String getUserString(User user) {
+		return "@" + user.getScreenName() + " (" + user.getName() + ")";
+	}
+
+	/**
+	 * configuration
+	 */
 	protected final ClientConfiguration configuration;
 
 	/**
@@ -108,7 +122,6 @@ public abstract class AbstractIntent implements Intent {
 
 		return status == null ? null : TwitterStatus.getInstance(status);
 	}
-
 
 	/**
 	 * throw illegal argument
