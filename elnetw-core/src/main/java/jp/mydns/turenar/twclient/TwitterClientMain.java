@@ -102,6 +102,7 @@ import jp.mydns.turenar.twclient.gui.tab.factory.MentionViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
 import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -308,7 +309,8 @@ public final class TwitterClientMain {
 	/**
 	 * init client tab factories
 	 */
-	@Initializer(name = "gui/tab/init-factory", phase = "preinit")
+	@Initializer(name = "gui/tab/factory/std", phase = "preinit")
+	@InitProvide("gui/tab/factory")
 	public void addClientTabConstructor() {
 		ClientConfiguration.putClientTabFactory("timeline", new TimelineViewTabFactory());
 		ClientConfiguration.putClientTabFactory("mention", new MentionViewTabFactory());
@@ -362,7 +364,7 @@ public final class TwitterClientMain {
 	/**
 	 * clean old user cache.
 	 */
-	@Initializer(name = "clean/cache/user", dependencies = {"cache/db", "cache"}, phase = "poststart")
+	@Initializer(name = "clean/cache/user", dependencies = {"cache/db", "cache/twitter"}, phase = "poststart")
 	public void cleanOldUserCache() {
 		ArrayList<String> removeList = new ArrayList<>();
 		DirEntry entry = cacheStorage.getDirEntry("/cache/user");
@@ -422,7 +424,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "cache", dependencies = {"config", "accountId"}, phase = "init")
+	@Initializer(name = "cache/twitter", dependencies = {"config", "accountId"}, phase = "init")
 	public void initCacheManager(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			configuration.setCacheManager(new CacheManager(configuration));
@@ -525,7 +527,8 @@ public final class TwitterClientMain {
 	/**
 	 * init filter functions
 	 */
-	@Initializer(name = "filter/func", phase = "preinit")
+	@Initializer(name = "filter/query/func/std", phase = "preinit")
+	@InitProvide("filter/query/func")
 	public void initFilterFunctions() {
 		QueryCompiler.putFilterFunction("and", StandardFunctionFactory.SINGLETON);
 		QueryCompiler.putFilterFunction("extract", StandardFunctionFactory.SINGLETON);
@@ -541,7 +544,8 @@ public final class TwitterClientMain {
 	/**
 	 * init filter properties
 	 */
-	@Initializer(name = "filter/prop", phase = "preinit")
+	@Initializer(name = "filter/query/prop/std", phase = "preinit")
+	@InitProvide("filter/query/prop")
 	public void initFilterProperties() {
 		QueryCompiler.putFilterProperty("userid", StandardPropertyFactory.SINGLETON);
 		QueryCompiler.putFilterProperty("user_id", StandardPropertyFactory.SINGLETON);
@@ -591,7 +595,7 @@ public final class TwitterClientMain {
 	/**
 	 * init frame
 	 */
-	@Initializer(name = "gui/main", dependencies = {"cache", "accountId"}, phase = "init")
+	@Initializer(name = "gui/main", dependencies = {"cache/twitter", "accountId"}, phase = "init")
 	public void initFrame() {
 		frame = new TwitterClientFrame(configuration);
 	}
@@ -726,7 +730,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/init-factory"},
+	@Initializer(name = "gui/tab/restore", dependencies = {"config", "bus", "filter/global", "gui/tab/factory"},
 			phase = "prestart")
 	public void restoreClientTabs(InitCondition condition) {
 		List<String> tabsList = configProperties.getList("gui.tabs.list");
@@ -925,7 +929,7 @@ public final class TwitterClientMain {
 	/**
 	 * set default exception handler
 	 */
-	@Initializer(name = "internal-setDefaultExceptionHandler", phase = "earlyinit")
+	@Initializer(name = "internal/exceptionHandler", phase = "earlyinit")
 	public void setDefaultExceptionHandler() {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
@@ -972,7 +976,6 @@ public final class TwitterClientMain {
 	@Initializer(name = "internal/finish-initPhase", dependencies = "gui/main/show", phase = "start")
 	public void setInitializePhaseFinished() {
 		configuration.setInitializing(false);
-		messageBus.onInitialized();
 	}
 
 	/**
@@ -980,7 +983,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "bus", dependencies = {"jobqueue", "config", "cache/db"}, phase = "preinit")
+	@Initializer(name = "bus", dependencies = {"queue", "config", "cache/db"}, phase = "preinit")
 	public void setMessageBus(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			messageBus = new MessageBus();
@@ -993,7 +996,8 @@ public final class TwitterClientMain {
 	/**
 	 * init message bus channel factories
 	 */
-	@Initializer(name = "bus/factory", dependencies = {"bus", "cache"}, phase = "init")
+	@Initializer(name = "bus/factory/std", dependencies = {"bus", "cache/twitter"}, phase = "init")
+	@InitProvide("bus/factory")
 	public void setMessageChannelFactory() {
 		messageBus.addChannelFactory("my/timeline", new VirtualChannelFactory("stream/user", "statuses/timeline"));
 		messageBus.addChannelFactory("stream/user", new TwitterStreamChannelFactory());
@@ -1010,7 +1014,8 @@ public final class TwitterClientMain {
 	/**
 	 * set message notifiers candidates
 	 */
-	@Initializer(name = "internal/notifier", phase = "prestart")
+	@Initializer(name = "gui/notifier/std", phase = "prestart")
+	@InitProvide("gui/notifier")
 	public void setMessageNotifiersCandidate() {
 		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
 		Utility.addMessageNotifier(1000, NotifySendMessageNotifier.class);
@@ -1060,7 +1065,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "gui/tray/show", dependencies = "gui/tray", phase = "start")
+	@Initializer(name = "gui/tray/show", dependencies = {"gui/tray", "gui/main/show"}, phase = "start")
 	public void setTrayIcon(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			if (SystemTray.isSupported()) {
@@ -1095,7 +1100,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "gui/main/show", dependencies = {"gui/main", "gui/tab/restore"}, phase = "start")
+	@Initializer(name = "gui/main/show", dependencies = "bus/start", phase = "start")
 	public void showFrame(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			java.awt.EventQueue.invokeLater(new Runnable() {
@@ -1128,7 +1133,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "jobqueue/monitor/deadlock", dependencies = {"timer", "jobqueue"})
+	@Initializer(name = "queue/monitor/deadlock", dependencies = {"timer", "queue"})
 	public void startDeadlockMonitor(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			deadlockMonitor = new DeadlockMonitor();
@@ -1142,7 +1147,7 @@ public final class TwitterClientMain {
 	 *
 	 * @param condition init condition
 	 */
-	@Initializer(name = "jobqueue", dependencies = "config", phase = "earlyinit")
+	@Initializer(name = "queue", dependencies = "config", phase = "earlyinit")
 	public void startJobWorkerThread(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			jobQueue = configuration.getJobQueue();
@@ -1163,6 +1168,14 @@ public final class TwitterClientMain {
 				}
 			}
 		}
+	}
+
+	/**
+	 * start message bus
+	 */
+	@Initializer(name = "bus/start", dependencies = {"bus/init", "gui/main"}, phase = "start")
+	public void startMessageBus() {
+		messageBus.onInitialized();
 	}
 
 	/**

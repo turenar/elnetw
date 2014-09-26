@@ -52,7 +52,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	/**
 	 * if false, check all dependencies resolved
 	 */
-	private boolean allDependenciesResolved;
+	protected boolean allDependenciesResolved;
 
 	/**
 	 * create instance
