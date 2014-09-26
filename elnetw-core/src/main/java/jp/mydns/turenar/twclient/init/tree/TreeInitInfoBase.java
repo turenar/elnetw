@@ -50,6 +50,11 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	protected boolean isInitialized;
 
 	/**
+	 * if false, check all dependencies resolved
+	 */
+	private boolean allDependenciesResolved;
+
+	/**
 	 * create instance
 	 *
 	 * @param name info name
@@ -65,6 +70,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 */
 	public void addDependency(Relation relation) {
 		dependencies.add(relation);
+		allDependenciesResolved = false;
 		update();
 	}
 
@@ -93,6 +99,10 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 * @return all resolved?
 	 */
 	public boolean isAllDependenciesResolved() {
+		if (allDependenciesResolved) {
+			return true;
+		}
+
 		for (Relation dependency : dependencies) {
 			if (!dependency.isResolved()) {
 				return false;

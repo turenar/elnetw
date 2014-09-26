@@ -31,9 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 9/24/14
- * Time: 1:25 AM
+ * initializer's info
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
