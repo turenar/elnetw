@@ -19,14 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
+import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.InitializeServiceTestImpl;
+import jp.mydns.turenar.twclient.init.Initializer;
+import jp.mydns.turenar.twclient.init.InitializerInstance;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/** Test for {@link DynamicInitializeService} */
-public class DynamicInitializeServiceTest {
+/** Test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService} */
+public class TreeInitializeServiceTest extends InitializeServiceTestImpl {
 	@InitProviderClass
 	protected static class CrossingPhaseInitializer {
 		/*package*/ static int data;
@@ -58,6 +65,35 @@ public class DynamicInitializeServiceTest {
 		}
 	}
 
+	@InitProviderClass
+	protected static class FastUninitInitializer {
+		private static int data;
+
+		protected static void assertCalled() {
+			assertEquals(0x13, data);
+		}
+
+		@Initializer(name = "fu-2", dependencies = "fu-1", phase = "fu")
+		public static void fuga(InitCondition condition) {
+			if (condition.isInitializingPhase()) {
+				assertEquals(0x10, data);
+				data = data | 0x01;
+			} else {
+				assertEquals(0x11, data);
+				data = data | 0x02;
+			}
+		}
+
+		@Initializer(name = "fu-1", phase = "fu")
+		public static void hoge(InitCondition condition) {
+			if (condition.isInitializingPhase()) {
+				data = data | 0x10;
+			} else if (condition.isSlowUninit()) {
+				fail();
+			}
+		}
+	}
+
 	private static class ForceResolvedInitializer {
 		private static int data;
 
@@ -82,7 +118,7 @@ public class DynamicInitializeServiceTest {
 			data = data | 0b1000;
 		}
 
-		@Initializer(name = "rp-4", dependencies = "rp-5", phase = "rp")
+		@Initializer(name = "rp-4", dependencies = "undefined", phase = "rp")
 		public static void d() { // be never called
 			fail("ForceResolvedInitializer#d must not be called: force resolved");
 		}
@@ -94,7 +130,7 @@ public class DynamicInitializeServiceTest {
 			InitializeService.getService().provideInitializer("rp-v3").provideInitializer("rp-v4", true);
 		}
 
-		@Initializer(name = "rp-v4", dependencies = "rp-5", phase = "rp")
+		@Initializer(name = "rp-v4", dependencies = "undefined", phase = "rp")
 		public static void f() { // be never called
 			fail("ForceResolvedInitializer#f must not be called: force resolved");
 		}
@@ -113,10 +149,7 @@ public class DynamicInitializeServiceTest {
 
 	@InitProviderClass
 	protected static class InitFailInitializer {
-		/*package*/ static boolean isCalled = false;
-
-		@Initializer(name = "initfail", phase
-				= "initfail")
+		@Initializer(name = "initfail", phase = "initfail")
 		public static void a(InitCondition condition) {
 			condition.setFailStatus("test", 0xf0000000);
 		}
@@ -125,7 +158,7 @@ public class DynamicInitializeServiceTest {
 	@InitProviderClass
 	protected static class InstanceInitializer {
 
-		/** loaded from DynamicInitializeService */
+		/** loaded from TreeInitializeService */
 		@InitializerInstance
 		private static final InstanceInitializer instance = new InstanceInitializer();
 
@@ -227,119 +260,203 @@ public class DynamicInitializeServiceTest {
 		}
 	}
 
-	private static boolean isRegistered = false;
+	@InitProviderClass
+	protected static class UninitAbleInitializer {
+		private static int data;
+
+		protected static void assertCalled() {
+			assertEquals(0x33, data);
+		}
+
+		@Initializer(name = "ua-2", dependencies = "ua-1", phase = "ua")
+		public static void fuga(InitCondition condition) {
+			if (condition.isInitializingPhase()) {
+				assertEquals(0x10, data);
+				data = data | 0x01;
+			} else {
+				assertEquals(0x11, data);
+				data = data | 0x02;
+			}
+		}
+
+		@Initializer(name = "ua-1", phase = "ua")
+		public static void hoge(InitCondition condition) {
+			if (condition.isInitializingPhase()) {
+				data = data | 0x10;
+			} else {
+				assertEquals(0x13, data);
+				data = data | 0x20;
+			}
+		}
+	}
 
 	private InitializeService getInitService() throws Exception {
-		if (isRegistered == false) {
-			DynamicInitializeService.use(null);
-			isRegistered = true;
-		}
-		return InitializeService.getService();
+		TreeInitializeService service = new TreeInitializeService();
+		lock(service);
+		TreeInitializeService.instance = service;
+		return service;
 	}
 
 	@Test
 	public void testUse() throws Exception {
-		getInitService();
-		if (InitializeService.getService() instanceof DynamicInitializeService == false) {
+		clearService();
+		TreeInitializeService.use();
+		if (!(InitializeService.getService() instanceof TreeInitializeService)) {
 			fail();
-		}
-		try {
-			DynamicInitializeService.use(null);
-			fail();
-		} catch (IllegalStateException e) {
-			// success
 		}
 	}
 
 	@Test
 	public void test_01_initConditionUsedInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("initcond");
-		initService.register(InitConditionInitializer.class);
-		initService.enterPhase("initcond");
-		assertTrue(InitConditionInitializer.isCalled);
+		try {
+			initService.registerPhase("initcond");
+			initService.register(InitConditionInitializer.class);
+			initService.enterPhase("initcond");
+			assertTrue(InitConditionInitializer.isCalled);
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_01_instanceInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("instance");
-		initService.register(InstanceInitializer.class);
-		initService.enterPhase("instance");
-		assertTrue(InstanceInitializer.getInstance().isCalled);
+		try {
+			initService.registerPhase("instance");
+			initService.register(InstanceInitializer.class);
+			initService.enterPhase("instance");
+			assertTrue(InstanceInitializer.getInstance().isCalled);
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_01_staticInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("static");
-		initService.register(StaticInitializer.class);
-		initService.enterPhase("static");
-		assertTrue(StaticInitializer.isCalled);
+		try {
+			initService.registerPhase("static");
+			initService.register(StaticInitializer.class);
+			initService.enterPhase("static");
+			assertTrue(StaticInitializer.isCalled);
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_02_initFailInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("initfail");
-		initService.register(InitFailInitializer.class);
 		try {
-			initService.enterPhase("initfail");
-			fail();
-		} catch (InitializeException e) {
-			assertEquals(0xf0000000, e.getExitCode());
-			assertEquals("test", e.getMessage());
-			assertEquals(InitFailInitializer.class.getMethod("a", InitCondition.class),
-					e.getInitializerInfo().getInitializer());
+			initService.registerPhase("initfail");
+			initService.register(InitFailInitializer.class);
+			try {
+				initService.enterPhase("initfail");
+				fail();
+			} catch (InitializeException e) {
+				assertEquals(0xf0000000, e.getExitCode());
+				assertEquals("test", e.getMessage());
+				assertEquals(InitFailInitializer.class.getMethod("a", InitCondition.class),
+						e.getInitializerInfo().getInitializer());
+			}
+		} finally {
+			unlock();
 		}
 	}
 
 	@Test
 	public void test_02_simpleDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("sd");
-		initService.register(SimpleDependencyInitializer.class);
-		initService.enterPhase("sd");
-		SimpleDependencyInitializer.assertCalled();
+		try {
+			initService.registerPhase("sd");
+			initService.register(SimpleDependencyInitializer.class);
+			initService.enterPhase("sd");
+			SimpleDependencyInitializer.assertCalled();
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_03_multipleDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("md1").registerPhase("md2");
-		initService.register(MultipleDependenciesInitializer.class);
-		initService.enterPhase("md1");
-		MultipleDependenciesInitializer.assertCalled1();
-		initService.enterPhase("md2");
-		MultipleDependenciesInitializer.assertCalled2();
+		try {
+			initService.registerPhase("md1").registerPhase("md2");
+			initService.register(MultipleDependenciesInitializer.class);
+			initService.enterPhase("md1");
+			MultipleDependenciesInitializer.assertCalled1();
+			initService.enterPhase("md2");
+			MultipleDependenciesInitializer.assertCalled2();
+		} finally {
+			unlock();
+		}
+	}
+
+	@Test
+	public void test_03_uninitInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("ua");
+			initService.register(UninitAbleInitializer.class);
+			initService.enterPhase("ua");
+			initService.waitConsumeQueue();
+			initService.uninit();
+			UninitAbleInitializer.assertCalled();
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_04_crossingPhaseDependenciesInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("cp1").registerPhase("cp2");
-		initService.register(CrossingPhaseInitializer.class);
-		initService.enterPhase("cp1");
-		CrossingPhaseInitializer.assertCalled1();
-		initService.enterPhase("cp2");
-		CrossingPhaseInitializer.assertCalled2();
+		try {
+			initService.registerPhase("cp1").registerPhase("cp2");
+			initService.register(CrossingPhaseInitializer.class);
+			initService.enterPhase("cp1");
+			CrossingPhaseInitializer.assertCalled1();
+			initService.enterPhase("cp2");
+			CrossingPhaseInitializer.assertCalled2();
+		} finally {
+			unlock();
+		}
+	}
+
+	@Test
+	public void test_04_fastUninitInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("fu");
+			initService.register(FastUninitInitializer.class);
+			initService.enterPhase("fu");
+			initService.waitConsumeQueue();
+			initService.uninit(true);
+			FastUninitInitializer.assertCalled();
+		} finally {
+			unlock();
+		}
 	}
 
 	@Test
 	public void test_05_forceResolveInitializer() throws Exception {
 		InitializeService initService = getInitService();
-		initService.registerPhase("rp");
-		initService.register(ForceResolvedInitializer.class);
-		initService.enterPhase("rp");
-		initService.provideInitializer("rp-v2");
 		try {
-			initService.provideInitializer("rp-4");
-			fail(); // rp-4 is already registered.
-		} catch (IllegalArgumentException ignore) {
-			// do nothing
+			initService.registerPhase("rp");
+			initService.register(ForceResolvedInitializer.class);
+			initService.enterPhase("rp");
+			initService.provideInitializer("rp-v2");
+			try {
+				initService.provideInitializer("rp-4");
+				fail(); // rp-4 is already registered.
+			} catch (IllegalArgumentException ignore) {
+				// do nothing
+			}
+			initService.provideInitializer("rp-4", true); // force to provide
+			initService.waitConsumeQueue();
+			ForceResolvedInitializer.assertCalled();
+		} finally {
+			unlock();
 		}
-		initService.provideInitializer("rp-4", true); // force to provide
-		initService.waitConsumeQueue();
-		ForceResolvedInitializer.assertCalled();
 	}
 }

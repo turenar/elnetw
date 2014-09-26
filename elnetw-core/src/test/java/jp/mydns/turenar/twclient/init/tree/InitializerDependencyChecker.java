@@ -19,28 +19,29 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.Initializer;
 import org.slf4j.LoggerFactory;
 
 /**
- * User test for {@link jp.mydns.turenar.twclient.init.DynamicInitializeService}
+ * User test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService}
  */
-public class InitializerDependencyChecker extends DynamicInitializeService {
+public class InitializerDependencyChecker extends TreeInitializeService {
 	public static void main(String[] args) throws ClassNotFoundException, InitializeException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		JoranConfigurator configurator = new JoranConfigurator();
 		configurator.setContext(context);
 		context.reset();
 
-		InitializerDependencyChecker initializer = new InitializerDependencyChecker(ClientConfiguration.getInstance());
+		InitializerDependencyChecker initializer = new InitializerDependencyChecker();
+		TreeInitializeService.instance = initializer;
 		initializer.registerPhase("earlyinit")
 				.registerPhase("preinit")
 				.registerPhase("init")
@@ -72,42 +73,37 @@ public class InitializerDependencyChecker extends DynamicInitializeService {
 
 	private String nowPhase;
 
-	private InitializerDependencyChecker(ClientConfiguration configuration) {
-		super(configuration);
+	private InitializerDependencyChecker() {
+		super();
 	}
 
 	@Override
 	public synchronized InitializeService enterPhase(String phase) throws InitializeException {
 		nowPhase = phase;
-		System.out.println("@@ phase: " + phase);
 		return super.enterPhase(phase);
 	}
 
-	private void getDeepDependencyCount(Set<InitializerInfoImpl> set, InitializerInfoImpl info) {
-		set.add(info);
-		for (String dep : info.getDependencies()) {
-			getDeepDependencyCount(set, initializerInfoMap.get(dep));
-		}
-	}
-
-	private int getDeepDependencyCount(InitializerInfoImpl info) {
-		Set<InitializerInfoImpl> set = new HashSet<>();
-		getDeepDependencyCount(set, info);
-		return set.size() - 1;
-	}
-
 	@Override
-	protected void runResolvedInitializer() throws InitializeException {
-		while (!initQueue.isEmpty()) {
-			InitializerInfoImpl info = initQueue.pop();
-			int length = getDeepDependencyCount(info);
-			for (int i = 0; i < length; i++) {
-				System.out.print("  ");
+	public synchronized InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
+		assertNotUninit();
+		do {
+			rebuildTree();
+			treeRebuildRequired = false;
+			TreeInitInfoBase info;
+			while ((info = flatTree.next()) != null) {
+				for (int i = 1; i < info.weight; i++) {
+					System.out.print(" ");
+				}
+				System.out.print(info.getName());
+				System.out.println(info.getPhase().equals(nowPhase) ? "" : "@" + info.getPhase());
+				if (info instanceof TreeInitInfo) {
+					info.isInitialized = true;
+				}
+				if (treeRebuildRequired) {
+					break; // back to rebuild tree
+				}
 			}
-			System.out.print(info.getName());
-			System.out.println(info.getPhase().equals(nowPhase) ? "" : "@" + info.getPhase());
-			uninitStack.push(info);
-			resolve(info.getName());
-		}
+		} while (treeRebuildRequired);
+		return this;
 	}
 }

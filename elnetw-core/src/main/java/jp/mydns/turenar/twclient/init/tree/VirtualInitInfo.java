@@ -19,42 +19,48 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
 import java.lang.reflect.Method;
 
+import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.Initializer;
+
 /**
- * information of @{@link Initializer}
+ * virtual init info for force provided and not existed info
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
 	/**
-	 * get Initializer Annotation
+	 * create instance
 	 *
-	 * @return annotation
+	 * @param name name
 	 */
-	Initializer getAnnotation();
+	public VirtualInitInfo(String name) {
+		super(name);
+	}
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	@Override
+	public Initializer getAnnotation() {
+		return null;
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Override
+	public Method getInitializer() {
+		return null;
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Override
+	public String getPhase() {
+		return null;
+	}
 
+	@Override
+	public void run() throws InitializeException {
+	}
+
+	@Override
+	public void uninit(boolean fastUninit) throws InitializeException {
+	}
 }

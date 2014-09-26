@@ -101,12 +101,12 @@ import jp.mydns.turenar.twclient.gui.tab.factory.DirectMessageViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.MentionViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
-import jp.mydns.turenar.twclient.init.DynamicInitializeService;
 import jp.mydns.turenar.twclient.init.InitCondition;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
 import jp.mydns.turenar.twclient.init.InitializerInstance;
+import jp.mydns.turenar.twclient.init.tree.TreeInitializeService;
 import jp.mydns.turenar.twclient.intent.AccountVerifierIntent;
 import jp.mydns.turenar.twclient.intent.AddClientTabIntent;
 import jp.mydns.turenar.twclient.intent.ClearPostBoxIntent;
@@ -789,7 +789,7 @@ public final class TwitterClientMain {
 
 		logger.info("elnetw version {}", VersionInfo.getDescribedVersion());
 
-		InitializeService initializeService = DynamicInitializeService.use(configuration);
+		InitializeService initializeService = TreeInitializeService.use();
 
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 		initializeService

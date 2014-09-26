@@ -21,7 +21,11 @@
 
 package jp.mydns.turenar.twclient.init;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility to initialize
@@ -30,7 +34,13 @@ import java.lang.reflect.Method;
  */
 public abstract class InitializeService {
 
+	private static final Logger logger = LoggerFactory.getLogger(InitializeService.class);
 	private static InitializeService service;
+
+	/*package*/
+	static void clearService() {
+		InitializeService.service = null;
+	}
 
 	/**
 	 * get InitializeService
@@ -46,8 +56,7 @@ public abstract class InitializeService {
 		return service;
 	}
 
-	/*package*/
-	static synchronized void setService(InitializeService service) throws IllegalStateException {
+	protected static synchronized void setService(InitializeService service) throws IllegalStateException {
 		if (InitializeService.service != null) {
 			throw new IllegalStateException("InitializeService is already registered");
 		}
@@ -104,17 +113,9 @@ public abstract class InitializeService {
 	 */
 	public abstract boolean isUninitialized();
 
-	/**
-	 * provide null-initializer as name
-	 *
-	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
-	 *
-	 * @param name initializer's name
-	 * @return this object
-	 * @throws IllegalArgumentException name is already registered
-	 * @see #waitConsumeQueue()
-	 */
-	public abstract InitializeService provideInitializer(String name) throws IllegalArgumentException;
+	public InitializeService provideInitializer(String name) throws IllegalArgumentException {
+		return provideInitializer(name, false);
+	}
 
 	/**
 	 * provide null-initializer as name
@@ -131,27 +132,67 @@ public abstract class InitializeService {
 	public abstract InitializeService provideInitializer(String name, boolean force);
 
 	/**
-	 * register initializer
+	 * register method as initializer
 	 *
-	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
-	 *
-	 * @param instance instance to invoke instance-method
-	 * @param method   method object
-	 * @return this object
-	 * @throws java.lang.IllegalArgumentException method don't have @Initializer
+	 * @param instance instance for invocation. If method is static, it can be null.
+	 * @param method   initializer method. It must be annotated by Initializer
+	 * @return this instance
+	 * @throws IllegalArgumentException {@link jp.mydns.turenar.twclient.init.Initializer} is missing
 	 */
-	public abstract InitializeService register(Object instance, Method method) throws IllegalArgumentException;
+	public InitializeService register(Object instance, Method method) throws IllegalArgumentException {
+		Initializer initializer = method.getAnnotation(Initializer.class);
+		if (initializer != null) {
+			register(instance, method, initializer);
+		} else {
+			throw new IllegalArgumentException("method must have @Initializer annotation.");
+		}
+		return this;
+	}
+
+	/**
+	 * register all methods which are annotated by {@link jp.mydns.turenar.twclient.init.Initializer} in initClass
+	 *
+	 * @param initClass initializer class
+	 * @return this instance
+	 * @throws IllegalArgumentException something is wrong
+	 */
+	public InitializeService register(Class<?> initClass) throws IllegalArgumentException {
+		Field[] declaredFields = initClass.getDeclaredFields();
+		Object instance = null;
+		for (Field field : declaredFields) {
+			InitializerInstance initializerInstance = field.getAnnotation(InitializerInstance.class);
+			if (initializerInstance != null) {
+				field.setAccessible(true);
+				try {
+					instance = field.get(null);
+					break;
+				} catch (IllegalAccessException e) {
+					// should not happen
+					logger.warn("not accessible to " + field.getName(), e);
+				}
+			}
+		}
+
+		Method[] declaredMethods = initClass.getDeclaredMethods();
+		for (Method method : declaredMethods) {
+			Initializer initializer = method.getAnnotation(Initializer.class);
+			if (initializer != null) {
+				register(instance, method, initializer);
+			}
+		}
+		return this;
+	}
 
 	/**
 	 * register initializer
 	 *
-	 * <p>This method don't run initializer. If you want this to run, you can call {@link #waitConsumeQueue()}</p>
-	 *
-	 * @param initClass class object. initClass is not needed to have {@link InitProviderClass} Annotation.
-	 * @return this object
-	 * @throws java.lang.IllegalArgumentException wrong class
+	 * @param instance    instance for invocation. If method is static, it can be null.
+	 * @param method      initializer method.
+	 * @param initializer initializer annotation
+	 * @throws IllegalArgumentException something is wrong
 	 */
-	public abstract InitializeService register(Class<?> initClass) throws IllegalArgumentException;
+	protected abstract void register(Object instance, Method method,
+			Initializer initializer) throws IllegalArgumentException;
 
 	/**
 	 * register phase.

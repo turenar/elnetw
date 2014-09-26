@@ -19,42 +19,42 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
-
-import java.lang.reflect.Method;
+package jp.mydns.turenar.twclient.init.tree;
 
 /**
- * information of @{@link Initializer}
+ * DependedBy Relation. It is the opposite of Depend.
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+/*package*/ class DependedBy extends Relation {
 	/**
-	 * get Initializer Annotation
+	 * make instance
 	 *
-	 * @return annotation
+	 * @param name   target name
+	 * @param source which depends on target
+	 * @param target which is depended by source
 	 */
-	Initializer getAnnotation();
+	public DependedBy(String name, TreeInitInfoBase source, TreeInitInfoBase target) {
+		super(name, source, target);
+	}
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	@Override
+	protected String getTypeString() {
+		return "dependedBy";
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Override
+	public int getWeight() {
+		return 0;
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Override
+	public boolean isResolved() {
+		return true;
+	}
 
+	@Override
+	public void update() {
+		target.update();
+	}
 }
