@@ -21,51 +21,60 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer which has crossing phase
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class CrossingPhaseInitializerTest extends TreeInitializeServiceTest {
+	/*package*/ static int data;
+
+	@Initializer(name = "cp-1", phase = "cp1")
+	public static void a() {
+		assertEquals(0, data);
+		data = data | 0x01;
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
+	public static void assertCalled1() {
+		assertEquals(1, data);
 	}
 
-	@Override
-	public Method getInitializer() {
-		return null;
+	public static void assertCalled2() {
+		assertEquals(7, data);
 	}
 
-	@Override
-	public String getPhase() {
-		return null;
+	@Initializer(name = "cp-2", dependencies = "cp-3", phase = "cp1")
+	public static void b() {
+		assertEquals(5, data);
+		data = data | 0x02;
 	}
 
-	@Override
-	public void run() throws InitializeException {
+	@Initializer(name = "cp-3", phase = "cp2")
+	public static void c() {
+		assertEquals(1, data);
+		data = data | 0x04;
 	}
 
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testCrossingPhaseDependenciesInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("cp1").registerPhase("cp2");
+			initService.register(CrossingPhaseInitializerTest.class);
+			initService.enterPhase("cp1");
+			CrossingPhaseInitializerTest.assertCalled1();
+			initService.enterPhase("cp2");
+			CrossingPhaseInitializerTest.assertCalled2();
+		} finally {
+			unlock();
+		}
 	}
 }

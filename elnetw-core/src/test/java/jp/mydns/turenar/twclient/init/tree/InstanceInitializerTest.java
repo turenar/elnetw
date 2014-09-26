@@ -21,51 +21,47 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import jp.mydns.turenar.twclient.init.InitializerInstance;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer whose method is instance method
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class InstanceInitializerTest extends TreeInitializeServiceTest {
+	/** loaded from TreeInitializeService */
+	@InitializerInstance
+	private static final InstanceInitializerTest instance = new InstanceInitializerTest();
+
+	/*package*/
+	static InstanceInitializerTest getInstance() {
+		return instance;
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
+	/*package*/ boolean isCalled = false;
+
+	@Initializer(name = "instance", phase = "instance")
+	public void hoge() {
+		isCalled = true;
 	}
 
-	@Override
-	public Method getInitializer() {
-		return null;
-	}
-
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testInstanceInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("instance");
+			initService.register(InstanceInitializerTest.class);
+			initService.enterPhase("instance");
+			assertTrue(InstanceInitializerTest.getInstance().isCalled);
+		} finally {
+			unlock();
+		}
 	}
 }

@@ -21,51 +21,50 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitBefore;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer which has InitBefore annotation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class BeforeInitializerTest extends TreeInitializeServiceTest {
+	private static int data = 0;
+
+	private static void assertCalled() {
+		assertEquals(data, 3);
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
+	@Initializer(name = "bi-1", phase = "bi")
+	@InitBefore("bi-2")
+	public static void fuga() {
+		assertEquals(data, 0);
+		data |= 1;
 	}
 
-	@Override
-	public Method getInitializer() {
-		return null;
+	@Initializer(name = "bi-2", phase = "bi")
+	public static void hoge() {
+		assertEquals(data, 1);
+		data |= 2;
 	}
 
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testAfterInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("bi");
+			initService.register(BeforeInitializerTest.class);
+			initService.enterPhase("bi");
+			assertCalled();
+		} finally {
+			unlock();
+		}
 	}
 }

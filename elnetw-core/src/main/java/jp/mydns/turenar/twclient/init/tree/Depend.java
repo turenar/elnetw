@@ -45,10 +45,12 @@ package jp.mydns.turenar.twclient.init.tree;
 	 * @param targetInfo which is depended by source
 	 */
 	public Depend(String name, TreeInitInfoBase sourceInfo, TreeInitInfoBase targetInfo) {
-		super(name, sourceInfo, targetInfo);
-		if (!(target == null || sourceInfo == target)) {
-			target.addDependency(new DependedBy(sourceInfo.getName(), target, sourceInfo));
-		}
+		super(name, sourceInfo, targetInfo, true);
+	}
+
+	@Override
+	protected DependedBy getOppositeRelation() {
+		return new DependedBy(source.getName(), target, source);
 	}
 
 	@Override
@@ -64,17 +66,6 @@ package jp.mydns.turenar.twclient.init.tree;
 	@Override
 	public boolean isResolved() {
 		return target != null && target.isAllDependenciesResolved();
-	}
-
-	@Override
-	public boolean tryResolve() {
-		if (super.tryResolve()) {
-			if (!(target == null || source == target)) {
-				target.addDependency(new DependedBy(source.getName(), target, source));
-			}
-			return true;
-		}
-		return false;
 	}
 
 	@Override

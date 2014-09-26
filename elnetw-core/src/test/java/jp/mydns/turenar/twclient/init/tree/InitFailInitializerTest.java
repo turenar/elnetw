@@ -21,51 +21,44 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
+import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer which fails
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class InitFailInitializerTest extends TreeInitializeServiceTest {
+	@Initializer(name = "initfail", phase = "initfail")
+	public static void a(InitCondition condition) {
+		condition.setFailStatus("test", 0xf0000000);
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
-	}
-
-	@Override
-	public Method getInitializer() {
-		return null;
-	}
-
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testInitFailInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("initfail");
+			initService.register(InitFailInitializerTest.class);
+			try {
+				initService.enterPhase("initfail");
+				fail();
+			} catch (InitializeException e) {
+				assertEquals(0xf0000000, e.getExitCode());
+				assertEquals("test", e.getMessage());
+				assertEquals(InitFailInitializerTest.class.getMethod("a", InitCondition.class),
+						e.getInitializerInfo().getInitializer());
+			}
+		} finally {
+			unlock();
+		}
 	}
 }

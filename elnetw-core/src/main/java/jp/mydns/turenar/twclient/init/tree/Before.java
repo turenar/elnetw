@@ -21,51 +21,49 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
-import jp.mydns.turenar.twclient.init.Initializer;
-
 /**
- * virtual init info for force provided and not existed info
+ * Before relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
+/*package*/ class Before extends Relation {
 	/**
-	 * create instance
+	 * make instance
 	 *
-	 * @param name name
+	 * @param targetName               target name. If target is null and targetName is unknown, we don't resolve target.
+	 * @param source                   relation source
+	 * @param target                   relation target. It can be null.
+	 * @param registerOppositeRelation should register opposite relation?
 	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+	public Before(String targetName, TreeInitInfoBase source, TreeInitInfoBase target,
+			boolean registerOppositeRelation) {
+		super(targetName, source, target, registerOppositeRelation);
 	}
 
 	@Override
-	public Initializer getAnnotation() {
-		return null;
+	protected Relation getOppositeRelation() {
+		return new After(source.getName(), target, source, false);
 	}
 
 	@Override
-	public Method getInitializer() {
-		return null;
+	protected String getTypeString() {
+		return "before";
 	}
 
 	@Override
-	public String getPhase() {
-		return null;
+	public int getWeight() {
+		return 0;
 	}
 
 	@Override
-	public void run() throws InitializeException {
+	public boolean isResolved() {
+		return true;
 	}
 
 	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	public void update() {
+		if (target != null) {
+			target.update();
+		}
 	}
 }

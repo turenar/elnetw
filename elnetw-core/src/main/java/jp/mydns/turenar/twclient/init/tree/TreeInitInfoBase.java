@@ -93,6 +93,15 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 		return weight;
 	}
 
+	protected boolean hasDependency(String targetName) {
+		for (Relation relation : dependencies) {
+			if (relation.getTargetName().equals(targetName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * check is all dependencies resolved
 	 *

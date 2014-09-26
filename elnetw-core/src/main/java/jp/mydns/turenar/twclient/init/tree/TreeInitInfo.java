@@ -24,6 +24,8 @@ package jp.mydns.turenar.twclient.init.tree;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import jp.mydns.turenar.twclient.init.InitAfter;
+import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -49,6 +51,18 @@ import org.slf4j.LoggerFactory;
 		this.initializer = initializer;
 		for (String dependency : initializer.dependencies()) {
 			dependencies.add(new Depend(dependency, this));
+		}
+		InitAfter initAfter = method.getAnnotation(InitAfter.class);
+		if (initAfter != null) {
+			for (String afterName : initAfter.value()) {
+				dependencies.add(new After(afterName, this, null, true));
+			}
+		}
+		InitBefore initBefore = method.getAnnotation(InitBefore.class);
+		if (initBefore != null) {
+			for (String beforeName : initBefore.value()) {
+				dependencies.add(new Before(beforeName, this, null, true));
+			}
 		}
 		dependencies.add(new Depend(PhaseInitInfo.getNameFromPhase(initializer.phase()), this));
 	}

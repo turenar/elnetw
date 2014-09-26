@@ -43,18 +43,38 @@ package jp.mydns.turenar.twclient.init.tree;
 	/**
 	 * make instance
 	 *
-	 * @param targetName target name. If target is null and targetName is unknown, we don't resolve target.
-	 * @param source     relation source
-	 * @param target     relation target. It can be null.
+	 * @param targetName               target name. If target is null and targetName is unknown, we don't resolve target.
+	 * @param source                   relation source
+	 * @param target                   relation target. It can be null.
+	 * @param registerOppositeRelation should register opposite relation?
 	 */
-	public Relation(String targetName, TreeInitInfoBase source, TreeInitInfoBase target) {
+	public Relation(String targetName, TreeInitInfoBase source, TreeInitInfoBase target,
+			boolean registerOppositeRelation) {
 		this.targetName = targetName;
 		this.source = source;
-		this.target = target == null ? TreeInitializeService.instance.infoMap.get(targetName) : target;
-		if (this.target == null) {
+		target = target == null ? TreeInitializeService.instance.infoMap.get(targetName) : target;
+		this.target = target;
+		if (target == null) {
 			TreeInitializeService.instance.unresolvedRelations.add(this);
 		}
+		if (registerOppositeRelation && !(target == null || source == target)) {
+			registerOppositeRelation();
+		}
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof Relation)) {
+			return false;
+		}
+		if (obj == this) {
+			return true;
+		}
+		Relation another = (Relation) obj;
+		return (source == another.source) && (targetName.equals(another.targetName));
+	}
+
+	protected abstract Relation getOppositeRelation();
 
 	/**
 	 * get target info
@@ -95,6 +115,13 @@ package jp.mydns.turenar.twclient.init.tree;
 	 */
 	public abstract boolean isResolved();
 
+	protected void registerOppositeRelation() {
+		Relation oppositeRelation = getOppositeRelation();
+		if (!(oppositeRelation == null || target.hasDependency(source.getName()))) {
+			target.addDependency(oppositeRelation);
+		}
+	}
+
 	@Override
 	public String toString() {
 		return getTypeString() + ": " + source.getName() + " -> " + targetName;
@@ -110,6 +137,9 @@ package jp.mydns.turenar.twclient.init.tree;
 			target = TreeInitializeService.instance.infoMap.get(targetName);
 			if (target != null) {
 				update();
+				if (!(target == null || source == target)) {
+					registerOppositeRelation();
+				}
 				return true;
 			}
 		}

@@ -21,51 +21,47 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer which has one dependency
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class SimpleDependencyInitializerTest extends TreeInitializeServiceTest {
+	private static int data;
+
+	protected static void assertCalled() {
+		assertEquals(0x11, data);
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
+	@Initializer(name = "sd-2", dependencies = "sd-1", phase = "sd")
+	public static void fuga() {
+		assertEquals(0x10, data);
+		data = data | 0x01;
 	}
 
-	@Override
-	public Method getInitializer() {
-		return null;
+	@Initializer(name = "sd-1", phase = "sd")
+	public static void hoge() {
+		data = data | 0x10;
 	}
 
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testSimpleDependenciesInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("sd");
+			initService.register(SimpleDependencyInitializerTest.class);
+			initService.enterPhase("sd");
+			SimpleDependencyInitializerTest.assertCalled();
+		} finally {
+			unlock();
+		}
 	}
 }

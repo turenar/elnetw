@@ -21,51 +21,37 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * virtual init info for force provided and not existed info
+ * test initializer which method is static method
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
-	/**
-	 * create instance
-	 *
-	 * @param name name
-	 */
-	public VirtualInitInfo(String name) {
-		super(name);
+@InitProviderClass
+public class StaticInitializerTest extends TreeInitializeServiceTest {
+	/*package*/ static boolean isCalled = false;
+
+	@Initializer(name = "static", phase = "static")
+	public static void hoge() {
+		isCalled = true;
 	}
 
-	@Override
-	public Initializer getAnnotation() {
-		return null;
-	}
-
-	@Override
-	public Method getInitializer() {
-		return null;
-	}
-
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	@Test
+	public void testStaticInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("static");
+			initService.register(StaticInitializerTest.class);
+			initService.enterPhase("static");
+			assertTrue(StaticInitializerTest.isCalled);
+		} finally {
+			unlock();
+		}
 	}
 }

@@ -35,7 +35,12 @@ package jp.mydns.turenar.twclient.init.tree;
 	 * @param target which is depended by source
 	 */
 	public DependedBy(String name, TreeInitInfoBase source, TreeInitInfoBase target) {
-		super(name, source, target);
+		super(name, source, target, true);
+	}
+
+	@Override
+	protected Relation getOppositeRelation() {
+		return null; // DependedBy is added as opposite of Depend relation
 	}
 
 	@Override

@@ -19,53 +19,27 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init.tree;
+package jp.mydns.turenar.twclient.init;
 
-import java.lang.reflect.Method;
-
-import jp.mydns.turenar.twclient.init.InitializeException;
-import jp.mydns.turenar.twclient.init.Initializer;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * virtual init info for force provided and not existed info
+ * after relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ class VirtualInitInfo extends TreeInitInfoBase {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface InitAfter {
 	/**
-	 * create instance
+	 * annotated method should be invoked after ...
 	 *
-	 * @param name name
+	 * @return names which annotated method should be invoked after
 	 */
-	public VirtualInitInfo(String name) {
-		super(name);
-	}
-
-	@Override
-	public Initializer getAnnotation() {
-		return null;
-	}
-
-	@Override
-	public Method getInitializer() {
-		return null;
-	}
-
-	@Override
-	public String getPhase() {
-		return null;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-	}
-
-	@Override
-	public String toString() {
-		return name + "(virtual)";
-	}
-
-	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
-	}
+	String[] value();
 }
