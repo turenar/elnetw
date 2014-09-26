@@ -43,6 +43,21 @@ public class ProviderInitInfo extends VirtualInitInfo {
 	}
 
 	@Override
+	public boolean isAllDependenciesResolved() {
+		if (allDependenciesResolved) {
+			return true;
+		}
+
+		for (Relation dependency : dependencies) {
+			if (dependency instanceof ProvidedBy && dependency.isResolved()) {
+				allDependenciesResolved = true;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public void run() throws InitializeException {
 		logger.trace(" {} weight={}", this, weight);
 	}

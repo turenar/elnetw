@@ -119,6 +119,7 @@ package jp.mydns.turenar.twclient.init.tree;
 		Relation oppositeRelation = getOppositeRelation();
 		if (!(oppositeRelation == null || target.hasDependency(source.getName()))) {
 			target.addDependency(oppositeRelation);
+			target.update();
 		}
 	}
 
