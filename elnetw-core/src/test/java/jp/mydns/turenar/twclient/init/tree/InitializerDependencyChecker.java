@@ -65,7 +65,22 @@ public class InitializerDependencyChecker extends TreeInitializeService {
 			for (Method method : methods) {
 				Initializer annotation = method.getAnnotation(Initializer.class);
 				if (!(annotation == null || initializer.isInitialized(annotation.name()))) {
-					System.out.println("not initialized: " + initializer.getInfo(annotation.name()));
+					System.out.print("not initialized: \033[01;31m" + initializer.getInfo(annotation.name()) + "\033[00m");
+
+					StringBuilder builder = new StringBuilder("\033[34m dependencies=[");
+					TreeInitInfoBase info = initializer.infoMap.get(annotation.name());
+					for (Relation relation : info.dependencies) {
+						if (relation.getWeight() == UNRESOLVED_WEIGHT) {
+							builder.append("\033[01;31m").append(relation.getTargetName()).append("\033[00;34m")
+									.append(", ");
+						} else if (relation.getWeight() != 0) {
+							builder.append(relation.getTargetName())
+									.append(", ");
+						}
+					}
+					builder.setLength(builder.length() - 2);
+					builder.append("]\033[00m");
+					System.out.println(builder.toString());
 				}
 			}
 		}
@@ -91,11 +106,39 @@ public class InitializerDependencyChecker extends TreeInitializeService {
 			treeRebuildRequired = false;
 			TreeInitInfoBase info;
 			while ((info = flatTree.next()) != null) {
+				if (info instanceof PhaseInitInfo) {
+					System.out.println("\033[01;31m" + info.getName() + "\033[00m");
+					continue;
+				}
 				for (int i = 1; i < info.weight; i++) {
 					System.out.print(" ");
 				}
-				System.out.print(info.getName());
-				System.out.println(info.getPhase().equals(nowPhase) ? "" : "@" + info.getPhase());
+				StringBuilder builder = new StringBuilder();
+				builder.append(info instanceof ProviderInitInfo ? "\033[01;36m" : "\033[01;35m")
+						.append(info.getName()).append("\033[00m");
+				String phase = info.getPhase();
+				if (!(phase == null || phase.equals(nowPhase))) {
+					builder.append("\033[01;32m@").append(phase).append("\033[00m");
+				}
+
+				int actualDependenciesCount = 0;
+				for (Relation relation : info.dependencies) {
+					if (relation.getWeight() != 0) {
+						actualDependenciesCount++;
+					}
+				}
+				if (actualDependenciesCount != 0) {
+					builder.append("\033[34m dependencies=[");
+					for (Relation relation : info.dependencies) {
+						if (relation.getWeight() != 0) {
+							builder.append(relation.getTargetName())
+									.append(", ");
+						}
+					}
+					builder.setLength(builder.length() - 2);
+					builder.append("]\033[00m");
+				}
+				System.out.println(builder.toString());
 				if (info instanceof TreeInitInfo) {
 					info.isInitialized = true;
 				}
