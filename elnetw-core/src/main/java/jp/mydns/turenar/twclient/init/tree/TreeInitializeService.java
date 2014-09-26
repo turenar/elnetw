@@ -121,6 +121,25 @@ public class TreeInitializeService extends InitializeService {
 	}
 
 	/**
+	 * get provider from providerName
+	 * @param providerName provider name
+	 * @return provider
+	 */
+	protected ProviderInitInfo getProvider(String providerName) {
+		TreeInitInfoBase info = infoMap.get(providerName);
+		if (info == null) {
+			info = new ProviderInitInfo(providerName);
+			infoMap.put(providerName, info);
+			flatTree.add(info);
+		}
+		if (info instanceof ProviderInitInfo) {
+			return (ProviderInitInfo) info;
+		} else {
+			throw new IllegalArgumentException("'" + providerName + "' is already registered not as provider: " + info);
+		}
+	}
+
+	/**
 	 * should do fast uninit?
 	 *
 	 * @return should do fast uninit?

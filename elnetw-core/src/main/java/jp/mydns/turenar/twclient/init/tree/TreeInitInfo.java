@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import jp.mydns.turenar.twclient.init.InitAfter;
 import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.Initializer;
 import org.slf4j.Logger;
@@ -62,6 +63,13 @@ import org.slf4j.LoggerFactory;
 		if (initBefore != null) {
 			for (String beforeName : initBefore.value()) {
 				dependencies.add(new Before(beforeName, this, null, true));
+			}
+		}
+		InitProvide initProvide = method.getAnnotation(InitProvide.class);
+		if (initProvide != null) {
+			for (String provideName : initProvide.value()) {
+				ProviderInitInfo provider = TreeInitializeService.instance.getProvider(provideName);
+				dependencies.add(new Provide(provideName, this, provider));
 			}
 		}
 		dependencies.add(new Depend(PhaseInitInfo.getNameFromPhase(initializer.phase()), this));
@@ -102,7 +110,7 @@ import org.slf4j.LoggerFactory;
 			return;
 		}
 		try {
-			logger.trace(" {}:{}", getPhase(), this);
+			logger.trace(" {}:{} weight={}", getPhase(), this, weight);
 			isInitialized = true;
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes.length == 0) {
