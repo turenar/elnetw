@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializerInfo;
@@ -93,6 +94,26 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 		return weight;
 	}
 
+	/**
+	 * get weight recursively
+	 *
+	 * @param set dependency check
+	 * @return weight
+	 */
+	protected int getWeight(HashSet<String> set) {
+		int weight = set.add(name) ? 1 : 0;
+		for (Relation dependency : dependencies) {
+			weight += dependency.getWeight(set);
+		}
+		return weight;
+	}
+
+	/**
+	 * check if has dependency
+	 *
+	 * @param targetName target name
+	 * @return have dependency?
+	 */
 	protected boolean hasDependency(String targetName) {
 		for (Relation relation : dependencies) {
 			if (relation.getTargetName().equals(targetName)) {
@@ -154,11 +175,8 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 * update weight and dependency
 	 */
 	protected void update() {
-		int weight = 1;
-		for (Relation dependency : dependencies) {
-			weight += dependency.getWeight();
-		}
-		this.weight = weight;
+		HashSet<String> set = new HashSet<>();
+		this.weight = getWeight(set);
 		for (Relation dependency : dependencies) {
 			dependency.update();
 		}

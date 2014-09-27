@@ -72,7 +72,8 @@ import org.slf4j.LoggerFactory;
 				dependencies.add(new Provide(provideName, this, provider));
 			}
 		}
-		dependencies.add(new Depend(PhaseInitInfo.getNameFromPhase(initializer.phase()), this));
+		// update weight
+		addDependency(new Depend(PhaseInitInfo.getNameFromPhase(initializer.phase()), this));
 	}
 
 	@Override

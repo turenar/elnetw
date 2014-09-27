@@ -59,8 +59,8 @@ package jp.mydns.turenar.twclient.init.tree;
 	}
 
 	@Override
-	public int getWeight() {
-		return target == null ? TreeInitializeService.UNRESOLVED_WEIGHT : target.getWeight();
+	protected boolean isAfterRelation() {
+		return true;
 	}
 
 	@Override

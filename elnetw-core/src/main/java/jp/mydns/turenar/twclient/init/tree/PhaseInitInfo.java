@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -58,7 +59,6 @@ import org.slf4j.LoggerFactory;
 	public PhaseInitInfo(String phase) {
 		super(getNameFromPhase(phase));
 		this.phase = phase;
-		dependencies.add(new Depend(name, this, this));
 		weight = TreeInitializeService.UNRESOLVED_WEIGHT;
 	}
 
@@ -75,6 +75,15 @@ import org.slf4j.LoggerFactory;
 	@Override
 	public String getPhase() {
 		return phase;
+	}
+
+	@Override
+	protected int getWeight(HashSet<String> set) {
+		if (!set.add(name) || isResolved) {
+			return 0;
+		} else {
+			return TreeInitializeService.UNRESOLVED_WEIGHT;
+		}
 	}
 
 	@Override

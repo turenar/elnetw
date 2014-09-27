@@ -21,6 +21,8 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
+import java.util.HashSet;
+
 /**
  * This class shows relation such as depend, after, before, etc.
  *
@@ -106,7 +108,34 @@ package jp.mydns.turenar.twclient.init.tree;
 	 *
 	 * @return weight
 	 */
-	public abstract int getWeight();
+	public int getWeight() {
+		if (isAfterRelation()) {
+			return target == null ? TreeInitializeService.UNRESOLVED_WEIGHT : target.getWeight();
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * get weight with collision checker set
+	 *
+	 * @param set collision checker
+	 * @return weight
+	 */
+	protected int getWeight(HashSet<String> set) {
+		if (isAfterRelation()) {
+			return target == null ? TreeInitializeService.UNRESOLVED_WEIGHT : target.getWeight(set);
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * should source be invoked after target?
+	 *
+	 * @return after relation?
+	 */
+	protected abstract boolean isAfterRelation();
 
 	/**
 	 * is target resolved?

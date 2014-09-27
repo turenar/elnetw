@@ -59,6 +59,10 @@ import jp.mydns.turenar.twclient.init.InitializeException;
 		return failException;
 	}
 
+	protected TreeInitInfoBase getInfo() {
+		return initializerInfo;
+	}
+
 	@Override
 	public boolean isFastUninit() {
 		return TreeInitializeService.instance.isFastUninit();
@@ -80,12 +84,12 @@ import jp.mydns.turenar.twclient.init.InitializeException;
 	}
 
 	@Override
-	public void setFailStatus(Throwable cause, String reason, int exitCode) {
-		failException = new InitializeException(initializerInfo, cause, reason, exitCode);
+	public void setFailStatus(String reason, int exitCode) {
+		failException = new InitializeException(initializerInfo, reason, exitCode);
 	}
 
 	@Override
-	public void setFailStatus(String reason, int exitCode) {
-		failException = new InitializeException(initializerInfo, reason, exitCode);
+	public void setFailStatus(Throwable cause, String reason, int exitCode) {
+		failException = new InitializeException(initializerInfo, cause, reason, exitCode);
 	}
 }

@@ -49,8 +49,8 @@ package jp.mydns.turenar.twclient.init.tree;
 	}
 
 	@Override
-	public int getWeight() {
-		return 0;
+	protected boolean isAfterRelation() {
+		return false;
 	}
 
 	@Override

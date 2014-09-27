@@ -44,11 +44,11 @@ public class MultipleDependenciesInitializerTest extends TreeInitializeServiceTe
 	}
 
 	public static void assertCalled1() {
-		assertEquals(data, 0x1f);
+		assertEquals(0x1f, data);
 	}
 
 	public static void assertCalled2() {
-		assertEquals(data, 0x7f);
+		assertEquals(0x7f, data);
 	}
 
 	@Initializer(name = "md-2", dependencies = "md-1", phase = "md1")
