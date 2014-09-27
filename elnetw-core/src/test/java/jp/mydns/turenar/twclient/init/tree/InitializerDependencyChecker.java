@@ -40,6 +40,7 @@ public class InitializerDependencyChecker extends TreeInitializeService {
 		configurator.setContext(context);
 		context.reset();
 
+		long start = System.currentTimeMillis();
 		InitializerDependencyChecker initializer = new InitializerDependencyChecker();
 		TreeInitializeService.instance = initializer;
 		initializer.registerPhase("earlyinit")
@@ -52,6 +53,9 @@ public class InitializerDependencyChecker extends TreeInitializeService {
 		for (String arg : args) {
 			initializer.register(Class.forName(arg));
 		}
+		long end = System.currentTimeMillis();
+		System.out.printf("[register took %dms]%n", end - start);
+
 		initializer.enterPhase("earlyinit")
 				.enterPhase("preinit")
 				.enterPhase("init")
