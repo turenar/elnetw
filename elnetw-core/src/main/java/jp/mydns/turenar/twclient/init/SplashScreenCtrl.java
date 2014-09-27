@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.init;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.SplashScreen;
 
 /**
@@ -42,7 +43,11 @@ public class SplashScreenCtrl {
 	private static SplashScreen splashScreen;
 
 	static {
-		splashScreen = SplashScreen.getSplashScreen();
+		if (GraphicsEnvironment.isHeadless()) {
+			splashScreen = null;
+		} else {
+			splashScreen = SplashScreen.getSplashScreen();
+		}
 	}
 
 	private static int progress;
