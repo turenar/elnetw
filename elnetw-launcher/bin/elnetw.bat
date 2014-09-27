@@ -107,7 +107,7 @@ echo.
 goto error
 
 :ttstart
-set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% %TURETWCL_JAVA_ARGS%
+set JAVA_ARGS=-Dconfig.portable=%PORTABLE_CFG% -splash:%BATCH_PARENT_DIR%\bin\splash.png %TURETWCL_JAVA_ARGS%
 
 if "%TURETWCL_VIEW_LOG%"=="1" (
   echo "%JAVA_BIN%" %JAVA_ARGS% -classpath %TT_CLASSPATH% jp.mydns.turenar.launcher.TwitterClientLauncher -L%BATCH_PARENT_DIR%\lib %*
