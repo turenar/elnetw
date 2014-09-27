@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.init.tree;
 import jp.mydns.turenar.twclient.init.InitAfter;
 import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
@@ -55,19 +56,22 @@ public class WeightCheckedInitializerTest extends TreeInitializeServiceTest {
 		assertEquals(4, getWeight(condition));
 	}
 
-	@Initializer(name = "wc-4", dependencies = "wc-1", phase = "wc")
+	@Initializer(name = "wc-4", phase = "wc")
+	@InitDepends("wc-1")
 	public static void d(InitCondition condition) {
 		assertEquals(2, getWeight(condition));
 	}
 
-	@Initializer(name = "wc-5", dependencies = {"wc-1", "wc-2"}, phase = "wc")
+	@Initializer(name = "wc-5", phase = "wc")
+	@InitDepends({"wc-1", "wc-2"})
 	@InitProvide("wc-5v")
 	@InitBefore("wc-3")
 	public static void e(InitCondition condition) {
 		assertEquals(3, getWeight(condition));
 	}
 
-	@Initializer(name = "wc-6", dependencies = "wc-5v", phase = "wc")
+	@Initializer(name = "wc-6", phase = "wc")
+	@InitDepends("wc-5v")
 	public static void f(InitCondition condition) {
 		assertEquals(5, getWeight(condition));
 	}

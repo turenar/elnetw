@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
@@ -54,14 +55,16 @@ public class ProviderInitializerTest extends TreeInitializeServiceTest {
 		data |= 2;
 	}
 
-	@Initializer(name = "pi-3", dependencies = "pi-a", phase = "pi")
+	@Initializer(name = "pi-3", phase = "pi")
+	@InitDepends("pi-a")
 	@InitProvide("pi-b")
 	public static void c() {
 		assertEquals(3, data & 3);
 		data |= 4;
 	}
 
-	@Initializer(name = "pi-4", dependencies = "pi-b", phase = "pi")
+	@Initializer(name = "pi-4", phase = "pi")
+	@InitDepends("pi-b")
 	public static void d() {
 		assertEquals(7, data & 7);
 		data |= 8;

@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -51,37 +52,43 @@ public class MultipleDependenciesInitializerTest extends TreeInitializeServiceTe
 		assertEquals(0x7f, data);
 	}
 
-	@Initializer(name = "md-2", dependencies = "md-1", phase = "md1")
+	@Initializer(name = "md-2", phase = "md1")
+	@InitDepends("md-1")
 	public static void b() {
 		assertEquals(0x01, data & 0x01);
 		data = data | 0x02;
 	}
 
-	@Initializer(name = "md-3", dependencies = "md-1", phase = "md1")
+	@Initializer(name = "md-3", phase = "md1")
+	@InitDepends("md-1")
 	public static void c() {
 		assertEquals(0x01, data & 0x01);
 		data = data | 0x04;
 	}
 
-	@Initializer(name = "md-4", dependencies = {"md-1", "md-2"}, phase = "md1")
+	@Initializer(name = "md-4", phase = "md1")
+	@InitDepends({"md-1", "md-2"})
 	public static void d() {
 		assertEquals(0x03, data & 0x03);
 		data = data | 0x08;
 	}
 
-	@Initializer(name = "md-5", dependencies = {"md-1", "md-3", "md-4"}, phase = "md1")
+	@Initializer(name = "md-5", phase = "md1")
+	@InitDepends({"md-1", "md-3", "md-4"})
 	public static void e() {
 		assertEquals(0x0d, data & 0x0d);
 		data = data | 0x10;
 	}
 
-	@Initializer(name = "md-6", dependencies = {"md-1", "md-5"}, phase = "md2")
+	@Initializer(name = "md-6", phase = "md2")
+	@InitDepends({"md-1", "md-5"})
 	public static void f() {
 		assertEquals(0x1f, data);
 		data = data | 0x20;
 	}
 
-	@Initializer(name = "md-7", dependencies = "md-6", phase = "md2")
+	@Initializer(name = "md-7", phase = "md2")
+	@InitDepends("md-6")
 	public static void g() {
 		assertEquals(0x3f, data);
 		data = data | 0x40;

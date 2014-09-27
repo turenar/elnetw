@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
 import org.junit.Test;
@@ -44,31 +45,36 @@ public class ForceResolvedInitializerTest extends TreeInitializeServiceTest {
 		assertEquals(0b1111, data);
 	}
 
-	@Initializer(name = "rp-2", dependencies = "rp-v2", phase = "rp")
+	@Initializer(name = "rp-2", phase = "rp")
+	@InitDepends("rp-v2")
 	public static void b() {
 		assertEquals(0b0001, data);
 		data = data | 0b0010;
 	}
 
-	@Initializer(name = "rp-5", dependencies = {"rp-1", "rp-2", "rp-v3", "rp-v4", "rp-4"}, phase = "rp")
+	@Initializer(name = "rp-5", phase = "rp")
+	@InitDepends({"rp-1", "rp-2", "rp-v3", "rp-v4", "rp-4"})
 	public static void c() {
 		assertEquals(0b0111, data);
 		data = data | 0b1000;
 	}
 
-	@Initializer(name = "rp-4", dependencies = "undefined", phase = "rp")
+	@Initializer(name = "rp-4", phase = "rp")
+	@InitDepends("undefined")
 	public static void d() { // be never called
 		fail("ForceResolvedInitializer#d must not be called: force resolved");
 	}
 
-	@Initializer(name = "rp-3", dependencies = "rp-2", phase = "rp")
+	@Initializer(name = "rp-3", phase = "rp")
+	@InitDepends("rp-2")
 	public static void e() {
 		assertEquals(0b0011, data);
 		data = data | 0b0100;
 		InitializeService.getService().provideInitializer("rp-v3").provideInitializer("rp-v4", true);
 	}
 
-	@Initializer(name = "rp-v4", dependencies = "undefined", phase = "rp")
+	@Initializer(name = "rp-v4", phase = "rp")
+	@InitDepends("undefined")
 	public static void f() { // be never called
 		fail("ForceResolvedInitializer#f must not be called: force resolved");
 	}

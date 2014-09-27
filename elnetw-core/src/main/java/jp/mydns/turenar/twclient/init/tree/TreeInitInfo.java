@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import jp.mydns.turenar.twclient.init.InitAfter;
 import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -50,8 +51,11 @@ import org.slf4j.LoggerFactory;
 		this.instance = instance;
 		this.method = method;
 		this.initializer = initializer;
-		for (String dependency : initializer.dependencies()) {
-			dependencies.add(new Depend(dependency, this));
+		InitDepends initDepends = method.getAnnotation(InitDepends.class);
+		if (initDepends != null) {
+			for (String dependsName : initDepends.value()) {
+				dependencies.add(new Depend(dependsName, this, null));
+			}
 		}
 		InitAfter initAfter = method.getAnnotation(InitAfter.class);
 		if (initAfter != null) {

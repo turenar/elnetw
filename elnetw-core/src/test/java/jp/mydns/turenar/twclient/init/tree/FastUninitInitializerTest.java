@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -42,7 +43,8 @@ public class FastUninitInitializerTest extends TreeInitializeServiceTest {
 		assertEquals(0x13, data);
 	}
 
-	@Initializer(name = "fu-2", dependencies = "fu-1", phase = "fu")
+	@Initializer(name = "fu-2", phase = "fu")
+	@InitDepends("fu-1")
 	public static void fuga(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			assertEquals(0x10, data);

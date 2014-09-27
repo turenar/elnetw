@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
+import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -51,7 +52,8 @@ public class CrossingPhaseInitializerTest extends TreeInitializeServiceTest {
 		assertEquals(7, data);
 	}
 
-	@Initializer(name = "cp-2", dependencies = "cp-3", phase = "cp1")
+	@Initializer(name = "cp-2", phase = "cp1")
+	@InitDepends("cp-3")
 	public static void b() {
 		assertEquals(5, data);
 		data = data | 0x02;
