@@ -55,6 +55,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 */
 	protected boolean allDependenciesResolved;
 	private InitializeException exception;
+	private boolean allDependenciesInitialized;
 
 	/**
 	 * create instance
@@ -73,7 +74,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	public void addDependency(Relation relation) {
 		dependencies.add(relation);
 		allDependenciesResolved = false;
-		update();
+		allDependenciesInitialized =false;
 	}
 
 	@Override
@@ -136,11 +137,15 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	public abstract void invoke() throws InitializeException;
 
 	protected boolean isAllDependenciesInitialized() {
+		if(allDependenciesInitialized)
+			return true;
+
 		for (Relation dependency : dependencies) {
 			if (!dependency.isInitialized()) {
 				return false;
 			}
 		}
+		allDependenciesInitialized = true;
 		return true;
 	}
 
@@ -204,10 +209,6 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 * update weight and dependency
 	 */
 	protected void update() {
-		HashSet<String> set = new HashSet<>();
-		this.weight = getWeight(set);
-		for (Relation dependency : dependencies) {
-			dependency.update();
-		}
+		weight = getWeight(new HashSet<String>());
 	}
 }

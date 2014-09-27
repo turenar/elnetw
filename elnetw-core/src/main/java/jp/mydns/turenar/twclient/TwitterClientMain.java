@@ -879,7 +879,7 @@ public final class TwitterClientMain {
 	 * @param condition init condition
 	 */
 	@Initializer(name = "config", phase = "earlyinit")
-	@InitDepends("config/default")
+	@InitDepends({"config/default", "internal/portableConfig"})
 	public void setConfigProperties(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
 			configProperties = configuration.getConfigProperties();
@@ -925,7 +925,6 @@ public final class TwitterClientMain {
 	 * set default conf properties
 	 */
 	@Initializer(name = "config/default", phase = "earlyinit")
-	@InitDepends("internal/portableConfig")
 	public void setDefaultConfigProperties() {
 		ClientProperties defaultConfig = configuration.getConfigDefaultProperties();
 		try {
@@ -958,12 +957,21 @@ public final class TwitterClientMain {
 	/**
 	 * set default global filter
 	 */
-	@Initializer(name = "filter/global", phase = "init")
-	@InitDepends({"config", "bus/factory"})
+	@Initializer(name = "filter/global/std/default", phase = "init")
+	@InitProvide("filter/global")
+	@InitDepends("config")
 	public void setDefaultFilter() {
-		configuration.addFilter(new GlobalUserIdFilter());
 		configuration.addFilter(new BlockingUserFilter(true));
-		configuration.addFilter(new ExtendedMuteFilter());
+	}
+
+	/**
+	 * set default global filter
+	 */
+	@Initializer(name = "filter/global/std/bus", phase = "init")
+	@InitProvide("filter/global")
+	@InitDepends({"config","bus/factory"})
+	public void setDefaultFilterWithBus() {
+		configuration.addFilter(new BlockingUserFilter(true));
 	}
 
 	/**
@@ -1033,7 +1041,7 @@ public final class TwitterClientMain {
 	/**
 	 * set message notifiers candidates
 	 */
-	@Initializer(name = "gui/notifier/std", phase = "prestart")
+	@Initializer(name = "gui/notifier/std", phase = "init")
 	@InitProvide("gui/notifier")
 	public void setMessageNotifiersCandidate() {
 		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);

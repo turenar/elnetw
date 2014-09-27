@@ -208,7 +208,7 @@ public class TreeInitializeService extends InitializeService {
 				iterator.remove();
 			}
 		}
-		flatTree.resort();
+		flatTree.rebuild();
 	}
 
 	@Override

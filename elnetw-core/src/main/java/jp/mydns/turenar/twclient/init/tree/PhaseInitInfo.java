@@ -104,9 +104,6 @@ import org.slf4j.LoggerFactory;
 		if (!isResolved) {
 			isResolved = true;
 			weight = 0;
-			for (Relation dependency : dependencies) {
-				dependency.update();
-			}
 		}
 	}
 

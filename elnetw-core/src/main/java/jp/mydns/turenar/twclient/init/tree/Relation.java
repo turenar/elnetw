@@ -170,8 +170,7 @@ import java.util.HashSet;
 		if (target == null) {
 			target = TreeInitializeService.instance.infoMap.get(targetName);
 			if (target != null) {
-				update();
-				if (!(target == null || source == target)) {
+				if (source != target) {
 					registerOppositeRelation();
 				}
 				return true;

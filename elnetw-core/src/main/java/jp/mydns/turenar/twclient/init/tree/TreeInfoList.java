@@ -34,11 +34,11 @@ import java.util.RandomAccess;
  * </p>
  * <p>
  * Phase Init: You should call {@link #add(TreeInitInfoBase)}. If you want to retrieve next info to init,
- * You can call {@link #resort()} and {@link #next()}
+ * You can call {@link #rebuild()} and {@link #next()}
  * </p>
  * <p>
  * Phase UnInit: You can call {@link #prev()}. You must not call {@link #add(TreeInitInfoBase)} and {@link #next()}.
- * {@link #resort()} have no effect.
+ * {@link #rebuild()} have no effect.
  * </p>
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
@@ -118,7 +118,10 @@ import java.util.RandomAccess;
 	/**
 	 * sort all info which doesn't not retrieved. This function affects {@link #next()} but {@link #prev()}
 	 */
-	public void resort() {
+	public void rebuild() {
+		for (int i = finishedIndex; i < size; i++) {
+			objects[i].update();
+		}
 		Arrays.sort(objects, finishedIndex, size);
 	}
 
