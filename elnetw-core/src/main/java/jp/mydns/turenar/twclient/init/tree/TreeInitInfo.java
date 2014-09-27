@@ -31,6 +31,7 @@ import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.Initializer;
+import jp.mydns.turenar.twclient.init.SplashScreenCtrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +110,7 @@ import org.slf4j.LoggerFactory;
 			throw new InitializeException("All dependencies is not initialized");
 		}
 		try {
+			SplashScreenCtrl.setString("初期化しています: " + getPhase() + ":" + name);
 			logger.trace(" {}:{} weight={}", getPhase(), this, weight);
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes.length == 0) {

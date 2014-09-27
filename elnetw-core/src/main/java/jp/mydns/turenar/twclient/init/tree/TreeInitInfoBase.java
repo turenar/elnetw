@@ -74,7 +74,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	public void addDependency(Relation relation) {
 		dependencies.add(relation);
 		allDependenciesResolved = false;
-		allDependenciesInitialized =false;
+		allDependenciesInitialized = false;
 	}
 
 	@Override
@@ -137,8 +137,9 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	public abstract void invoke() throws InitializeException;
 
 	protected boolean isAllDependenciesInitialized() {
-		if(allDependenciesInitialized)
+		if (allDependenciesInitialized) {
 			return true;
+		}
 
 		for (Relation dependency : dependencies) {
 			if (!dependency.isInitialized()) {
@@ -189,6 +190,8 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 			invoke();
 		} catch (InitializeException e) {
 			setException(e);
+		} catch (RuntimeException e) {
+			setException(new InitializeException(e));
 		}
 		TreeInitializeService.instance.finish(this);
 	}
