@@ -84,7 +84,6 @@ import org.slf4j.LoggerFactory;
 	public Initializer getAnnotation() {
 		return initializer;
 	}
-
 	@Override
 	public Method getInitializer() {
 		return method;
@@ -113,6 +112,9 @@ import org.slf4j.LoggerFactory;
 		if (isInitialized) {
 			logger.error("already initialized: {}", this);
 			return;
+		}
+		if (!isAllDependenciesInitialized()) {
+			throw new InitializeException("All dependencies is not initialized");
 		}
 		try {
 			logger.trace(" {}:{} weight={}", getPhase(), this, weight);

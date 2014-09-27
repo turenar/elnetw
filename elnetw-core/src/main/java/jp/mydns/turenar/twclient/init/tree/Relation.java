@@ -137,6 +137,10 @@ import java.util.HashSet;
 	 */
 	protected abstract boolean isAfterRelation();
 
+	public boolean isInitialized() {
+		return target == null || !isAfterRelation() || target.isAllDependenciesInitialized();
+	}
+
 	/**
 	 * is target resolved?
 	 *

@@ -123,6 +123,15 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 		return false;
 	}
 
+	protected boolean isAllDependenciesInitialized() {
+		for (Relation dependency : dependencies) {
+			if (!dependency.isInitialized()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * check is all dependencies resolved
 	 *
@@ -138,6 +147,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 				return false;
 			}
 		}
+		allDependenciesResolved = true;
 		return true;
 	}
 

@@ -57,6 +57,11 @@ package jp.mydns.turenar.twclient.init.tree;
 	}
 
 	@Override
+	public boolean isInitialized() {
+		return true; // this class is not required to be initialized
+	}
+
+	@Override
 	public boolean isResolved() {
 		return true;
 	}
