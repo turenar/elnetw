@@ -118,11 +118,13 @@ if test ! -z "${_dist_jar}"; then
   # standalone jar is found
   add_classpath "${_dist_jar}"
   add_java_arg '-Dconfig.portable=true'
+  add_java_arg "-splash:${BATCH_PARENT_DIR}"/bin/splash.png
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
   add_classpath "${BATCH_PARENT_DIR}/bin/launcher.jar"
   if test -e "${BATCH_PARENT_DIR}/bin/library.jar"; then
     add_classpath "${BATCH_PARENT_DIR}/bin/library.jar"
   fi
+  add_java_arg "-splash:${BATCH_PARENT_DIR}"/bin/splash.png
 else
   # jarが見つからない
   echo
