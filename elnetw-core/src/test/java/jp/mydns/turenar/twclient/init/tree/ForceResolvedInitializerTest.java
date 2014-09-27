@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class ForceResolvedInitializerTest extends TreeInitializeServiceTest {
+public class ForceResolvedInitializerTest extends TreeInitializeServiceTestBase {
 	private static int data;
 
 	@Initializer(name = "rp-1", phase = "rp")

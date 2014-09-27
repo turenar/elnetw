@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class CrossingPhaseInitializerTest extends TreeInitializeServiceTest {
+public class CrossingPhaseInitializerTest extends TreeInitializeServiceTestBase {
 	/*package*/ static int data;
 
 	@Initializer(name = "cp-1", phase = "cp1")

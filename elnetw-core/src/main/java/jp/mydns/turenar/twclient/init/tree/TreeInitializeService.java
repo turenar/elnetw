@@ -270,7 +270,6 @@ public class TreeInitializeService extends InitializeService {
 						}
 					}
 					runningInfo.add(info);
-					logger.trace("parallel: {}", info);
 					jobQueue.addJob(JobQueue.PRIORITY_MAX, info);
 				}
 				if (treeRebuildRequired) {

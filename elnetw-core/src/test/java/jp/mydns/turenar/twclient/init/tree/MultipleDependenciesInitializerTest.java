@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class MultipleDependenciesInitializerTest extends TreeInitializeServiceTest {
+public class MultipleDependenciesInitializerTest extends TreeInitializeServiceTestBase {
 	/*package*/ static int data;
 
 	@Initializer(name = "md-1", phase = "md1")

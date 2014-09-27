@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class AfterInitializerTest extends TreeInitializeServiceTest {
+public class AfterInitializerTest extends TreeInitializeServiceTestBase {
 	private static int data = 0;
 
 	private static void assertCalled() {

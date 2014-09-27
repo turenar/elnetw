@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class ProviderInitializerTest extends TreeInitializeServiceTest {
+public class ProviderInitializerTest extends TreeInitializeServiceTestBase {
 	private static int data = 0;
 
 	@Initializer(name = "pi-1", phase = "pi")

@@ -39,7 +39,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class WeightCheckedInitializerTest extends TreeInitializeServiceTest {
+public class WeightCheckedInitializerTest extends TreeInitializeServiceTestBase {
 	@Initializer(name = "wc-1", phase = "wc")
 	public static void a(InitCondition condition) {
 		assertEquals(1, getWeight(condition));

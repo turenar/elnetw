@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class InitFailInitializerTest extends TreeInitializeServiceTest {
+public class InitFailInitializerTest extends TreeInitializeServiceTestBase {
 	@Initializer(name = "initfail", phase = "initfail")
 	public static void a(InitCondition condition) {
 		condition.setFailStatus("test", 0xf0000000);

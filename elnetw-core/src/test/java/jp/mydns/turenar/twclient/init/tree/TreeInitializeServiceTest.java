@@ -22,21 +22,16 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import jp.mydns.turenar.twclient.init.InitializeService;
-import jp.mydns.turenar.twclient.init.InitializeServiceTestImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/** Test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService} */
-public class TreeInitializeServiceTest extends InitializeServiceTestImpl {
-
-	protected InitializeService getInitService() throws Exception {
-		TreeInitializeService service = new TreeInitializeService();
-		lock(service);
-		TreeInitializeService.instance = service;
-		return service;
-	}
-
+/**
+ * test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService}
+ *
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
+ */
+public class TreeInitializeServiceTest extends TreeInitializeServiceTestBase {
 	@Test
 	public void testUse() throws Exception {
 		clearService();

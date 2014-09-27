@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 @InitProviderClass
-public class InitConditionInitializerTest extends TreeInitializeServiceTest {
+public class InitConditionInitializerTest extends TreeInitializeServiceTestBase {
 	/*package*/ static boolean isCalled;
 
 	@Initializer(name = "initcond", phase = "initcond")

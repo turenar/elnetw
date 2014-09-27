@@ -21,47 +21,19 @@
 
 package jp.mydns.turenar.twclient.init.tree;
 
-import jp.mydns.turenar.twclient.init.InitProviderClass;
 import jp.mydns.turenar.twclient.init.InitializeService;
-import jp.mydns.turenar.twclient.init.Initializer;
-import jp.mydns.turenar.twclient.init.InitializerInstance;
+import jp.mydns.turenar.twclient.init.InitializeServiceTestImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * test initializer whose method is instance method
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-@InitProviderClass
-public class InstanceInitializerTest extends TreeInitializeServiceTestBase {
-	/** loaded from TreeInitializeService */
-	@InitializerInstance
-	private static final InstanceInitializerTest instance = new InstanceInitializerTest();
+/** Test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService} */
+public class TreeInitializeServiceTestBase extends InitializeServiceTestImpl {
 
-	/*package*/
-	static InstanceInitializerTest getInstance() {
-		return instance;
-	}
-
-	/*package*/ boolean isCalled = false;
-
-	@Initializer(name = "instance", phase = "instance")
-	public void hoge() {
-		isCalled = true;
-	}
-
-	@Test
-	public void testInstanceInitializer() throws Exception {
-		InitializeService initService = getInitService();
-		try {
-			initService.registerPhase("instance");
-			initService.register(InstanceInitializerTest.class);
-			initService.enterPhase("instance");
-			assertTrue(InstanceInitializerTest.getInstance().isCalled);
-		} finally {
-			unlock();
-		}
+	protected InitializeService getInitService() throws Exception {
+		TreeInitializeService service = new TreeInitializeService();
+		lock(service);
+		TreeInitializeService.instance = service;
+		return service;
 	}
 }
