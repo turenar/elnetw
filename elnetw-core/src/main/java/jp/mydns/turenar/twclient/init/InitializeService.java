@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.init;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import jp.mydns.turenar.twclient.JobQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,14 +57,17 @@ public abstract class InitializeService {
 		return service;
 	}
 
+	/**
+	 * set service
+	 *
+	 * @param service instance
+	 * @throws IllegalStateException InitializeService is already registered
+	 */
 	protected static synchronized void setService(InitializeService service) throws IllegalStateException {
 		if (InitializeService.service != null) {
 			throw new IllegalStateException("InitializeService is already registered");
 		}
 		InitializeService.service = service;
-	}
-
-	protected InitializeService() {
 	}
 
 	/**
@@ -203,6 +207,13 @@ public abstract class InitializeService {
 	 * @return this object
 	 */
 	public abstract InitializeService registerPhase(String phase);
+
+	/**
+	 * set job queue for parallelize
+	 *
+	 * @param jobQueue queue
+	 */
+	public abstract void setJobQueue(JobQueue jobQueue);
 
 	/**
 	 * un-initialize initializer

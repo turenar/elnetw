@@ -57,7 +57,8 @@ import jp.mydns.turenar.twclient.init.Initializer;
 	}
 
 	@Override
-	public void run() throws InitializeException {
+	public void invoke() throws InitializeException {
+		isInitialized = true;
 	}
 
 	@Override

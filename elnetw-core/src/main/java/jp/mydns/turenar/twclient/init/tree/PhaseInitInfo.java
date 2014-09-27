@@ -87,6 +87,12 @@ import org.slf4j.LoggerFactory;
 	}
 
 	@Override
+	public void invoke() {
+		logger.info("Entering {} phase", phase);
+		isInitialized = true;
+	}
+
+	@Override
 	public boolean isAllDependenciesResolved() {
 		return isResolved;
 	}
@@ -102,11 +108,6 @@ import org.slf4j.LoggerFactory;
 				dependency.update();
 			}
 		}
-	}
-
-	@Override
-	public void run() {
-		logger.info("Entering {} phase", phase);
 	}
 
 	@Override

@@ -43,6 +43,12 @@ public class ProviderInitInfo extends VirtualInitInfo {
 	}
 
 	@Override
+	public void invoke() throws InitializeException {
+		logger.trace(" {} weight={}", this, weight);
+		isInitialized = true;
+	}
+
+	@Override
 	public boolean isAllDependenciesResolved() {
 		if (allDependenciesResolved) {
 			return true;
@@ -55,11 +61,6 @@ public class ProviderInitInfo extends VirtualInitInfo {
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public void run() throws InitializeException {
-		logger.trace(" {} weight={}", this, weight);
 	}
 
 	@Override

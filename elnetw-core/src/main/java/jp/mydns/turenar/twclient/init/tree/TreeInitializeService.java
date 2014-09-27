@@ -22,10 +22,12 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
@@ -76,6 +78,9 @@ public class TreeInitializeService extends InitializeService {
 	/*package*/ boolean treeRebuildRequired;
 	private boolean isUninitialized;
 	private Logger logger = LoggerFactory.getLogger(TreeInitializeService.class);
+	private ArrayList<TreeInitInfoBase> runningInfo = new ArrayList<>();
+	private volatile JobQueue jobQueue;
+	private InitializeException parallelException;
 
 	/**
 	 * For test.
@@ -88,14 +93,14 @@ public class TreeInitializeService extends InitializeService {
 	/**
 	 * assert {@link #uninit(boolean)} is not called.
 	 */
-	protected void assertNotUninit() {
+	protected synchronized void assertNotUninit() {
 		if (isUninitialized) {
 			throw new IllegalStateException();
 		}
 	}
 
 	@Override
-	public InitializeService enterPhase(String phase) throws InitializeException {
+	public synchronized InitializeService enterPhase(String phase) throws InitializeException {
 		assertNotUninit();
 		String nameFromPhase = PhaseInitInfo.getNameFromPhase(phase);
 		TreeInitInfoBase info = infoMap.get(nameFromPhase);
@@ -115,17 +120,29 @@ public class TreeInitializeService extends InitializeService {
 		return this;
 	}
 
+	protected synchronized void finish(TreeInitInfoBase info) {
+		//noinspection ThrowableResultOfMethodCallIgnored
+		InitializeException exception = info.getException();
+		if (exception != null) {
+			parallelException = exception;
+			treeRebuildRequired = true;
+		}
+		runningInfo.remove(info);
+		notifyAll();
+	}
+
 	@Override
-	public InitializerInfo getInfo(String name) {
+	public synchronized InitializerInfo getInfo(String name) {
 		return infoMap.get(name);
 	}
 
 	/**
 	 * get provider from providerName
+	 *
 	 * @param providerName provider name
 	 * @return provider
 	 */
-	protected ProviderInitInfo getProvider(String providerName) {
+	protected synchronized ProviderInitInfo getProvider(String providerName) {
 		TreeInitInfoBase info = infoMap.get(providerName);
 		if (info == null) {
 			info = new ProviderInitInfo(providerName);
@@ -144,28 +161,28 @@ public class TreeInitializeService extends InitializeService {
 	 *
 	 * @return should do fast uninit?
 	 */
-	protected boolean isFastUninit() {
+	protected synchronized boolean isFastUninit() {
 		return fastUninit;
 	}
 
 	@Override
-	public boolean isInitialized(String name) {
+	public synchronized boolean isInitialized(String name) {
 		TreeInitInfoBase info = infoMap.get(name);
 		return info != null && info.isInitialized();
 	}
 
 	@Override
-	public boolean isRegistered(String name) {
+	public synchronized boolean isRegistered(String name) {
 		return infoMap.containsKey(name);
 	}
 
 	@Override
-	public boolean isUninitialized() {
+	public synchronized boolean isUninitialized() {
 		return isUninitialized;
 	}
 
 	@Override
-	public InitializeService provideInitializer(String name, boolean force) {
+	public synchronized InitializeService provideInitializer(String name, boolean force) {
 		assertNotUninit();
 		TreeInitInfoBase info = infoMap.get(name);
 		if (info == null) {
@@ -184,7 +201,7 @@ public class TreeInitializeService extends InitializeService {
 	/**
 	 * try to resolve all unresolved dependencies and rebuild flat tree
 	 */
-	protected void rebuildTree() {
+	protected synchronized void rebuildTree() {
 		for (Iterator<Relation> iterator = unresolvedRelations.iterator(); iterator.hasNext(); ) {
 			Relation unresolvedRelation = iterator.next();
 			if (unresolvedRelation.tryResolve()) {
@@ -195,7 +212,8 @@ public class TreeInitializeService extends InitializeService {
 	}
 
 	@Override
-	protected void register(Object instance, Method method, Initializer initializer) throws IllegalArgumentException {
+	protected synchronized void register(Object instance, Method method,
+			Initializer initializer) throws IllegalArgumentException {
 		assertNotUninit();
 		TreeInitInfo info = new TreeInitInfo(instance, method, initializer);
 		infoMap.put(initializer.name(), info);
@@ -204,7 +222,7 @@ public class TreeInitializeService extends InitializeService {
 	}
 
 	@Override
-	public InitializeService registerPhase(String phase) {
+	public synchronized InitializeService registerPhase(String phase) {
 		assertNotUninit();
 		PhaseInitInfo info = new PhaseInitInfo(phase);
 		infoMap.put(info.getName(), info);
@@ -214,7 +232,12 @@ public class TreeInitializeService extends InitializeService {
 	}
 
 	@Override
-	public void uninit(boolean fastUninit) throws InitializeException {
+	public synchronized void setJobQueue(JobQueue jobQueue) {
+		this.jobQueue = jobQueue;
+	}
+
+	@Override
+	public synchronized void uninit(boolean fastUninit) throws InitializeException {
 		this.fastUninit = fastUninit;
 		isUninitialized = true;
 		TreeInitInfoBase info;
@@ -224,16 +247,44 @@ public class TreeInitializeService extends InitializeService {
 	}
 
 	@Override
-	public InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
+	public synchronized InitializeService waitConsumeQueue() throws IllegalStateException, InitializeException {
 		assertNotUninit();
 		while (treeRebuildRequired) {
 			rebuildTree();
 			treeRebuildRequired = false;
 			TreeInitInfoBase info;
+
+			REBUILD:
 			while ((info = flatTree.next()) != null) {
-				info.run();
+				if (jobQueue == null) {
+					info.invoke();
+				} else {
+					while (!info.isAllDependenciesInitialized()) {
+						try {
+							wait();
+							if (treeRebuildRequired) {
+								break REBUILD; // back to rebuild tree
+							}
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+					}
+					runningInfo.add(info);
+					logger.trace("parallel: {}", info);
+					jobQueue.addJob(JobQueue.PRIORITY_MAX, info);
+				}
 				if (treeRebuildRequired) {
 					break; // back to rebuild tree
+				}
+			}
+			if (parallelException != null) {
+				throw parallelException;
+			}
+			while (!runningInfo.isEmpty()) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}

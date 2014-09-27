@@ -84,6 +84,7 @@ import org.slf4j.LoggerFactory;
 	public Initializer getAnnotation() {
 		return initializer;
 	}
+
 	@Override
 	public Method getInitializer() {
 		return method;
@@ -95,18 +96,9 @@ import org.slf4j.LoggerFactory;
 	}
 
 	@Override
-	public boolean isAllDependenciesResolved() {
-		return forceProvided || super.isAllDependenciesResolved();
-	}
-
-	@Override
-	public void provide() {
-		forceProvided = true;
-	}
-
-	@Override
-	public void run() throws InitializeException {
+	public void invoke() throws InitializeException {
 		if (forceProvided) {
+			isInitialized = true;
 			return;
 		}
 		if (isInitialized) {
@@ -118,7 +110,6 @@ import org.slf4j.LoggerFactory;
 		}
 		try {
 			logger.trace(" {}:{} weight={}", getPhase(), this, weight);
-			isInitialized = true;
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes.length == 0) {
 				method.invoke(instance);
@@ -131,6 +122,7 @@ import org.slf4j.LoggerFactory;
 			} else {
 				throw new InitializeException(this, "Unexpected argument method");
 			}
+			isInitialized = true;
 		} catch (IllegalAccessException e) {
 			throw new InitializeException(this, e, "Failed to invoke initializer");
 		} catch (InvocationTargetException e) {
@@ -141,6 +133,16 @@ import org.slf4j.LoggerFactory;
 				throw new InitializeException(this, cause, "Failed to invoke initializer");
 			}
 		}
+	}
+
+	@Override
+	public boolean isAllDependenciesResolved() {
+		return forceProvided || super.isAllDependenciesResolved();
+	}
+
+	@Override
+	public void provide() {
+		forceProvided = true;
 	}
 
 	@Override

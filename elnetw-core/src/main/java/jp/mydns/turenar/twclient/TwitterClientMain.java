@@ -1175,6 +1175,7 @@ public final class TwitterClientMain {
 		if (condition.isInitializingPhase()) {
 			jobQueue = configuration.getJobQueue();
 			jobQueue.startWorker();
+			InitializeService.getService().setJobQueue(jobQueue);
 		} else {
 			jobQueue.shutdown();
 			while (!condition.isFastUninit()) {

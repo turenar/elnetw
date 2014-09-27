@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.init.tree;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializerInfo;
 
@@ -32,7 +33,7 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-/*package*/ abstract class TreeInitInfoBase implements InitializerInfo, Comparable<TreeInitInfoBase> {
+/*package*/ abstract class TreeInitInfoBase implements InitializerInfo, Comparable<TreeInitInfoBase>, ParallelRunnable {
 	/**
 	 * info name
 	 */
@@ -49,11 +50,11 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	 * is initialized?
 	 */
 	protected boolean isInitialized;
-
 	/**
 	 * if false, check all dependencies resolved
 	 */
 	protected boolean allDependenciesResolved;
+	private InitializeException exception;
 
 	/**
 	 * create instance
@@ -78,6 +79,10 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	@Override
 	public int compareTo(TreeInitInfoBase o) {
 		return weight - o.weight;
+	}
+
+	public InitializeException getException() {
+		return exception;
 	}
 
 	@Override
@@ -123,6 +128,13 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 		return false;
 	}
 
+	/**
+	 * run initializer method
+	 *
+	 * @throws InitializeException exception occurred
+	 */
+	public abstract void invoke() throws InitializeException;
+
 	protected boolean isAllDependenciesInitialized() {
 		for (Relation dependency : dependencies) {
 			if (!dependency.isInitialized()) {
@@ -166,12 +178,19 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	public void provide() {
 	}
 
-	/**
-	 * run initializer method
-	 *
-	 * @throws InitializeException exception occurred
-	 */
-	public abstract void run() throws InitializeException;
+	@Override
+	public void run() {
+		try {
+			invoke();
+		} catch (InitializeException e) {
+			setException(e);
+		}
+		TreeInitializeService.instance.finish(this);
+	}
+
+	public void setException(InitializeException exception) {
+		this.exception = exception;
+	}
 
 	/**
 	 * uninit
