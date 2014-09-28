@@ -21,11 +21,9 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.gui.tab.SearchTab;
 
 /**
  * 検索するアクションハンドラ
@@ -51,10 +49,9 @@ public class SearchIntent implements Intent {
 			throw new IllegalArgumentException("arg `query' is required.");
 		}
 		try {
-			configuration.getUtility().openBrowser(
-					new URI("http://twitter.com/search/" + queryStr).toASCIIString()); // TODO
-		} catch (URISyntaxException e) {
-			throw new AssertionError(e);
+			SearchTab tab = new SearchTab(MessageBus.READER_ACCOUNT_ID, queryStr);
+			configuration.addFrameTab(tab);
+			configuration.focusFrameTab(tab);
 		} catch (Exception e) {
 			configuration.getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID, "error").onException(e);
 		}

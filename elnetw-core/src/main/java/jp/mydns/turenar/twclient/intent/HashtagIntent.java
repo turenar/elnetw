@@ -47,7 +47,7 @@ public class HashtagIntent implements Intent {
 			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
 		}
 
-		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "%23" + name);
+		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "#" + name);
 		configuration.handleAction(query); //TODO
 	}
 }
