@@ -100,6 +100,10 @@ public class ClientConfiguration {
 	public static final String PROPERTY_PAGING_USER_TIMELINE = "twitter.userTimeline.count";
 	/** ユーザータイムライン取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_USER_TIMELINE = "twitter.userTimeline.interval";
+	/** search取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_SEARCH = "twitter.search.count";
+	/** search取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_SEARCH = "twitter.search.interval";
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");

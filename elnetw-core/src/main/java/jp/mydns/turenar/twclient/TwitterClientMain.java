@@ -73,6 +73,7 @@ import jp.mydns.turenar.twclient.bus.factory.DirectMessageChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.FollowingUsersChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.MentionsChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
+import jp.mydns.turenar.twclient.bus.factory.SearchChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.TimelineChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.TwitterStreamChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.UserTimelineChannelFactory;
@@ -99,6 +100,7 @@ import jp.mydns.turenar.twclient.gui.tab.MentionViewTab;
 import jp.mydns.turenar.twclient.gui.tab.TimelineViewTab;
 import jp.mydns.turenar.twclient.gui.tab.factory.DirectMessageViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.MentionViewTabFactory;
+import jp.mydns.turenar.twclient.gui.tab.factory.SearchTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UpdateProfileTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
@@ -317,6 +319,7 @@ public final class TwitterClientMain {
 		ClientConfiguration.putClientTabFactory("directmessage", new DirectMessageViewTabFactory());
 		ClientConfiguration.putClientTabFactory("userinfo", new UserInfoViewTabFactory());
 		ClientConfiguration.putClientTabFactory("update_profile", new UpdateProfileTabFactory());
+		ClientConfiguration.putClientTabFactory("search", new SearchTabFactory());
 	}
 
 	/**
@@ -1007,6 +1010,7 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("users/blocking", new BlockingUsersChannelFactory());
 		messageBus.addChannelFactory("users/following", new FollowingUsersChannelFactory());
 		messageBus.addChannelFactory("statuses/user_timeline", new UserTimelineChannelFactory());
+		messageBus.addChannelFactory("search", new SearchChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}

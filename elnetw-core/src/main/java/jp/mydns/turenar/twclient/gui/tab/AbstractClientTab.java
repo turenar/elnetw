@@ -21,7 +21,6 @@
 
 package jp.mydns.turenar.twclient.gui.tab;
 
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -324,10 +323,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected FontMetrics fontMetrics;
 	/** フォントの高さ */
 	protected int fontHeight;
-	/** 送信元ラベルのサイズ */
-	protected Dimension linePanelSizeOfSentBy;
-	/** アイコンを表示するときのサイズ */
-	protected Dimension iconSize;
 	/** [K=ユーザーID, V=ユーザーのツイートなど] */
 	protected HashMap<String, TreeSet<RenderPanel>> listItems = new HashMap<>();
 	/** [K=ステータスID, V=ツイートなど] */
@@ -336,8 +331,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected JScrollPane postListScrollPane;
 	/** 慣性スクローラー */
 	protected ScrollUtility scroller;
-	/** {@link ClientConfiguration#getUtility()} */
-	protected Utility utility;
 	/**
 	 * {@link TeeFilter} インスタンスを格納する変数。
 	 *
@@ -371,7 +364,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
-		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
 		this.accountId = accountId;
 		uniqId = getTabId() + "_" + Integer.toHexString(random.nextInt());
@@ -391,7 +383,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		configProperties = configuration.getConfigProperties();
 		imageCacher = configuration.getImageCacher();
 		frameApi = configuration.getFrameApi();
-		utility = configuration.getUtility();
 		sortedPostListPanel = new SortedPostListPanel();
 		this.uniqId = uniqId;
 		uiFont = configProperties.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI);
@@ -696,11 +687,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	private void init(ClientConfiguration configuration) {
 		fontMetrics = getSortedPostListPanel().getFontMetrics(frameApi.getDefaultFont());
-		int str12width = fontMetrics.stringWidth("0123456789abc");
 		fontHeight = fontMetrics.getHeight();
-		int height = Math.max(MIN_HEIGHT, fontHeight);
-		linePanelSizeOfSentBy = new Dimension(str12width, height);
-		iconSize = new Dimension(ICON_WIDTH, height);
 		configuration.getTimer().scheduleWithFixedDelay(new PostListUpdater(),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
