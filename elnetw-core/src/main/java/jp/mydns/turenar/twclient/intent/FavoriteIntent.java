@@ -69,7 +69,7 @@ public class FavoriteIntent extends AbstractIntent {
 		JMenuItem menuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
 		TwitterStatus status = getStatus(args);
 		if (status != null) {
-			String forceFlag = args.getExtraObj("force", String.class);
+			String forceFlag = args.getExtraObj("force", String.class, "undefined");
 			boolean favFlag;
 			switch (forceFlag) {
 				case "f":
