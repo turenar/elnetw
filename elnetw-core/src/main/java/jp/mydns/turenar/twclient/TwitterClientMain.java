@@ -70,6 +70,7 @@ import jp.mydns.turenar.lib.parser.ParsedArguments;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.factory.BlockingUsersChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.DirectMessageChannelFactory;
+import jp.mydns.turenar.twclient.bus.factory.FilterStreamChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.FollowingUsersChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.MentionsChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
@@ -1004,6 +1005,7 @@ public final class TwitterClientMain {
 	public void setMessageChannelFactory() {
 		messageBus.addChannelFactory("my/timeline", new VirtualChannelFactory("stream/user", "statuses/timeline"));
 		messageBus.addChannelFactory("stream/user", new TwitterStreamChannelFactory());
+		messageBus.addChannelFactory("stream/filter", new FilterStreamChannelFactory());
 		messageBus.addChannelFactory("statuses/timeline", new TimelineChannelFactory());
 		messageBus.addChannelFactory("statuses/mentions", new MentionsChannelFactory());
 		messageBus.addChannelFactory("direct_messages", new DirectMessageChannelFactory());

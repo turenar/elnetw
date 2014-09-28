@@ -29,9 +29,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import jp.mydns.turenar.twclient.bus.channel.FilterStreamChannel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import twitter4j.FilterQuery;
 import twitter4j.Status;
 
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
@@ -44,8 +44,6 @@ import static javax.swing.LayoutStyle.ComponentPlacement;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class SearchTab extends AbstractClientTab implements RenderTarget {
-
-	/*package*/ static final Logger logger = LoggerFactory.getLogger(SearchTab.class);
 	private static final String TAB_ID = "search";
 	private final String searchQuery;
 	private DelegateRenderer renderer = new DelegateRenderer() {
@@ -74,7 +72,7 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 	public SearchTab(String accountId, String searchQuery) {
 		super(accountId);
 		this.searchQuery = searchQuery;
-		configuration.getMessageBus().establish(accountId, "search?" + searchQuery, getRenderer());
+		establishChannel();
 	}
 
 	/**
@@ -85,7 +83,16 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 	public SearchTab(String uniqId) {
 		super(TAB_ID, uniqId);
 		searchQuery = configProperties.getProperty(getPropertyPrefix() + ".searchQuery");
+		establishChannel();
+	}
+
+	protected void establishChannel() {
 		configuration.getMessageBus().establish(accountId, "search?" + searchQuery, getRenderer());
+
+		String[] streamTrackKeywords = searchQuery.split(" OR ");
+		FilterQuery filterQuery = new FilterQuery().track(streamTrackKeywords);
+		String channelPath = FilterStreamChannel.getChannelPath(filterQuery);
+		configuration.getMessageBus().establish(accountId, channelPath, getRenderer());
 	}
 
 	private JTextField getComponentSearchField() {
