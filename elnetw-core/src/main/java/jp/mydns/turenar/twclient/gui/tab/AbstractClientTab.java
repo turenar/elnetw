@@ -251,7 +251,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 				public void run() {
 					LinkedList<RenderPanel> postListAddQueue = this$dct.postListAddQueue;
 					SortedPostListPanel sortedPostListPanel = this$dct.getSortedPostListPanel();
-					JScrollPane postListScrollPane = this$dct.postListScrollPane;
+					JScrollPane postListScrollPane = this$dct.getScrollPane();
 					Point oldViewPosition = postListScrollPane.getViewport().getViewPosition();
 					RenderPanel firstComponent = sortedPostListPanel.getComponentAt(oldViewPosition);
 					Rectangle oldBounds = firstComponent == null ? null
@@ -788,7 +788,12 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	 * update title, icon
 	 */
 	protected void updateTab() {
-		titleLabel.setText(getTitle());
-		titleLabel.setIcon(getIcon());
+		runInDispatcherThread(new Runnable() {
+			@Override
+			public void run() {
+				titleLabel.setText(getTitle());
+				titleLabel.setIcon(getIcon());
+			}
+		});
 	}
 }
