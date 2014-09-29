@@ -57,9 +57,9 @@ public class FilterStreamChannel implements MessageChannel {
 				}
 			}
 		}
-		String key = "id=" + (nextQueryId++);
+		String key = "stream/filter?id=" + (nextQueryId++);
 		filterQueryMap.put(key, query);
-		return "stream/filter?" + key;
+		return key;
 	}
 
 	private final String accountId;
@@ -86,9 +86,9 @@ public class FilterStreamChannel implements MessageChannel {
 		this.accountId = accountId;
 		this.queryId = queryId;
 		listener = messageBus.getListeners(accountId, path);
-		FilterQuery filterQuery = filterQueryMap.get(queryId);
+		FilterQuery filterQuery = filterQueryMap.get(path);
 		if (filterQuery == null) {
-			throw new IllegalArgumentException("query key is not found: " + queryId);
+			throw new IllegalArgumentException("query key is not found: " + path);
 		}
 		this.filterQuery = filterQuery;
 	}

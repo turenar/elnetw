@@ -21,6 +21,8 @@
 
 package jp.mydns.turenar.twclient.gui.tab;
 
+import java.util.Set;
+
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -29,8 +31,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import jp.mydns.turenar.twclient.Utility;
+import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.bus.channel.FilterStreamChannel;
 import jp.mydns.turenar.twclient.bus.channel.ListTimelineChannel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
+import twitter4j.FilterQuery;
 import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -56,7 +62,16 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	private String listOwner;
 	private String slug;
 	private volatile UserList listInfo;
+	private volatile Set<User> listMemberSet;
 	private DelegateRenderer renderer = new DelegateRenderer() {
+		@Override
+		public void onClientMessage(String name, Object arg) {
+			if (name.equals(ListTimelineChannel.LIST_MEMBERS_MESSAGE_ID)) {
+				listMemberSet = Utility.uncheckedCast(arg);
+				updateStream();
+			}
+		}
+
 		@Override
 		public void onException(Exception ex) {
 			actualRenderer.onException(ex);
@@ -68,11 +83,22 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 		}
 
 		@Override
+		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+			updateStream();
+		}
+
+		@Override
+		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+			updateStream();
+		}
+
+		@Override
 		public void onUserListUpdate(User listOwner, UserList list) {
 			listInfo = list;
 			updateTab();
 		}
 	};
+	private String lastEstablishedStreamPath;
 
 	/**
 	 * インスタンスを生成する。
@@ -226,5 +252,28 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 			configProperties.setProperty(getPropertyPrefix() + ".listOwner", listOwner);
 			configProperties.setProperty(getPropertyPrefix() + ".slug", slug);
 		}
+	}
+
+	private synchronized void updateStream() {
+		MessageBus messageBus = configuration.getMessageBus();
+		if (lastEstablishedStreamPath != null) {
+			messageBus.dissolve(accountId, lastEstablishedStreamPath, getRenderer());
+			logger.debug("Disconnect bus {}", lastEstablishedStreamPath);
+		}
+
+		long[] listMembers;
+		synchronized (listMemberSet) {
+			listMembers = new long[listMemberSet.size()];
+			int index = 0;
+			for (User user : listMemberSet) {
+				listMembers[index++] = user.getId();
+			}
+		}
+		FilterQuery filterQuery = new FilterQuery(listMembers);
+		String channelPath = FilterStreamChannel.getChannelPath(filterQuery);
+		messageBus.establish(accountId, channelPath, getRenderer());
+		lastEstablishedStreamPath = channelPath;
+		logger.debug("Connect bus {}", channelPath);
+		logger.trace("  IDs: {}", listMembers);
 	}
 }

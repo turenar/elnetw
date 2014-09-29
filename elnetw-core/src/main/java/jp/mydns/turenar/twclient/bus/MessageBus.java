@@ -34,9 +34,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageListener;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.tab.TabRenderer;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
@@ -223,9 +223,18 @@ public class MessageBus {
 	 * virtual account id for all account
 	 */
 	public static final String ALL_ACCOUNT_ID = "$all";
-	public static final String CACHE_PATH_API_CONF = "/conf/twitter/api";
-	public static final String CACHE_PATH_API_CONF_MODIFIED = "/conf/twitter/api/modifiedTime";
-	public static final int API_CONF_CACHE_TIME = 1000 * 60 * 60 * 24;
+	/**
+	 * api configuration cache path
+	 */
+	private static final String CACHE_PATH_API_CONF = "/conf/twitter/api";
+	/**
+	 * the cached time of api configuration
+	 */
+	private static final String CACHE_PATH_API_CONF_MODIFIED = "/conf/twitter/api/modifiedTime";
+	/**
+	 * alive time for api configuration cache
+	 */
+	private static final int API_CONF_CACHE_TIME = 1000 * 60 * 60 * 24;
 
 	private static String getAppended(StringBuilder builder, String appendedString) {
 		int oldLength = builder.length();
@@ -348,7 +357,35 @@ public class MessageBus {
 	}
 
 	/**
-	 * DataFetcherからデータを取得できるように登録する
+	 * Channel からデータを取得するのをやめる
+	 *
+	 * @param accountId    アカウントID (long|$reader|$writer)
+	 * @param notifierName 通知名。"my/timeline"など
+	 * @param listener     リスナ
+	 * @return 削除できたかどうか。
+	 */
+	public synchronized boolean dissolve(String accountId, String notifierName, ClientMessageListener listener) {
+		String path = getPath(accountId, notifierName);
+
+		ArrayList<ClientMessageListener> messageListeners = pathListenerMap.get(path);
+		if (messageListeners != null && messageListeners.remove(listener)) {
+			if (messageListeners.isEmpty()) {
+				MessageChannel messageChannel = pathMap.remove(path);
+				messageChannel.disconnect();
+				ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
+				if (userListeners != null) {
+					userListeners.remove(messageChannel);
+				}
+			}
+			modifiedCount.incrementAndGet();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Channel からデータを取得できるように登録する
 	 *
 	 * @param accountId    アカウントID (long|$reader|$writer)
 	 * @param notifierName 通知名。"my/timeline"など
@@ -385,16 +422,16 @@ public class MessageBus {
 			if (isInitialized) {
 				messageChannel.realConnect();
 			}
+
+			ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
+			if (userListeners == null) {
+				userListeners = new ArrayList<>();
+				userListenerMap.put(accountId, userListeners);
+			}
+			userListeners.add(messageChannel);
 		}
 
 		messageChannel.establish(listener);
-
-		ArrayList<MessageChannel> userListeners = userListenerMap.get(accountId);
-		if (userListeners == null) {
-			userListeners = new ArrayList<>();
-			userListenerMap.put(accountId, userListeners);
-		}
-		userListeners.add(messageChannel);
 
 		modifiedCount.incrementAndGet();
 		return ret;
@@ -487,6 +524,10 @@ public class MessageBus {
 		return new VirtualMessagePublisher(this, recursive, accountId, notifierName);
 	}
 
+	/**
+	 * get modified count. if this value is updated, you should re-retrieve listener cache
+	 * @return modified count
+	 */
 	public int getModifiedCount() {
 		return modifiedCount.get();
 	}

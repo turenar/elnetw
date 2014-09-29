@@ -21,10 +21,12 @@
 
 package jp.mydns.turenar.twclient.bus.channel;
 
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.ClientMessageAdapter;
 import jp.mydns.turenar.twclient.ClientMessageListener;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
@@ -33,12 +35,16 @@ import jp.mydns.turenar.twclient.bus.MessageChannel;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import twitter4j.PagableResponseList;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.UserList;
 
 /**
@@ -47,6 +53,37 @@ import twitter4j.UserList;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ListTimelineChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
+	private class ListMemberUpdateDispatcher extends ClientMessageAdapter {
+		@Override
+		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+			addedMember = TwitterUser.getInstance(addedMember);
+			synchronized (listMemberSet) {
+				listMemberSet.add(addedMember);
+				listInfo = list;
+			}
+			listeners.onUserListMemberAddition(addedMember, listOwner, list);
+		}
+
+		@Override
+		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+			deletedMember = TwitterUser.getInstance(deletedMember);
+			synchronized (listMemberSet) {
+				listMemberSet.remove(deletedMember);
+				listInfo = list;
+			}
+			listeners.onUserListMemberDeletion(deletedMember, listOwner, list);
+		}
+	}
+
+	/**
+	 * got list members
+	 *
+	 * arg: Set&lt;User&gt;
+	 */
+	public static final String LIST_MEMBERS_MESSAGE_ID
+			= "jp.mydns.turenar.twclient.bus.channel.ListTimelineChannel listMembers";
+	private static final Logger logger = LoggerFactory.getLogger(ListTimelineChannel.class);
+
 	/**
 	 * establish channel connection
 	 *
@@ -73,7 +110,6 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 	private static MessageBus getMessageBus() {
 		return ClientConfiguration.getInstance().getMessageBus();
 	}
-
 	private final ClientConfiguration configuration;
 	private final long interval;
 	private final ClientProperties configProperties;
@@ -86,6 +122,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 	private volatile ResponseList<Status> lastTimeline;
 	private volatile UserList listInfo;
 	private TwitterUser owner;
+	private TreeSet<User> listMemberSet;
 
 	/**
 	 * create instance
@@ -103,6 +140,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 		this.accountId = accountId;
 		this.arg = arg;
 		listeners = messageBus.getListeners(accountId, path);
+		messageBus.establish(accountId, "stream/user", new ListMemberUpdateDispatcher());
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
@@ -126,8 +164,19 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 				long listId = Long.parseLong(arg);
 				list = twitter.showUserList(listId);
 			}
+
+			TreeSet<User> listMemberSet = new TreeSet<>();
+			long cursor = -1;
+			do {
+				PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
+				listMemberSet.addAll(userListMembers);
+				cursor = userListMembers.getNextCursor();
+			} while (cursor != 0);
+
 			owner = TwitterUser.getInstance(list.getUser());
 			listeners.onUserListUpdate(owner, list);
+			listeners.onClientMessage(LIST_MEMBERS_MESSAGE_ID, listMemberSet);
+			this.listMemberSet = listMemberSet;
 			listInfo = list;
 		}
 
@@ -155,6 +204,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 	public void establish(ClientMessageListener listener) {
 		if (lastTimeline != null) {
 			listener.onUserListUpdate(owner, listInfo);
+			listener.onClientMessage(LIST_MEMBERS_MESSAGE_ID, listMemberSet);
 			for (Status status : lastTimeline) {
 				listener.onStatus(status);
 			}
@@ -163,6 +213,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 
 	@Override
 	protected void onException(TwitterException ex) {
+		logger.warn("exception occurred", ex);
 		listeners.onException(ex);
 	}
 
