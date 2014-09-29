@@ -116,6 +116,7 @@ import jp.mydns.turenar.twclient.init.InitializerInstance;
 import jp.mydns.turenar.twclient.intent.AccountVerifierIntent;
 import jp.mydns.turenar.twclient.intent.AddClientTabIntent;
 import jp.mydns.turenar.twclient.intent.ClearPostBoxIntent;
+import jp.mydns.turenar.twclient.intent.DisplayRequirementIntent;
 import jp.mydns.turenar.twclient.intent.DoNothingIntent;
 import jp.mydns.turenar.twclient.intent.FavoriteIntent;
 import jp.mydns.turenar.twclient.intent.HashtagIntent;
@@ -644,6 +645,7 @@ public final class TwitterClientMain {
 		configuration.addIntent("menu_login_read", new ReloginIntent(false));
 		configuration.addIntent("menu_login_write", new ReloginIntent(true));
 		configuration.addIntent("menu_config", new MenuConfiguratorIntent());
+		configuration.addIntent("dispReq", new DisplayRequirementIntent());
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

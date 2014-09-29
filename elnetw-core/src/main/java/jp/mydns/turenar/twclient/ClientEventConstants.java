@@ -110,4 +110,10 @@ public interface ClientEventConstants {
 	 * UserInterfaceの初期化。時間のかかるフィルタの進捗表示などに。
 	 */
 	/*public static final*/ String INIT_UI = "init ui";
+	/**
+	 * open timeline url in browser
+	 *
+	 * arg: null
+	 */
+	/*public static final*/ String OPEN_TIMELINE_IN_BROWSER = "open timeline in browser";
 }

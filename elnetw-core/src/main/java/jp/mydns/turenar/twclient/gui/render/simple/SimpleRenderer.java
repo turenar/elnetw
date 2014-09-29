@@ -359,7 +359,8 @@ public class SimpleRenderer implements TabRenderer {
 				.setText("All data is from twitter")
 				.setIcon(ImageResource.getImgTwitterLogo())
 				.setUniqId("misc/displayRequirements")
-				.setDate(DISPLAY_REQUIREMENT_PUBLISHED_DATE));
+				.setDate(DISPLAY_REQUIREMENT_PUBLISHED_DATE)
+				.setPopupMenuType("dispReq"));
 	}
 
 	@Override

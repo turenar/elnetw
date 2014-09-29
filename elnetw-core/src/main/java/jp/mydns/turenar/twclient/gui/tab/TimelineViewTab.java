@@ -37,7 +37,6 @@ import twitter4j.User;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
-
 	/*package*/ static final Logger logger = LoggerFactory.getLogger(TimelineViewTab.class);
 	private static final String TAB_ID = "timeline";
 	private DelegateRenderer renderer = new DelegateRenderer() {
@@ -132,5 +131,10 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	@Override
 	public String getToolTip() {
 		return "HomeTimeline";
+	}
+
+	@Override
+	protected String getTwitterUrl() {
+		return "https://twitter.com";
 	}
 }

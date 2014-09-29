@@ -266,6 +266,11 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
+	protected String getTwitterUrl() {
+		return listInfo.getURI().toASCIIString();
+	}
+
+	@Override
 	public void serialize() {
 		super.serialize();
 		if (listOwner == null) {

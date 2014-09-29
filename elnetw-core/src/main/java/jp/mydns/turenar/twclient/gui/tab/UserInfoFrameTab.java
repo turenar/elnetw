@@ -681,6 +681,11 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	}
 
 	@Override
+	protected String getTwitterUrl() {
+		return "https://twitter.com/" + user.getScreenName();
+	}
+
+	@Override
 	public void initTimeline() {
 		// use other way for display requirements...
 		//super.initTimeline();

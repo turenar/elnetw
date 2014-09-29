@@ -21,6 +21,9 @@
 
 package jp.mydns.turenar.twclient.gui.tab;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -180,6 +183,15 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 	@Override
 	public String getToolTip() {
 		return "検索";
+	}
+
+	@Override
+	protected String getTwitterUrl() {
+		try {
+			return new URI("https", "twitter.com", "search", searchQuery, null).toASCIIString();
+		} catch (URISyntaxException e) {
+			throw new AssertionError();
+		}
 	}
 
 	@Override

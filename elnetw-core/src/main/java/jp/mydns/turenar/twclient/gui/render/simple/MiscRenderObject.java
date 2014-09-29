@@ -67,6 +67,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 	private long date;
 	private String uniqId;
 	private String text;
+	private String popupType = "default";
 
 	/**
 	 * instance
@@ -122,6 +123,11 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 */
 	public Color getForegroundColor() {
 		return foregroundColor;
+	}
+
+	@Override
+	protected String getPopupMenuType() {
+		return popupType;
 	}
 
 	@Override
@@ -240,6 +246,16 @@ public class MiscRenderObject extends AbstractRenderObject {
 	 */
 	public MiscRenderObject setIcon(ImageIcon icon) {
 		componentUserIcon.setIcon(icon);
+		return this;
+	}
+
+	/**
+	 * set popoup menu type
+	 * @param popupType popup type (default: 'default')
+	 * @return this instance
+	 */
+	public MiscRenderObject setPopupMenuType(String popupType) {
+		this.popupType = popupType;
 		return this;
 	}
 

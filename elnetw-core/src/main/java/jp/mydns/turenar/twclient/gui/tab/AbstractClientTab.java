@@ -34,6 +34,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -214,6 +215,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 						if (!inReplyToStack.isEmpty()) {
 							focusAndScroll(inReplyToStack.pop());
 						}
+					}
+					break;
+				case OPEN_TIMELINE_IN_BROWSER:
+					try {
+						configuration.getUtility().openBrowser(getTwitterUrl());
+					} catch (IOException | ReflectiveOperationException e) {
+						logger.warn("open browser failed", e);
 					}
 					break;
 				default:
@@ -666,6 +674,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	public JLabel getTitleComponent() {
 		return titleLabel;
 	}
+
+	/**
+	 * get url in twitter website
+	 *
+	 * @return url
+	 */
+	protected abstract String getTwitterUrl();
 
 	@Override
 	public String getUniqId() {

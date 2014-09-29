@@ -32,9 +32,7 @@ import twitter4j.DirectMessage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirectMessageViewTab extends AbstractClientTab implements RenderTarget {
-
 	private static final String TAB_ID = "directmessage";
-
 	private DelegateRenderer renderer = new DelegateRenderer() {
 
 		@Override
@@ -48,7 +46,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 		}
 	};
 
-
 	/**
 	 * インスタンスを生成する。
 	 *
@@ -59,6 +56,7 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 		configuration.getMessageBus().establish(accountId, "direct_messages", getRenderer());
 		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
+
 
 	/**
 	 * インスタンスを生成する。
@@ -71,7 +69,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 		configuration.getMessageBus().establish(accountId, "direct_messages", getRenderer());
 		configuration.getMessageBus().establish(accountId, "stream/user", getRenderer());
 	}
-
 
 	@Override
 	public DelegateRenderer getDelegateRenderer() {
@@ -96,5 +93,10 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	@Override
 	public String getToolTip() {
 		return "DirectMessages";
+	}
+
+	@Override
+	protected String getTwitterUrl() {
+		return "https://twitter.com/direct_messages";
 	}
 }
