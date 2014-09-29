@@ -114,6 +114,7 @@ import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
 import jp.mydns.turenar.twclient.init.InitializerInstance;
+import jp.mydns.turenar.twclient.init.SplashScreenCtrl;
 import jp.mydns.turenar.twclient.init.tree.TreeInitializeService;
 import jp.mydns.turenar.twclient.intent.AccountVerifierIntent;
 import jp.mydns.turenar.twclient.intent.AddClientTabIntent;
@@ -384,7 +385,7 @@ public final class TwitterClientMain {
 		if (!cacheStorage.isDirEntry("/cache/user")) {
 			return;
 		}
-		
+
 		DirEntry entry = cacheStorage.getDirEntry("/cache/user");
 		for (String hexSubDirName : entry) {
 			if (entry.isDirEntry(hexSubDirName)) {
@@ -808,6 +809,7 @@ public final class TwitterClientMain {
 			portable = true;
 		}
 
+		SplashScreenCtrl.setString("ログの準備をしています...");
 		setHomeProperty();
 		LoggingConfigurator.configureLogger(parsedArguments);
 		logger = LoggerFactory.getLogger(TwitterClientMain.class);
@@ -816,6 +818,7 @@ public final class TwitterClientMain {
 			logger.warn("ArgParser: {}", errorMessages.next());
 		}
 
+		SplashScreenCtrl.setString("初期化を開始しています...");
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setArgParser(parser);
@@ -825,6 +828,7 @@ public final class TwitterClientMain {
 
 		InitializeService initializeService = TreeInitializeService.use();
 
+		SplashScreenCtrl.setString("初期化関数の登録を行なっています...");
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 		initializeService
 				.registerPhase("earlyinit")
