@@ -317,25 +317,28 @@ import twitter4j.User;
 					label.setForeground(Color.BLACK);
 				}
 				if ((flag & UNDERLINE) != 0) {
-					StringBuilder stringBuilder = new StringBuilder(label.getText());
-					while (true) {
-						int indexOf = stringBuilder.indexOf(DEL_FTAG);
-						if (indexOf == -1) {
-							break;
+					String text = label.getText();
+					if (text != null) {
+						StringBuilder stringBuilder = new StringBuilder(text);
+						while (true) {
+							int indexOf = stringBuilder.indexOf(DEL_FTAG);
+							if (indexOf == -1) {
+								break;
+							}
+							int etagStart = stringBuilder.indexOf(DEL_ETAG, indexOf);
+							if (etagStart == -1) {
+								break;
+							}
+							stringBuilder.delete(indexOf, etagStart + DEL_ETAG.length());
 						}
-						int etagStart = stringBuilder.indexOf(DEL_ETAG, indexOf);
-						if (etagStart == -1) {
-							break;
+						{
+							int indexOf = stringBuilder.indexOf(DEL_ALL);
+							if (indexOf != -1) {
+								stringBuilder.delete(0, indexOf + DEL_ALL.length());
+							}
 						}
-						stringBuilder.delete(indexOf, etagStart + DEL_ETAG.length());
+						label.setText(stringBuilder.toString());
 					}
-					{
-						int indexOf = stringBuilder.indexOf(DEL_ALL);
-						if (indexOf != -1) {
-							stringBuilder.delete(0, indexOf + DEL_ALL.length());
-						}
-					}
-					label.setText(stringBuilder.toString());
 				}
 			}
 		}
