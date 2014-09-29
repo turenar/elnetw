@@ -21,33 +21,28 @@
 
 package jp.mydns.turenar.twclient.intent;
 
+import javax.swing.JMenuItem;
+
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.ClientEventConstants;
 
 /**
- * ハッシュタグを処理するアクションハンドラ
+ * DisplayRequirement intent (Open timeline in browser)
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class HashtagIntent implements Intent {
-
-	private final ClientConfiguration configuration;
-
-	public HashtagIntent() {
-		configuration = ClientConfiguration.getInstance();
-	}
+public class DisplayRequirementIntent implements Intent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
+		JMenuItem openMenu = new JMenuItem("Twitterで開く");
+		dispatcher.addMenu(openMenu, args);
 	}
 
 	@Override
-	public void handleAction(IntentArguments arguments) {
-		String name = arguments.getExtraObj("name", String.class);
-		if (name == null) {
-			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
-		}
-
-		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "#" + name);
-		configuration.handleAction(query); //TODO
+	public void handleAction(IntentArguments args) {
+		ClientConfiguration.getInstance().getFrameApi().getSelectingTab().getRenderer().onClientMessage(
+				ClientEventConstants.OPEN_TIMELINE_IN_BROWSER, null
+		);
 	}
 }

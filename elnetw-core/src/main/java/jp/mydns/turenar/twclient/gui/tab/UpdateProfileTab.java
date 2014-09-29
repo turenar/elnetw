@@ -657,6 +657,11 @@ public class UpdateProfileTab extends AbstractClientTab {
 		return "プロフィールを編集する";
 	}
 
+	@Override
+	protected String getTwitterUrl() {
+		return "https://twitter.com/settings/profile";
+	}
+
 	/**
 	 * init user icon
 	 */

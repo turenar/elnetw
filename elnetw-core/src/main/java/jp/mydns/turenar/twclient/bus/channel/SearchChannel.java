@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.bus.channel;
 
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -32,19 +33,22 @@ import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.MessageChannel;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
-import twitter4j.Paging;
-import twitter4j.ResponseList;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 
+import static jp.mydns.turenar.twclient.ClientConfiguration.PROPERTY_INTERVAL_SEARCH;
+import static jp.mydns.turenar.twclient.ClientConfiguration.PROPERTY_PAGING_SEARCH;
+
 /**
- * users/timeline?{&lt;userId&gt;|@&lt;screenName&gt;}
+ * search?&lt;query&gt;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class UserTimelineChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
+public class SearchChannel extends TwitterRunnable implements MessageChannel, ParallelRunnable {
 
 	private final ClientConfiguration configuration;
 	private final long interval;
@@ -52,39 +56,33 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 	private final ClientMessageListener listeners;
 	private final MessageBus messageBus;
 	private final String accountId;
-	private String arg;
+	private final String queryText;
 	private volatile ScheduledFuture<?> scheduledFuture;
 	private volatile Twitter twitter;
-	private volatile ResponseList<Status> lastTimeline;
+	private volatile List<Status> lastTweets;
 
-	public UserTimelineChannel(MessageBus messageBus, String accountId, String path, String arg) {
+	public SearchChannel(MessageBus messageBus, String accountId, String path, String arg) {
 		if (arg == null || arg.isEmpty()) {
 			throw new IllegalArgumentException(path + ": argument is required");
 		}
 		this.messageBus = messageBus;
 		this.accountId = accountId;
-		this.arg = arg;
+		this.queryText = arg;
 		listeners = messageBus.getListeners(accountId, path);
 
 		configuration = ClientConfiguration.getInstance();
 		configProperties = configuration.getConfigProperties();
-		interval = configProperties.getTime(
-				ClientConfiguration.PROPERTY_INTERVAL_USER_TIMELINE, TimeUnit.SECONDS);
+		interval = configProperties.getTime(PROPERTY_INTERVAL_SEARCH, TimeUnit.SECONDS);
 	}
 
 	@Override
 	protected void access() throws TwitterException {
-		Paging paging = new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_USER_TIMELINE));
-		ResponseList<Status> timeline;
-		if (arg.startsWith("@")) {
-			timeline = twitter.getUserTimeline(arg.substring(1), paging);
-		} else {
-			timeline = twitter.getUserTimeline(Long.parseLong(arg), paging);
+		Query query = new Query(this.queryText).count(configProperties.getInteger(PROPERTY_PAGING_SEARCH));
+		QueryResult tweets = twitter.search(query);
+		for (Status result : tweets.getTweets()) {
+			listeners.onStatus(result);
 		}
-		for (Status status : timeline) {
-			listeners.onStatus(status);
-		}
-		lastTimeline = timeline;
+		lastTweets = tweets.getTweets();
 	}
 
 	@Override
@@ -101,8 +99,8 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 
 	@Override
 	public void establish(ClientMessageListener listener) {
-		if (lastTimeline != null) {
-			for (Status status : lastTimeline) {
+		if (lastTweets != null) {
+			for (Status status : lastTweets) {
 				listener.onStatus(status);
 			}
 		}
@@ -122,7 +120,7 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 					new Runnable() {
 						@Override
 						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, UserTimelineChannel.this);
+							configuration.addJob(JobQueue.Priority.LOW, SearchChannel.this);
 						}
 					}, 0, interval, TimeUnit.SECONDS);
 		}

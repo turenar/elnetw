@@ -100,6 +100,14 @@ public class ClientConfiguration {
 	public static final String PROPERTY_PAGING_USER_TIMELINE = "twitter.userTimeline.count";
 	/** ユーザータイムライン取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_USER_TIMELINE = "twitter.userTimeline.interval";
+	/** search取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_SEARCH = "twitter.search.count";
+	/** search取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_SEARCH = "twitter.search.interval";
+	/** search取得の取得ステータス数のプロパティ名 */
+	public static final String PROPERTY_PAGING_LIST = "twitter.list.count";
+	/** search取得の取得間隔のプロパティ名 */
+	public static final String PROPERTY_INTERVAL_LIST = "twitter.list.interval";
 	/** 環境依存の改行コード */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
@@ -358,7 +366,7 @@ public class ClientConfiguration {
 
 	/**
 	 * get cache dir
-	 * @return System.getProperty(&quot;elnetw.cache.dir&quot;)
+	 * @return System.getProperty('elnetw.cache.dir')
 	 */
 	public String getCacheDir() {
 		return System.getProperty("elnetw.cache.dir");

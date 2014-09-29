@@ -19,35 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.intent;
+package jp.mydns.turenar.twclient.bus.factory;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.bus.MessageChannel;
+import jp.mydns.turenar.twclient.bus.MessageChannelFactory;
+import jp.mydns.turenar.twclient.bus.channel.ListTimelineChannel;
 
 /**
- * ハッシュタグを処理するアクションハンドラ
+ * channel factory for UserTimelineChannel
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class HashtagIntent implements Intent {
-
-	private final ClientConfiguration configuration;
-
-	public HashtagIntent() {
-		configuration = ClientConfiguration.getInstance();
-	}
-
+public class ListTimelineChannelFactory implements MessageChannelFactory {
 	@Override
-	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-	}
-
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		String name = arguments.getExtraObj("name", String.class);
-		if (name == null) {
-			throw new IllegalArgumentException("actionName must be include hashtag: hashtag!name=<hashtag>");
-		}
-
-		IntentArguments query = arguments.clone().setIntentName("search").putExtra("query", "#" + name);
-		configuration.handleAction(query); //TODO
+	public MessageChannel getInstance(MessageBus messageBus, String accountId, String path, String arg) {
+		return new ListTimelineChannel(messageBus, accountId, path, arg);
 	}
 }

@@ -21,11 +21,10 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.bus.MessageBus;
+import jp.mydns.turenar.twclient.gui.tab.ListTimelineTab;
+import jp.mydns.turenar.twclient.gui.tab.factory.ListTimelineTabFactory;
 
 /**
  * リストを閲覧するアクションハンドラ
@@ -63,10 +62,11 @@ public class ListIntent implements Intent {
 			if (listName.startsWith("/")) {
 				listName = listName.substring(1);
 			}
-			ClientConfiguration.getInstance().getUtility().openBrowser(
-					new URI("https", "twitter.com", "/" + userName + "/lists/" + listName, null).toASCIIString());
-		} catch (URISyntaxException e) {
-			throw new AssertionError(e);
+			ListTimelineTabFactory.ListConfigPanel configPanel = new ListTimelineTabFactory.ListConfigPanel();
+			ListTimelineTab tab = new ListTimelineTab(MessageBus.READER_ACCOUNT_ID, userName, listName, configPanel);
+			ClientConfiguration configuration = ClientConfiguration.getInstance();
+			configuration.addFrameTab(tab);
+			configuration.focusFrameTab(tab);
 		} catch (Exception e) {
 			ClientConfiguration.getInstance().getMessageBus().getListeners(MessageBus.READER_ACCOUNT_ID,
 					"error").onException(e);
