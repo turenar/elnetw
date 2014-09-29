@@ -8,6 +8,8 @@ Version 0.2-alpha1
 	++ Add extended mute operation popup menu (#32)
 	++ Add creating tab interface (#41)
 	++ Now we can update profile (#7)
+	++ Add splashscreen (#54)
+	++ Add search, list tab (#8)
 	 + Add disk cache mechanism to store misc data (#35)
 	 + Update tab configuration. Don't use json
 	 + elnetw.cfg supports easy-readable list syntax (but not
@@ -16,15 +18,22 @@ Version 0.2-alpha1
 	 + Show user background image from user info operation panel (#52)
 	** Fix crash with RegexCompilation error when edit in QueryEditFrame
 	** Fix NPE if closing QueryEditFrame with empty query statement
+	** Update init system: It is the bridge for plugin system...
 	 * Fix not checking force tag in FavoriteIntent (fav!force=?) (#49)
 	 * Fix operator ignored in bool query property
 	 * Support LowerCaseName of query system
 	 * Update filter system
 	 * Stop using Constructor<> in query system
 
+Version 0.1.2 (Tue Sep 30 00:34:48 JST 2014)
+
+	* fix NPE in CacheManage#cacheStatus() (#51)
+	* fix NPE in UserInfoTab with no desciption user (#58)
+	* fix NPE with invisible overlay label (#44 refix)
+
 Version 0.1.1 (Thu Sep 11 13:39:23 JST 2014)
 
-	* Fix NPE with invisible overlay label
+	* Fix NPE with invisible overlay label (#44)
 
 Version 0.1 (Mon Sep  8 01:48:35 JST 2014)
 
