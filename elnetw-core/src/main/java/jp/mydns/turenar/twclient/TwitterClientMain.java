@@ -368,6 +368,10 @@ public final class TwitterClientMain {
 	@Initializer(name = "clean/cache/user", dependencies = {"cache/db", "cache"}, phase = "poststart")
 	public void cleanOldUserCache() {
 		ArrayList<String> removeList = new ArrayList<>();
+		if (!cacheStorage.isDirEntry("/cache/user")) {
+			return;
+		}
+		
 		DirEntry entry = cacheStorage.getDirEntry("/cache/user");
 		for (String hexSubDirName : entry) {
 			if (entry.isDirEntry(hexSubDirName)) {
