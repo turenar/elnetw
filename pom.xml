@@ -5,7 +5,7 @@
 
 	<groupId>jp.mydns.turenar</groupId>
 	<artifactId>elnetw</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.2-alpha1</version>
 	<packaging>pom</packaging>
 	<name>elnetw, the twitter client</name>
 	<description>Elnetw: Twitter Client for HITOBASHIRA</description>

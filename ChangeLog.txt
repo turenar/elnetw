@@ -1,4 +1,4 @@
-Version 0.2-alpha1
+Version 0.2-alpha1 (Tue, 30 Sep 2014 01:14:42 +0900)
 
 	!! Update config version. Some of your configuration may be dropped.
 	++ Prohibit multi instance (#38)
