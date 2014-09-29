@@ -961,7 +961,8 @@ public final class TwitterClientMain {
 	@InitProvide("filter/global")
 	@InitDepends("config")
 	public void setDefaultFilter() {
-		configuration.addFilter(new BlockingUserFilter(true));
+		configuration.addFilter(new GlobalUserIdFilter());
+		configuration.addFilter(new ExtendedMuteFilter());
 	}
 
 	/**
@@ -969,7 +970,7 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "filter/global/std/bus", phase = "init")
 	@InitProvide("filter/global")
-	@InitDepends({"config","bus/factory"})
+	@InitDepends({"config", "bus/factory"})
 	public void setDefaultFilterWithBus() {
 		configuration.addFilter(new BlockingUserFilter(true));
 	}
