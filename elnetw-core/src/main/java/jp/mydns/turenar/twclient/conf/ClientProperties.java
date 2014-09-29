@@ -491,7 +491,7 @@ public class ClientProperties implements Map<String, String> {
 	 * @param oldValue 古い値
 	 * @param newValue 新しい値
 	 */
-	public synchronized void firePropertyUpdated(String key, String oldValue, String newValue) {
+	public void firePropertyUpdated(String key, String oldValue, String newValue) {
 		PropertyUpdateEvent evt = new PropertyUpdateEvent(this, key, oldValue, newValue);
 		for (Iterator<WeakReferenceEx<PropertyUpdateListener>> iterator = listeners.iterator(); iterator.hasNext(); ) {
 			WeakReferenceEx<PropertyUpdateListener> ref = iterator.next();

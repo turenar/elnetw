@@ -19,42 +19,41 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
+import jp.mydns.turenar.twclient.init.InitCondition;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * information of @{@link Initializer}
+ * test initializer which has InitCondition argument
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+@InitProviderClass
+public class InitConditionInitializerTest extends TreeInitializeServiceTestBase {
+	/*package*/ static boolean isCalled;
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	@Initializer(name = "initcond", phase = "initcond")
+	public static void testInitConditionInitializer(InitCondition initCondition) {
+		assertTrue(initCondition.isInitializingPhase());
+		isCalled = true;
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
-
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
-
+	@Test
+	public void testInitConditionUsedInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("initcond");
+			initService.register(InitConditionInitializerTest.class);
+			initService.enterPhase("initcond");
+			assertTrue(InitConditionInitializerTest.isCalled);
+		} finally {
+			unlock();
+		}
+	}
 }

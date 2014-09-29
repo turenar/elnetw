@@ -19,42 +19,52 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
+import jp.mydns.turenar.twclient.init.InitializeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * information of @{@link Initializer}
+ * init info for provider
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+public class ProviderInitInfo extends VirtualInitInfo {
+	private static final Logger logger = LoggerFactory.getLogger(ProviderInitInfo.class);
 
 	/**
-	 * get initializer method
+	 * create instance
 	 *
-	 * @return method
+	 * @param name name
 	 */
-	Method getInitializer();
+	public ProviderInitInfo(String name) {
+		super(name);
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Override
+	public void invoke() throws InitializeException {
+		logger.trace(" {} weight={}", this, weight);
+		isInitialized = true;
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Override
+	public boolean isAllDependenciesResolved() {
+		if (allDependenciesResolved) {
+			return true;
+		}
 
+		for (Relation dependency : dependencies) {
+			if (dependency instanceof ProvidedBy && dependency.isResolved()) {
+				allDependenciesResolved = true;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return name + "(provider)";
+	}
 }

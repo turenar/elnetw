@@ -1,2 +1,2 @@
 #!/bin/sh
-$(dirname $0)/executor.sh jp.mydns.turenar.twclient.init.InitializerDependencyChecker $@
+$(dirname $0)/executor.sh jp.mydns.turenar.twclient.init.tree.InitializerDependencyChecker $@

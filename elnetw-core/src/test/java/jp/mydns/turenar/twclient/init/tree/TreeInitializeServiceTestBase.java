@@ -19,42 +19,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.InitializeServiceTestImpl;
+import org.junit.Test;
 
-/**
- * information of @{@link Initializer}
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+import static org.junit.Assert.*;
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+/** Test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService} */
+public class TreeInitializeServiceTestBase extends InitializeServiceTestImpl {
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
-
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
-
+	protected InitializeService getInitService() throws Exception {
+		TreeInitializeService service = new TreeInitializeService();
+		lock(service);
+		TreeInitializeService.instance = service;
+		return service;
+	}
 }

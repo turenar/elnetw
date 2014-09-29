@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.init;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
-
 /**
  * Information for @{@link Initializer}
  *
@@ -32,13 +30,6 @@ public interface InitCondition {
 
 	/** clear fail status */
 	void clearFailStatus();
-
-	/**
-	 * get ClientConfiguration
-	 *
-	 * @return configuration
-	 */
-	ClientConfiguration getConfiguration();
 
 	/**
 	 * get if should be uninit fast? fast uninit should not wait for blocking operation, such as stream finalize
@@ -60,6 +51,8 @@ public interface InitCondition {
 	 * @return whether fail status is set
 	 */
 	boolean isSetFailStatus();
+
+	boolean isSlowUninit();
 
 	/**
 	 * set status as fail

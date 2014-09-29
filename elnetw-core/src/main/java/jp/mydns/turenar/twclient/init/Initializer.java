@@ -37,13 +37,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Initializer {
 	/**
-	 * Specify required initializer
-	 *
-	 * @return initializer's name
-	 */
-	String[] dependencies() default {};
-
-	/**
 	 * Specify Initializer's name
 	 *
 	 * @return name

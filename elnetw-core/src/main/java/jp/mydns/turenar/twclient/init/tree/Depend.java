@@ -19,42 +19,56 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
-
-import java.lang.reflect.Method;
+package jp.mydns.turenar.twclient.init.tree;
 
 /**
- * information of @{@link Initializer}
+ * Depend Relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+/*package*/ class Depend extends Relation {
 	/**
-	 * get Initializer Annotation
+	 * make instance
 	 *
-	 * @return annotation
+	 * @param name   target name
+	 * @param source which depends on target
 	 */
-	Initializer getAnnotation();
+	public Depend(String name, TreeInitInfoBase source) {
+		this(name, source, null);
+	}
 
 	/**
-	 * get initializer method
+	 * make instance
 	 *
-	 * @return method
+	 * @param name       target name
+	 * @param sourceInfo which depends on target
+	 * @param targetInfo which is depended by source
 	 */
-	Method getInitializer();
+	public Depend(String name, TreeInitInfoBase sourceInfo, TreeInitInfoBase targetInfo) {
+		super(name, sourceInfo, targetInfo, true);
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Override
+	protected DependedBy getOppositeRelation() {
+		return new DependedBy(source.getName(), target, source);
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Override
+	protected String getTypeString() {
+		return "depend";
+	}
 
+	@Override
+	protected boolean isAfterRelation() {
+		return true;
+	}
+
+	@Override
+	public boolean isResolved() {
+		return target != null && target.isAllDependenciesResolved();
+	}
+
+	@Override
+	public void update() {
+	}
 }

@@ -19,42 +19,49 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.Initializer;
+import jp.mydns.turenar.twclient.init.InitializerInstance;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * information of @{@link Initializer}
+ * test initializer whose method is instance method
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+@InitProviderClass
+public class InstanceInitializerTest extends TreeInitializeServiceTestBase {
+	/** loaded from TreeInitializeService */
+	@InitializerInstance
+	private static final InstanceInitializerTest instance = new InstanceInitializerTest();
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	/*package*/
+	static InstanceInitializerTest getInstance() {
+		return instance;
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	/*package*/ boolean isCalled = false;
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Initializer(name = "instance", phase = "instance")
+	public void hoge() {
+		isCalled = true;
+	}
 
+	@Test
+	public void testInstanceInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("instance");
+			initService.register(InstanceInitializerTest.class);
+			initService.enterPhase("instance");
+			assertTrue(InstanceInitializerTest.getInstance().isCalled);
+		} finally {
+			unlock();
+		}
+	}
 }

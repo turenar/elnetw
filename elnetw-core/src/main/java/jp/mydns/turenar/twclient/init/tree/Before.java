@@ -19,42 +19,51 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
-
-import java.lang.reflect.Method;
+package jp.mydns.turenar.twclient.init.tree;
 
 /**
- * information of @{@link Initializer}
+ * Before relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+/*package*/ class Before extends Relation {
 	/**
-	 * get Initializer Annotation
+	 * make instance
 	 *
-	 * @return annotation
+	 * @param targetName               target name. If target is null and targetName is unknown, we don't resolve target.
+	 * @param source                   relation source
+	 * @param target                   relation target. It can be null.
+	 * @param registerOppositeRelation should register opposite relation?
 	 */
-	Initializer getAnnotation();
+	public Before(String targetName, TreeInitInfoBase source, TreeInitInfoBase target,
+			boolean registerOppositeRelation) {
+		super(targetName, source, target, registerOppositeRelation);
+	}
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	@Override
+	protected Relation getOppositeRelation() {
+		return new After(source.getName(), target, source, false);
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Override
+	protected String getTypeString() {
+		return "before";
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Override
+	protected boolean isAfterRelation() {
+		return false;
+	}
 
+	@Override
+	public boolean isResolved() {
+		return true;
+	}
+
+	@Override
+	public void update() {
+		if (target != null) {
+			target.update();
+		}
+	}
 }

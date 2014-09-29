@@ -21,40 +21,25 @@
 
 package jp.mydns.turenar.twclient.init;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * information of @{@link Initializer}
+ * provide relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface InitProvide {
 	/**
-	 * get Initializer Annotation
+	 * annotated method provides ...
 	 *
-	 * @return annotation
+	 * @return names which annotated method provides
 	 */
-	Initializer getAnnotation();
-
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
-
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
-
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
-
+	String[] value();
 }

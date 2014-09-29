@@ -21,40 +21,32 @@
 
 package jp.mydns.turenar.twclient.init;
 
-import java.lang.reflect.Method;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * information of @{@link Initializer}
+ * test for InitializeService
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+public abstract class InitializeServiceTestImpl {
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	private final ReentrantLock lock;
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	protected InitializeServiceTestImpl() {
+		lock = new ReentrantLock();
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	protected void clearService() {
+		InitializeService.clearService();
+	}
 
+	protected void lock(InitializeService service) {
+		lock.lock();
+		clearService();
+		InitializeService.setService(service);
+	}
+
+	protected void unlock() {
+		lock.unlock();
+	}
 }

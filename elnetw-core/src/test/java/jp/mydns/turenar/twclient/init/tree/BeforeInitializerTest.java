@@ -19,42 +19,52 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
+package jp.mydns.turenar.twclient.init.tree;
 
-import java.lang.reflect.Method;
+import jp.mydns.turenar.twclient.init.InitBefore;
+import jp.mydns.turenar.twclient.init.InitProviderClass;
+import jp.mydns.turenar.twclient.init.InitializeService;
+import jp.mydns.turenar.twclient.init.Initializer;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * information of @{@link Initializer}
+ * test initializer which has InitBefore annotation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
-	/**
-	 * get Initializer Annotation
-	 *
-	 * @return annotation
-	 */
-	Initializer getAnnotation();
+@InitProviderClass
+public class BeforeInitializerTest extends TreeInitializeServiceTestBase {
+	private static int data = 0;
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	private static void assertCalled() {
+		assertEquals(data, 3);
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
+	@Initializer(name = "bi-1", phase = "bi")
+	@InitBefore("bi-2")
+	public static void fuga() {
+		assertEquals(data, 0);
+		data |= 1;
+	}
 
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
+	@Initializer(name = "bi-2", phase = "bi")
+	public static void hoge() {
+		assertEquals(data, 1);
+		data |= 2;
+	}
 
+	@Test
+	public void testAfterInitializer() throws Exception {
+		InitializeService initService = getInitService();
+		try {
+			initService.registerPhase("bi");
+			initService.register(BeforeInitializerTest.class);
+			initService.enterPhase("bi");
+			assertCalled();
+		} finally {
+			unlock();
+		}
+	}
 }

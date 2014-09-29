@@ -19,42 +19,32 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.init;
-
-import java.lang.reflect.Method;
+package jp.mydns.turenar.twclient.init.tree;
 
 /**
- * information of @{@link Initializer}
+ * provide relation
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface InitializerInfo {
+public class Provide extends Before {
 	/**
-	 * get Initializer Annotation
+	 * make instance
 	 *
-	 * @return annotation
+	 * @param targetName target name. If target is null and targetName is unknown, we don't resolve target.
+	 * @param source     relation source
+	 * @param target     relation target. It can be null.
 	 */
-	Initializer getAnnotation();
+	public Provide(String targetName, TreeInitInfoBase source, TreeInitInfoBase target) {
+		super(targetName, source, target, true);
+	}
 
-	/**
-	 * get initializer method
-	 *
-	 * @return method
-	 */
-	Method getInitializer();
+	@Override
+	protected Relation getOppositeRelation() {
+		return new ProvidedBy(source.getName(), target, source);
+	}
 
-	/**
-	 * get initializer's name
-	 *
-	 * @return name
-	 */
-	String getName();
-
-	/**
-	 * get initializer's phase
-	 *
-	 * @return phase
-	 */
-	String getPhase();
-
+	@Override
+	protected String getTypeString() {
+		return "provide";
+	}
 }
