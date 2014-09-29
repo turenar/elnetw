@@ -276,6 +276,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private String getBioHtml() {
 		String bio = user.getDescription();
+		if (bio == null) {
+			return "";
+		}
+
 		StringBuilder builder = new StringBuilder();
 		int index = 0;
 		for (; index < bio.length(); ) {
