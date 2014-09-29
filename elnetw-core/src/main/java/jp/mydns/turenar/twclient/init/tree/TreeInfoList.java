@@ -103,6 +103,14 @@ import java.util.RandomAccess;
 	}
 
 	/**
+	 * next work index
+	 * @return next index
+	 */
+	public int nowIndex() {
+		return finishedIndex;
+	}
+
+	/**
 	 * get info to uninit
 	 *
 	 * @return info or null

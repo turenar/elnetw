@@ -32,6 +32,7 @@ import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.Initializer;
 import jp.mydns.turenar.twclient.init.InitializerInfo;
+import jp.mydns.turenar.twclient.init.SplashScreenCtrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,6 +273,7 @@ public class TreeInitializeService extends InitializeService {
 					runningInfo.add(info);
 					jobQueue.addJob(JobQueue.PRIORITY_MAX, info);
 				}
+				SplashScreenCtrl.setProgress(flatTree.nowIndex(), flatTree.size());
 				if (treeRebuildRequired) {
 					break; // back to rebuild tree
 				}
