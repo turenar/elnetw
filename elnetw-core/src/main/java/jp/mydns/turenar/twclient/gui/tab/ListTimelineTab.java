@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.gui.tab;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import javax.swing.GroupLayout;
@@ -31,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.channel.FilterStreamChannel;
@@ -44,6 +46,7 @@ import twitter4j.UserList;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement;
+import static jp.mydns.turenar.twclient.gui.tab.factory.ListTimelineTabFactory.ListConfigPanel;
 
 /**
  * list tab
@@ -62,12 +65,20 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	private String listOwner;
 	private String slug;
 	private volatile UserList listInfo;
-	private volatile Set<User> listMemberSet;
+	private volatile LongHashSet listMemberSet;
+	private String lastEstablishedStreamPath;
+	private boolean useStream;
+	private boolean allTweetsIncluded;
 	private DelegateRenderer renderer = new DelegateRenderer() {
 		@Override
 		public void onClientMessage(String name, Object arg) {
 			if (name.equals(ListTimelineChannel.LIST_MEMBERS_MESSAGE_ID)) {
-				listMemberSet = Utility.uncheckedCast(arg);
+				Set<User> listMemberUsers = Utility.uncheckedCast(arg);
+				LongHashSet longHashSet = new LongHashSet(listMemberUsers.size());
+				for (User listMemberUser : listMemberUsers) {
+					longHashSet.add(listMemberUser.getId());
+				}
+				listMemberSet = longHashSet;
 				updateStream();
 			}
 		}
@@ -79,16 +90,20 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 
 		@Override
 		public void onStatus(Status status) {
-			actualRenderer.onStatus(status);
+			if (allTweetsIncluded || Utility.mayAppearInTimeline(status, listMemberSet)) {
+				actualRenderer.onStatus(status);
+			}
 		}
 
 		@Override
 		public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+			listMemberSet.add(addedMember.getId());
 			updateStream();
 		}
 
 		@Override
 		public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+			listMemberSet.remove(deletedMember.getId());
 			updateStream();
 		}
 
@@ -98,31 +113,36 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 			updateTab();
 		}
 	};
-	private String lastEstablishedStreamPath;
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param accountId account id
-	 * @param listId    list unique id
+	 * @param accountId   account id
+	 * @param listId      list unique id
+	 * @param configPanel config panel of factory
 	 */
-	public ListTimelineTab(String accountId, long listId) {
+	public ListTimelineTab(String accountId, long listId, ListConfigPanel configPanel) {
 		super(accountId);
 		this.listId = listId;
+		useStream = configPanel.useStream();
+		allTweetsIncluded = configPanel.allTweetsIncluded();
 		establishChannel();
 	}
 
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param accountId account id
-	 * @param listOwner the owner of list
-	 * @param slug      the name of list
+	 * @param accountId   account id
+	 * @param listOwner   the owner of list
+	 * @param slug        the name of list
+	 * @param configPanel config panel of factory
 	 */
-	public ListTimelineTab(String accountId, String listOwner, String slug) {
+	public ListTimelineTab(String accountId, String listOwner, String slug, ListConfigPanel configPanel) {
 		super(accountId);
 		this.listOwner = listOwner;
 		this.slug = slug;
+		useStream = configPanel.useStream();
+		allTweetsIncluded = configPanel.allTweetsIncluded();
 		establishChannel();
 	}
 
@@ -136,6 +156,8 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 		listId = configProperties.getLong(getPropertyPrefix() + ".listId", -1);
 		listOwner = configProperties.getProperty(getPropertyPrefix() + ".listOwner");
 		slug = configProperties.getProperty(getPropertyPrefix() + ".slug");
+		useStream = configProperties.getBoolean(getPropertyPrefix() + ".useStream");
+		allTweetsIncluded = configProperties.getBoolean(getPropertyPrefix() + ".allTweetsIncluded");
 		establishChannel();
 	}
 
@@ -252,6 +274,8 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 			configProperties.setProperty(getPropertyPrefix() + ".listOwner", listOwner);
 			configProperties.setProperty(getPropertyPrefix() + ".slug", slug);
 		}
+		configProperties.setBoolean(getPropertyPrefix() + ".allTweetsIncluded", allTweetsIncluded);
+		configProperties.setBoolean(getPropertyPrefix() + ".useStream", useStream);
 	}
 
 	private synchronized void updateStream() {
@@ -261,15 +285,10 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 			logger.debug("Disconnect bus {}", lastEstablishedStreamPath);
 		}
 
-		long[] listMembers;
-		synchronized (listMemberSet) {
-			listMembers = new long[listMemberSet.size()];
-			int index = 0;
-			for (User user : listMemberSet) {
-				listMembers[index++] = user.getId();
-			}
-		}
+		long[] listMembers = listMemberSet.toArray();
+		Arrays.sort(listMembers);
 		FilterQuery filterQuery = new FilterQuery(listMembers);
+
 		String channelPath = FilterStreamChannel.getChannelPath(filterQuery);
 		messageBus.establish(accountId, channelPath, getRenderer());
 		lastEstablishedStreamPath = channelPath;

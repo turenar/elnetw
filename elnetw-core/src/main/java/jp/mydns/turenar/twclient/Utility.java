@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -43,10 +42,13 @@ import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 
+import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.notifier.MessageNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.Status;
+import twitter4j.UserMentionEntity;
 
 /**
  * ユーティリティクラス。
@@ -125,14 +127,6 @@ public class Utility {
 	public static final int SNOWFLAKE_DATE_BITSHIFT = 22;
 	private static volatile OSType ostype;
 	private static KVEntry[] privacyEntries;
-	/** DateFormatを管理する */
-	private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
-
-		@Override
-		protected SimpleDateFormat initialValue() {
-			return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		}
-	};
 
 	/**
 	 * Register MessageNotifier.
@@ -355,6 +349,32 @@ public class Utility {
 			detectOS();
 		}
 		return ostype;
+	}
+
+	/**
+	 * 与えられたステータスが普通のホームタイムラインに表示されるかどうかを返す
+	 * @param status ステータス
+	 * @param following フォロー中のユーザー
+	 * @return 普通のホームタイムライン
+	 */
+	public static boolean mayAppearInTimeline(Status status, LongHashSet following) {
+		if (following.contains(status.getUser().getId())) {
+			long inReplyToUserId = status.getInReplyToUserId();
+			if (inReplyToUserId == -1) {
+				return true; // not reply
+			} else if (following.contains(inReplyToUserId)) {
+				return true; // target is following
+			} else {
+				UserMentionEntity[] mentionEntities = status.getUserMentionEntities();
+				for (UserMentionEntity entity : mentionEntities) {
+					if (entity.getStart() == 0) {
+						return false; // "@target text..."
+					}
+				}
+				return true; // ".@target text..."
+			}
+		}
+		return false;
 	}
 
 	/**

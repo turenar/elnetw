@@ -43,7 +43,7 @@ public class FilterStreamChannel implements MessageChannel {
 	/**
 	 * get channel path from query
 	 *
-	 * @param query query
+	 * @param query query. all values should be sorted.
 	 * @return message bus channel path
 	 */
 	public static synchronized String getChannelPath(FilterQuery query) {
