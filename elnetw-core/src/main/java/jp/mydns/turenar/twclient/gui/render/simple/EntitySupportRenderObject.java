@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.gui.render.simple;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -178,7 +179,9 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 	@Override
 	public void onException(String url, Exception ex) {
 		logger.warn("failed resolving url: {}", url, ex);
-		renderer.onException(ex);
+		if (!(ex instanceof FileNotFoundException)) {
+			renderer.onException(ex);
+		}
 	}
 
 	/**
