@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
+import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.internal.FetchEventHandler;
 import jp.mydns.turenar.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
@@ -39,18 +40,26 @@ public abstract class AbstractMediaResolver implements MediaUrlResolver {
 	private static class MyFetchEventHandler implements FetchEventHandler {
 
 		private String contentEncoding;
+		private IOException exception;
 
 		public String getContentEncoding() {
 			return contentEncoding;
 		}
 
+		public IOException getException() {
+			return exception;
+		}
+
 		@Override
 		public void onConnection(URLConnection connection) throws InterruptedException {
-			contentEncoding = connection.getContentEncoding();
+			String contentType = connection.getContentType();
+			int indexOf = contentType.indexOf(";charset=");
+			contentEncoding = indexOf < 0 ? null : contentType.substring(indexOf + ";charset=".length());
 		}
 
 		@Override
 		public void onException(URLConnection connection, IOException e) {
+			exception = e;
 			logger.warn("fetch", e);
 		}
 
@@ -64,8 +73,11 @@ public abstract class AbstractMediaResolver implements MediaUrlResolver {
 	public static String getContentsFromUrl(URL mediaUrl) throws IOException, InterruptedException {
 		MyFetchEventHandler handler = new MyFetchEventHandler();
 		byte[] contents = NetworkSupport.fetchContents(mediaUrl, handler);
+		if (handler.getException() != null) {
+			throw handler.getException();
+		}
 
-		Charset charset = Charset.forName("UTF-8");
+		Charset charset = ClientConfiguration.UTF8_CHARSET;
 		try {
 			String encoding = handler.getContentEncoding();
 			if (encoding != null) {

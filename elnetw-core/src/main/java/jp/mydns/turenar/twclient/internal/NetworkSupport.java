@@ -36,6 +36,12 @@ import org.slf4j.LoggerFactory;
  */
 public class NetworkSupport {
 	private static class NullFetchEventHandler implements FetchEventHandler {
+		private IOException exception;
+
+		public IOException getException() {
+			return exception;
+		}
+
 		@Override
 		public void onConnection(URLConnection connection) throws InterruptedException {
 
@@ -43,6 +49,7 @@ public class NetworkSupport {
 
 		@Override
 		public void onException(URLConnection connection, IOException e) {
+			this.exception = e;
 		}
 
 		@Override
@@ -52,10 +59,6 @@ public class NetworkSupport {
 
 	private static final int BUFFER_SIZE = 65536;
 	private static final Logger logger = LoggerFactory.getLogger(NetworkSupport.class);
-	/**
-	 * fetch event handler to do nothing
-	 */
-	public static final NullFetchEventHandler NULL_FETCH_EVENT_HANDLER = new NullFetchEventHandler();
 	private static final OkHttpClient httpClient = new OkHttpClient();
 
 	private static byte[] copyOfRange(byte[] data, int imageLen) {
@@ -68,9 +71,15 @@ public class NetworkSupport {
 	 * @param url URL
 	 * @return データ
 	 * @throws java.lang.InterruptedException interrupted
+	 * @throws java.io.IOException            fetch failed
 	 */
-	public static byte[] fetchContents(URL url) throws InterruptedException {
-		return fetchContents(url, NULL_FETCH_EVENT_HANDLER);
+	public static byte[] fetchContents(URL url) throws InterruptedException, IOException {
+		NullFetchEventHandler handler = new NullFetchEventHandler();
+		byte[] contents = fetchContents(url, handler);
+		if (handler.getException() != null) {
+			throw handler.getException();
+		}
+		return contents;
 	}
 
 	/**
