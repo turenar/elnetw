@@ -25,7 +25,6 @@ import java.awt.EventQueue;
 import java.awt.TrayIcon;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -366,6 +365,7 @@ public class ClientConfiguration {
 
 	/**
 	 * get cache dir
+	 *
 	 * @return System.getProperty('elnetw.cache.dir')
 	 */
 	public String getCacheDir() {
@@ -1067,14 +1067,13 @@ public class ClientConfiguration {
 					break;
 				}
 			}
-			if (updateAccountList) {
-				configProperties.setProperty("twitter.oauth.access_token.list", MessageFormat.format("{0} {1}",
-						configProperties.getProperty("twitter.oauth.access_token.list"), userId));
-			}
 			try {
 				storeAccessToken(twitter.getOAuthAccessToken());
 			} catch (TwitterException e) {
 				return e;
+			}
+			if (updateAccountList) {
+				accountList.add(String.valueOf(userId));
 			}
 			configProperties.store();
 		}
