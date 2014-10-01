@@ -1,4 +1,4 @@
-elnetw (エルナト)
+﻿elnetw (エルナト)
 Twitter Client for 'HITOBASHIRA'
 ================================
 このファイルを読む上での注意
@@ -31,15 +31,16 @@ Twitter Client for 'HITOBASHIRA'
 
 使用について
 
-	bin ディレクトリにある elnetw (Windows環境の場合は elnetw.bat)
+	Linux, Mac:  bin ディレクトリにある elnetw 
+	   Windows:  elnetw.exeまたはelnetw.bat
 	を実行して下さい。
 
 	(Windows) UACの制限が掛かるフォルダ内では正常に動作するかが
 		よくテストされていません。UACのかかるフォルダ (Program Files等)
 		以外にファイルを展開するようにお願い致します。なお、
 		UACにより正常に動かない場合は @ture7 までバグ報告をおねがいします。
-	(Windows) ショートカットを作成する場合は、
-		作業フォルダが"展開したフォルダ"になってることを確認して下さい。
+	(Windows) elnetw.exeでスプラッシュすら表示されず、起動に失敗するときは
+		elnetw.batを試してください。
 	(Linux)	  ハードリンクではなくシンボリックリンクを
 		作成するようにして下さい。
 
