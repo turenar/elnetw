@@ -540,7 +540,9 @@ public final class TwitterClientMain {
 				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
 						new IntegerConfigType(1, 60, 1000))
 				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
-						new BooleanConfigType());
+						new BooleanConfigType())
+				.addConfig("core.filter.retweet_only_once", "同じツイートはリツイート含めて一回しか流さない",
+						"デフォルトはオフです", new BooleanConfigType());
 		configBuilder.getGroup("高度な設定")
 				.addConfig(null, "コンシューマーキーの設定", null, new ConsumerTokenConfigType())
 				.addConfig(null, "設定を直接編集する (動作保証対象外です)", null,

@@ -36,6 +36,8 @@ import jp.mydns.turenar.twclient.CacheManager;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateEvent;
+import jp.mydns.turenar.twclient.conf.PropertyUpdateListener;
 import jp.mydns.turenar.twclient.filter.MessageFilter;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
@@ -60,7 +62,7 @@ import static jp.mydns.turenar.twclient.ClientConfiguration.APPLICATION_NAME;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class SimpleRenderer implements TabRenderer {
+public class SimpleRenderer implements TabRenderer, PropertyUpdateListener {
 	private static final Logger logger = LoggerFactory.getLogger(SimpleRenderer.class);
 	private static final long DISPLAY_REQUIREMENT_PUBLISHED_DATE = 0x7fffffff_ffffffffL;
 	/**
@@ -88,6 +90,7 @@ public class SimpleRenderer implements TabRenderer {
 	private LongHashSet statusSet = new LongHashSet();
 	private DateFormatter dateFormatter = new DateFormatter();
 	private PopupMenuGenerator popupMenuGenerator = new PopupMenuGenerator(this);
+	private volatile boolean retweetOnlyOnce;
 
 	/**
 	 * init
@@ -101,6 +104,7 @@ public class SimpleRenderer implements TabRenderer {
 		getActualUserId();
 		this.renderTarget = target;
 		configProperties = configuration.getConfigProperties();
+		configProperties.addPropertyUpdatedListener(this);
 		configuration.getMessageBus().establish(userId, "core", this);
 
 		cacheManager = configuration.getCacheManager();
@@ -415,7 +419,7 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onStatus(Status status) {
-		if (statusSet.add(status.getId())) {
+		if (statusSet.add(retweetOnlyOnce && status.isRetweet() ? status.getRetweetedStatus().getId() : status.getId())) {
 			renderTarget.addStatus(new StatusRenderObject(actualUserId, status, this));
 		}
 	}
@@ -494,6 +498,13 @@ public class SimpleRenderer implements TabRenderer {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
+	}
+
+	@Override
+	public void propertyUpdate(PropertyUpdateEvent evt) {
+		if (evt.getPropertyName().equals("core.filter.retweet_only_once")) {
+			retweetOnlyOnce = evt.getSource().getBoolean("core.filter.retweet_only_once");
+		}
 	}
 
 	@Override
