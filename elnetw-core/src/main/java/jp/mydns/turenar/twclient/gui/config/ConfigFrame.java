@@ -110,14 +110,16 @@ public class ConfigFrame extends JFrame {
 				horizontalNameGroup = layout.createParallelGroup();
 				horizontalValueGroup = layout.createParallelGroup();
 				horizontalCombinedGroup = layout.createParallelGroup();
+
+
 				layout.setVerticalGroup(verticalGroup);
 				layout
-						.setHorizontalGroup(layout
-								.createParallelGroup()
-								.addGroup(
-										layout.createSequentialGroup().addGroup(horizontalNameGroup)
-												.addGroup(horizontalValueGroup)
-								).addGroup(horizontalCombinedGroup));
+						.setHorizontalGroup(layout.createParallelGroup()
+								.addGroup(layout.createSequentialGroup()
+										.addGroup(horizontalNameGroup)
+										.addGap(4, 4, 4)
+										.addGroup(horizontalValueGroup))
+								.addGroup(horizontalCombinedGroup));
 				tabContent.add(subgroupPanel);
 				if (subgroup != null) {
 					subgroupPanel.setBorder(new TitledBorder(subgroup));
@@ -140,9 +142,9 @@ public class ConfigFrame extends JFrame {
 								.addComponent(valueComponent, BASELINE_GROUP_PREF_SIZE,
 										BASELINE_GROUP_PREF_SIZE, BASELINE_GROUP_PREF_SIZE)
 				).addGap(2, 2, 2);
-				horizontalNameGroup.addComponent(label, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
+				horizontalNameGroup.addComponent(label, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
-				horizontalValueGroup.addComponent(valueComponent, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
+				horizontalValueGroup.addComponent(valueComponent, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE);
 			}
 		}
