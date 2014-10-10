@@ -21,15 +21,16 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.awt.event.KeyEvent;
-
 import javax.swing.JMenuItem;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * ふぁぼる
@@ -66,7 +67,8 @@ public class FavoriteIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem menuItem = new JMenuItem("ふぁぼる(F)", KeyEvent.VK_F);
+		JMenuItem menuItem = new JMenuItem();
+		Utility.setMnemonic(menuItem, tr("&Favorite"));
 		TwitterStatus status = getStatus(args);
 		if (status != null) {
 			String forceFlag = args.getExtraObj("force", String.class, "undefined");
@@ -84,7 +86,7 @@ public class FavoriteIntent extends AbstractIntent {
 					favFlag = status.isFavorited();
 					break;
 			}
-			menuItem.setText(favFlag ? "ふぁぼを解除する(F)" : "ふぁぼる(F)");
+			menuItem.setText(favFlag ? tr("Un&favorite") : tr("&Favorite"));
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

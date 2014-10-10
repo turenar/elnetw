@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * ユーザー設定によりフィルタを行うフィルタクラス
  *
@@ -122,7 +124,7 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 							.append(')');
 				} catch (PatternSyntaxException e) {
 					onException(
-							new RuntimeException(PROPERTY_KEY_FILTER_WORDS + "[" + i + "]に無効な正規表現が指定されています", e));
+							new RuntimeException(tr("Illegal regex in %s[%d]", PROPERTY_KEY_FILTER_WORDS, i), e));
 					logger.warn("Illegal regex syntax: {}", word);
 				}
 			}
@@ -145,6 +147,7 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 			case PROPERTY_KEY_FILTER_CLIENT:
 			case PROPERTY_KEY_FILTER_WORDS:
 				initFilter();
+				break;
 			default:
 				// do nothing
 		}

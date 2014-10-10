@@ -45,6 +45,8 @@ import twitter4j.Status;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * ミュートするオプションを提供するアクションハンドラ
  *
@@ -85,7 +87,7 @@ public class MuteIntent extends AbstractIntent {
 			boolean isTweetedByMe, boolean filtered) {
 		JMenuItem menuItem = new JMenuItem();
 		menuItem.setText(text);
-		menuItem.setToolTipText(filtered ? "すでに追加済みだよ！" : (isTweetedByMe ? "それはあなたなんだからねっ！" : null));
+		menuItem.setToolTipText(filtered ? tr("Already muted") : (isTweetedByMe ? tr("This is you!") : null));
 		menuItem.setEnabled(!(isTweetedByMe || filtered));
 		dispatcher.addMenu(menuItem, arguments);
 	}
@@ -159,7 +161,7 @@ public class MuteIntent extends AbstractIntent {
 						createClientJMenu(dispatcher, arguments, status.getSource());
 						break;
 					case "text":
-						createTextJMenu(dispatcher, arguments, status);
+						createTextJMenu(dispatcher, arguments);
 						break;
 					default:
 						throw new IllegalArgumentException("Unsupported mute type: " + arg);
@@ -168,8 +170,8 @@ public class MuteIntent extends AbstractIntent {
 		}
 	}
 
-	private void createTextJMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, Status status) {
-		addMenu(dispatcher, getCleanArgument(arguments).putExtra("confirm", "text"), "ワード...", false, false);
+	private void createTextJMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments) {
+		addMenu(dispatcher, getCleanArgument(arguments).putExtra("confirm", "text"), tr("Word..."), false, false);
 
 	}
 
@@ -222,12 +224,12 @@ public class MuteIntent extends AbstractIntent {
 		JPanel panel = new JPanel();
 		BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 		panel.setLayout(layout);
-		panel.add(new JLabel("次をミュートしますか？"));
+		panel.add(new JLabel(tr("Mute below?")));
 		panel.add(Box.createVerticalStrut(15));
 		panel.add(new JLabel(text));
 		final JOptionPane pane =
 				new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-		JDialog dialog = pane.createDialog(null, "確認");
+		JDialog dialog = pane.createDialog(null, tr("Confirm"));
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		pane.addPropertyChangeListener(new PropertyChangeListener() {
 
@@ -250,7 +252,7 @@ public class MuteIntent extends AbstractIntent {
 		String lastRegex = null;
 		do {
 			String muteRegexStr = (String) JOptionPane.showInputDialog(null,
-					"ミュートするテキストを正規表現で指定してください。" + message, "ミュート", JOptionPane.QUESTION_MESSAGE,
+					tr("Specify muted text as regex.%s", message), tr("Mute"), JOptionPane.QUESTION_MESSAGE,
 					null, null, lastRegex);
 			try {
 				if (muteRegexStr == null) {
@@ -270,10 +272,10 @@ public class MuteIntent extends AbstractIntent {
 	}
 
 	private String toMenuText(String source) {
-		return "クライアント: " + getClientName(source);
+		return tr("Client: %s", getClientName(source));
 	}
 
 	private String toMenuText(User user) {
-		return "ユーザー: @" + user.getScreenName() + " (" + user.getName() + ")";
+		return tr("User: @%s (%s)", user.getScreenName(), user.getName());
 	}
 }

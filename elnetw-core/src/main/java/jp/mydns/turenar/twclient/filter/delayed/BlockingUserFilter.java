@@ -35,6 +35,8 @@ import jp.mydns.turenar.twclient.filter.AbstractMessageFilter;
 import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
 import twitter4j.User;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * blocking user filter
  *
@@ -153,7 +155,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyUpdateL
 				.setCreatedById("filter")
 				.setCreatedById("!filter/blockingUser")
 				.setCreatedByText("BlockingUserFilter")
-				.setText("ブロック中のユーザーを取得中です。しばらくお待ちください。")
+				.setText(tr("Fetching blocking users..."))
 				.setUniqId(FILTER_BLOCKING_USER_WAIT_MESSAGE);
 		child.onClientMessage(RENDER_SHOW_OBJECT, renderBase);
 	}

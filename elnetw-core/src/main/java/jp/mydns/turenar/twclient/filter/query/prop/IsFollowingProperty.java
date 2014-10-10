@@ -33,6 +33,8 @@ import jp.mydns.turenar.twclient.gui.render.MessageRenderBase;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * IsFollowingProperty: provides is_following, which checks the user is following status/DM author.
  *
@@ -108,7 +110,7 @@ public class IsFollowingProperty extends AbstractBoolArgProperty {
 				.setBackgroundColor(Color.GRAY)
 				.setCreatedById("!filter/query/IsFollowing")
 				.setCreatedByText("is_following")
-				.setText("フォロー中のユーザーを取得中です。しばらくお待ちください。")
+				.setText(tr("Fetching following users... Please wait."))
 				.setUniqId(FILTER_FOLLOWING_USER_WAIT_MESSAGE);
 		controller.onClientMessage(ClientEventConstants.RENDER_SHOW_OBJECT, renderBase);
 	}

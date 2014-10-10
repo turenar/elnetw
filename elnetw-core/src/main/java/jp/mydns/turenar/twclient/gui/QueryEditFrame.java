@@ -46,6 +46,8 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.GroupLayout.Alignment.TRAILING;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.trb;
 
 /**
  * フィルタを編集するためのフレーム
@@ -101,14 +103,14 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 
 	private JRadioButton getComponentExcludeOption() {
 		if (excludeOptionButton == null) {
-			excludeOptionButton = new JRadioButton("除外");
+			excludeOptionButton = new JRadioButton(tr("Exclude"));
 		}
 		return excludeOptionButton;
 	}
 
 	private JRadioButton getComponentExtractOption() {
 		if (extractOptionButton == null) {
-			extractOptionButton = new JRadioButton("抽出");
+			extractOptionButton = new JRadioButton(tr("Include"));
 		}
 		return extractOptionButton;
 	}
@@ -145,7 +147,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 				) //
 				.addComponent(getComponentFilterEditTextArea(), 16, DEFAULT_SIZE, Short.MAX_VALUE));
 		addWindowListener(this);
-		setTitle("フィルタの編集 (" + displayString + ": " + propertyKey + ")");
+		setTitle(tr("Filter edit (%s: %s)", displayString, propertyKey));
 
 		String filterQuery = properties.getProperty(propertyKey);
 		if (filterQuery != null) {
@@ -160,7 +162,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 					getComponentExcludeOption().setSelected(true);
 				}
 			} catch (ParseException e) {
-				stringBuilder.append(filterQuery).append("\n\n/* クエリのパース中にエラー: ").append(e.getLocalizedMessage())
+				trb(stringBuilder.append(filterQuery), "Error in parsing query").append(e.getLocalizedMessage())
 						.append("\n*/");
 			}
 			getComponentFilterEditTextArea().setText(stringBuilder.toString());
@@ -203,10 +205,9 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 			properties.setProperty(propertyKey, query);
 			dispose();
 		} catch (ParseException ex) {
-			JOptionPane.showMessageDialog(this, "正しくない文法のクエリです。\n" + ex.getLocalizedMessage());
+			JOptionPane.showMessageDialog(this, tr("Illegal syntax query\n%s", ex.getLocalizedMessage()));
 		} catch (IllegalSyntaxException ex) {
-			JOptionPane.showMessageDialog(this,
-					"フィルターとしてコンパイルできませんでした。\n" + ex.getLocalizedMessage());
+			JOptionPane.showMessageDialog(this, tr("Failed to compile as filter\n%s", ex.getLocalizedMessage()));
 		}
 	}
 

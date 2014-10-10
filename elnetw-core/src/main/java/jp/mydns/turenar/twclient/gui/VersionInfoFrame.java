@@ -48,6 +48,8 @@ import jp.mydns.turenar.twclient.jni.JavaGnome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.trb;
+
 /**
  * バージョン情報を表示するクラス。
  *
@@ -229,13 +231,13 @@ public class VersionInfoFrame extends JFrame {
 
 	private void initLibraryInfos() {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("elnetw (エルナト): version")
-				.append(VersionInfo.getUniqueVersion())
-				.append("\n  ").append(VersionInfo.getCodeName())
-				.append(" (").append(VersionInfo.getMajorVersion()).append(")")
-				.append("\nTwitter Client for hitobasira")
-				.append("\n\n開発元: Turenai Project (@ture7)")
-				.append("\n配布元: ").append(VersionInfo.getSupportUrl())
+		trb(stringBuilder, "elnetw: version %1$s %2$s(%3$s)\n"
+						+ "Twitter Client for hitobasira\n\n"
+						+ "Develop: Turenai Project (@ture7)\n"
+						+ "Publish: %4$s\n\n",
+				VersionInfo.getUniqueVersion(), VersionInfo.getCodeName(), VersionInfo.getMajorVersion(),
+				VersionInfo.getSupportUrl());
+		stringBuilder
 				.append("\n\nThis software included library:\n - twitter4j (")
 				.append(twitter4j.Version.getVersion())
 				.append(")\n   - json\n - logback\n   - slf4j\n - twitter-text\n - java-gnome (optional");

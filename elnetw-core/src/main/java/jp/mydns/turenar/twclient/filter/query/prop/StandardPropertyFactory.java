@@ -90,7 +90,7 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 			case "client":
 				return new ClientProperty(name, operator, value);
 			case "in_list":
-				return new InListProperty(name, operator, value);
+				return new InListProperty(operator, value);
 			case "has_hashtag":
 			case "hashashtag":
 				return new HasHashtagProperty(name, operator, value);

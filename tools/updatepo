@@ -1,0 +1,41 @@
+#!/bin/bash
+function _pushd() {
+	pushd $@ >/dev/null 2>&1
+}
+function _popd() {
+	popd $@ > /dev/null 2>&1
+}
+
+_pushd elnetw-core
+echo -n "gettext: "
+find src/main/java/ -type f -print0 | \
+	xargs -0 xgettext \
+		--files-from=- \
+		-k \
+		-ktr \
+		--flag=tr:1:c-format \
+		-ktrc:1c,2 \
+		--flag=trc:2:c-format \
+		-ktrn:1,2 \
+		--flag=trn:1:c-format \
+		-ktrnc:1c,2,3 \
+		--flag=trnc:2:c-format \
+		-ktrb:2 \
+		--flag=trb:2:c-format \
+		-ktrbc:2c,3 \
+		--flag=trbc:3:c-format \
+		--debug \
+		--copyright-holder="2013- Turenai Project" \
+		--package-name="elnetw" \
+		--package-version="0.2" \
+		--from-code UTF-8 \
+		-o src/main/resources/jp/mydns/turenar/twclient/i18n/msg.pot
+echo "Done"
+_pushd src/main/resources/jp/mydns/turenar/twclient/i18n
+for i in *.po; do
+	echo -n "$i: "
+	msgmerge -U $i msg.pot
+done
+_popd
+_popd
+

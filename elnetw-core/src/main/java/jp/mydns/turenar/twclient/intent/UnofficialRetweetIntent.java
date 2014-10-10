@@ -26,6 +26,8 @@ import javax.swing.JMenuItem;
 import jp.mydns.turenar.twclient.ClientFrameApi;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * Unofficial RT (like QT:) Action Handler
  *
@@ -35,7 +37,7 @@ public class UnofficialRetweetIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem menuItem = new JMenuItem("非公式RT");
+		JMenuItem menuItem = new JMenuItem(tr("Unofficial Retweet"));
 		menuItem.setEnabled(getStatus(args) != null);
 		dispatcher.addMenu(menuItem, args);
 	}

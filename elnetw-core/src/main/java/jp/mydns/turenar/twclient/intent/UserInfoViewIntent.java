@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.text.MessageFormat;
-
 import javax.swing.JMenuItem;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
@@ -32,6 +30,8 @@ import jp.mydns.turenar.twclient.gui.tab.UserInfoFrameTab;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import twitter4j.Status;
 import twitter4j.User;
+
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * ユーザー情報を表示するアクションハンドラ
@@ -48,8 +48,7 @@ public class UserInfoViewIntent extends AbstractIntent {
 			if (status.isRetweet()) {
 				status = status.getRetweetedStatus();
 			}
-			menuItem.setText(MessageFormat.format("@{0} ({1}) について(A)", status.getUser().getScreenName(), status
-					.getUser().getName()));
+			menuItem.setText(tr("About @%s (%s)...", status.getUser().getScreenName(), status.getUser().getName()));
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

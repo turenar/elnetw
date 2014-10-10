@@ -64,6 +64,7 @@ import com.twitter.Regex;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
+import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
@@ -82,6 +83,7 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * ユーザー情報を表示するFrameTab
@@ -358,7 +360,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private JMenuItem getComponentBackgroundShow() {
 		if (componentBackgroundShow == null) {
-			componentBackgroundShow = new JMenuItem("背景を表示");
+			componentBackgroundShow = new JMenuItem();
+			Utility.setMnemonic(componentBackgroundShow, tr("Show &background"));
 			componentBackgroundShow.setVisible(false);
 		}
 		return componentBackgroundShow;
@@ -413,7 +416,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentBioEditorPane.setBackground(getComponentLocation().getBackground());
 			componentBioEditorPane.setOpaque(false);
 			componentBioEditorPane.setForeground(Color.WHITE);
-			componentBioEditorPane.setText("読込中...");
+			componentBioEditorPane.setText(tr("Loading..."));
 			componentBioEditorPane.setBackground(null);
 		}
 		return componentBioEditorPane;
@@ -453,11 +456,12 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private JComponent getComponentOperationBox() {
 		if (componentOperationBox == null) {
-			componentOperationBox = new JButton("その他▼");
+			componentOperationBox = new JButton(tr("Other..."));
 			componentOperationBox.setFont(operationFont);
 			componentOperationBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 			final JPopupMenu jPopupMenu = new JPopupMenu();
-			showHeaderItem = new JMenuItem("ヘッダーを表示");
+			showHeaderItem = new JMenuItem();
+			Utility.setMnemonic(showHeaderItem, tr("Show &header..."));
 			showHeaderItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -492,7 +496,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				final JLabel closeIcon =
 						new JLabel(new ImageIcon(ImageIO.read(UserInfoFrameTab.class
 								.getResource("/jp/mydns/turenar/twclient/img/close16.png"))));
-				closeIcon.setText("閉じる");
+				closeIcon.setText(tr("Close"));
 				closeIcon.setFont(operationFont);
 				closeIcon.addMouseListener(new MouseAdapter() {
 
@@ -513,7 +517,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private JMenuItem getComponentProfileUpdate() {
 		if (componentProfileUpdate == null) {
-			componentProfileUpdate = new JMenuItem("プロフィールを更新する");
+			componentProfileUpdate = new JMenuItem();
+			Utility.setMnemonic(componentProfileUpdate, tr("&Update profile"));
 			componentProfileUpdate.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -672,7 +677,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	public String getTitle() {
 		StringBuilder stringBuilder = new StringBuilder();
 		if (user == null) {
-			stringBuilder.append("読込中");
+			stringBuilder.append(tr("Loading"));
 		} else {
 			stringBuilder.append('@').append(user.getScreenName());
 		}
@@ -681,7 +686,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	@Override
 	public String getToolTip() {
-		return user.getName() + " のユーザー情報";
+		return tr("About @%s (%s)", user.getScreenName(), user.getName());
 	}
 
 	@Override
@@ -751,7 +756,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				getComponentBioEditorPane().setText(getBioHtml());
 				if (configuration.isMyAccount(user.getId())) {
 					JPopupMenu popup = new JPopupMenu();
-					JMenuItem editMenu = new JMenuItem("編集");
+					JMenuItem editMenu = new JMenuItem(tr("Edit"));
 					editMenu.addActionListener(new EditMenuActionListener(user));
 					popup.add(editMenu);
 					componentBioEditorPane.setComponentPopupMenu(popup);
@@ -771,7 +776,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				componentMuteCheckBox.setSelected(filtered);
 				if (frameApi.getLoginUser().getId() == user.getId()) {
 					componentMuteCheckBox.setEnabled(false);
-					componentMuteCheckBox.setToolTipText("そ、それはあなたなんだからね！");
+					componentMuteCheckBox.setToolTipText(tr("This is you!"));
 				} else {
 					componentMuteCheckBox.setEnabled(true);
 				}

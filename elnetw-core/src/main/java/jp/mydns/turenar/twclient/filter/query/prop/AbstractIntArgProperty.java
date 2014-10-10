@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.filter.query.QueryProperty;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * abstract query property for int argument
  *
@@ -53,19 +55,19 @@ public abstract class AbstractIntArgProperty implements QueryProperty {
 	public AbstractIntArgProperty(String name, String operator, Object value) throws IllegalSyntaxException {
 		// operator 処理
 		if (operator == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しいint演算子が必要です");
+			throw new IllegalSyntaxException(tr("[%s] needs int operator", name));
 		}
 		operatorType = QueryOperator.compileOperatorInt(operator);
 		if (operatorType == null) {
-			throw new IllegalSyntaxException("[" + name + "] 正しくないint演算子です: " + operator);
+			throw new IllegalSyntaxException(tr("[%s] Invalid int operator: %s", name, operator));
 		}
 		// value 処理: 整数は必ず指定しないとダメ。
 		if (value instanceof Long) {
 			this.value = (Long) value;
 		} else if (value == null) {
-			throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
+			throw new IllegalSyntaxException(tr("[%s] needs operand", name));
 		} else {
-			throw new IllegalSyntaxException("[" + name + "] 値が整数型ではありません");
+			throw new IllegalSyntaxException(tr("[%s] value is not long value", name));
 		}
 	}
 

@@ -25,6 +25,8 @@ import javax.swing.JOptionPane;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * アカウント認証するアクションハンドラ
  *
@@ -46,7 +48,7 @@ public class AccountVerifierIntent implements Intent {
 				Exception exception = configuration.tryGetOAuthToken();
 				if (exception != null) {
 					JOptionPane.showMessageDialog(configuration.getFrameApi().getFrame(),
-							"認証に失敗しました: " + exception.getMessage(), "エラー",
+							tr("Failed authentication: %s", exception.getMessage()), tr("Error"),
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}

@@ -1,0 +1,26 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Test Product 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-05 13:35+0900\n"
+"PO-Revision-Date: 2014-10-05 13:36+0900\n"
+"Last-Translator: Turenar <snswinhaiku.lo@gmail.com>\n"
+"Language-Team: Test Translators <test@example.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.5\n"
+"Language: ja\n"
+
+#: Test.java:1
+msgid ""
+"test\n"
+"This is a test."
+msgstr ""
+"テスト\n"
+"これはテストです。"

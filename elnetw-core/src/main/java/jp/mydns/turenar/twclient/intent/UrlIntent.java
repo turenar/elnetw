@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * ツイートに含まれるURLを開くアクションハンドラ
  *
@@ -47,7 +49,7 @@ public class UrlIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenu openUrlMenu = new JMenu("ツイートのURLをブラウザで開く");
+		JMenu openUrlMenu = new JMenu(tr("Open url in tweet with browser"));
 
 		Status status = getStatus(args);
 		if (status != null) {

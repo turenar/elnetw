@@ -19,36 +19,42 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.intent;
+package jp.mydns.turenar.twclient.i18n;
 
-import java.awt.event.KeyEvent;
+import java.io.InputStreamReader;
+import java.util.Map;
 
-import javax.swing.JMenuItem;
+import org.junit.Test;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
+import static org.junit.Assert.*;
 
-import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
-
-/**
- * intent for posting
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public class PostIntent implements Intent {
-
-	private final ClientConfiguration configuration;
-
-	public PostIntent() {
-		configuration = ClientConfiguration.getInstance();
+public class PoParserTest {
+	private Map<String, String> getEntries(String fileName) {
+		return PoParser.parse(new InputStreamReader(PoParserTest.class.getResourceAsStream(fileName)));
 	}
 
-	@Override
-	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		dispatcher.addMenu(new JMenuItem(tr("Post"), KeyEvent.VK_P), args);
+	@Test
+	public void testCommentEntries() throws Exception {
+		Map<String, String> entries = getEntries("comment.po");
+		assertEquals("テスト", entries.get(PoParser.getMessageId("Noun", "test")));
+		assertEquals("テストする", entries.get(PoParser.getMessageId("Verb", "test")));
 	}
 
-	@Override
-	public void handleAction(IntentArguments arguments) {
-		configuration.getFrameApi().doPost();
+	@Test
+	public void testFuzzyEntries() throws Exception {
+		Map<String, String> entries = getEntries("fuzzy.po");
+		assertEquals(null, entries.get("test"));
+	}
+
+	@Test
+	public void testMultiLineEntries() throws Exception {
+		Map<String, String> entries = getEntries("multiline.po");
+		assertEquals("テスト\nこれはテストです。", entries.get("test\nThis is a test."));
+	}
+
+	@Test
+	public void testSimpleEntries() throws Exception {
+		Map<String, String> entries = getEntries("simple.po");
+		assertEquals("テスト", entries.get("test"));
 	}
 }
