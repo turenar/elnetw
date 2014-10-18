@@ -21,6 +21,11 @@
 
 package jp.mydns.turenar.lib.primitive;
 
+import java.util.Arrays;
+
+/**
+ * primitive hash set for long values
+ */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -59,6 +64,7 @@ public class LongHashSet implements Cloneable {
 		int l = Integer.highestOneBit(initialCapacity);
 		return l < initialCapacity ? l << 1 : l;
 	}
+
 	/**
 	 * load factor
 	 */
@@ -148,9 +154,7 @@ public class LongHashSet implements Cloneable {
 	 * clear all values
 	 */
 	public synchronized void clear() {
-		for (int i = 0; i < values.length; i++) {
-			values[i] = FREE;
-		}
+		Arrays.fill(values, FREE);
 		size = 0;
 	}
 
@@ -197,11 +201,16 @@ public class LongHashSet implements Cloneable {
 	}
 
 	private void rehash() {
-		long[] newArray = new long[values.length << 1];
-		bitSet = (bitSet << 1) + 1;
-		for (long aLong : values) {
+		long[] oldArray = values;
+		long[] newArray = new long[oldArray.length << 1];
+		int bitSet = this.bitSet = newArray.length - 1;
+		for (long aLong : oldArray) {
+			if (aLong == FREE || aLong == REMOVED) {
+				continue;
+			}
+
 			int index = hash(aLong) & bitSet;
-			while (!(newArray[index] == FREE || newArray[index] == REMOVED)) {
+			while (newArray[index] != FREE) {
 				index = (index + 1) & bitSet;
 				hashConflict++;
 			}
@@ -244,6 +253,7 @@ public class LongHashSet implements Cloneable {
 
 	/**
 	 * make array from this set
+	 *
 	 * @return values array
 	 */
 	public synchronized long[] toArray() {

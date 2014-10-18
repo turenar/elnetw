@@ -32,28 +32,24 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LongHashSetBenchmark {
 	private static long averageOf(long[] times) {
 		long sum = 0;
-		for (int i = 4; i < 28; i++) {
+		for (int i = 8; i < 24; i++) {
 			sum = times[i];
 		}
-		return sum / 24;
+		return sum / 16;
 	}
 
-	private static long[] bench(int max, boolean rand) {
-		long[] factorArray = new long[61];
+	private static long bench(int max, boolean rand) {
 		System.gc();
-		for (int rehashFactor = 20; rehashFactor <= 80; rehashFactor++) {
-			long[] myTimes = new long[32];
-			for (int time = -4; time < 32; time++) {
-				System.out.printf("\r\033[KRunning LongHashSet(size=%d, factor=0.%02d)", max, rehashFactor);
-				long timeMillis = System.nanoTime();
-				testMine(max, rand, rehashFactor * 0.01);
-				myTimes[((time + 32) % 32)] = System.nanoTime() - timeMillis;
-			}
-			System.gc();
-			Arrays.sort(myTimes);
-			factorArray[rehashFactor - 20] = averageOf(myTimes);
+		long[] myTimes = new long[32];
+		for (int time = -256; time < 32; time++) {
+			System.out.printf("\r\033[Ksize=%d, %s, repeat=%d", max, rand ? "random" : "sequence", time);
+			long timeMillis = System.nanoTime();
+			testMine(max, rand);
+			myTimes[((time + 256) % 32)] = System.nanoTime() - timeMillis;
 		}
-		return factorArray;
+		System.gc();
+		Arrays.sort(myTimes);
+		return averageOf(myTimes);
 	}
 
 	public static void main(String[] args) {
@@ -61,60 +57,52 @@ public class LongHashSetBenchmark {
 		outerBench(true);
 	}
 
+	/*
+=== rand=false ===
+size		average
+      16	3209
+      64	800
+     256	3482
+    1024	11967
+    4096	34961
+   16384	196718
+   65536	490781
+=== rand=true ===
+size		average
+      16	1441
+      64	612
+     256	2010
+    1024	7623
+    4096	31256
+   16384	134162
+   65536	553947
+	 */
 	private static void outerBench(boolean rand) {
 		System.out.printf("=== rand=%s ===%n", Boolean.toString(rand));
-		System.out.println("size\t\t1st\t\t2nd\t\t3rd\t\t4th");
-		for (int i = 4; i < 17; i++) {
-			long[] result = bench(1 << i, rand);
-			System.out.printf("\r\033[K%8d\t", 1 << i);
-			showFastest(result);
+		System.out.println("size\t\taverage");
+		for (int i = 4; i < 17; i += 2) {
+			System.out.printf("\r\033[K%8d\t%d%n",1 << i, bench(1 << i, rand));
 		}
 	}
 
-	private static void showFastest(long[] result) {
-		int[] index = new int[]{-1, -1, -1, -1};
-		long[] max = new long[]{Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE};
-		for (int i = 0; i < result.length; i++) {
-			if (max[3] > result[i]) {
-				max[3] = result[index[3] = i];
-				sort(max, index);
-			}
-		}
-		for (int i = 0, maxLength = max.length; i < maxLength; i++) {
-			System.out.printf("[%d]%8d\t", index[i] + 20, max[i]);
-		}
-		System.out.println();
-	}
-
-	private static void sort(long[] max, int[] index) {
-		for (int i = 2; i >= 0; i--) {
-			if (max[i] > max[i + 1]) {
-				swap(max, index, i);
-			}
-		}
-	}
-
-	private static void swap(long[] max, int[] index, int i) {
-		max[i + 1] = max[i] ^ max[i + 1];
-		max[i] = max[i] ^ max[i + 1];
-		max[i + 1] = max[i] ^ max[i + 1];
-		index[i + 1] = index[i] ^ index[i + 1];
-		index[i] = index[i] ^ index[i + 1];
-		index[i + 1] = index[i] ^ index[i + 1];
-	}
-
-	private static void testMine(int max, boolean rand, double f) {
-		LongHashSet longHashSet = new LongHashSet(16, f);
+	private static void testMine(int max, boolean rand) {
+		LongHashSet longHashSet = new LongHashSet();
 		ThreadLocalRandom random = ThreadLocalRandom.current();
-		for (int i = 0; i < max; i++) {
-			if (rand) {
-				long e = random.nextLong();
-				longHashSet.add(e);
-				longHashSet.contains(e);
-			} else {
-				longHashSet.add(i);
-				longHashSet.contains(i);
-			}
+		int i = 0;
+		int randMax = max << 4;
+		for (; i < max >> 3; i++) {
+			long e = rand ? random.nextLong(0, randMax) : i;
+			longHashSet.add(e);
+			longHashSet.contains(e);
+		}
+		for (; i < max >> 2; i++) {
+			long e = rand ? random.nextLong(0, randMax) : i - (max >> 3);
+			longHashSet.remove(e);
+		}
+		for (; i < max; i++) {
+			long e = rand ? random.nextLong(0, randMax) : i;
+			longHashSet.add(e);
+			longHashSet.contains(e);
 		}
 	}
 }
