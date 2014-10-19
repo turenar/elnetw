@@ -60,22 +60,22 @@ public class LongHashSetBenchmark {
 	/*
 === rand=false ===
 size		average
-      16	3209
-      64	800
-     256	3482
-    1024	11967
-    4096	34961
-   16384	196718
-   65536	490781
+      16	3008
+      64	886
+     256	3578
+    1024	10478
+    4096	45293
+   16384	181489
+   65536	452252
 === rand=true ===
 size		average
-      16	1441
-      64	612
-     256	2010
-    1024	7623
-    4096	31256
-   16384	134162
-   65536	553947
+      16	1117
+      64	632
+     256	2063
+    1024	7988
+    4096	31335
+   16384	125880
+   65536	545260
 	 */
 	private static void outerBench(boolean rand) {
 		System.out.printf("=== rand=%s ===%n", Boolean.toString(rand));

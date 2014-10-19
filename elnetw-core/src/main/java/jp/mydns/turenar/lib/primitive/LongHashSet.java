@@ -82,6 +82,10 @@ public class LongHashSet implements Cloneable {
 	 * values
 	 */
 	protected volatile long[] values;
+	/**
+	 * threshold for rehash
+	 */
+	protected volatile int rehashThreshold;
 
 	/**
 	 * instance
@@ -111,6 +115,7 @@ public class LongHashSet implements Cloneable {
 		values = new long[initialCapacity];
 		size = 0;
 		bitSet = initialCapacity - 1;
+		rehashThreshold = (int) (initialCapacity * loadFactor);
 	}
 
 	/**
@@ -124,22 +129,26 @@ public class LongHashSet implements Cloneable {
 			aLong = ZERO;
 		}
 		int index = hash(aLong) & bitSet;
+		// avoid getfield mnemonic
 		long[] arr = values;
 		long indexedValue = arr[index];
+		// search index to add
 		while (!(indexedValue == FREE || indexedValue == REMOVED || indexedValue == aLong)) {
 			indexedValue = arr[index = (index + 1) & bitSet];
 			hashConflict++;
 		}
+		// check if contains
 		int toAddIndex = index;
-		while (indexedValue == REMOVED && indexedValue != aLong) {
+		while (!(indexedValue == FREE || indexedValue == aLong)) {
 			indexedValue = arr[index = (index + 1) & bitSet];
 		}
+		// if contains
 		if (indexedValue == aLong) {
 			return false;
 		} else { // removed or free
 			arr[toAddIndex] = aLong;
 			size++;
-			if (size > arr.length * loadFactor) {
+			if (size > rehashThreshold) {
 				rehash();
 			}
 			return true;
@@ -219,6 +228,7 @@ public class LongHashSet implements Cloneable {
 			}
 			newArray[index] = aLong;
 		}
+		rehashThreshold = (int) (newArray.length * loadFactor);
 		values = newArray;
 	}
 
@@ -234,11 +244,12 @@ public class LongHashSet implements Cloneable {
 		}
 		long[] arr = values;
 		int index = hash(o) & bitSet;
-		while (!(arr[index] == FREE || arr[index] == o)) {
-			index = (index + 1) & bitSet;
+		long indexedValue = arr[index];
+		while (!(indexedValue == FREE || indexedValue == o)) {
+			indexedValue = arr[index = (index + 1) & bitSet];
 		}
-		if (arr[index] == o) {
-			arr[index] = REMOVED;
+		if (indexedValue == o) {
+			arr[index] = arr[(index + 1) & bitSet] == FREE ? FREE : REMOVED;
 			size--;
 			return true;
 		} else {
