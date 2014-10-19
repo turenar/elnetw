@@ -28,6 +28,12 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class LongHashSetTest {
+	public static void main(String[] args) {
+		for (int i = 0; i < 16; i++) {
+			System.out.printf("%d: %d%n", i, LongHashSet.hash(i) & 0x0f);
+		}
+	}
+
 	private long[] newSeqArray(int start, int len) {
 		long[] arr = new long[len];
 		for (int i = 0; i < len; i++) {
@@ -132,6 +138,7 @@ public class LongHashSetTest {
 		assertTrue(longHashSet.contains(5));
 		assertTrue(longHashSet.remove(4));
 		assertTrue(longHashSet.contains(5));
+		assertFalse(longHashSet.add(5));
 	}
 
 	@Test

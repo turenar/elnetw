@@ -23,9 +23,6 @@ package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
 
-/**
- * primitive hash set for long values
- */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -127,17 +124,22 @@ public class LongHashSet implements Cloneable {
 			aLong = ZERO;
 		}
 		int index = hash(aLong) & bitSet;
-		long indexedValue = values[index];
+		long[] arr = values;
+		long indexedValue = arr[index];
 		while (!(indexedValue == FREE || indexedValue == REMOVED || indexedValue == aLong)) {
-			indexedValue = values[index = (index + 1) & bitSet];
+			indexedValue = arr[index = (index + 1) & bitSet];
 			hashConflict++;
+		}
+		int toAddIndex = index;
+		while (indexedValue == REMOVED && indexedValue != aLong) {
+			indexedValue = arr[index = (index + 1) & bitSet];
 		}
 		if (indexedValue == aLong) {
 			return false;
 		} else { // removed or free
-			values[index] = aLong;
+			arr[toAddIndex] = aLong;
 			size++;
-			if (size > values.length * loadFactor) {
+			if (size > arr.length * loadFactor) {
 				rehash();
 			}
 			return true;
@@ -175,11 +177,12 @@ public class LongHashSet implements Cloneable {
 		if (o == 0) {
 			o = ZERO;
 		}
+		long[] arr = values;
 		int index = hash(o) & bitSet;
-		while (!(values[index] == FREE || values[index] == o)) {
+		while (!(arr[index] == FREE || arr[index] == o)) {
 			index = (index + 1) & bitSet;
 		}
-		return values[index] == o;
+		return arr[index] == o;
 	}
 
 	/**
@@ -229,12 +232,13 @@ public class LongHashSet implements Cloneable {
 		if (o == 0) {
 			o = ZERO;
 		}
+		long[] arr = values;
 		int index = hash(o) & bitSet;
-		while (!(values[index] == FREE || values[index] == o)) {
+		while (!(arr[index] == FREE || arr[index] == o)) {
 			index = (index + 1) & bitSet;
 		}
-		if (values[index] == o) {
-			values[index] = REMOVED;
+		if (arr[index] == o) {
+			arr[index] = REMOVED;
 			size--;
 			return true;
 		} else {
