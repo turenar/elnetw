@@ -33,6 +33,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.SearchTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * factory for SearchTab
  *
@@ -51,7 +53,7 @@ public class SearchTabFactory implements ClientTabFactory {
 		 * インスタンスを生成する
 		 */
 		public SearchTabConfigPanel() {
-			setBorder(new TitledBorder("固有の設定"));
+			setBorder(new TitledBorder(tr("Specific Configuration")));
 			initComponents();
 		}
 
@@ -64,7 +66,7 @@ public class SearchTabFactory implements ClientTabFactory {
 
 		private JLabel getComponentSearchQueryLabel() {
 			if (searchQueryLabel == null) {
-				searchQueryLabel = new JLabel("クエリ:");
+				searchQueryLabel = new JLabel(tr("Query:"));
 			}
 			return searchQueryLabel;
 		}
@@ -93,7 +95,7 @@ public class SearchTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "検索";
+		return tr("Search");
 	}
 
 	@Override

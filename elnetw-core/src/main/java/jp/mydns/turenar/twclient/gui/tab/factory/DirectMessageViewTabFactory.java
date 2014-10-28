@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.DirectMessageViewTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * factory for DirectMessageViewTab
  *
@@ -45,7 +47,7 @@ public class DirectMessageViewTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "DM";
+		return tr("DirectMessage");
 	}
 
 	@Override

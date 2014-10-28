@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.TimelineViewTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * facotry for TimelineViewTab
  *
@@ -46,7 +48,7 @@ public class TimelineViewTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "ホームタイムライン";
+		return tr("Home Timeline");
 	}
 
 	@Override

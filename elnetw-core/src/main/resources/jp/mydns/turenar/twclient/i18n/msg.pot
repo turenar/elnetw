@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-10 02:33+0900\n"
+"POT-Creation-Date: 2014-10-28 20:25+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,236 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:660
-msgid "account"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:666
-msgid "Verify account..."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:675
-msgid "&Add"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:683
-msgid "Add &Tab"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:705
-msgid "A&pplication"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:707
-msgid "&Configuration"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:714
-msgid "&Quit"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:722
-msgid "&Information"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:724
-msgid "&About"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:733
-#: src/main/java/jp/mydns/turenar/twclient/intent/PostIntent.java:47
-msgid "Post"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:829
-msgid "Post target account"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:836
-msgid "Read timeline account"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:875
-msgid "@elnetw"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:876
-msgid "from Dark Flame Master"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:890
-msgid "Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>"
-msgstr ""
-
 #: src/main/java/jp/mydns/turenar/twclient/init/tree/TreeInitInfo.java:115
 msgid "Initializing: (%s)%s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:72
-msgid "Delete..."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:97
-msgid "Delete below tweet?"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:102
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:232
-msgid "Confirm"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/UnofficialRetweetIntent.java:40
-msgid "Unofficial Retweet"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:71
-#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:89
-msgid "&Favorite"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:89
-msgid "Un&favorite"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/UserInfoViewIntent.java:53
-msgid "About @%s (%s)..."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/RetweetIntent.java:64
-msgid "Retweet"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/UrlIntent.java:52
-msgid "Open url in tweet with browser"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/AccountVerifierIntent.java:51
-msgid "Failed authentication: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/AccountVerifierIntent.java:51
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1288
-msgid "Error"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:90
-msgid "Already muted"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:90
-msgid "This is you!"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:174
-msgid "Word..."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:227
-msgid "Mute below?"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:255
-msgid "Specify muted text as regex.%s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:255
-msgid "Mute"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:275
-msgid "Client: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:279
-msgid "User: @%s (%s)"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/QuoteTweetIntent.java:43
-msgid "Quoted tweet"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/ExtendedMuteFilter.java:127
-msgid "Illegal regex in %s[%d]"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/delayed/BlockingUserFilter.java:158
-msgid "Fetching blocking users..."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryCompiler.java:179
-msgid "func<%s> is not found."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryCompiler.java:217
-msgid "prop<%s> is not found."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/IsFollowingProperty.java:113
-msgid "Fetching following users... Please wait."
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/InListProperty.java:180
-msgid "[in_list] Could not omit operator and value"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/InListProperty.java:183
-msgid "[in_list] value must be String"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:58
-msgid "[%s] needs int operator"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:62
-msgid "[%s] Invalid int operator: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:68
-msgid "[%s] needs operand"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:70
-msgid "[%s] value is not long value"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractBoolArgProperty.java:66
-msgid "[%s] needs value"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractBoolArgProperty.java:74
-msgid "[%s] value is not bool: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:144
-msgid "string operator needs value!"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:179
-msgid "Unsupported operator for boolean: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:206
-msgid "Unsupported operator for long: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:242
-msgid "Illegal operand for string operator: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:245
-msgid "Unsupported string operator: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:264
-msgid "[%s] Unnecessary specified value: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:277
-msgid "[%s] The value is not valid boolean: %s"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:280
-msgid "[%s] Illegal boolean oparator: %s"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/ImageViewerFrame.java:113
@@ -269,32 +41,122 @@ msgstr ""
 msgid "Waiting for queue"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:106
-msgid "Exclude"
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/UpdateProfileTabFactory.java:48
+msgid "Update profile"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:113
-msgid "Include"
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:76
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/UserInfoViewTabFactory.java:58
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/SearchTabFactory.java:56
+msgid "Specific Configuration"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:150
-msgid "Filter edit (%s: %s)"
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:91
+msgid "Include replies to accounts added into list"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:165
-msgid "Error in parsing query"
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:92
+msgid "Default is off. If you want to turn on, check use stream option."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:208
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:99
+msgid "Save the list ID"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:101
 msgid ""
-"Illegal syntax query\n"
+"If you turn on, follow list even if its name or the screen name of its "
+"name.\n"
+"But if its owner re-create list with the same owner, we can't follow list"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:110
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:247
+msgid "List"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:131
+msgid "Use stream"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:133
+msgid "Enable instant update"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:228
+msgid ""
+"Failed retrieving list ID. Check if the list name is valid\n"
 "%s"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:210
-msgid ""
-"Failed to compile as filter\n"
-"%s"
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/TimelineViewTabFactory.java:51
+msgid "Home Timeline"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/DirectMessageViewTabFactory.java:50
+msgid "DirectMessage"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/UserInfoViewTabFactory.java:71
+msgid "ScreenName"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/UserInfoViewTabFactory.java:114
+msgid "User Timeline"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/MentionViewTabFactory.java:51
+msgid "Mentions"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/SearchTabFactory.java:69
+msgid "Query:"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/SearchTabFactory.java:98
+msgid "Search"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:364
+msgid "Show &background"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:419
+msgid "Loading..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:459
+msgid "Other..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:464
+msgid "Show &header..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:499
+msgid "Close"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:521
+msgid "&Update profile"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:680
+msgid "Loading"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:689
+msgid "About @%s (%s)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:759
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:112
+msgid "Edit"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:779
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:90
+msgid "This is you!"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/VersionInfoFrame.java:234
@@ -305,14 +167,6 @@ msgid ""
 "Develop: Turenai Project (@ture7)\n"
 "Publish: %4$s\n"
 "\n"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:112
-msgid "Edit"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
-msgid "(global)"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/DateFormatter.java:67
@@ -349,6 +203,183 @@ msgctxt "date short format"
 msgid "%1$tb %1$td"
 msgstr ""
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
+msgid "(global)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:106
+msgid "Exclude"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:113
+msgid "Include"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:150
+msgid "Filter edit (%s: %s)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:165
+msgid "Error in parsing query"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:208
+msgid ""
+"Illegal syntax query\n"
+"%s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:210
+msgid ""
+"Failed to compile as filter\n"
+"%s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:659
+msgid "account"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:665
+msgid "Verify account..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:674
+msgid "&Add"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:682
+msgid "Add &Tab"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:704
+msgid "A&pplication"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:706
+msgid "&Configuration"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:713
+msgid "&Quit"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:721
+msgid "&Information"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:723
+msgid "&About"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:732
+#: src/main/java/jp/mydns/turenar/twclient/intent/PostIntent.java:47
+msgid "Post"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:828
+msgid "Post target account"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:835
+msgid "Read timeline account"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:874
+msgid "@elnetw"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:875
+msgid "from Dark Flame Master"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:889
+msgid "Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:144
+msgid "string operator needs value!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:179
+msgid "Unsupported operator for boolean: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:206
+msgid "Unsupported operator for long: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:242
+msgid "Illegal operand for string operator: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:245
+msgid "Unsupported string operator: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:264
+msgid "[%s] Unnecessary specified value: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:277
+msgid "[%s] The value is not valid boolean: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryOperator.java:280
+msgid "[%s] Illegal boolean oparator: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:58
+msgid "[%s] needs int operator"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:62
+msgid "[%s] Invalid int operator: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:68
+msgid "[%s] needs operand"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractIntArgProperty.java:70
+msgid "[%s] value is not long value"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/IsFollowingProperty.java:113
+msgid "Fetching following users... Please wait."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/InListProperty.java:180
+msgid "[in_list] Could not omit operator and value"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/InListProperty.java:183
+msgid "[in_list] value must be String"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractBoolArgProperty.java:66
+msgid "[%s] needs value"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/prop/AbstractBoolArgProperty.java:74
+msgid "[%s] value is not bool: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryCompiler.java:179
+msgid "func<%s> is not found."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/query/QueryCompiler.java:217
+msgid "prop<%s> is not found."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/ExtendedMuteFilter.java:127
+msgid "Illegal regex in %s[%d]"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/filter/delayed/BlockingUserFilter.java:158
+msgid "Fetching blocking users..."
+msgstr ""
+
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:343
 msgid "Mute blocking users"
 msgstr ""
@@ -376,7 +407,7 @@ msgstr ""
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:518
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:520
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:522
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:541
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:542
 msgid "seconds"
 msgstr ""
 
@@ -415,98 +446,103 @@ msgstr ""
 msgid "milliseconds"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:533
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
 msgid "scroll amounts"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:535
 msgid "date format"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:535
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:536
 msgid "sec."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:536
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:537
 msgid "msec."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:537
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:538
 msgid "sec. + relative"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:538
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:539
 msgid "msec. + relative"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:539
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:540
 msgid "relative"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:541
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:542
 msgid "life time of temporary message"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:543
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:544
 msgid "strict ID match in detecting reply"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:544
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:545
 msgid "if not checked, detect reply as screen name top matching"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:546
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:547
 msgid "The same tweets including retweeted appears only once"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:547
-msgid "default is on"
-msgstr ""
-
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:548
-msgid "Advanced"
+msgid "default is off"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:549
-msgid "Consumer key"
+msgid "Advanced"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:550
-msgid "Edit directly (not supported if you edit)"
+msgid "Consumer key"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:551
+msgid "Edit directly (not supported if you edit)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:552
 msgid "Open property editor..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:816
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:817
 msgid "Preparing for logger"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:825
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:826
 msgid "Starting initializer..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:835
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:836
 msgid "Registering initializer..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:918
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:919
 msgid ""
 "Detected another instance with the same config running. Abort!\n"
 "\n"
 "Check if other instances are running."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1266
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1267
 msgid "Exit?"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1288
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1289
 msgid "Failed to fetch user information. Try again later: %s"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1373
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1289
+#: src/main/java/jp/mydns/turenar/twclient/intent/AccountVerifierIntent.java:51
+msgid "Error"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1374
 msgid ""
 "You are running older elnetw than the version of config.\n"
 "It may cause unexpected bug or crash.\n"
@@ -515,4 +551,78 @@ msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/internal/QuoteTweetLengthCalculator.java:106
 msgid "will be shortened (actual post may have %d characters)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/UnofficialRetweetIntent.java:40
+msgid "Unofficial Retweet"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/UserInfoViewIntent.java:51
+msgid "About @%s (%s)..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:73
+msgid "Delete..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:98
+msgid "Delete below tweet?"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:103
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:232
+msgid "Confirm"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/RetweetIntent.java:64
+msgid "Retweet"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/AccountVerifierIntent.java:51
+msgid "Failed authentication: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:71
+#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:89
+msgid "&Favorite"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/FavoriteIntent.java:89
+msgid "Un&favorite"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:90
+msgid "Already muted"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:174
+msgid "Word..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:227
+msgid "Mute below?"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:255
+msgid "Specify muted text as regex.%s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:255
+msgid "Mute"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:275
+msgid "Client: %s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:279
+msgid "User: @%s (%s)"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/UrlIntent.java:52
+msgid "Open url in tweet with browser"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/QuoteTweetIntent.java:43
+msgid "Quoted tweet"
 msgstr ""

@@ -33,6 +33,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.UserInfoFrameTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * factory for UserInfoViewTab
  *
@@ -53,7 +55,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 		 * インスタンスを生成する
 		 */
 		public UserInfoConfigPanel() {
-			setBorder(new TitledBorder("固有の設定"));
+			setBorder(new TitledBorder(tr("Specific Configuration")));
 			initComponents();
 		}
 
@@ -66,7 +68,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 
 		private JLabel getComponentUserLabel() {
 			if (userLabel == null) {
-				userLabel = new JLabel("スクリーンネーム");
+				userLabel = new JLabel(tr("ScreenName"));
 			}
 			return userLabel;
 		}
@@ -109,7 +111,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "ユーザータイムライン";
+		return tr("User Timeline");
 	}
 
 	@Override

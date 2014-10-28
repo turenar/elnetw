@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.UpdateProfileTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * factory for UpdateProfileTab
  *
@@ -43,7 +45,7 @@ public class UpdateProfileTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "プロフィールの更新";
+		return tr("Update profile");
 	}
 
 	@Override
