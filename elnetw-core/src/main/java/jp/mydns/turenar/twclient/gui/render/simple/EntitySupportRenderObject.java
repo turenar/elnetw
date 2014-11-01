@@ -203,6 +203,10 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 				UrlResolverManager.async(entity.getExpandedURL(), this);
 			}
 		}
+		int index = 0;
+		while ((index = statusText.indexOf("\n", index + 1)) != -1) {
+			statusText.setCharAt(index, ' ');
+		}
 		MediaEntity[] mediaEntities = entitySupport.getMediaEntities();
 		if (mediaEntities != null) {
 			for (URLEntity entity : mediaEntities) {
