@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-28 20:25+0900\n"
+"POT-Creation-Date: 2014-11-01 13:14+0900\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Turenar <snswinhaiku.lo@gmail.com>\n"
 "Language-Team: \n"
@@ -215,6 +215,22 @@ msgstr "%1$tm/%1$td"
 msgid "(global)"
 msgstr "(グローバル)"
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:90
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:161
+msgid "Set"
+msgstr "設定"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:97
+msgid ""
+"Re-authorize after you set consumer key, or existing account don't use "
+"consumer key"
+msgstr ""
+"ConsumerKeyを設定した後は、再認証しないと既存アカウントには反映されません"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:154
+msgid "OK!"
+msgstr "OK!"
+
 #: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:106
 msgid "Exclude"
 msgstr "除外"
@@ -248,63 +264,63 @@ msgstr ""
 "%s"
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:659
-msgid "account"
-msgstr "アカウント"
+msgid "A&ccount"
+msgstr "アカウント(&C)"
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:665
 msgid "Verify account..."
 msgstr "アカウントを認証..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:674
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:673
 msgid "&Add"
 msgstr "追加(&A)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:682
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:681
 msgid "Add &Tab"
 msgstr "タブの追加(&T)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:704
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:703
 msgid "A&pplication"
 msgstr "アプリケーション(&P)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:706
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:705
 msgid "&Configuration"
 msgstr "設定(&C)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:713
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:712
 msgid "&Quit"
 msgstr "終了(&Q)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:721
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:720
 msgid "&Information"
 msgstr "情報(&I)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:723
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:722
 msgid "&About"
 msgstr "elnetw について(&A)..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:732
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:731
 #: src/main/java/jp/mydns/turenar/twclient/intent/PostIntent.java:47
 msgid "Post"
 msgstr "投稿"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:828
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:827
 msgid "Post target account"
 msgstr "投稿先アカウント"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:835
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:834
 msgid "Read timeline account"
 msgstr "読み込みアカウント"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:874
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:873
 msgid "@elnetw"
 msgstr "@elnetw (名前はこれで決まり？)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:875
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:874
 msgid "from Dark Flame Master"
 msgstr "from 暗黒の調和師"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:889
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:888
 msgid "Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>"
 msgstr "%s へようこそ！<br><b>ゆっくりしていってね！！</b>"
 
@@ -391,6 +407,10 @@ msgstr "%1$s[%2$d]に正しくない正規表現が指定されています"
 #: src/main/java/jp/mydns/turenar/twclient/filter/delayed/BlockingUserFilter.java:158
 msgid "Fetching blocking users..."
 msgstr "ブロック中のユーザーを取得しています..."
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:341
+msgid "Filter"
+msgstr "フィルタ"
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:343
 msgid "Mute blocking users"
@@ -528,7 +548,7 @@ msgstr "直接編集する (動作保証外です)"
 msgid "Open property editor..."
 msgstr "プロパティエディターを開く..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:817
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:818
 msgid "Preparing for logger"
 msgstr "ログの準備をしています"
 

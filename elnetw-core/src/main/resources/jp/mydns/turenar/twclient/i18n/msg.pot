@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-28 20:25+0900\n"
+"POT-Creation-Date: 2014-11-01 13:14+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -207,6 +207,21 @@ msgstr ""
 msgid "(global)"
 msgstr ""
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:90
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:161
+msgid "Set"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:97
+msgid ""
+"Re-authorize after you set consumer key, or existing account don't use "
+"consumer key"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/config/ConsumerTokenConfigType.java:154
+msgid "OK!"
+msgstr ""
+
 #: src/main/java/jp/mydns/turenar/twclient/gui/QueryEditFrame.java:106
 msgid "Exclude"
 msgstr ""
@@ -236,63 +251,63 @@ msgid ""
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:659
-msgid "account"
+msgid "A&ccount"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:665
 msgid "Verify account..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:674
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:673
 msgid "&Add"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:682
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:681
 msgid "Add &Tab"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:704
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:703
 msgid "A&pplication"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:706
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:705
 msgid "&Configuration"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:713
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:712
 msgid "&Quit"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:721
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:720
 msgid "&Information"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:723
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:722
 msgid "&About"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:732
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:731
 #: src/main/java/jp/mydns/turenar/twclient/intent/PostIntent.java:47
 msgid "Post"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:828
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:827
 msgid "Post target account"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:835
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:834
 msgid "Read timeline account"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:874
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:873
 msgid "@elnetw"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:875
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:874
 msgid "from Dark Flame Master"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:889
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:888
 msgid "Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>"
 msgstr ""
 
@@ -378,6 +393,10 @@ msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/filter/delayed/BlockingUserFilter.java:158
 msgid "Fetching blocking users..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:341
+msgid "Filter"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:343
@@ -510,7 +529,7 @@ msgstr ""
 msgid "Open property editor..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:817
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:818
 msgid "Preparing for logger"
 msgstr ""
 

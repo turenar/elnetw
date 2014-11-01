@@ -338,11 +338,11 @@ public final class TwitterClientMain {
 	@Initializer(name = "gui/config/filter", phase = "init")
 	@InitDepends({"gui/main", "gui/config/builder"})
 	public void addConfiguratorOfFilter() {
-		configuration.getConfigBuilder().getGroup("フィルタ")
+		configuration.getConfigBuilder().getGroup(tr("Filter"))
 				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
 						tr("Mute blocking users"), tr("Checking makes reading initial timeline delayed"),
 						new BooleanConfigType())
-				.addConfig("<ignore>", "フィルタの編集", "", new QueryEditConfigType());
+				.addConfig("<ignore>", "Edit filter", "", new QueryEditConfigType());
 	}
 
 	/**

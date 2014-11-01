@@ -656,7 +656,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 	private JMenu getMenuAccount() {
 		if (accountMenu == null) {
-			accountMenu = new JMenu(tr("account"));
+			accountMenu = new JMenu(tr("A&ccount"));
 
 			configuration.addJob(Priority.LOW, new UserInfoFetcher());
 			accountMenu.add(getReadTimelineJMenu());
@@ -668,7 +668,6 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 		}
 		return accountMenu;
 	}
-
 	private JMenu getMenuAdd() {
 		JMenu addMenu = new JMenu();
 		Utility.setMnemonic(addMenu, tr("&Add"));
