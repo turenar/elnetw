@@ -813,9 +813,9 @@ public final class TwitterClientMain {
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
 		}
+		setHomeProperty();
 
 		SplashScreenCtrl.setString(tr("Preparing for logger"));
-		setHomeProperty();
 		LoggingConfigurator.configureLogger(parsedArguments);
 		logger = LoggerFactory.getLogger(TwitterClientMain.class);
 

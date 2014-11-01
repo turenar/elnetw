@@ -24,10 +24,12 @@ package jp.mydns.turenar.twclient.i18n;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Formatter;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
+
+import jp.mydns.turenar.twclient.internal.ConcurrentSoftHashMap;
 
 import static jp.mydns.turenar.twclient.ClientConfiguration.UTF8_CHARSET;
 import static jp.mydns.turenar.twclient.i18n.PoParser.getRawMessageId;
@@ -48,40 +50,43 @@ public class PoBundle {
 	public static PoBundle getInstance(String baseName, Locale locale) {
 		Stack<PoBundle> stack = new Stack<>();
 
-		tryGetInstance(stack, baseName + ".po");
-		tryGetInstance(stack, baseName + "_base.po");
-		tryGetInstance(stack, baseName, Locale.getDefault());
+		tryGetInstance(stack, baseName + ".po", locale);
+		tryGetInstance(stack, baseName + "_base.po", locale);
+		getInstance(stack, baseName, Locale.getDefault());
 		if (locale != null) {
-			tryGetInstance(stack, baseName, locale);
+			getInstance(stack, baseName, locale);
 		}
-		return stack.peek();
+		return stack.isEmpty() ? new PoBundle() : stack.peek();
 	}
 
-	private static void tryGetInstance(Stack<PoBundle> stack, String baseName, Locale locale) {
+	private static void getInstance(Stack<PoBundle> stack, String baseName, Locale locale) {
 		String language = locale.getLanguage();
 		String country = locale.getCountry();
 		String variant = locale.getVariant();
 		if (language != null) {
-			tryGetInstance(stack, baseName + "_" + language + ".po");
+			tryGetInstance(stack, baseName + "_" + language + ".po", locale);
 			if (country != null) {
-				tryGetInstance(stack, baseName + "_" + language + "_" + country + ".po");
+				tryGetInstance(stack, baseName + "_" + language + "_" + country + ".po", locale);
 				if (variant != null) {
-					tryGetInstance(stack, baseName + "_" + language + "_" + country + "_" + variant + ".po");
+					tryGetInstance(stack, baseName + "_" + language + "_" + country + "_" + variant + ".po", locale);
 				}
 			}
 		}
 	}
 
-	private static void tryGetInstance(Stack<PoBundle> stack, String resourcePath) {
+
+	private static void tryGetInstance(Stack<PoBundle> stack, String resourcePath, Locale locale) {
 		try {
-			stack.push(new PoBundle(resourcePath, stack.isEmpty() ? null : stack.peek()));
+			stack.push(new PoBundle(resourcePath, stack.isEmpty() ? null : stack.peek(), locale));
 		} catch (IOException | IllegalArgumentException e) {
 			// do nothing
 		}
 	}
 
+	private final Locale locale;
 	private PoBundle parent;
 	private Map<String, String> bundleMap;
+	private ConcurrentSoftHashMap<String, MessageFormatter> formatCacheMap = new ConcurrentSoftHashMap<>();
 
 	/**
 	 * create instance
@@ -90,11 +95,7 @@ public class PoBundle {
 	 * @throws IOException error occurred
 	 */
 	public PoBundle(String resourcePath) throws IOException {
-		InputStream stream = PoBundle.class.getClassLoader().getResourceAsStream(resourcePath);
-		if (stream == null) {
-			throw new IllegalArgumentException("missing resource!");
-		}
-		bundleMap = PoParser.parse(new InputStreamReader(stream, UTF8_CHARSET));
+		this(resourcePath, null);
 	}
 
 	/**
@@ -105,23 +106,68 @@ public class PoBundle {
 	 * @throws IOException error occurred
 	 */
 	public PoBundle(String resourcePath, PoBundle parent) throws IOException {
-		this(resourcePath);
+		this(resourcePath, parent, Locale.getDefault());
+	}
+
+	public PoBundle(String resourcePath, PoBundle parent, Locale locale) throws IOException {
+		this(parent, locale);
+		InputStream stream = PoBundle.class.getClassLoader().getResourceAsStream(resourcePath);
+		if (stream == null) {
+			throw new IllegalArgumentException("missing resource!");
+		}
+		bundleMap = PoParser.parse(new InputStreamReader(stream, UTF8_CHARSET));
+	}
+
+	/**
+	 * create instance
+	 *
+	 * @param parent parent PoBundle
+	 * @param locale locale
+	 */
+	public PoBundle(PoBundle parent, Locale locale) {
 		this.parent = parent;
+		this.locale = locale;
+		bundleMap = Collections.emptyMap();
+	}
+
+	/**
+	 * create instance
+	 *
+	 * @param parent parent PoBundle
+	 */
+	public PoBundle(PoBundle parent) {
+		this(parent, Locale.getDefault());
+	}
+
+	/**
+	 * create instance
+	 */
+	public PoBundle() {
+		this((PoBundle) null);
 	}
 
 	private String format(String messageId, Object... arg) {
-		return String.format(getFormat(messageId), arg);
+		return getFormat(messageId).format(arg);
 	}
 
-	private void format(StringBuilder builder, String format, Object[] args) {
-		new Formatter(builder).format(getFormat(format), args);
+	private void format(StringBuilder builder, String messageId, Object[] args) {
+		getFormat(messageId).format(builder, args);
 	}
 
-	private String getFormat(String messageId) {
+	private MessageFormatter getFormat(String messageId) {
+		MessageFormatter formatter = formatCacheMap.get(messageId);
+		if (formatter == null) {
+			formatter = new MessageFormatter(locale, getFormatString(messageId));
+			formatCacheMap.put(messageId, formatter);
+		}
+		return formatter;
+	}
+
+	private String getFormatString(String messageId) {
 		String messageString = bundleMap.get(messageId);
 		if (messageString == null) {
 			if (parent != null) {
-				messageString = parent.getFormat(messageId);
+				messageString = parent.getFormatString(messageId);
 			}
 			if (messageString == null) {
 				messageString = getRawMessageId(messageId);
