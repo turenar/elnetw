@@ -23,7 +23,6 @@ package jp.mydns.turenar.twclient;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.event.KeyEvent;
 
 import javax.swing.Icon;
 import javax.swing.JPanel;
@@ -54,15 +53,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 */
 	int PRIO_BITMASK = 0xfffff000;
 
-	/**
-	 * ショートカットキーとアクションコマンドを関連付ける
-	 *
-	 * @param keyCode    キー文字列。
-	 * @param actionName アクションコマンド名
-	 * @see Utility#toKeyString(KeyEvent) for keyCode
-	 */
-	void addShortcutKey(String keyCode, String actionName);
-
 	/** ツイートビューをクリアする。 */
 	void clearTweetView();
 
@@ -71,18 +61,6 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 
 	/** ポストボックスをフォーカスさせる */
 	void focusPostBox();
-
-	/**
-	 * ショートカットキーを用いてアクションコマンドを取得する。
-	 *
-	 * 指定したコンポーネント名に関連付けられたアクションコマンドがない場合、
-	 * allに関連付けられたアクションコマンドの検索を試します。
-	 *
-	 * @param component コンポーネント名。
-	 * @param keyString キー文字列。
-	 * @return アクションコマンド名
-	 */
-	String getActionCommandByShortcutKey(String component, String keyString);
 
 	/**
 	 * コマンドを呼び出すURLを取得する。
@@ -156,24 +134,7 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *
 	 * @param ex 例外
 	 */
-	void handleException(Exception ex);
-
-	/**
-	 * 例外を処理する。
-	 *
-	 * @param ex 例外
-	 */
 	void handleException(TwitterException ex);
-
-	/**
-	 * ショートカットキーを処理する。
-	 *
-	 * これは {@link #getActionCommandByShortcutKey(String, String)}のラッパです。
-	 *
-	 * @param component コンポーネント
-	 * @param e         イベント
-	 */
-	void handleShortcutKey(String component, KeyEvent e);
 
 	/**
 	 * inReplyToStatusを付加する。
@@ -241,25 +202,4 @@ public interface ClientFrameApi extends TweetLengthUpdater {
 	 *                      ないしこれらのビット和で表してください。
 	 */
 	void setTweetViewText(String tweetData, String overlayString, int pointedAction);
-
-	/**
-	 * ツイートビューに文字列を表示する
-	 *
-	 * @param tweetData        ツイートビューのテキスト
-	 * @param createdBy        作成者
-	 * @param createdByToolTip 作成者のLabelのTooltip
-	 * @param createdAt        作成日時等
-	 * @param createdAtToolTip 作成日時のLabelのTooltip
-	 * @param icon             アイコン
-	 * @param operationPanel   操作用パネル
-	 * @deprecated use
-	 * {@link #clearTweetView()}
-	 * {@link #setTweetViewCreatedAt(String, String, int)}
-	 * {@link #setTweetViewCreatedBy(Icon, String, String, int)}
-	 * {@link #setTweetViewOperationPanel(JPanel)}
-	 * {@link #setTweetViewText(String, String, int)}
-	 */
-	@Deprecated
-	void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon, JPanel operationPanel);
 }

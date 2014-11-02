@@ -58,10 +58,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import jp.mydns.turenar.lib.parser.ArgParser;
@@ -88,6 +91,7 @@ import jp.mydns.turenar.twclient.filter.delayed.BlockingUserFilter;
 import jp.mydns.turenar.twclient.filter.query.QueryCompiler;
 import jp.mydns.turenar.twclient.filter.query.func.StandardFunctionFactory;
 import jp.mydns.turenar.twclient.filter.query.prop.StandardPropertyFactory;
+import jp.mydns.turenar.twclient.gui.ShortcutKeyManager;
 import jp.mydns.turenar.twclient.gui.config.ActionButtonConfigType;
 import jp.mydns.turenar.twclient.gui.config.BooleanConfigType;
 import jp.mydns.turenar.twclient.gui.config.ComboBoxConfigType;
@@ -123,6 +127,7 @@ import jp.mydns.turenar.twclient.intent.DisplayRequirementIntent;
 import jp.mydns.turenar.twclient.intent.DoNothingIntent;
 import jp.mydns.turenar.twclient.intent.FavoriteIntent;
 import jp.mydns.turenar.twclient.intent.HashtagIntent;
+import jp.mydns.turenar.twclient.intent.IntentArguments;
 import jp.mydns.turenar.twclient.intent.ListIntent;
 import jp.mydns.turenar.twclient.intent.MenuPropertyEditorIntent;
 import jp.mydns.turenar.twclient.intent.MenuQuitIntent;
@@ -230,6 +235,7 @@ public final class TwitterClientMain {
 	 * abi version for communicating between launcher and TwitterClient Main
 	 */
 	public static final int LAUNCHER_ABI_VERSION = 1;
+	private static final Pattern shortcutKeyPattern = Pattern.compile("(.+)\\.(press|release)\\((.+)\\)");
 	@InitializerInstance
 	private static volatile TwitterClientMain singleton;
 
@@ -280,7 +286,6 @@ public final class TwitterClientMain {
 	/** 設定データ */
 	private ClientProperties configProperties;
 	private Logger logger;
-
 	private JobQueue jobQueue;
 	private boolean portable;
 	private MessageBus messageBus;
@@ -621,7 +626,7 @@ public final class TwitterClientMain {
 	 * init frame
 	 */
 	@Initializer(name = "gui/main", phase = "init")
-	@InitDepends({"cache/twitter", "accountId"})
+	@InitDepends({"cache/twitter", "accountId", "gui/shortcutKey"})
 	public void initFrame() {
 		frame = new TwitterClientFrame(configuration);
 	}
@@ -671,7 +676,6 @@ public final class TwitterClientMain {
 
 	/** ショートカットキーテーブルを初期化する。 */
 	@Initializer(name = "gui/shortcutKey", phase = "init")
-	@InitDepends("gui/main")
 	public void initShortcutKey() {
 		String parentConfigName = configProperties.getProperty("gui.shortcutkey.parent");
 		Properties shortcutkeyProperties = new Properties();
@@ -722,9 +726,19 @@ public final class TwitterClientMain {
 				}
 			}
 		}
+		ShortcutKeyManager.setDefaultMap("all");
 		for (Object obj : shortcutkeyProperties.keySet()) {
 			String key = (String) obj;
-			frame.addShortcutKey(key, shortcutkeyProperties.getProperty(key));
+			Matcher matcher = shortcutKeyPattern.matcher(key);
+			if (!matcher.matches()) {
+				logger.error("Illegal shortcutKey: {}; ignoring", key);
+			}
+			String component = matcher.group(1);
+			String keyEventType = matcher.group(2);
+			String strokeString = matcher.group(3);
+			KeyStroke keyStroke = Utility.toKeyStroke(strokeString, keyEventType.equals("release"));
+			IntentArguments intent = Utility.getIntentArguments(shortcutkeyProperties.getProperty(key));
+			ShortcutKeyManager.addShortcutKey(component, keyStroke, intent);
 		}
 	}
 
@@ -764,7 +778,7 @@ public final class TwitterClientMain {
 	 * @param condition init condition
 	 */
 	@Initializer(name = "gui/tab/restore", phase = "prestart")
-	@InitDepends({"config", "bus", "filter/global", "gui/tab/factory"})
+	@InitDepends({"config", "bus", "filter/global", "gui/tab/factory", "gui/main"})
 	public void restoreClientTabs(InitCondition condition) {
 		List<String> tabsList = configProperties.getList("gui.tabs.list");
 		if (condition.isInitializingPhase()) {

@@ -24,7 +24,6 @@ package jp.mydns.turenar.twclient;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.MediaTracker;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -41,6 +40,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
 import jp.mydns.turenar.twclient.intent.IntentArguments;
@@ -115,8 +115,6 @@ public class Utility {
 			"epiphany",
 			"mozilla"
 	};
-	private static final int VISIBLE_CHAR_CODE_MIN = 0x20;
-	private static final int VISIBLE_CHAR_CODE_MAX = 0x7e;
 	/**
 	 * epoch offset for snowflake
 	 */
@@ -231,6 +229,77 @@ public class Utility {
 		}
 	}
 
+	private static char getCharFromLongName(String longName) {
+		switch (longName) {
+			case "%caret":
+				return '^';
+			case "%plus":
+				return '+';
+			case "%at":
+				return '@';
+			case "%equal":
+				return '=';
+			case "%colon":
+				return ',';
+			case "%space":
+				return ' ';
+			case "%bracketstart":
+				return '[';
+			case "%bracketend":
+				return ']';
+			case "%return":
+				return KeyEvent.VK_ENTER;
+			case "%up":
+				return KeyEvent.VK_UP;
+			case "%down":
+				return KeyEvent.VK_DOWN;
+			case "%right":
+				return KeyEvent.VK_RIGHT;
+			case "%left":
+				return KeyEvent.VK_LEFT;
+			case "%tab":
+				return KeyEvent.VK_TAB;
+			case "%pagedown":
+				return KeyEvent.VK_PAGE_DOWN;
+			case "%pageup":
+				return KeyEvent.VK_PAGE_UP;
+			case "%home":
+				return KeyEvent.VK_HOME;
+			case "%end":
+				return KeyEvent.VK_END;
+			case "%F1":
+				return KeyEvent.VK_F1;
+			case "%F2":
+				return KeyEvent.VK_F2;
+			case "%F3":
+				return KeyEvent.VK_F3;
+			case "%F4":
+				return KeyEvent.VK_F4;
+			case "%F5":
+				return KeyEvent.VK_F5;
+			case "%F6":
+				return KeyEvent.VK_F6;
+			case "%F7":
+				return KeyEvent.VK_F7;
+			case "%F8":
+				return KeyEvent.VK_F8;
+			case "%F9":
+				return KeyEvent.VK_F9;
+			case "%F10":
+				return KeyEvent.VK_F10;
+			case "%F11":
+				return KeyEvent.VK_F11;
+			case "%F12":
+				return KeyEvent.VK_F12;
+			default:
+				if (longName.length() == 1) {
+					return longName.charAt(0);
+				} else {
+					throw new IllegalArgumentException("Not supported long name: " + longName);
+				}
+		}
+	}
+
 	/**
 	 * get intent argument from action command
 	 *
@@ -256,79 +325,6 @@ public class Utility {
 		return intentArguments;
 	}
 
-	private static String getKeyNameByChar(int character) {
-		switch (character) {
-			case '^':
-				return "%caret";
-			case '+':
-				return "%plus";
-			case '@':
-				return "%at";
-			case '=':
-				return "%equal";
-			case ',':
-				return "%colon";
-			case ' ':
-				return "%space";
-			case '[':
-				return "%bracketstart";
-			case ']':
-				return "%bracketend";
-			default:
-				return null;
-		}
-	}
-
-	private static String getKeyNameByCode(int code) {
-		switch (code) {
-			case KeyEvent.VK_ENTER:
-				return "%return";
-			case KeyEvent.VK_UP:
-				return "%up";
-			case KeyEvent.VK_DOWN:
-				return "%down";
-			case KeyEvent.VK_RIGHT:
-				return "%right";
-			case KeyEvent.VK_LEFT:
-				return "%left";
-			case KeyEvent.VK_TAB:
-				return "%tab";
-			case KeyEvent.VK_PAGE_DOWN:
-				return "%pagedown";
-			case KeyEvent.VK_PAGE_UP:
-				return "%pageup";
-			case KeyEvent.VK_HOME:
-				return "%home";
-			case KeyEvent.VK_END:
-				return "%end";
-			case KeyEvent.VK_F1:
-				return "%F1";
-			case KeyEvent.VK_F2:
-				return "%F2";
-			case KeyEvent.VK_F3:
-				return "%F3";
-			case KeyEvent.VK_F4:
-				return "%F4";
-			case KeyEvent.VK_F5:
-				return "%F5";
-			case KeyEvent.VK_F6:
-				return "%F6";
-			case KeyEvent.VK_F7:
-				return "%F7";
-			case KeyEvent.VK_F8:
-				return "%F8";
-			case KeyEvent.VK_F9:
-				return "%F9";
-			case KeyEvent.VK_F10:
-				return "%F10";
-			case KeyEvent.VK_F11:
-				return "%F11";
-			case KeyEvent.VK_F12:
-				return "%F12";
-			default:
-				return null;
-		}
-	}
 
 	static {
 		privacyEntries = new KVEntry[]{
@@ -353,7 +349,8 @@ public class Utility {
 
 	/**
 	 * 与えられたステータスが普通のホームタイムラインに表示されるかどうかを返す
-	 * @param status ステータス
+	 *
+	 * @param status    ステータス
 	 * @param following フォロー中のユーザー
 	 * @return 普通のホームタイムライン
 	 */
@@ -427,41 +424,28 @@ public class Utility {
 		}
 	}
 
-	/**
-	 * キーをキー文字列に変換する
-	 *
-	 * @param e キーイベント
-	 * @return キー文字列
-	 */
-	public static String toKeyString(KeyEvent e) {
-		if (e.getID() == KeyEvent.KEY_TYPED) {
-			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
+	public static KeyStroke toKeyStroke(String strokeString, boolean onKeyRelease) {
+		int index = 0;
+		char modifierChar = strokeString.charAt(index);
+		int modifiers = 0;
+		if (modifierChar == '^') {
+			modifiers |= KeyEvent.CTRL_DOWN_MASK;
+			modifierChar = strokeString.charAt(++index);
 		}
-
-		int modifiers = e.getModifiersEx();
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append((e.getID() == KeyEvent.KEY_RELEASED) ? "release(" : "press(");
-		if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
-			stringBuilder.append('^');
+		if (modifierChar == '@') {
+			modifiers |= KeyEvent.ALT_DOWN_MASK;
+			modifierChar = strokeString.charAt(++index);
 		}
-		if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
-			stringBuilder.append('@');
+		if (modifierChar == '+') {
+			modifiers |= KeyEvent.SHIFT_DOWN_MASK;
+			++index;
 		}
-		int keyCode = e.getKeyChar();
-		String key;
-		if (keyCode != KeyEvent.CHAR_UNDEFINED
-				&& keyCode >= VISIBLE_CHAR_CODE_MIN && keyCode <= VISIBLE_CHAR_CODE_MAX) {
-			key = getKeyNameByChar(keyCode);
-		} else {
-			keyCode = e.getKeyCode();
-			if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
-				stringBuilder.append('+');
-			}
-			key = getKeyNameByCode(keyCode);
+		String keyLongName = strokeString.substring(index);
+		char keyChar = getCharFromLongName(keyLongName);
+		if (keyChar >= 'a' && keyChar <= 'z') {
+			keyChar += 'A' - 'a'; // make Capital Character
 		}
-		stringBuilder.append(key != null ? key : (char) keyCode);
-		stringBuilder.append(')');
-		return stringBuilder.toString();
+		return KeyStroke.getKeyStroke(keyChar, modifiers, onKeyRelease);
 	}
 
 	/**
@@ -480,7 +464,6 @@ public class Utility {
 	private String detectedBrowser = null;
 	/** 通知を送信するクラス */
 	public volatile MessageNotifier notifySender = null;
-
 
 	/**
 	 * インスタンスを生成する。

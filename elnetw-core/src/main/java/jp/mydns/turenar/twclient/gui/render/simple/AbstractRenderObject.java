@@ -27,8 +27,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.Serializable;
@@ -51,6 +49,7 @@ import jp.mydns.turenar.twclient.ClientFrameApi;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.ImageCacher;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.gui.ShortcutKeyManager;
 import jp.mydns.turenar.twclient.gui.render.RenderObject;
 import jp.mydns.turenar.twclient.gui.render.RenderPanel;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
@@ -71,7 +70,7 @@ import twitter4j.UserMentionEntity;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public abstract class AbstractRenderObject implements RenderObject, KeyListener,
+public abstract class AbstractRenderObject implements RenderObject,
 		FocusListener, MouseListener, ClientEventConstants, PopupMenuListener {
 	/** Entityの開始位置を比較する */
 	private static final class EntityComparator implements Comparator<TweetEntity>, Serializable {
@@ -304,7 +303,7 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 			linePanel.setFocusable(true);
 			linePanel.addMouseListener(this);
 			linePanel.addFocusListener(this);
-			linePanel.addKeyListener(this);
+			ShortcutKeyManager.setKeyMap("list", linePanel);
 			componentUserIcon.setForeground(foregroundColor);
 			componentSentBy.setForeground(foregroundColor);
 			componentStatusText.setForeground(foregroundColor);
@@ -399,20 +398,6 @@ public abstract class AbstractRenderObject implements RenderObject, KeyListener,
 	 */
 	protected abstract void initComponents();
 
-	@Override
-	public void keyPressed(KeyEvent e) {
-		logger.trace("{}", e);
-		getFrameApi().handleShortcutKey("list", e);
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		getFrameApi().handleShortcutKey("list", e);
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
