@@ -44,6 +44,7 @@ public class SearchTabFactory implements ClientTabFactory {
 	 */
 	protected static class SearchTabConfigPanel extends JPanel {
 
+		private static final long serialVersionUID = 8535396031986700928L;
 		private JLabel searchQueryLabel;
 		private JTextField searchQueryField;
 

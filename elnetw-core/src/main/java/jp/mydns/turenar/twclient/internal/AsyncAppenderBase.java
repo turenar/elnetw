@@ -200,7 +200,7 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	 * The remaining capacity available in the blocking queue.
 	 *
 	 * @return the remaining capacity
-	 * @see {@link java.util.concurrent.BlockingQueue#remainingCapacity()}
+	 * @see java.util.concurrent.BlockingQueue#remainingCapacity()
 	 */
 	public int getRemainingCapacity() {
 		return blockingQueue.remainingCapacity();

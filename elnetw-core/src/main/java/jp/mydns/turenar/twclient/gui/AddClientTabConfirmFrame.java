@@ -28,6 +28,8 @@ public class AddClientTabConfirmFrame extends JFrame {
 	 * あかうんとえんとりー
 	 */
 	protected class AccountEntry extends AbstractMap.SimpleEntry<String, String> {
+		private static final long serialVersionUID = -1827398108341874564L;
+
 		/**
 		 * いんすたんすをせいせいする
 		 *
@@ -53,6 +55,8 @@ public class AddClientTabConfirmFrame extends JFrame {
 			return getKey();
 		}
 	}
+
+	private static final long serialVersionUID = 1310242319162352649L;
 
 	private final ClientConfiguration configuration = ClientConfiguration.getInstance();
 	private final ClientTabFactory factory;

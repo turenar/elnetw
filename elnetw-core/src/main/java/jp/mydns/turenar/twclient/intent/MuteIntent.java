@@ -52,6 +52,7 @@ import twitter4j.UserMentionEntity;
 public class MuteIntent extends AbstractIntent {
 	private static class EntityUser extends NullUser {
 
+		private static final long serialVersionUID = -8212441575399194595L;
 		private final String screenName;
 		private final String name;
 		private final long id;

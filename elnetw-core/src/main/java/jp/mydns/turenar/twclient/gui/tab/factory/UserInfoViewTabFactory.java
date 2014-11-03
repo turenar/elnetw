@@ -45,6 +45,7 @@ public class UserInfoViewTabFactory implements ClientTabFactory {
 	 */
 	protected static class UserInfoConfigPanel extends JPanel {
 
+		private static final long serialVersionUID = -3162663908900944680L;
 		private JLabel userLabel;
 		private JLabel userAtMarkLabel;
 		private JTextField userTextField;

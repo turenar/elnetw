@@ -59,9 +59,9 @@ class VirtualMessagePublisher implements ClientMessageListener {
 		TreeSet<String> paths = new TreeSet<>();
 		for (String notifierName : notifierNames) {
 			if (recursive) {
-				messageBus.getRecursivePaths(paths, accountId, notifierName);
+				MessageBus.getRecursivePaths(paths, accountId, notifierName);
 			} else {
-				paths.add(messageBus.getPath(accountId, notifierName));
+				paths.add(MessageBus.getPath(accountId, notifierName));
 			}
 		}
 		this.paths = paths.toArray(new String[paths.size()]);

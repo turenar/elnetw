@@ -59,6 +59,7 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 	 * ユーザー情報を設定するためのパネル
 	 */
 	public static class ListConfigPanel extends JPanel {
+		private static final long serialVersionUID = 2053932696892259530L;
 		private JLabel listLabel;
 		private JLabel userAtMarkLabel;
 		private JTextField userTextField;
