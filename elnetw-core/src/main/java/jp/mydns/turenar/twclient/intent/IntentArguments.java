@@ -54,7 +54,9 @@ public class IntentArguments implements Cloneable {
 			// will not occurred
 			throw new AssertionError(e);
 		}
-		newInstance.extraArgs = new HashMap<>(extraArgs);
+		if (extraArgs != null) {
+			newInstance.extraArgs = new HashMap<>(extraArgs);
+		}
 		return newInstance;
 	}
 
@@ -172,6 +174,12 @@ public class IntentArguments implements Cloneable {
 		return this;
 	}
 
+	/**
+	 * 指定した名前を引数から削除する
+	 *
+	 * @param name 引数名
+	 * @return このインスタンス
+	 */
 	public IntentArguments removeExtra(String name) {
 		extraArgs.remove(name);
 		return this;

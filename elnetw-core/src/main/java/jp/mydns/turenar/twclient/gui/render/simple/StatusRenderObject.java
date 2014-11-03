@@ -107,7 +107,7 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 		Status originalStatus = status;
 		Status status = originalStatus.isRetweet() ? originalStatus.getRetweetedStatus() : originalStatus;
 		String text = status.getText();
-		String tweetText = getTweetViewText(status, text);
+		String tweetText = getTweetViewText(status, text, status.isPossiblySensitive());
 		String createdBy;
 		createdBy = getCreatedByLongText(status);
 		String createdAtToolTip = getViaString(originalStatus);
@@ -477,8 +477,8 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 				break;
 			case EVENT_CLICKED_USERICON:
 				try {
-					new ImageViewerFrame(new URL(getOriginalUser(status).getOriginalProfileImageURLHttps())).setVisible(
-							true);
+					new ImageViewerFrame(new URL(getOriginalUser(status).getOriginalProfileImageURLHttps()),
+							status.isPossiblySensitive()).setVisible(true);
 				} catch (MalformedURLException e) {
 					logger.error("failed getting original profile image", e);
 				}

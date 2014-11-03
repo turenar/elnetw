@@ -62,9 +62,10 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 	 *
 	 * @param entitySupport エンティティ対応オブジェクト
 	 * @param text          テキスト
+	 * @param possiblySensitive possibly sensitive
 	 * @return ツイートビューに表示するテキスト
 	 */
-	protected String getTweetViewText(EntitySupport entitySupport, String text) {
+	protected String getTweetViewText(EntitySupport entitySupport, String text, boolean possiblySensitive) {
 		StringBuilder stringBuilder = new StringBuilder(text.length() * 2);
 
 		TweetEntity[] entities = sortEntities(entitySupport);
@@ -108,6 +109,7 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 						IntentArguments intent = getIntentArguments("openimg");
 						ArrayList<String> imageLists = new ArrayList<>();
 						intent.putExtra("urls", imageLists);
+						intent.putExtra("possiblySensitive", possiblySensitive);
 						url = getFrameApi().getCommandUrl(intent);
 						stringBuilder.append("<a href='")
 								.append(url)
@@ -115,10 +117,11 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 								.append(escapeHTML(urlEntity.getDisplayURL()))
 								.append("</a>");
 						for (MediaEntity extendedMediaEntity : extendedMediaEntities) {
-							IntentArguments oneImageIntent = getIntentArguments("openimg");
+							IntentArguments openImageIntent = getIntentArguments("openimg");
 							imageLists.add(extendedMediaEntity.getMediaURLHttps());
-							oneImageIntent.putExtra("url", extendedMediaEntity.getMediaURLHttps());
-							String imgUrl = getFrameApi().getCommandUrl(oneImageIntent);
+							openImageIntent.putExtra("url", extendedMediaEntity.getMediaURLHttps());
+							openImageIntent.putExtra("possiblySensitive", possiblySensitive);
+							String imgUrl = getFrameApi().getCommandUrl(openImageIntent);
 							stringBuilder.append("<a href='")
 									.append(imgUrl)
 									.append("'><img src='")
@@ -130,6 +133,7 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 					}
 					IntentArguments intent = getIntentArguments("openimg");
 					intent.putExtra("url", mediaEntity.getMediaURL());
+					intent.putExtra("possiblySensitive", possiblySensitive);
 					url = getFrameApi().getCommandUrl(intent);
 					isMediaFile = true;
 				} else {
