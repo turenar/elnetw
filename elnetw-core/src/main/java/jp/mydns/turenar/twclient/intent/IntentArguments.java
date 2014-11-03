@@ -23,7 +23,11 @@ package jp.mydns.turenar.twclient.intent;
 
 import java.util.HashMap;
 
+import javax.swing.JMenuItem;
+
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import jp.mydns.turenar.twclient.gui.ShortcutKeyManager;
+import jp.mydns.turenar.twclient.internal.IntentActionListener;
 
 /**
  * ActionHandler用の引数管理
@@ -32,6 +36,10 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
  */
 public class IntentArguments implements Cloneable {
 	private static final ClientConfiguration configuration = ClientConfiguration.getInstance();
+	/**
+	 * 名前なし引数名
+	 */
+	public static final String UNNAMED_ARG = "_arg";
 	private String intentName;
 	private HashMap<String, Object> extraArgs;
 
@@ -56,6 +64,21 @@ public class IntentArguments implements Cloneable {
 		}
 		newInstance.extraArgs = new HashMap<>(extraArgs);
 		return newInstance;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof IntentArguments) {
+			IntentArguments another = (IntentArguments) obj;
+			if (!intentName.equals(another.intentName)) {
+				return false;
+			} else if (extraArgs == null || extraArgs.isEmpty()) {
+				return another.extraArgs == null || another.extraArgs.isEmpty();
+			}
+			return extraArgs.equals(another.extraArgs);
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -150,6 +173,11 @@ public class IntentArguments implements Cloneable {
 		return getExtraObj(name, clazz) != null;
 	}
 
+	@Override
+	public int hashCode() {
+		return intentName.hashCode() * 31 + (extraArgs == null ? 0 : extraArgs.hashCode());
+	}
+
 	/**
 	 * delegate for {@link jp.mydns.turenar.twclient.ClientConfiguration#handleAction(IntentArguments)}
 	 */
@@ -172,6 +200,11 @@ public class IntentArguments implements Cloneable {
 		return this;
 	}
 
+	/**
+	 * 指定した名前を引数から削除する
+	 * @param name 引数名
+	 * @return このインスタンス
+	 */
 	public IntentArguments removeExtra(String name) {
 		extraArgs.remove(name);
 		return this;
@@ -186,6 +219,18 @@ public class IntentArguments implements Cloneable {
 	public IntentArguments setIntentName(String name) {
 		intentName = name;
 		return this;
+	}
+
+	/**
+	 * メニューにこのIntentArgumentsを関連付ける。
+	 * これはあくまでヘルパーメソッドであり、IntentArgumentsはメニューとの関係をもちません。あくまで
+	 * 呼び出されるだけです。
+	 *
+	 * @param menuItem メニューアイテム
+	 */
+	public void setMenu(JMenuItem menuItem) {
+		menuItem.addActionListener(new IntentActionListener(this));
+		menuItem.setAccelerator(ShortcutKeyManager.getKeyStrokeFromIntent(this));
 	}
 
 	@Override

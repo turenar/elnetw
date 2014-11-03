@@ -312,12 +312,12 @@ public class Utility {
 				argSeparatorIndex < 0 ? actionCommand : actionCommand.substring(0, argSeparatorIndex));
 
 
-		String argsString = actionCommand.substring(argSeparatorIndex + 1);
+		String argsString = argSeparatorIndex < 0 ? "" : actionCommand.substring(argSeparatorIndex + 1);
 		if (!argsString.isEmpty()) {
 			String[] args = (argSeparatorIndex < 0 ? "" : argsString).split(";");
 			for (String arg : args) {
 				int kvSeparatorIndex = arg.indexOf('=');
-				String name = kvSeparatorIndex < 0 ? "_arg" : arg.substring(0, kvSeparatorIndex);
+				String name = kvSeparatorIndex < 0 ? IntentArguments.UNNAMED_ARG : arg.substring(0, kvSeparatorIndex);
 				String value = kvSeparatorIndex < 0 ? arg : arg.substring(kvSeparatorIndex + 1);
 				intentArguments.putExtra(name, value);
 			}

@@ -64,7 +64,7 @@ public final class ShortcutKeyManager {
 	private static String defaultComponentName;
 	private static HashMap<String, InputMap> inputMapHashMap = new HashMap<>();
 	private static HashMap<String, ActionMap> actionMapHashMap = new HashMap<>();
-
+	private static HashMap<IntentArguments, KeyStroke> intentStrokeMap = new HashMap<>();
 	/**
 	 * add shortcutkey
 	 *
@@ -77,6 +77,7 @@ public final class ShortcutKeyManager {
 		ActionMap actionMap = getActionMap(component);
 		actionMap.put(intent, new ShortcutActionListener(intent));
 		inputMap.put(stroke, intent);
+		intentStrokeMap.put(intent, stroke);
 	}
 
 	private static ActionMap getActionMap(String component) {
@@ -102,6 +103,10 @@ public final class ShortcutKeyManager {
 			}
 		}
 		return inputMap;
+	}
+
+	public static KeyStroke getKeyStrokeFromIntent(IntentArguments intent) {
+		return intentStrokeMap.get(intent);
 	}
 
 	/**
