@@ -49,6 +49,7 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.Utility;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.FetchEventHandler;
 import jp.mydns.turenar.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
@@ -214,10 +215,11 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	 */
 	public ImageViewerFrame(URL url, boolean possiblySensitive) {
 		this.url = url;
-		this.possiblySensitive = possiblySensitive;
+		ClientProperties configProperties = ClientConfiguration.getInstance().getConfigProperties();
+		this.possiblySensitive = configProperties.getBoolean("gui.image.follow_sensitive") && possiblySensitive;
 		initComponents();
 		scheduleImageFetcher(url);
-		uiFont = ClientConfiguration.getInstance().getConfigProperties()
+		uiFont = configProperties
 				.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI).deriveFont(Font.BOLD);
 	}
 
