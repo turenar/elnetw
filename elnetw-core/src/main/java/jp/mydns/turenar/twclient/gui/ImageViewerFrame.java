@@ -49,6 +49,7 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.Utility;
+import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.FetchEventHandler;
 import jp.mydns.turenar.twclient.internal.NetworkSupport;
 import org.slf4j.Logger;
@@ -128,16 +129,18 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 					} else {
 						ImageViewerFrame.this.image = Utility.createBufferedImage(image,
 								new MediaTracker(ImageViewerFrame.this));
-						checkImageSize();
-						EventQueue.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								getComponentImageLabel().setText(null);
-								pack();
-								queueUpdateImage();
-								setIconImage(image);
-							}
-						});
+						if (!possiblySensitive) {
+							checkImageSize();
+							EventQueue.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									getComponentImageLabel().setText(null);
+									pack();
+									queueUpdateImage();
+									setIconImage(image);
+								}
+							});
+						}
 					}
 				}
 			} catch (InterruptedException e) {
@@ -149,7 +152,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 			EventQueue.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					getComponentImageLabel().setText(progress);
+					if (!possiblySensitive) {
+						getComponentImageLabel().setText(progress);
+					}
 				}
 			});
 		}
@@ -164,10 +169,12 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 		@Override
 		public void run() {
-			logger.debug("ivf.seticon.start");
-			getComponentImageLabel().setText(null);
-			getComponentImageLabel().setIcon(new ImageIcon(image));
-			logger.debug("ivf.seticon.end");
+			if (!possiblySensitive) {
+				logger.debug("ivf.seticon.start");
+				getComponentImageLabel().setText(null);
+				getComponentImageLabel().setIcon(new ImageIcon(image));
+				logger.debug("ivf.seticon.end");
+			}
 		}
 	}
 
@@ -178,6 +185,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	 */
 	public static final int MIN_IMAGE_SIZE = 64;
 	private final URL url;
+	/*package*/ volatile boolean possiblySensitive;
 	private int resizeScaleFactor;
 	private transient MouseListener zoomMouseListener = new MouseAdapter() {
 		@Override
@@ -202,13 +210,16 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param url 画像のURL。
+	 * @param url               画像のURL。
+	 * @param possiblySensitive possibly sensitive
 	 */
-	public ImageViewerFrame(URL url) {
+	public ImageViewerFrame(URL url, boolean possiblySensitive) {
 		this.url = url;
+		ClientProperties configProperties = ClientConfiguration.getInstance().getConfigProperties();
+		this.possiblySensitive = configProperties.getBoolean("gui.image.follow_sensitive") && possiblySensitive;
 		initComponents();
 		scheduleImageFetcher(url);
-		uiFont = ClientConfiguration.getInstance().getConfigProperties()
+		uiFont = configProperties
 				.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI).deriveFont(Font.BOLD);
 	}
 
@@ -240,7 +251,21 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 	private JLabel getComponentImageLabel() {
 		if (imageLabel == null) {
-			imageLabel = new JLabel("キューが開くのを待っています...");
+			imageLabel = new JLabel(possiblySensitive
+					? "<html>不適切な画像が表示される可能性があります。<br>表示するにはクリックしてください。"
+					: "キューが開くのを待っています...");
+			imageLabel.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (possiblySensitive) {
+						possiblySensitive = false;
+						getComponentImageLabel().setText(null);
+						pack();
+						queueUpdateImage();
+						setIconImage(image);
+					}
+				}
+			});
 		}
 		return imageLabel;
 	}
@@ -318,25 +343,32 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 	/*package*/ void queueUpdateImage() {
 		getComponentImageLabel().setIcon(null);
-		getComponentImageLabel().setText("Loading...");
-		final MediaContainer mediaContainer = updateImageSize();
-		ClientConfiguration.getInstance().addJob(JobQueue.PRIORITY_MAX, new ParallelRunnable() {
-			@Override
-			public void run() {
-				synchronized (ImageViewerFrame.this) {
-					try {
-						mediaContainer.mediaTracker.waitForID(0);
-						EventQueue.invokeLater(new ImageUpdater(mediaContainer.fastScaledImage));
-						logger.debug("ivf.job.fastdone");
-						mediaContainer.mediaTracker.waitForID(1);
-						EventQueue.invokeLater(new ImageUpdater(mediaContainer.slowScaledImage));
-						logger.debug("ivf.job.done");
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
+		if (!possiblySensitive) {
+			getComponentImageLabel().setText("Loading...");
+			synchronized (this) {
+				if (image == null) {
+					return; // fetcher shows image
 				}
 			}
-		});
+			final MediaContainer mediaContainer = updateImageSize();
+			ClientConfiguration.getInstance().addJob(JobQueue.PRIORITY_MAX, new ParallelRunnable() {
+				@Override
+				public void run() {
+					synchronized (ImageViewerFrame.this) {
+						try {
+							mediaContainer.mediaTracker.waitForID(0);
+							EventQueue.invokeLater(new ImageUpdater(mediaContainer.fastScaledImage));
+							logger.debug("ivf.job.fastdone");
+							mediaContainer.mediaTracker.waitForID(1);
+							EventQueue.invokeLater(new ImageUpdater(mediaContainer.slowScaledImage));
+							logger.debug("ivf.job.done");
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+					}
+				}
+			});
+		}
 	}
 
 	private void scheduleImageFetcher(URL url) {

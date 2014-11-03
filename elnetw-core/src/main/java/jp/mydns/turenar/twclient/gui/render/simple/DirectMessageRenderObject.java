@@ -82,7 +82,7 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	@Override
 	public void focusGained(FocusEvent e) {
 		super.focusGained(e);
-		String tweetText = getTweetViewText(directMessage, directMessage.getText());
+		String tweetText = getTweetViewText(directMessage, directMessage.getText(), false);
 		String createdBy = String.format("@%1$s (%2$s) -> @%3$s (%4$s)",
 				directMessage.getSender().getScreenName(), directMessage.getSender().getName(),
 				directMessage.getRecipient().getScreenName(), directMessage.getRecipient().getName());
@@ -150,8 +150,8 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 		switch (name) {
 			case ClientEventConstants.EVENT_CLICKED_USERICON:
 				try {
-					new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()))
-							.setVisible(true);
+					new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()),
+							false).setVisible(true);
 				} catch (MalformedURLException e) {
 					logger.error("failed getting original profile image", e);
 				}

@@ -548,6 +548,9 @@ public final class TwitterClientMain {
 						new BooleanConfigType())
 				.addConfig("core.filter.retweet_only_once", "同じツイートはリツイート含めて一回しか流さない",
 						"デフォルトはオフです", new BooleanConfigType());
+		configBuilder.getGroup("画像")
+				.addConfig("gui.image.follow_sensitive", "不適切かもしれない画像を表示するときに確認する",
+						"Webの設定とは同期しません", new BooleanConfigType());
 		configBuilder.getGroup("高度な設定")
 				.addConfig(null, "コンシューマーキーの設定", null, new ConsumerTokenConfigType())
 				.addConfig(null, "設定を直接編集する (動作保証対象外です)", null,

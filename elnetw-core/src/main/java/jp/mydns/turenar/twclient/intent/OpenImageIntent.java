@@ -38,11 +38,12 @@ public class OpenImageIntent implements Intent {
 
 	@Override
 	public void handleAction(IntentArguments args) {
+		Boolean possiblySensitive = args.getExtraObj("possiblySensitive", Boolean.class, Boolean.FALSE);
 		Object urls = args.getExtra("urls");
 		if (urls instanceof Iterable) {
 			Iterable<?> urlList = (Iterable<?>) urls;
 			for (Object url : urlList) {
-				showFrame(toUrl(url));
+				showFrame(toUrl(url), possiblySensitive);
 			}
 			return;
 		} else if (urls != null) {
@@ -61,11 +62,11 @@ public class OpenImageIntent implements Intent {
 		} else {
 			throw new IllegalArgumentException("arg `url' or `urls' is missing");
 		}
-		showFrame(url);
+		showFrame(url, possiblySensitive);
 	}
 
-	private void showFrame(URL url) {
-		new ImageViewerFrame(url).setVisible(true);
+	private void showFrame(URL url, Boolean possiblySensitive) {
+		new ImageViewerFrame(url, possiblySensitive).setVisible(true);
 	}
 
 	private URL toUrl(Object url) {
