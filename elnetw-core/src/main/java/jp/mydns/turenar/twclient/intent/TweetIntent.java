@@ -40,7 +40,7 @@ public class TweetIntent extends AbstractIntent {
 
 	@Override
 	public void handleAction(IntentArguments arguments) {
-		String actionName = arguments.getExtraObj("_arg", String.class);
+		String actionName = arguments.getExtraObj(IntentArguments.UNNAMED_ARG, String.class);
 		String messageName;
 		switch (actionName) {
 			case "copy":

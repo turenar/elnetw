@@ -322,6 +322,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	public final Font uiFont;
 	/** UI更新キュー */
 	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
+	/** [K=ユーザーID, V=ユーザーのツイートなど] */
+	protected final HashMap<String, TreeSet<RenderPanel>> listItems = new HashMap<>();
 	protected JLabel titleLabel;
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<RenderPanel> inReplyToStack = new Stack<>();
@@ -331,8 +333,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected FontMetrics fontMetrics;
 	/** フォントの高さ */
 	protected int fontHeight;
-	/** [K=ユーザーID, V=ユーザーのツイートなど] */
-	protected HashMap<String, TreeSet<RenderPanel>> listItems = new HashMap<>();
 	/** [K=ステータスID, V=ツイートなど] */
 	protected HashMap<String, RenderPanel> statusMap = new HashMap<>();
 	/** スクロールペーン */
@@ -809,8 +809,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		runInDispatcherThread(new Runnable() {
 			@Override
 			public void run() {
-				titleLabel.setText(getTitle());
-				titleLabel.setIcon(getIcon());
+				getTitleComponent().setText(getTitle());
+				getTitleComponent().setIcon(getIcon());
 			}
 		});
 	}

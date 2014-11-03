@@ -113,18 +113,18 @@ public class MuteIntent extends AbstractIntent {
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments arguments) {
 		boolean auto = getBoolean(arguments, "auto", false)
-				|| arguments.getExtraObj("_arg", String.class).equals("auto");
+				|| arguments.getExtraObj(IntentArguments.UNNAMED_ARG, String.class).equals("auto");
 		if (auto) {
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "user"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_user"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "user"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_user"));
 			if (getStatus(arguments).isRetweet()) {
-				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_mention"));
+				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_mention"));
 			} else {
-				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "mention"));
+				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "mention"));
 			}
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "client"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "rt_client"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra("_arg", "text"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "client"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_client"));
+			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "text"));
 			return;
 		}
 		if (arguments.getExtraObj("user", User.class) != null) {
@@ -134,7 +134,7 @@ public class MuteIntent extends AbstractIntent {
 		} else {
 			Status status = getStatus(arguments);
 			if (status != null) {
-				String arg = arguments.getExtraObj("_arg", String.class, "user");
+				String arg = arguments.getExtraObj(IntentArguments.UNNAMED_ARG, String.class, "user");
 				if (arg.startsWith("rt_")) {
 					if (!status.isRetweet()) {
 						return;
@@ -187,7 +187,7 @@ public class MuteIntent extends AbstractIntent {
 	}
 
 	private IntentArguments getCleanArgument(IntentArguments arguments) {
-		return arguments.clone().removeExtra("_arg").removeExtra("auto");
+		return arguments.clone().removeExtra(IntentArguments.UNNAMED_ARG).removeExtra("auto");
 	}
 
 	private String getClientName(String source) {

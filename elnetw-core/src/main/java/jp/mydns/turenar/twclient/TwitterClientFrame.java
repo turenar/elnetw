@@ -137,7 +137,7 @@ import twitter4j.User;
 
 		@Override
 		public void handleAction(IntentArguments args) {
-			String actionName = args.getExtraObj("_arg", String.class);
+			String actionName = args.getExtraObj(IntentArguments.UNNAMED_ARG, String.class);
 			if (actionName == null) {
 				throw new IllegalArgumentException("`action` is not found");
 			}
@@ -439,7 +439,7 @@ import twitter4j.User;
 				readButtonGroup.add(readMenuItem);
 
 				JMenuItem writeMenuItem = new JRadioButtonMenuItem(accountId);
-				writeMenuItem.addActionListener(new IntentActionListener("menu_login_write").putExtra("accountId", accountId));
+				new IntentArguments("menu_login_write").putExtra("accountId", accountId).setMenu(writeMenuItem);
 				if (accountId.equals(defaultAccountId)) {
 					writeMenuItem.setSelected(true);
 					writeMenuItem.setFont(writeMenuItem.getFont().deriveFont(Font.BOLD));
@@ -645,7 +645,7 @@ import twitter4j.User;
 			accountMenu.add(getPostToJMenu());
 
 			JMenuItem verifyAccountMenuItem = new JMenuItem("アカウント認証(V)...", KeyEvent.VK_V);
-			verifyAccountMenuItem.addActionListener(new IntentActionListener("menu_account_verify"));
+			new IntentArguments("menu_account_verify").setMenu(verifyAccountMenuItem);
 			accountMenu.add(verifyAccountMenuItem);
 		}
 		return accountMenu;
@@ -676,7 +676,7 @@ import twitter4j.User;
 				tabMenu.addSeparator();
 			}
 			JMenuItem factoryItem = new JMenuItem(factory.getName());
-			factoryItem.addActionListener(new IntentActionListener("tab_add").putExtra("tabId", tabId));
+			new IntentArguments("tab_add").putExtra("tabId", tabId).setMenu(factoryItem);
 			tabMenu.add(factoryItem);
 			lastPriority = factory.getPriority();
 		}
@@ -687,13 +687,13 @@ import twitter4j.User;
 		JMenu applicationMenu;
 		applicationMenu = new JMenu("アプリケーション");
 		JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
-		configMenuItem.addActionListener(new IntentActionListener("menu_config"));
+		new IntentArguments("menu_config").setMenu(configMenuItem);
 		applicationMenu.add(configMenuItem);
 
 		applicationMenu.addSeparator();
 
 		JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
-		quitMenuItem.addActionListener(new IntentActionListener("menu_quit"));
+		new IntentArguments("menu_quit").setMenu(quitMenuItem);
 		applicationMenu.add(quitMenuItem);
 		return applicationMenu;
 	}
@@ -702,7 +702,7 @@ import twitter4j.User;
 		JMenu infoMenu;
 		infoMenu = new JMenu("情報");
 		JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
-		versionMenuItem.addActionListener(new IntentActionListener("core").putExtra("_arg", "version"));
+		new IntentArguments("core").putExtra(IntentArguments.UNNAMED_ARG, "version").setMenu(versionMenuItem);
 		infoMenu.add(versionMenuItem);
 		return infoMenu;
 	}
