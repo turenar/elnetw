@@ -76,6 +76,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import jp.mydns.turenar.twclient.JobQueue.Priority;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.gui.ShortcutKeyManager;
 import jp.mydns.turenar.twclient.gui.VersionInfoFrame;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
@@ -470,7 +471,6 @@ import twitter4j.User;
 	/*package*/final transient ClientConfiguration configuration;
 	/*package*/final transient TweetLengthCalculator defaultTweetLengthCalculator =
 			new DefaultTweetLengthCalculator(this);
-	/*package*/ final Map<String, String> shortcutKeyMap = new HashMap<>();
 	/*package*/ Status inReplyToStatus = null;
 	/*package*/ JPanel editPanel;
 	/*package*/ JPanel postPanel;
@@ -525,11 +525,6 @@ import twitter4j.User;
 		logger.info("frame initialized");
 	}
 
-	@Override
-	public void addShortcutKey(String keyString, String actionName) {
-		shortcutKeyMap.put(keyString, actionName);
-	}
-
 	protected void addTab(ClientTab tab) {
 		getViewTab().addTab(null, tab.getIcon(), tab.getTabComponent());
 		getViewTab().setTabComponentAt(getViewTab().getTabCount() - 1, tab.getTitleComponent());
@@ -564,17 +559,6 @@ import twitter4j.User;
 	@Override
 	public void focusPostBox() {
 		getPostBox().requestFocusInWindow();
-	}
-
-	@Override
-	public String getActionCommandByShortcutKey(String component, String keyString) {
-		synchronized (shortcutKeyMap) {
-			String actionCommand = shortcutKeyMap.get(component + "." + keyString);
-			if (actionCommand == null) {
-				actionCommand = shortcutKeyMap.get("all" + "." + keyString);
-			}
-			return actionCommand;
-		}
 	}
 
 	/**
@@ -744,17 +728,11 @@ import twitter4j.User;
 			postBox.setColumns(20);
 			postBox.setRows(3);
 			postBox.setFont(uiFont);
+			ShortcutKeyManager.setKeyMap("postbox", postBox);
 			postBox.addKeyListener(new KeyAdapter() {
-
-				@Override
-				public void keyPressed(KeyEvent e) {
-					handleShortcutKey("postbox", e);
-				}
-
 				@Override
 				public void keyReleased(KeyEvent e) {
 					updatePostLength();
-					handleShortcutKey("postbox", e);
 				}
 			});
 		}
@@ -1038,8 +1016,7 @@ import twitter4j.User;
 	 *
 	 * @param ex 例外
 	 */
-	@Override
-	public void handleException(Exception ex) {
+	private void handleException(Exception ex) {
 		// TODO rootFilterService.onException(ex);
 	}
 
@@ -1051,22 +1028,6 @@ import twitter4j.User;
 	@Override
 	public void handleException(TwitterException e) {
 		handleException((Exception) e);
-	}
-
-	@Override
-	public void handleShortcutKey(String component, KeyEvent e) {
-		int id = e.getID();
-		if (id == KeyEvent.KEY_TYPED) {
-			throw new IllegalArgumentException("KeyEvent.getID() must not be KEY_TYPED");
-		}
-		synchronized (shortcutKeyMap) {
-			String keyString = Utility.toKeyString(e);
-			String actionCommandName = getActionCommandByShortcutKey(component, keyString);
-			if (actionCommandName != null) {
-				getSelectingTab().handleAction(Utility.getIntentArguments(actionCommandName));
-				e.consume();
-			}
-		}
 	}
 
 	/**
@@ -1198,18 +1159,6 @@ import twitter4j.User;
 		getTweetViewEditorPane().setText(tweetData);
 		getTweetViewTextOverlayLabel().setText(overlayString);
 		tweetViewTextOverlayFlag = actionFlag;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Deprecated
-	@Override
-	public void setTweetViewText(String tweetData, String createdBy, String createdByToolTip, String createdAt,
-			String createdAtToolTip, Icon icon, JPanel operationPanel) {
-		clearTweetView();
-		setTweetViewText(tweetData, null, DO_NOTHING_WHEN_POINTED);
-		setTweetViewCreatedAt(createdAt, createdAtToolTip, DO_NOTHING_WHEN_POINTED);
-		setTweetViewCreatedBy(icon, createdBy, createdByToolTip, DO_NOTHING_WHEN_POINTED);
-		setTweetViewOperationPanel(operationPanel);
 	}
 
 	/** 開始する */
