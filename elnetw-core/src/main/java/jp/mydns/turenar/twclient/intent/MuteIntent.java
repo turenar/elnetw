@@ -36,7 +36,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.filter.ExtendedMuteFilter;
 import jp.mydns.turenar.twclient.filter.GlobalUserIdFilter;
@@ -51,7 +50,7 @@ import twitter4j.UserMentionEntity;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MuteIntent extends AbstractIntent {
-	private class EntityUser extends NullUser {
+	private static class EntityUser extends NullUser {
 
 		private final String screenName;
 		private final String name;
@@ -61,6 +60,11 @@ public class MuteIntent extends AbstractIntent {
 			screenName = entity.getScreenName();
 			name = entity.getName();
 			id = entity.getId();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return super.equals(obj); // suppress fb warning
 		}
 
 		@Override
@@ -78,8 +82,6 @@ public class MuteIntent extends AbstractIntent {
 			return screenName;
 		}
 	}
-
-	protected ClientConfiguration configuration = ClientConfiguration.getInstance();
 
 	private void addMenu(PopupMenuDispatcher dispatcher, IntentArguments arguments, String text,
 			boolean isTweetedByMe, boolean filtered) {

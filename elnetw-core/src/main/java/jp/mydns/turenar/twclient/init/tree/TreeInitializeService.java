@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.init.InitializeException;
 import jp.mydns.turenar.twclient.init.InitializeService;
@@ -49,6 +50,7 @@ public class TreeInitializeService extends InitializeService {
 	/**
 	 * do not mark final: test uses multiple instance
 	 */
+	@SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 	protected static TreeInitializeService instance = new TreeInitializeService();
 
 	/**

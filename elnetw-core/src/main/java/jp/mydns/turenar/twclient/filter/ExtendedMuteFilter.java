@@ -145,6 +145,7 @@ public class ExtendedMuteFilter extends AbstractMessageFilter implements Propert
 			case PROPERTY_KEY_FILTER_CLIENT:
 			case PROPERTY_KEY_FILTER_WORDS:
 				initFilter();
+				break;
 			default:
 				// do nothing
 		}

@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
@@ -108,9 +109,11 @@ public abstract class FileChooserUtil {
 			try {
 				ProcessBuilder processBuilder = new ProcessBuilder(args);
 				Process process = processBuilder.start();
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				String pathname = bufferedReader.readLine();
-				return (pathname == null || pathname.equals("null")) ? null : new File(pathname);
+				try (BufferedReader bufferedReader = new BufferedReader(
+						new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
+					String pathname = bufferedReader.readLine();
+					return (pathname == null || pathname.equals("null")) ? null : new File(pathname);
+				}
 			} catch (IOException e) {
 				logger.error("Failed to launch zenity", e);
 				return null;

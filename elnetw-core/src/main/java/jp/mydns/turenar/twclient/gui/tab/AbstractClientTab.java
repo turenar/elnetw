@@ -322,7 +322,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	public final Font uiFont;
 	/** UI更新キュー */
 	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
-	protected JLabel titleLabel = createTitleLabel();
+	protected JLabel titleLabel;
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<RenderPanel> inReplyToStack = new Stack<>();
 	/** 現在選択しているポスト */
@@ -672,6 +672,9 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 
 	@Override
 	public JLabel getTitleComponent() {
+		if (titleLabel == null) {
+			titleLabel = createTitleLabel();
+		}
 		return titleLabel;
 	}
 

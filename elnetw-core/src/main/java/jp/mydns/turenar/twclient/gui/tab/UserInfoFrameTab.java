@@ -90,18 +90,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
  */
 public class UserInfoFrameTab extends AbstractClientTab {
 
-	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
-
-		private static final long serialVersionUID = 7554202708087468592L;
-		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
-
-		@Override
-		public ViewFactory getViewFactory() {
-			return viewFactory;
-		}
-	}
-
-	private class BackgroundImageSetter extends AbstractImageSetter {
+	private static class BackgroundImageSetter extends AbstractImageSetter {
 		private final BackgroundImagePanel component;
 
 		public BackgroundImageSetter(BackgroundImagePanel component) {
@@ -115,6 +104,17 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
+		}
+	}
+
+	private static final class HTMLEditorKitExtension extends HTMLEditorKit {
+
+		private static final long serialVersionUID = 7554202708087468592L;
+		private transient HTMLFactory viewFactory = new HTMLFactoryDelegator();
+
+		@Override
+		public ViewFactory getViewFactory() {
+			return viewFactory;
 		}
 	}
 

@@ -130,6 +130,11 @@ import java.util.HashSet;
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		return source.hashCode() * 31 + targetName.hashCode();
+	}
+
 	/**
 	 * should source be invoked after target?
 	 *

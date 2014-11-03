@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.AbstractMap;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -677,7 +678,10 @@ import twitter4j.User;
 	private JMenu getMenuAddTab() {
 		JMenu tabMenu = new JMenu("タブ");
 		TreeSet<Map.Entry<String, ClientTabFactory>> entries = new TreeSet<>(new TabFactoryEntryComparator());
-		entries.addAll(ClientConfiguration.getClientTabFactories().entrySet());
+		for (Map.Entry<String, ClientTabFactory> entry : ClientConfiguration.getClientTabFactories().entrySet()) {
+			// avoid reused entry instance
+			entries.add(new AbstractMap.SimpleEntry<>(entry));
+		}
 
 		int lastPriority = Integer.MIN_VALUE;
 		for (Map.Entry<String, ClientTabFactory> factoryEntry : entries) {
