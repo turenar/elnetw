@@ -167,11 +167,14 @@ import org.slf4j.LoggerFactory;
 
 	@Override
 	public void uninit(boolean fastUninit) throws InitializeException {
+		if (!isInitialized) {
+			return; // may fail to init
+		}
 		try {
 			Class<?>[] parameterTypes = method.getParameterTypes();
-			if (parameterTypes.length == 0) {
-				// not supported uninit
-			} else if (parameterTypes.length == 1 && InitCondition.class.isAssignableFrom(parameterTypes[0])) {
+			// not supported uninit
+			// if (parameterTypes.length == 0) {}else
+			if (parameterTypes.length == 1 && InitCondition.class.isAssignableFrom(parameterTypes[0])) {
 				TreeInitConditionImpl initCondition = new TreeInitConditionImpl(this, false);
 				method.invoke(instance, initCondition);
 				logger.trace(" uninit: {}", this);
