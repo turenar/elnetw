@@ -526,14 +526,11 @@ public class Utility {
 				for (MessageNotifierEntry entry : messageNotifiers) {
 					Class<? extends MessageNotifier> messageNotifierClass = entry.messageNotifierClass;
 					try {
-						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable",
-								ClientConfiguration.class);
-						boolean usability = (Boolean) checkUsableMethod.invoke(null, configuration);
+						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable");
+						boolean usability = (Boolean) checkUsableMethod.invoke(null);
 						if (usability) {
-							Constructor<? extends MessageNotifier> constructor = messageNotifierClass.getConstructor(
-									ClientConfiguration.class
-							);
-							MessageNotifier messageNotifier = constructor.newInstance(configuration);
+							Constructor<? extends MessageNotifier> constructor = messageNotifierClass.getConstructor();
+							MessageNotifier messageNotifier = constructor.newInstance();
 							notifySender = messageNotifier;
 							logger.info("use {} as MessageNotifier", messageNotifier);
 							break;
@@ -599,9 +596,9 @@ public class Utility {
 	 * @param imageFile アイコン
 	 */
 	public void sendNotify(String summary, String text, File imageFile) {
-		if (configuration.isInitializing()) {
+	/*	if (configuration.isInitializing()) {
 			return;
-		}
+		}*/
 		detectNotifier();
 		if (notifySender != null) {
 			try {
