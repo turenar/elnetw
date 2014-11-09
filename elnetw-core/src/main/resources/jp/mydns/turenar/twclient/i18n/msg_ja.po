@@ -215,7 +215,7 @@ msgstr "%d時間"
 #: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/DateFormatter.java:199
 msgctxt "date short format"
 msgid "%1$tb %1$td"
-msgstr "%1$tm/%1$td"
+msgstr "%1$tb月%1$te日"
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
 msgid "(global)"

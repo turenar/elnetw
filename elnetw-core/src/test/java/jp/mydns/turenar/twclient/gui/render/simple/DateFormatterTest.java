@@ -27,6 +27,7 @@ import java.util.Locale;
 
 import jp.mydns.turenar.twclient.ClientConfigurationTestImpl;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
+import jp.mydns.turenar.twclient.i18n.LocalizationResourceProxy;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -74,9 +75,9 @@ public class DateFormatterTest {
 		configuration.setGlobalInstance();
 		try {
 			assertEquals("2014/01/01 00:00:00.000", toDateString(-10, SEC));
-			assertEquals("10秒前 (2014/01/01 00:00:00.000)", toDateString(+10, SEC));
-			assertEquals("10分前 (2014/01/01 00:00:00.000)", toDateString(+10, MINUTE));
-			assertEquals("10時間前 (2014/01/01 00:00:00.000)", toDateString(+10, HOUR));
+			assertEquals("10秒 (2014/01/01 00:00:00.000)", toDateString(+10, SEC));
+			assertEquals("10分 (2014/01/01 00:00:00.000)", toDateString(+10, MINUTE));
+			assertEquals("10時間 (2014/01/01 00:00:00.000)", toDateString(+10, HOUR));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, DAY));
 		} finally {
 			configuration.clearGlobalInstance();
@@ -89,9 +90,9 @@ public class DateFormatterTest {
 		configuration.setGlobalInstance();
 		try {
 			assertEquals("未来", toDateString(-10, SEC));
-			assertEquals("10秒前", toDateString(+10, SEC));
-			assertEquals("10分前", toDateString(+10, MINUTE));
-			assertEquals("10時間前", toDateString(+10, HOUR));
+			assertEquals("10秒", toDateString(+10, SEC));
+			assertEquals("10分", toDateString(+10, MINUTE));
+			assertEquals("10時間", toDateString(+10, HOUR));
 			assertEquals("1月1日", toDateString(+10, DAY));
 		} finally {
 			configuration.clearGlobalInstance();
@@ -118,12 +119,14 @@ public class DateFormatterTest {
 		ClientConfigurationTestImpl configuration = getConf("sec+rel");
 		configuration.setGlobalInstance();
 		try {
+			LocalizationResourceProxy.pushLocale(Locale.JAPAN);
 			assertEquals("2014/01/01 00:00:00", toDateString(-10, SEC));
-			assertEquals("10秒前 (2014/01/01 00:00:00)", toDateString(+10, SEC));
-			assertEquals("10分前 (2014/01/01 00:00:00)", toDateString(+10, MINUTE));
-			assertEquals("10時間前 (2014/01/01 00:00:00)", toDateString(+10, HOUR));
+			assertEquals("10秒 (2014/01/01 00:00:00)", toDateString(+10, SEC));
+			assertEquals("10分 (2014/01/01 00:00:00)", toDateString(+10, MINUTE));
+			assertEquals("10時間 (2014/01/01 00:00:00)", toDateString(+10, HOUR));
 			assertEquals("2014/01/01 00:00:00", toDateString(+10, DAY));
 		} finally {
+			LocalizationResourceProxy.popLocale();
 			configuration.clearGlobalInstance();
 		}
 	}

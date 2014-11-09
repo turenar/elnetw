@@ -29,8 +29,12 @@ import java.util.Locale;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class LocalizationResource {
+	/*package*/ static PoBundle bundle = getBundleInstance(Locale.getDefault());
 
-	private static PoBundle bundle = PoBundle.getInstance("jp/mydns/turenar/twclient/i18n/msg", Locale.getDefault());
+	/*package*/
+	static PoBundle getBundleInstance(Locale locale) {
+		return PoBundle.getInstance("jp/mydns/turenar/twclient/i18n/msg", locale);
+	}
 
 	/**
 	 * Translate and format
@@ -80,5 +84,8 @@ public class LocalizationResource {
 	 */
 	public static String trc(String comment, String format, Object... args) {
 		return bundle.trc(comment, format, args);
+	}
+
+	private LocalizationResource() {
 	}
 }

@@ -1364,10 +1364,10 @@ public class MessageFormatter {
 		if (locale == null || format == null) {
 			throw new NullPointerException();
 		}
-		this.formatFragments = parse(format);
 		this.locale = locale;
 		decimalFormatSymbols = DecimalFormatSymbols.getInstance(locale);
 		this.zero = decimalFormatSymbols.getZeroDigit();
+		this.formatFragments = parse(format);
 	}
 
 	/**
