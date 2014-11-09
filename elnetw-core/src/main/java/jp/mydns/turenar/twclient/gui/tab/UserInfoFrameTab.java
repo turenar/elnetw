@@ -630,6 +630,17 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		StringBuilder stringBuilder = new StringBuilder();
+		if (user == null) {
+			stringBuilder.append("読込中");
+		} else {
+			stringBuilder.append('@').append(user.getScreenName());
+		}
+		return stringBuilder.toString();
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}

@@ -26,8 +26,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -116,15 +114,6 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		@Override
 		public MessageFilter getChild() throws UnsupportedOperationException {
 			throw new UnsupportedOperationException();
-		}
-
-		/**
-		 * この時間ぐらい情報を置いておけばいいんじゃないですか的な秒数を取得する
-		 *
-		 * @return ミリ秒
-		 */
-		protected int getInfoSurviveTime() {
-			return frameApi.getInfoSurviveTime();
 		}
 
 		@Override
@@ -285,18 +274,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		}
 	}
 
-	/** クリップボード */
-	protected static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	/** uniqIdの衝突防止のために使用される乱数ジェネレーター。 */
 	protected static final Random random = new Random();
-	/**
-	 * 行の最小高さ
-	 */
-	public static final int MIN_HEIGHT = 18;
-	/**
-	 * アイコン幅
-	 */
-	public static final int ICON_WIDTH = 64;
 	/** {@link jp.mydns.turenar.twclient.ClientConfiguration#getFrameApi()} */
 	protected final ClientFrameApi frameApi;
 	/** SortedPostListPanelインスタンス */
@@ -362,6 +341,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected boolean shouldBeScrollToPost;
 	private volatile boolean focusGained;
 	private volatile boolean isDirty;
+	private volatile String title;
 
 	/**
 	 * インスタンスを生成する。
@@ -533,6 +513,13 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	}
 
 	/**
+	 * get default title. If user doesn't specify title, use this as title
+	 *
+	 * @return title
+	 */
+	protected abstract String getDefaultTitle();
+
+	/**
 	 * 描画処理をレンダラに行わせるクラスインスタンスを取得する
 	 *
 	 * @return インスタンス
@@ -669,7 +656,9 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	}
 
 	@Override
-	public abstract String getTitle();
+	public String getTitle() {
+		return title == null ? getDefaultTitle() : title;
+	}
 
 	@Override
 	public JLabel getTitleComponent() {
@@ -712,6 +701,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 				configProperties.getInteger(ClientConfiguration.PROPERTY_INTERVAL_POSTLIST_UPDATE),
 				TimeUnit.MILLISECONDS);
 		actualRenderer = RendererManager.get(accountId, this);
+		title = configProperties.getProperty(getPropertyPrefix() + ".title");
 	}
 
 	/**
@@ -801,6 +791,14 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		configProperties.put(propertyPrefix + ".accountId", accountId);
 		configProperties.put(propertyPrefix + ".uniqId", uniqId);
 		configProperties.put(propertyPrefix + ".tabId", getTabId());
+		if (title != null) {
+			configProperties.put(propertyPrefix + ".title", title);
+		}
+	}
+
+	@Override
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	/**

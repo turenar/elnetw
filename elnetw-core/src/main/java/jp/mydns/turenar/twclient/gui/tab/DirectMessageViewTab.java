@@ -71,6 +71,11 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		return "DM";
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
@@ -83,11 +88,6 @@ public class DirectMessageViewTab extends AbstractClientTab implements RenderTar
 	@Override
 	public String getTabId() {
 		return TAB_ID;
-	}
-
-	@Override
-	public String getTitle() {
-		return "DM";
 	}
 
 	@Override

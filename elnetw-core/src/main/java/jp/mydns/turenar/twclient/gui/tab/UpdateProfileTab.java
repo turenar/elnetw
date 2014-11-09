@@ -66,6 +66,7 @@ import twitter4j.TwitterException;
 
 import static javax.swing.GroupLayout.Alignment;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * メンション表示用タブ
@@ -109,7 +110,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 		public void actionPerformed(ActionEvent e) {
 			FileChooserUtil fileChooserUtil = FileChooserUtil.newInstance();
 			fileChooserUtil.setTitle(getChooserTitle());
-			fileChooserUtil.addFilter("画像ファイル", "gif", "jpg", "jpeg", "png", "bmp");
+			fileChooserUtil.addFilter(tr("Image Files"), "gif", "jpg", "jpeg", "png", "bmp");
 			File selectedFile = fileChooserUtil.openDialog(false, getTabComponent());
 			if (selectedFile != null) {
 //					JFileChooser fileChooser = new JFileChooser();
@@ -141,17 +142,17 @@ public class UpdateProfileTab extends AbstractClientTab {
 	private class BackgroundEditActionListener extends AbstractImageUploadActionListener {
 		@Override
 		public String getChooserTitle() {
-			return "背景として設定する画像を選択してください";
+			return tr("Select image to set as background");
 		}
 
 		@Override
 		protected void uploadImage(final Twitter twitter, final File selectedFile) {
-			final int result = JOptionPane.showConfirmDialog(getTabComponent(), "指定した画像をタイル状に並べて表示しますか？",
-					"背景設定", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+			final int result = JOptionPane.showConfirmDialog(getTabComponent(), tr("Show background as tiled?"),
+					tr("Background setting"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if (result == JOptionPane.CANCEL_OPTION) {
 				return;
 			}
-			updateText("背景画像の設定中...");
+			updateText(tr("Setting background..."));
 
 			configuration.addJob(new ParallelRunnable() {
 				@Override
@@ -159,7 +160,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 					try {
 						account.update(twitter.updateProfileBackgroundImage(selectedFile,
 								result == JOptionPane.YES_OPTION));
-						updateText("背景画像の設定完了！");
+						updateText(tr("Background setting done!"));
 					} catch (TwitterException e1) {
 						updateText(e1.getLocalizedMessage());
 						logger.warn("Failed to update profile image", e1);
@@ -172,7 +173,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 	private class BannerEditActionListener extends AbstractImageUploadActionListener {
 		@Override
 		public String getChooserTitle() {
-			return "ヘッダーとして設定する画像を選択してください";
+			return tr("Select image to set as header");
 		}
 
 		@Override
@@ -615,6 +616,11 @@ public class UpdateProfileTab extends AbstractClientTab {
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		return "@" + account.getScreenName() + "編集";
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return null;
 	}
@@ -637,11 +643,6 @@ public class UpdateProfileTab extends AbstractClientTab {
 	@Override
 	public String getTabId() {
 		return TAB_ID;
-	}
-
-	@Override
-	public String getTitle() {
-		return "@" + account.getScreenName() + "編集";
 	}
 
 	@Override

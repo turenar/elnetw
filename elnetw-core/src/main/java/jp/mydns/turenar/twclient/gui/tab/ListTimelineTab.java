@@ -47,6 +47,7 @@ import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement;
 import static jp.mydns.turenar.twclient.gui.tab.factory.ListTimelineTabFactory.ListConfigPanel;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * list tab
@@ -218,6 +219,17 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		if (listOwner != null) {
+			return "@" + listOwner + "/" + slug;
+		} else if (listInfo != null) {
+			return listInfo.getFullName();
+		} else {
+			return tr("List");
+		}
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
@@ -250,19 +262,8 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
-	public String getTitle() {
-		if (listOwner != null) {
-			return "@" + listOwner + "/" + slug;
-		} else if (listInfo != null) {
-			return listInfo.getFullName();
-		} else {
-			return "リスト";
-		}
-	}
-
-	@Override
 	public String getToolTip() {
-		return "リスト";
+		return tr("List");
 	}
 
 	@Override
