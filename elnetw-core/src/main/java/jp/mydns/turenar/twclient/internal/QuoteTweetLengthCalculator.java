@@ -30,6 +30,8 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.TweetLengthCalculator;
 import twitter4j.TwitterAPIConfiguration;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * QTされた時用のツイートの長さを計算するクラス
  *
@@ -100,8 +102,8 @@ public class QuoteTweetLengthCalculator implements TweetLengthCalculator {
 			color = Color.BLUE;
 		}
 		if (shortened) {
-			updater.updatePostLength(length + "+", color, "短縮されます (実際の投稿は" + getShortenedText(original).length()
-					+ "文字です)");
+			updater.updatePostLength(length + "+", color,
+					tr("will be shortened (actual post may have %d characters)", getShortenedText(original).length()));
 		} else {
 			updater.updatePostLength(String.valueOf(length), color, null);
 		}

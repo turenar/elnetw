@@ -29,6 +29,8 @@ import jp.mydns.turenar.twclient.ClientFrameApi;
 import jp.mydns.turenar.twclient.internal.QuoteTweetLengthCalculator;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * QTするためのアクションハンドラ
  *
@@ -38,7 +40,7 @@ public class QuoteTweetIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem menuItem = new JMenuItem("引用(Q)", KeyEvent.VK_Q);
+		JMenuItem menuItem = new JMenuItem(tr("Quoted tweet"), KeyEvent.VK_Q);
 		menuItem.setEnabled(getStatus(args) != null);
 		dispatcher.addMenu(menuItem, args);
 	}

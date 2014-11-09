@@ -22,7 +22,6 @@
 package jp.mydns.turenar.twclient.gui.render.simple;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
@@ -34,6 +33,9 @@ import static jp.mydns.turenar.twclient.Utility.DAY2MS;
 import static jp.mydns.turenar.twclient.Utility.HOUR2MS;
 import static jp.mydns.turenar.twclient.Utility.MINUTE2MS;
 import static jp.mydns.turenar.twclient.Utility.SEC2MS;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.trb;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.trbc;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.trc;
 
 /**
  * date formatter for SimpleRenderer
@@ -62,8 +64,8 @@ public class DateFormatter implements PropertyUpdateListener {
 		@Override
 		protected SimpleDateFormat initialValue() {
 			return isMillisecond
-					? new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS")
-					: new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					? new SimpleDateFormat(trc("date format", "yyyy-MM-dd HH:mm:ss.SSS"))
+					: new SimpleDateFormat(trc("date format", "yyyy-MM-dd HH:mm:ss"));
 		}
 	}
 
@@ -185,21 +187,16 @@ public class DateFormatter implements PropertyUpdateListener {
 		if (relative) {
 			if (timeDiff < 0) {
 				if (!absolute) {
-					stringBuilder.append("未来");
+					trb(stringBuilder, "future");
 				}
 			} else if (timeDiff < MINUTE2MS) {
-				stringBuilder.append(timeDiff / SEC2MS).append("秒前");
+				trbc(stringBuilder, "date short format", "%ds", timeDiff / SEC2MS);
 			} else if (timeDiff < HOUR2MS) {
-				stringBuilder.append(timeDiff / MINUTE2MS).append("分前");
+				trbc(stringBuilder, "date short format", "%dm", timeDiff / MINUTE2MS);
 			} else if (timeDiff < DAY2MS) {
-				stringBuilder.append(timeDiff / HOUR2MS).append("時間前");
+				trbc(stringBuilder, "date short format", "%dh", timeDiff / HOUR2MS);
 			} else if (!absolute) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(date);
-				stringBuilder.append(calendar.get(Calendar.MONTH) + 1)
-						.append("月")
-						.append(calendar.get(Calendar.DAY_OF_MONTH))
-						.append("日");
+				trbc(stringBuilder, "date short format", "%1$tb %1$td", date);
 			}
 
 			if (absolute && timeDiff >= 0 && timeDiff < DAY2MS) {

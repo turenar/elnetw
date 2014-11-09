@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
@@ -70,7 +71,7 @@ public class CacheStorage implements DirEntry {
 		if (databasePath != null && Files.exists(databasePath)) {
 			try {
 				root = new JSONObject(new JSONTokener(Files.newBufferedReader(databasePath, UTF8_CHARSET)));
-			} catch (IOException e) {
+			} catch (IOException | JSONException e) {
 				logger.error("Failed loading cache db: {}", databasePath, e);
 			}
 		}

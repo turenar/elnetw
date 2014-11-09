@@ -34,8 +34,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import jp.mydns.turenar.twclient.ParallelRunnable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import twitter4j.Status;
 import twitter4j.TwitterException;
+
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * ツイートを削除するためのアクションハンドラ
@@ -57,15 +61,16 @@ public class RemoveTweetIntent extends AbstractIntent {
 			try {
 				configuration.getTwitterForWrite().destroyStatus(status.getId());
 			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.warn("Failed removing tweet", e);
 			}
 		}
 	}
 
+	/*package*/static final Logger logger = LoggerFactory.getLogger(RemoveTweetIntent.class);
+
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem deleteMenuItem = new JMenuItem("削除(D)...", KeyEvent.VK_D);
+		JMenuItem deleteMenuItem = new JMenuItem(tr("Delete..."), KeyEvent.VK_D);
 		Status status = getStatus(args);
 		if (status != null) {
 			boolean isTweetedByMe = status.getUser().getId() == getLoginUserId();
@@ -90,12 +95,12 @@ public class RemoveTweetIntent extends AbstractIntent {
 			JPanel panel = new JPanel();
 			BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 			panel.setLayout(layout);
-			panel.add(new JLabel("次のツイートを削除しますか？"));
+			panel.add(new JLabel(tr("Delete below tweet?")));
 			panel.add(Box.createVerticalStrut(15));
 			panel.add(new JLabel(status.getText()));
 			final JOptionPane pane =
 					new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-			JDialog dialog = pane.createDialog(null, "確認");
+			JDialog dialog = pane.createDialog(null, tr("Confirm"));
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			pane.addPropertyChangeListener(new PropertyChangeListener() {
 

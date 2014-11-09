@@ -36,6 +36,8 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.gui.QueryEditFrame;
 import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * フィルタをごにょごにょするための {@link ConfigType}
  *
@@ -107,7 +109,7 @@ public class QueryEditConfigType implements ConfigType, ActionListener {
 
 	private Component getComponentEditButton() {
 		if (editButton == null) {
-			editButton = new JButton("編集");
+			editButton = new JButton(tr("Edit"));
 			editButton.addActionListener(this);
 		}
 		return editButton;
@@ -116,7 +118,7 @@ public class QueryEditConfigType implements ConfigType, ActionListener {
 	private JComboBox<KVItem> getComponentFilterChooser() {
 		if (filterChooser == null) {
 			filterChooser = new JComboBox<>();
-			filterChooser.addItem(new KVItem("(グローバル)", "core.filter._global"));
+			filterChooser.addItem(new KVItem(tr("(global)"), "core.filter._global"));
 
 			int count = configuration.getFrameTabCount();
 			for (int i = 0; i < count; i++) {

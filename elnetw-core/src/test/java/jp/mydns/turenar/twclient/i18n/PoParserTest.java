@@ -19,50 +19,42 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package jp.mydns.turenar.twclient.gui.tab.factory;
+package jp.mydns.turenar.twclient.i18n;
 
-import javax.swing.JComponent;
+import java.io.InputStreamReader;
+import java.util.Map;
 
-import jp.mydns.turenar.twclient.gui.tab.ClientTab;
-import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
-import jp.mydns.turenar.twclient.gui.tab.TimelineViewTab;
+import org.junit.Test;
 
-import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+import static org.junit.Assert.*;
 
-/**
- * facotry for TimelineViewTab
- *
- * @author Turenar (snswinhaiku dot lo at gmail dot com)
- */
-public class TimelineViewTabFactory implements ClientTabFactory {
-	/**
-	 * priority for adding tab menu
-	 */
-
-	public static final int TAB_PRIORITY = -0x10000000;
-
-	@Override
-	public ClientTab getInstance(String tabId, String uniqId) {
-		return new TimelineViewTab(tabId, uniqId);
+public class PoParserTest {
+	private Map<String, String> getEntries(String fileName) {
+		return PoParser.parse(new InputStreamReader(PoParserTest.class.getResourceAsStream(fileName)));
 	}
 
-	@Override
-	public String getName() {
-		return tr("Home Timeline");
+	@Test
+	public void testCommentEntries() throws Exception {
+		Map<String, String> entries = getEntries("comment.po");
+		assertEquals("テスト", entries.get(PoParser.getMessageId("Noun", "test")));
+		assertEquals("テストする", entries.get(PoParser.getMessageId("Verb", "test")));
 	}
 
-	@Override
-	public JComponent getOtherConfigurationComponent() {
-		return null;
+	@Test
+	public void testFuzzyEntries() throws Exception {
+		Map<String, String> entries = getEntries("fuzzy.po");
+		assertEquals(null, entries.get("test"));
 	}
 
-	@Override
-	public int getPriority() {
-		return TAB_PRIORITY;
+	@Test
+	public void testMultiLineEntries() throws Exception {
+		Map<String, String> entries = getEntries("multiline.po");
+		assertEquals("テスト\nこれはテストです。", entries.get("test\nThis is a test."));
 	}
 
-	@Override
-	public ClientTab newTab(String tabId, String accountId, JComponent otherConfigurationComponent) {
-		return new TimelineViewTab(accountId);
+	@Test
+	public void testSimpleEntries() throws Exception {
+		Map<String, String> entries = getEntries("simple.po");
+		assertEquals("テスト", entries.get("test"));
 	}
 }

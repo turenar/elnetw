@@ -56,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static jp.mydns.turenar.twclient.JobQueue.Priority;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * image viewer
@@ -110,9 +111,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 			if (isInterrupted) {
 				throw new InterruptedException();
 			} else if (contentLength == -1) {
-				updateImageLabel("読込中(" + imageLen + ")");
+				updateImageLabel(tr("Loading (%d)", imageLen));
 			} else {
-				updateImageLabel("読込中(" + imageLen + "/" + contentLength + ")");
+				updateImageLabel(tr("Loading (%d/%d)", imageLen, contentLength));
 			}
 		}
 
@@ -125,7 +126,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 					final Image image = Toolkit.getDefaultToolkit().createImage(contents);
 					final ImageIcon imageIcon = new ImageIcon(image);
 					if (imageIcon.getIconHeight() < 0) {
-						updateImageLabel("画像のロードに失敗したもよう");
+						updateImageLabel(tr("Failed loading image"));
 					} else {
 						ImageViewerFrame.this.image = Utility.createBufferedImage(image,
 								new MediaTracker(ImageViewerFrame.this));
@@ -144,7 +145,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 					}
 				}
 			} catch (InterruptedException e) {
-				updateImageLabel("割り込まれました");
+				updateImageLabel(tr("Thread interrupted"));
 			}
 		}
 
@@ -179,7 +180,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	}
 
 	/*package*/static final Logger logger = LoggerFactory.getLogger(ImageViewerFrame.class);
-	private static final long serialVersionUID = 8816712425087567400L;
+	private static final long serialVersionUID = -6123453663166656756L;
 	/**
 	 * minimum image size
 	 */
@@ -252,8 +253,8 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	private JLabel getComponentImageLabel() {
 		if (imageLabel == null) {
 			imageLabel = new JLabel(possiblySensitive
-					? "<html>不適切な画像が表示される可能性があります。<br>表示するにはクリックしてください。"
-					: "キューが開くのを待っています...");
+					? tr("<html>This image may be containing sensitive content<br>Click to show")
+					: tr("Waiting for queue"));
 			imageLabel.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {

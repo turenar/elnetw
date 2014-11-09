@@ -47,6 +47,7 @@ import twitter4j.UserList;
 import twitter4j.conf.Configuration;
 
 import static javax.swing.GroupLayout.Alignment;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * factory for ListTimelineTab
@@ -73,7 +74,7 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 		 * インスタンスを生成する
 		 */
 		public ListConfigPanel() {
-			setBorder(new TitledBorder("固有の設定"));
+			setBorder(new TitledBorder(tr("Specific Configuration")));
 			initComponents();
 		}
 
@@ -88,25 +89,26 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 
 		/*package*/ JCheckBox getComponentAllTweetsIncluded() {
 			if (allTweetsIncludeCheck == null) {
-				allTweetsIncludeCheck = new JCheckBox("リストに登録されているアカウントへのリプライなどを含める");
-				allTweetsIncludeCheck.setToolTipText("デフォルトはオフです。オンにするにはストリームの使用をオンにしてください。");
+				allTweetsIncludeCheck = new JCheckBox(tr("Include replies to accounts added into list"));
+				allTweetsIncludeCheck.setToolTipText(tr("Default is off. If you want to turn on, check use stream option."));
 			}
 			return allTweetsIncludeCheck;
 		}
 
 		/*package*/ JCheckBox getComponentIdCheckBox() {
 			if (idCheckBox == null) {
-				idCheckBox = new JCheckBox("リストIDを保存");
+				idCheckBox = new JCheckBox(tr("Save the list ID"));
 				idCheckBox.setSelected(true);
-				idCheckBox.setToolTipText("リストIDを保存すると、リスト名が変わったりユーザー名が変わっても追跡できます。\n"
-						+ "しかし、リストを同名で作りなおした時に追跡できなくなります。");
+				idCheckBox.setToolTipText(tr("If you turn on, follow list even if "
+						+ "its name or the screen name of its name.\n"
+						+ "But if its owner re-create list with the same owner, we can't follow list"));
 			}
 			return idCheckBox;
 		}
 
 		/*package*/ JLabel getComponentListLabel() {
 			if (listLabel == null) {
-				listLabel = new JLabel("リスト");
+				listLabel = new JLabel(tr("List"));
 			}
 			return listLabel;
 		}
@@ -127,9 +129,9 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 
 		/*package*/ JCheckBox getComponentUseStreamCheck() {
 			if (useStreamCheck == null) {
-				useStreamCheck = new JCheckBox("ストリームの使用");
+				useStreamCheck = new JCheckBox(tr("Use stream"));
 				useStreamCheck.setSelected(true);
-				useStreamCheck.setToolTipText("即時更新");
+				useStreamCheck.setToolTipText(tr("Enable instant update"));
 				useStreamCheck.addChangeListener(new ChangeListener() {
 					@Override
 					public void stateChanged(ChangeEvent e) {
@@ -224,8 +226,8 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 				@Override
 				public void run() {
 					JOptionPane.showMessageDialog(null,
-							"リストIDの取得に失敗しました。正しいリスト名を入力しているかどうか確認してください。\n"
-									+ ex.getLocalizedMessage(), "elnetw", JOptionPane.ERROR_MESSAGE);
+							tr("Failed retrieving list ID. Check if the list name is valid\n%s", ex.getLocalizedMessage()),
+							"elnetw", JOptionPane.ERROR_MESSAGE);
 				}
 			});
 		}
@@ -243,7 +245,7 @@ public class ListTimelineTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "リスト";
+		return tr("List");
 	}
 
 	@Override

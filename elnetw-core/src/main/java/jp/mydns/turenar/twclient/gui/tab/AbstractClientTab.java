@@ -35,6 +35,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -220,7 +221,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 				case OPEN_TIMELINE_IN_BROWSER:
 					try {
 						configuration.getUtility().openBrowser(getTwitterUrl());
-					} catch (IOException | ReflectiveOperationException e) {
+					} catch (IOException | URISyntaxException e) {
 						logger.warn("open browser failed", e);
 					}
 					break;

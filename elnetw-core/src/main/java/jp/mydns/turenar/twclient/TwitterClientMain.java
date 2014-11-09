@@ -168,6 +168,7 @@ import twitter4j.auth.AccessToken;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static jp.mydns.turenar.twclient.ClientConfiguration.PROPERTY_ACCOUNT_LIST;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * 実際に起動するランチャ
@@ -342,11 +343,11 @@ public final class TwitterClientMain {
 	@Initializer(name = "gui/config/filter", phase = "init")
 	@InitDepends({"gui/main", "gui/config/builder"})
 	public void addConfiguratorOfFilter() {
-		configuration.getConfigBuilder().getGroup("フィルタ")
+		configuration.getConfigBuilder().getGroup(tr("Filter"))
 				.addConfig(ClientConfiguration.PROPERTY_BLOCKING_USER_MUTE_ENABLED,
-						"ブロック中のユーザーをミュートする", "チェックを入れると初期読み込みが遅くなります。",
+						tr("Mute blocking users"), tr("Checking makes reading initial timeline delayed"),
 						new BooleanConfigType())
-				.addConfig("<ignore>", "フィルタの編集", "", new QueryEditConfigType());
+				.addConfig("<ignore>", "Edit filter", "", new QueryEditConfigType());
 	}
 
 	/**
@@ -474,8 +475,8 @@ public final class TwitterClientMain {
 				cacheFileLock = channel.tryLock();
 				if (cacheFileLock == null) {
 					JOptionPane.showMessageDialog(null,
-							"同じキャッシュディレクトリからの多重起動を検知しました。終了します。\n\n"
-									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+							tr("Detected another instance with the same cache directory running. Abort!\n\n"
+									+ "Check if other instances are running."),
 							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
 					condition.setFailStatus("MultiInstanceRunning", 1);
 					return;
@@ -518,43 +519,45 @@ public final class TwitterClientMain {
 	@InitDepends({"gui/main", "gui/config/builder"})
 	public void initConfigurator() {
 		ConfigFrameBuilder configBuilder = configuration.getConfigBuilder();
-		configBuilder.getGroup("Twitter").getSubgroup("取得間隔 (秒)")
-				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE, "タイムライン", "秒数",
+		configBuilder.getGroup("Twitter").getSubgroup(tr("Fetch interval (sec.)"))
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_TIMELINE, tr("Timeline"), tr("seconds"),
 						new IntegerConfigType(60, 3600))
-				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_MENTIONS, "メンション(@通知)", "秒数",
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_MENTIONS, tr("Mention"), tr("seconds"),
 						new IntegerConfigType(60, 3600))
-				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_DIRECT_MESSAGES, "ダイレクトメッセージ", "秒数",
+				.addConfig(ClientConfiguration.PROPERTY_INTERVAL_DIRECT_MESSAGES, tr("Direct message"), tr("seconds"),
 						new IntegerConfigType(60, 10800))
-				.getParentGroup().getSubgroup("取得数 (ツイート数)")
-				.addConfig(ClientConfiguration.PROPERTY_PAGING_TIMELINE, "タイムライン", "ツイート",
+				.getParentGroup().getSubgroup(tr("Fetch count (tweets)"))
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_TIMELINE, tr("Timeline"), tr("tweets"),
 						new IntegerConfigType(1, 200))
-				.addConfig(ClientConfiguration.PROPERTY_PAGING_MENTIONS, "メンション(@通知)", "ツイート",
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_MENTIONS, tr("Mention"), tr("tweets"),
 						new IntegerConfigType(1, 200))
-				.addConfig(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES, "ダイレクトメッセージ", "メッセージ",
+				.addConfig(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES, tr("Direct message"), tr("message"),
 						new IntegerConfigType(1, 200));
-		configBuilder.getGroup("UI")
-				.addConfig("gui.interval.list_update", "UI更新間隔 (ミリ秒)", "ミリ秒(ms)", new IntegerConfigType(100, 5000))
-				.addConfig("gui.list.scroll", "スクロール量", null, new IntegerConfigType(1, 100))
-				.addConfig("gui.date.type", "時間表示形式", null, new ComboBoxConfigType()
-						.addItem("秒", "sec")
-						.addItem("ミリ秒", "ms")
-						.addItem("秒+相対形式", "sec+rel")
-						.addItem("ミリ秒+相対形式", "ms+rel")
-						.addItem("相対形式", "rel"));
+		configBuilder.getGroup(tr("UI"))
+				.addConfig("gui.interval.list_update", tr("UI update interval (msec.)"), tr("milliseconds"),
+						new IntegerConfigType(100, 5000))
+				.addConfig("gui.list.scroll", tr("scroll amounts"), null, new IntegerConfigType(1, 100))
+				.addConfig("gui.date.type", tr("date format"), null, new ComboBoxConfigType()
+						.addItem(tr("sec."), "sec")
+						.addItem(tr("msec."), "ms")
+						.addItem(tr("sec. + relative"), "sec+rel")
+						.addItem(tr("msec. + relative"), "ms+rel")
+						.addItem(tr("relative"), "rel"));
 		configBuilder.getGroup("core")
-				.addConfig("core.info.survive_time", "一時的な情報を表示する時間 (ツイートの削除通知など)", "秒",
+				.addConfig("core.info.survive_time", tr("life time of temporary message"), tr("seconds"),
 						new IntegerConfigType(1, 60, 1000))
-				.addConfig("core.match.id_strict_match", "リプライ判定時のIDの厳格な一致", "チェックが入っていないときは先頭一致になります",
+				.addConfig("core.match.id_strict_match", tr("strict ID match in detecting reply"),
+						tr("if not checked, detect reply as screen name top matching"),
 						new BooleanConfigType())
-				.addConfig("core.filter.retweet_only_once", "同じツイートはリツイート含めて一回しか流さない",
-						"デフォルトはオフです", new BooleanConfigType());
+				.addConfig("core.filter.retweet_only_once",tr("The same tweets including retweeted appears only once"),
+						tr("default is off"), new BooleanConfigType());
 		configBuilder.getGroup("画像")
 				.addConfig("gui.image.follow_sensitive", "不適切かもしれない画像を表示するときに確認する",
 						"Webの設定とは同期しません", new BooleanConfigType());
-		configBuilder.getGroup("高度な設定")
-				.addConfig(null, "コンシューマーキーの設定", null, new ConsumerTokenConfigType())
-				.addConfig(null, "設定を直接編集する (動作保証対象外です)", null,
-						new ActionButtonConfigType("プロパティーエディターを開く...", "menu_propeditor", frame));
+		configBuilder.getGroup(tr("Advanced"))
+				.addConfig(null, tr("Consumer key"), null, new ConsumerTokenConfigType())
+				.addConfig(null, tr("Edit directly (not supported if you edit)"), null,
+						new ActionButtonConfigType(tr("Open property editor..."), "menu_propeditor", frame));
 	}
 
 	/**
@@ -827,9 +830,9 @@ public final class TwitterClientMain {
 		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
 		}
-
-		SplashScreenCtrl.setString("ログの準備をしています...");
 		setHomeProperty();
+
+		SplashScreenCtrl.setString(tr("Preparing for logger"));
 		LoggingConfigurator.configureLogger(parsedArguments);
 		logger = LoggerFactory.getLogger(TwitterClientMain.class);
 
@@ -837,7 +840,7 @@ public final class TwitterClientMain {
 			logger.warn("ArgParser: {}", errorMessages.next());
 		}
 
-		SplashScreenCtrl.setString("初期化を開始しています...");
+		SplashScreenCtrl.setString(tr("Starting initializer..."));
 		configuration = ClientConfiguration.getInstance();
 		configuration.setExtraClassLoader(classLoader);
 		configuration.setArgParser(parser);
@@ -847,7 +850,7 @@ public final class TwitterClientMain {
 
 		InitializeService initializeService = TreeInitializeService.use();
 
-		SplashScreenCtrl.setString("初期化関数の登録を行なっています...");
+		SplashScreenCtrl.setString(tr("Registering initializer..."));
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 		initializeService
 				.registerPhase("earlyinit")
@@ -930,8 +933,8 @@ public final class TwitterClientMain {
 				FileChannel channel = FileChannel.open(lockPath, EnumSet.of(CREATE, WRITE));
 				configFileLock = channel.tryLock();
 				if (configFileLock == null) {
-					JOptionPane.showMessageDialog(null, "同じ設定ディレクトリからの多重起動を検知しました。終了します。\n\n"
-									+ "他の" + ClientConfiguration.APPLICATION_NAME + "が動いていないか確認してください。",
+					JOptionPane.showMessageDialog(null, tr("Detected another instance with the same config running."
+									+ " Abort!\n\nCheck if other instances are running."),
 							ClientConfiguration.APPLICATION_NAME, JOptionPane.ERROR_MESSAGE);
 					condition.setFailStatus("MultiInstanceRunning", 1);
 					return;
@@ -1278,7 +1281,7 @@ public final class TwitterClientMain {
 			try {
 				twitter = new OAuthHelper(configuration).show();
 				if (twitter == null) {
-					int button = JOptionPane.showConfirmDialog(null, "終了しますか？", ClientConfiguration.APPLICATION_NAME,
+					int button = JOptionPane.showConfirmDialog(null, tr("Exit?"), ClientConfiguration.APPLICATION_NAME,
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (button == JOptionPane.YES_OPTION) {
 						condition.setFailStatus("OAuth failed: canceled", -1);
@@ -1299,7 +1302,8 @@ public final class TwitterClientMain {
 		try {
 			userId = String.valueOf(twitter.getId());
 		} catch (TwitterException e) {
-			JOptionPane.showMessageDialog(null, "ユーザー情報の取得に失敗しました。時間をおいて試してみて下さい: " + e.getLocalizedMessage(), "エラー",
+			JOptionPane.showMessageDialog(null,
+					tr("Failed to fetch user information. Try again later: %s", e.getLocalizedMessage()), tr("Error"),
 					JOptionPane.ERROR_MESSAGE);
 			throw new RuntimeException(e);
 		}
@@ -1384,9 +1388,9 @@ public final class TwitterClientMain {
 					break;
 				default:
 					int i = JOptionPane.showConfirmDialog(null,
-							"設定ファイルのバージョンより古いelnetwを動かしています！\n"
-									+ "予期しないクラッシュ、不具合が発生する可能性があります。\n\n"
-									+ "終了しますか？",
+							tr("You are running older elnetw than the version of config.\n"
+									+ "It may cause unexpected bug or crash.\n"
+									+ "Exit?"),
 							ClientConfiguration.APPLICATION_NAME, JOptionPane.YES_NO_OPTION,
 							JOptionPane.WARNING_MESSAGE);
 					if (i == JOptionPane.YES_OPTION) {

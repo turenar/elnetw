@@ -27,6 +27,8 @@ import javax.swing.JMenuItem;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * intent for posting
  *
@@ -42,7 +44,7 @@ public class PostIntent implements Intent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		dispatcher.addMenu(new JMenuItem("投稿(P)", KeyEvent.VK_P), args);
+		dispatcher.addMenu(new JMenuItem(tr("Post"), KeyEvent.VK_P), args);
 	}
 
 	@Override

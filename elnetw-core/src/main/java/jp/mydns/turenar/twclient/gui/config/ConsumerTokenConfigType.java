@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import static javax.swing.GroupLayout.Alignment;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * ConsumerToken
@@ -86,15 +87,15 @@ public class ConsumerTokenConfigType implements ConfigType {
 
 		public JButton getComponentConsumerStoreButton() {
 			if (componentConsumerStoreButton == null) {
-				componentConsumerStoreButton = new JButton("設定");
+				componentConsumerStoreButton = new JButton(tr("Set"));
 			}
 			return componentConsumerStoreButton;
 		}
 
 		public JLabel getComponentDescriptionLabel() {
 			if (componentDescriptionLabel == null) {
-				componentDescriptionLabel = new JLabel("コンシューマーキーを設定した後は、再認証を行わないと"
-						+ "既存アカウントには反映されません。");
+				componentDescriptionLabel = new JLabel(tr("Re-authorize after you set consumer key, "
+						+ "or existing account don't use consumer key"));
 			}
 			return componentDescriptionLabel;
 		}
@@ -150,14 +151,14 @@ public class ConsumerTokenConfigType implements ConfigType {
 			public void actionPerformed(ActionEvent e) {
 				storeValue(panel);
 				panel.getComponentConsumerStoreButton().setEnabled(false);
-				panel.getComponentConsumerStoreButton().setText("OK!");
+				panel.getComponentConsumerStoreButton().setText(tr("OK!"));
 			}
 		});
 		panel.getComponentConsumerStoreButton().addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseExited(MouseEvent e) {
 				panel.getComponentConsumerStoreButton().setEnabled(true);
-				panel.getComponentConsumerStoreButton().setText("設定");
+				panel.getComponentConsumerStoreButton().setText(tr("Set"));
 			}
 		});
 

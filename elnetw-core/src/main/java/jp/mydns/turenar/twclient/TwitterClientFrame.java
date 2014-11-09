@@ -96,6 +96,9 @@ import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
+import static jp.mydns.turenar.twclient.ClientConfiguration.APPLICATION_NAME;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * elnetwのメインウィンドウ
  *
@@ -638,29 +641,29 @@ import twitter4j.User;
 
 	private JMenu getMenuAccount() {
 		if (accountMenu == null) {
-			accountMenu = new JMenu("アカウント");
+			accountMenu = new JMenu(tr("A&ccount"));
 
 			configuration.addJob(Priority.LOW, new UserInfoFetcher());
 			accountMenu.add(getReadTimelineJMenu());
 			accountMenu.add(getPostToJMenu());
 
-			JMenuItem verifyAccountMenuItem = new JMenuItem("アカウント認証(V)...", KeyEvent.VK_V);
+			JMenuItem verifyAccountMenuItem = new JMenuItem(tr("Verify account..."), KeyEvent.VK_V);
 			new IntentArguments("menu_account_verify").setMenu(verifyAccountMenuItem);
 			accountMenu.add(verifyAccountMenuItem);
 		}
 		return accountMenu;
 	}
-
 	private JMenu getMenuAdd() {
-		JMenu addMenu;
-		addMenu = new JMenu("追加");
+		JMenu addMenu = new JMenu();
+		Utility.setMnemonic(addMenu, tr("&Add"));
 		addMenu.add(getMenuAddTab());
 
 		return addMenu;
 	}
 
 	private JMenu getMenuAddTab() {
-		JMenu tabMenu = new JMenu("タブ");
+		JMenu tabMenu = new JMenu();
+		Utility.setMnemonic(tabMenu, tr("Add &Tab"));
 		TreeSet<Map.Entry<String, ClientTabFactory>> entries = new TreeSet<>(new TabFactoryEntryComparator());
 		for (Map.Entry<String, ClientTabFactory> entry : ClientConfiguration.getClientTabFactories().entrySet()) {
 			// avoid reused entry instance
@@ -684,24 +687,28 @@ import twitter4j.User;
 	}
 
 	private JMenu getMenuApplication() {
-		JMenu applicationMenu;
-		applicationMenu = new JMenu("アプリケーション");
-		JMenuItem configMenuItem = new JMenuItem("設定(C)", KeyEvent.VK_C);
+		JMenu applicationMenu = new JMenu();
+		Utility.setMnemonic(applicationMenu, tr("A&pplication"));
+		JMenuItem configMenuItem = new JMenuItem();
+		Utility.setMnemonic(configMenuItem, tr("&Configuration"));
 		new IntentArguments("menu_config").setMenu(configMenuItem);
 		applicationMenu.add(configMenuItem);
 
 		applicationMenu.addSeparator();
 
-		JMenuItem quitMenuItem = new JMenuItem("終了(Q)", KeyEvent.VK_Q);
+		JMenuItem quitMenuItem = new JMenuItem();
+		Utility.setMnemonic(quitMenuItem, tr("&Quit"));
+		quitMenuItem.addActionListener(new IntentActionListener("menu_quit"));
 		new IntentArguments("menu_quit").setMenu(quitMenuItem);
 		applicationMenu.add(quitMenuItem);
 		return applicationMenu;
 	}
 
 	private JMenu getMenuInfo() {
-		JMenu infoMenu;
-		infoMenu = new JMenu("情報");
-		JMenuItem versionMenuItem = new JMenuItem("バージョン情報(V)", KeyEvent.VK_V);
+		JMenu infoMenu = new JMenu();
+		Utility.setMnemonic(infoMenu, tr("&Information"));
+		JMenuItem versionMenuItem = new JMenuItem();
+		Utility.setMnemonic(versionMenuItem, tr("&About"));
 		new IntentArguments("core").putExtra(IntentArguments.UNNAMED_ARG, "version").setMenu(versionMenuItem);
 		infoMenu.add(versionMenuItem);
 		return infoMenu;
@@ -710,7 +717,7 @@ import twitter4j.User;
 	private JButton getPostActionButton() {
 		if (postActionButton == null) {
 			postActionButton = new javax.swing.JButton();
-			postActionButton.setText("投稿");
+			postActionButton.setText(tr("Post"));
 			postActionButton.addActionListener(new ActionListener() {
 
 				@Override
@@ -800,14 +807,14 @@ import twitter4j.User;
 
 	/*package*/JMenu getPostToJMenu() {
 		if (postToJMenu == null) {
-			postToJMenu = new JMenu("投稿先");
+			postToJMenu = new JMenu(tr("Post target account"));
 		}
 		return postToJMenu;
 	}
 
 	/*package*/JMenu getReadTimelineJMenu() {
 		if (readTimelineJMenu == null) {
-			readTimelineJMenu = new JMenu("タイムライン読み込み");
+			readTimelineJMenu = new JMenu(tr("Read timeline account"));
 		}
 		return readTimelineJMenu;
 	}
@@ -836,7 +843,6 @@ import twitter4j.User;
 	/*package*/JLabel getTweetViewCreatedAtLabel() {
 		if (tweetViewCreatedAtLabel == null) {
 			tweetViewCreatedAtLabel = new JLabel();
-			tweetViewCreatedAtLabel.setText("2012/1/1 00:00:00");
 			tweetViewCreatedAtLabel.setHorizontalAlignment(JLabel.RIGHT);
 			tweetViewCreatedAtLabel.setAlignmentX(RIGHT_ALIGNMENT);
 			tweetViewCreatedAtLabel.addMouseListener(tweetViewListener);
@@ -847,8 +853,8 @@ import twitter4j.User;
 	/*package*/JLabel getTweetViewCreatedByLabel() {
 		if (tweetViewCreatedByLabel == null) {
 			tweetViewCreatedByLabel = new JLabel();
-			tweetViewCreatedByLabel.setText("@elnetw (名前はこれで決まり？)");
-			tweetViewCreatedByLabel.setToolTipText("from 暗黒の調和師");
+			tweetViewCreatedByLabel.setText(tr("@elnetw"));
+			tweetViewCreatedByLabel.setToolTipText(tr("from Dark Flame Master"));
 			tweetViewCreatedByLabel.addMouseListener(tweetViewListener);
 		}
 		return tweetViewCreatedByLabel;
@@ -862,7 +868,7 @@ import twitter4j.User;
 			tweetViewEditorPane.setFont(uiFont);
 			tweetViewEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			tweetViewEditorPane.setEditorKit(new HTMLEditorKitExtension());
-			tweetViewEditorPane.setText(ClientConfiguration.APPLICATION_NAME + "へようこそ！<br><b>ゆっくりしていってね！</b>");
+			tweetViewEditorPane.setText(tr("Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>", APPLICATION_NAME));
 			tweetViewEditorPane.addHyperlinkListener(new HyperlinkListener() {
 
 				@Override
@@ -1036,8 +1042,8 @@ import twitter4j.User;
 	 */
 	private void initComponents() {
 		setTitle(VersionInfo.isSnapshot()
-						? VersionInfo.getCodeName() + " (" + ClientConfiguration.APPLICATION_NAME + ")"
-						: ClientConfiguration.APPLICATION_NAME
+						? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
+						: APPLICATION_NAME
 		);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);

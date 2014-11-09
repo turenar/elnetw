@@ -42,6 +42,8 @@ import jp.mydns.turenar.twclient.filter.tokenizer.QueryTokenStart;
 import jp.mydns.turenar.twclient.filter.tokenizer.SimpleNode;
 import jp.mydns.turenar.twclient.filter.tokenizer.TokenMgrError;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * フィルタをコンパイルするクラス。
  *
@@ -174,7 +176,7 @@ public class QueryCompiler implements FilterParserVisitor {
 		QueryFunctionFactory factory = getFilterFunction(functionName);
 
 		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("func<" + functionName + ">は見つかりません。"));
+			throw new WrappedException(new IllegalSyntaxException(tr("func<%s> is not found.", functionName)));
 		}
 		// skip LeftParen, ArgSeparator, RightParen
 		QueryDispatcherBase[] args = new QueryDispatcherBase[childrenCount >> 1];
@@ -212,7 +214,7 @@ public class QueryCompiler implements FilterParserVisitor {
 
 		QueryPropertyFactory factory = getFilterProperty(propertyName);
 		if (factory == null) {
-			throw new WrappedException(new IllegalSyntaxException("プロパティ<" + propertyName + ">は見つかりません。"));
+			throw new WrappedException(new IllegalSyntaxException(tr("prop<%s> is not found.", propertyName)));
 		}
 
 		//propertyData.name = propertyName;

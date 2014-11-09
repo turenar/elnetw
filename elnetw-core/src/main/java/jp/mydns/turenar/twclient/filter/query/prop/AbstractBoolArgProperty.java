@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.filter.query.QueryProperty;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * abstract query property for boolean argument
  *
@@ -61,7 +63,7 @@ public abstract class AbstractBoolArgProperty implements QueryProperty {
 			// value 処理
 			if (!(operatorType == QueryOperator.IS || operatorType == QueryOperator.IS_NOT)) {
 				if (value == null) {
-					throw new IllegalSyntaxException("[" + name + "] 比較値が必要です");
+					throw new IllegalSyntaxException(tr("[%s] needs value", name));
 				} else {
 					this.value = (Boolean) value;
 				}
@@ -69,7 +71,7 @@ public abstract class AbstractBoolArgProperty implements QueryProperty {
 				this.value = false; // init because this field is final
 			}
 		} else {
-			throw new IllegalSyntaxException("[" + name + "] 値がbool型ではありません");
+			throw new IllegalSyntaxException(tr("[%s] value is not bool: %s", name, value));
 		}
 	}
 

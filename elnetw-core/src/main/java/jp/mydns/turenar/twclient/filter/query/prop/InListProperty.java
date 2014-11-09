@@ -40,6 +40,8 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * リストに入っているかどかを用いてフィルタする
  *
@@ -167,22 +169,18 @@ public class InListProperty implements QueryProperty {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param name        プロパティ名 (in_list)
 	 * @param operatorStr 演算子
 	 * @param value       値 (文字列)
 	 * @throws IllegalSyntaxException 正しくないarg
 	 */
-	public InListProperty(String name, String operatorStr, Object value)
+	public InListProperty(String operatorStr, Object value)
 			throws IllegalSyntaxException {
 		this.configuration = ClientConfiguration.getInstance();
-		if (!"in_list".equals(name)) {
-			throw new AssertionError("[in_list] プロパティ名が不正です: " + name);
-		}
 		if (operatorStr == null || value == null) {
-			throw new IllegalSyntaxException("[in_list] operatorおよびvalueは省略できません");
+			throw new IllegalSyntaxException(tr("[in_list] Could not omit operator and value"));
 		}
 		if (!(value instanceof String)) {
-			throw new IllegalSyntaxException("[in_list] valueは文字列であるべきです");
+			throw new IllegalSyntaxException(tr("[in_list] value must be String"));
 		}
 		isEqual = QueryOperator.compileOperatorString(operatorStr) == QueryOperator.EQ;
 

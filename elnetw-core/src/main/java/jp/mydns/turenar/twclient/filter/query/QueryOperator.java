@@ -28,6 +28,8 @@ import java.util.regex.PatternSyntaxException;
 
 import jp.mydns.turenar.twclient.filter.IllegalSyntaxException;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * プロパティの演算子の処理を楽にするためのユーティリティークラス。
  *
@@ -139,7 +141,7 @@ public enum QueryOperator {
 	 */
 	public static Object compileValueString(String value) throws IllegalSyntaxException {
 		if (value == null) {
-			throw new IllegalSyntaxException("string演算子には値が必要です");
+			throw new IllegalSyntaxException(tr("string operator needs value!"));
 		}
 		if (value.length() >= 1 && value.charAt(0) == '/') {
 			try {
@@ -174,7 +176,7 @@ public enum QueryOperator {
 			case NE:
 				return target != value;
 			default:
-				throw new RuntimeException("boolでは対応していない演算子です");
+				throw new RuntimeException(tr("Unsupported operator for boolean: %s", this));
 		}
 	}
 
@@ -201,7 +203,7 @@ public enum QueryOperator {
 			case GTE:
 				return a >= b;
 			default:
-				throw new RuntimeException("longの比較では対応していない演算子です");
+				throw new RuntimeException(tr("Unsupported operator for long: %s", this));
 		}
 	}
 
@@ -237,10 +239,10 @@ public enum QueryOperator {
 				}
 				return contains == (this == EQ);
 			} else {
-				throw new RuntimeException("stringの被比較値が正しくありません");
+				throw new RuntimeException(tr("Illegal operand for string operator: %s", value));
 			}
 		} else {
-			throw new RuntimeException("stringの比較では対応していない演算子です");
+			throw new RuntimeException(tr("Unsupported string operator: %s", this));
 		}
 	}
 
@@ -259,7 +261,7 @@ public enum QueryOperator {
 				if (value == null) {
 					return false; // valid; no error
 				} else {
-					throw new IllegalSyntaxException("[" + propName + "] 値を指定する必要がありません");
+					throw new IllegalSyntaxException(tr("[%s] Unnecessary specified value: %s", propName, value));
 				}
 			case EQ:
 			case NE:
@@ -272,10 +274,10 @@ public enum QueryOperator {
 					case "yes":
 						return true;
 					default:
-						throw new IllegalSyntaxException("[" + propName + "] 値がbool型ではありません");
+						throw new IllegalSyntaxException(tr("[%s] The value is not valid boolean: %s", propName, lowerValue));
 				}
 			default:
-				throw new IllegalSyntaxException("[" + propName + "] 正しくないbool演算子です");
+				throw new IllegalSyntaxException(tr("[%s] Illegal boolean oparator: %s", propName, this));
 		}
 	}
 }

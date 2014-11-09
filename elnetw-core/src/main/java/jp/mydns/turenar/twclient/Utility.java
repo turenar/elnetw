@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient;
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.event.KeyEvent;
@@ -34,12 +35,14 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import javax.swing.JOptionPane;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
@@ -104,17 +107,6 @@ public class Utility {
 
 	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final LinkedList<MessageNotifierEntry> messageNotifiers = new LinkedList<>();
-	/*package*/ static final String[] BROWSER_CANDIDATES = new String[]{
-			"xdg-open",
-			"firefox",
-			"iron",
-			"chromium",
-			"chrome",
-			"opera",
-			"konqueror",
-			"epiphany",
-			"mozilla"
-	};
 	/**
 	 * epoch offset for snowflake
 	 */
@@ -408,6 +400,18 @@ public class Utility {
 		return builder;
 	}
 
+	public static void setMnemonic(JMenuItem menuItem, String text) {
+		int indexOf = text.indexOf('&');
+		if (indexOf >= 0) {
+			String newText = new StringBuilder(text).deleteCharAt(indexOf).toString();
+			menuItem.setText(newText);
+			menuItem.setMnemonic(newText.charAt(indexOf));
+			menuItem.setDisplayedMnemonicIndex(indexOf);
+		} else {
+			menuItem.setText(text);
+		}
+	}
+
 	/**
 	 * tear snowflake id into epoch time
 	 *
@@ -461,7 +465,6 @@ public class Utility {
 	}
 
 	private final ClientConfiguration configuration;
-	private String detectedBrowser = null;
 	/** 通知を送信するクラス */
 	public volatile MessageNotifier notifySender = null;
 
@@ -472,44 +475,6 @@ public class Utility {
 	 */
 	public Utility(ClientConfiguration configuration) {
 		this.configuration = configuration;
-	}
-
-	/**
-	 * インストールされているブラウザを確定する。
-	 *
-	 * @return ブラウザコマンド
-	 */
-	protected String detectBrowser() {
-		if (detectedBrowser != null) {
-			return detectedBrowser;
-		}
-
-		String detectedBrowser = configuration.getConfigProperties().getProperty("gui.browser.cmd");
-
-		if (detectedBrowser == null) {
-			for (String browser : BROWSER_CANDIDATES) {
-				try {
-					if (Runtime.getRuntime().exec(new String[]{
-							"which",
-							browser
-					}).waitFor() == 0) {
-						detectedBrowser = browser;
-						break;
-					}
-				} catch (InterruptedException | IOException e2) {
-					// do nothing
-				}
-			}
-		}
-
-		if (detectedBrowser == null) {
-			detectedBrowser =
-					JOptionPane.showInputDialog(null, "Please input path-to-browser.", "elnetw",
-							JOptionPane.INFORMATION_MESSAGE);
-			configuration.getConfigProperties().setProperty("gui.browser.cmd", detectedBrowser);
-		}
-		this.detectedBrowser = detectedBrowser;
-		return detectedBrowser;
 	}
 
 	/** 通知を送信するクラスを設定する */
@@ -544,34 +509,11 @@ public class Utility {
 	 * browserを表示する。
 	 *
 	 * @param url 開くURL
-	 * @throws java.awt.HeadlessException             GUIを使用できない
-	 * @throws java.lang.ReflectiveOperationException 関数のinvokeに失敗 (Mac OS)
-	 * @throws IllegalArgumentException               正しくない引数
-	 * @throws IOException                            IOエラーが発生
-	 * @throws SecurityException                      セキュリティ例外
+	 * @throws IOException                 IOエラーが発生
+	 * @throws java.net.URISyntaxException illegal url syntax
 	 */
-	public void openBrowser(String url) throws IOException, ReflectiveOperationException {
-		detectOS();
-		switch (ostype) {
-			case WINDOWS:
-				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url.trim());
-				break;
-			case MAC:
-				Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
-
-				Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
-				openURL.invoke(null, url.trim());
-				break;
-			case OTHER:
-				String browser = detectBrowser();
-				Runtime.getRuntime().exec(new String[]{
-						browser,
-						url.trim()
-				});
-				break;
-			default:
-				break;
-		}
+	public void openBrowser(String url) throws URISyntaxException, IOException {
+		Desktop.getDesktop().browse(new URI(url));
 	}
 
 	/**

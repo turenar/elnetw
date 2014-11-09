@@ -30,6 +30,8 @@ import jp.mydns.turenar.twclient.internal.TwitterRunnable;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * 公式リツイートするためのアクションハンドラ
  *
@@ -59,7 +61,7 @@ public class RetweetIntent extends AbstractIntent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem retweetMenuItem = new JMenuItem("リツイート(T)", KeyEvent.VK_T);
+		JMenuItem retweetMenuItem = new JMenuItem(tr("Retweet"), KeyEvent.VK_T);
 		Status status = getStatus(args);
 		if (status == null) {
 			retweetMenuItem.setVisible(false);

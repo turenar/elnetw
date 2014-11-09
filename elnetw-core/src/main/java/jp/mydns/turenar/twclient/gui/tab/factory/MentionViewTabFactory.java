@@ -27,6 +27,8 @@ import jp.mydns.turenar.twclient.gui.tab.ClientTab;
 import jp.mydns.turenar.twclient.gui.tab.ClientTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.MentionViewTab;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * factory for MentionViewTab
  *
@@ -46,7 +48,7 @@ public class MentionViewTabFactory implements ClientTabFactory {
 
 	@Override
 	public String getName() {
-		return "メンション";
+		return tr("Mentions");
 	}
 
 	@Override
