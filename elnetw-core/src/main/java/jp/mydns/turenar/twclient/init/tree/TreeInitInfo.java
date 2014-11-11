@@ -169,10 +169,13 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 	@Override
 	public void uninit(boolean fastUninit) throws InitializeException {
+		if (!isInitialized) {
+			return; // may fail to init
+		}
 		try {
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes.length == 0) {
-				// not supported uninit
+				// uninit not supported
 			} else if (parameterTypes.length == 1 && InitCondition.class.isAssignableFrom(parameterTypes[0])) {
 				TreeInitConditionImpl initCondition = new TreeInitConditionImpl(this, false);
 				method.invoke(instance, initCondition);
