@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-09 16:30+0900\n"
+"POT-Creation-Date: 2014-11-12 00:25+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -134,6 +134,12 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:435
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:120
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
+msgid "Mute"
+msgstr ""
+
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:459
 msgid "Other..."
 msgstr ""
@@ -150,6 +156,7 @@ msgstr ""
 msgid "&Update profile"
 msgstr ""
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:636
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:691
 msgid "Loading"
 msgstr ""
@@ -159,6 +166,7 @@ msgid "About @%s (%s)"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:770
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:597
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:112
 msgid "Edit"
 msgstr ""
@@ -166,6 +174,114 @@ msgstr ""
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:790
 #: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:93
 msgid "This is you!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:113
+msgid "Image Files"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:145
+msgid "Select image to set as background"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:150
+msgid "Show background as tiled?"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:151
+msgid "Background setting"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:155
+msgid "Setting background..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:163
+msgid "Updated background!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:176
+msgid "Select image to set as header"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:181
+msgid "Setting header image..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:188
+msgid "Updated header image!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:203
+msgid "Select the image for user icon"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:208
+msgid "Setting icon..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:215
+msgid "Updated icon!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:280
+msgid "Header"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:287
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:301
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:315
+msgid "Change..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:294
+msgid "Background"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:296
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:310
+msgid "Show..."
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:308
+msgid "Profile icon"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:344
+#: src/main/java/jp/mydns/turenar/twclient/gui/AddClientTabConfirmFrame.java:141
+msgid "Cancel"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:370
+msgid "Bio:"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:392
+msgid "Location:"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:509
+msgid "Name:"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:543
+msgid "Homepage:"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:551
+msgid "Update"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:568
+msgid "Updated!"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:620
+msgid "Edit @%s"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:658
+msgid "Edit profile"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/SearchTab.java:186
@@ -186,10 +302,6 @@ msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/AddClientTabConfirmFrame.java:134
 msgid "Account:"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/gui/AddClientTabConfirmFrame.java:141
-msgid "Cancel"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/AddClientTabConfirmFrame.java:154
@@ -295,64 +407,64 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:644
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:645
 msgid "A&ccount"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:650
-msgid "Verify account..."
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:652
+msgid "&Verify account..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:658
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:660
 msgid "&Add"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:666
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:668
 msgid "Add &Tab"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:691
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:693
 msgid "A&pplication"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:693
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:695
 msgid "&Configuration"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:700
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:702
 msgid "&Quit"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:709
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:711
 msgid "&Information"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:711
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:713
 msgid "&About"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:720
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:722
 #: src/main/java/jp/mydns/turenar/twclient/intent/PostIntent.java:47
 msgid "Post"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:810
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:812
 msgid "Post target account"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:817
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:819
 msgid "Read timeline account"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:856
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:858
 msgid "@elnetw"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:857
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:859
 msgid "from Dark Flame Master"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:871
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientFrame.java:873
 msgid "Welcome to %s!<br><b>YUKKURI SITE ITTENE!!</b>"
 msgstr ""
 
@@ -634,7 +746,7 @@ msgid "Delete below tweet?"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:103
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:235
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:236
 msgid "Confirm"
 msgstr ""
 
@@ -659,32 +771,32 @@ msgstr ""
 msgid "Already muted"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:177
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:178
 msgid "Word..."
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:230
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:231
 msgid "Mute below?"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:258
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
 msgid "Specify muted text as regex.%s"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:258
-msgid "Mute"
-msgstr ""
-
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:278
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:279
 msgid "Client: %s"
 msgstr ""
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:282
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:283
 msgid "User: @%s (%s)"
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/intent/UrlIntent.java:52
 msgid "Open url in tweet with browser"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/DisplayRequirementIntent.java:40
+msgid "&Open twitter..."
 msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/intent/QuoteTweetIntent.java:43

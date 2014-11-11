@@ -117,16 +117,17 @@ public class MuteIntent extends AbstractIntent {
 		boolean auto = getBoolean(arguments, "auto", false)
 				|| arguments.getExtraObj(IntentArguments.UNNAMED_ARG, String.class).equals("auto");
 		if (auto) {
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "user"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_user"));
+			PopupMenuDispatcher subDispatcher = dispatcher.createSubMenu(tr("Mute"));
+			createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "user"));
+			createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_user"));
 			if (getStatus(arguments).isRetweet()) {
-				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_mention"));
+				createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_mention"));
 			} else {
-				createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "mention"));
+				createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "mention"));
 			}
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "client"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_client"));
-			createJMenuItem(dispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "text"));
+			createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "client"));
+			createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "rt_client"));
+			createJMenuItem(subDispatcher, getCleanArgument(arguments).putExtra(IntentArguments.UNNAMED_ARG, "text"));
 			return;
 		}
 		if (arguments.getExtraObj("user", User.class) != null) {

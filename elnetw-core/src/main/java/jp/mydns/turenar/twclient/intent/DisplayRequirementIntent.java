@@ -26,6 +26,8 @@ import javax.swing.JMenuItem;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientEventConstants;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * DisplayRequirement intent (Open timeline in browser)
  *
@@ -35,7 +37,7 @@ public class DisplayRequirementIntent implements Intent {
 
 	@Override
 	public void createJMenuItem(PopupMenuDispatcher dispatcher, IntentArguments args) {
-		JMenuItem openMenu = new JMenuItem("Twitterで開く");
+		JMenuItem openMenu = new JMenuItem(tr("&Open twitter..."));
 		dispatcher.addMenu(openMenu, args);
 	}
 

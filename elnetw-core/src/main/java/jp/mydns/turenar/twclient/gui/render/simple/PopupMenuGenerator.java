@@ -42,13 +42,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 9/14/14
- * Time: 2:37 PM
+ * popup menu generator
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class PopupMenuGenerator implements PopupMenuDispatcher, PopupMenuListener {
+	private class SubMenuDispatcher implements PopupMenuDispatcher {
+
+		private final JMenu parent;
+
+		public SubMenuDispatcher(JComponent owner, String title) {
+			parent = new JMenu();
+			Utility.setMnemonic(parent, title);
+			owner.add(parent);
+		}
+
+		@Override
+		public void addMenu(JMenuItem menu, IntentArguments intent) {
+			if (menu == null || intent == null) {
+				throw new NullPointerException();
+			}
+			menu.addActionListener(new IntentActionListener(intent));
+			parent.add(menu);
+		}
+
+		@Override
+		public PopupMenuDispatcher createSubMenu(String text) {
+			return new SubMenuDispatcher(parent, text);
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(PopupMenuGenerator.class);
 	private final SimpleRenderer renderer;
 	private final JPopupMenu popupMenu;
@@ -67,6 +90,11 @@ public class PopupMenuGenerator implements PopupMenuDispatcher, PopupMenuListene
 		}
 		menu.addActionListener(new IntentActionListener(intent));
 		stack.peek().add(menu);
+	}
+
+	@Override
+	public PopupMenuDispatcher createSubMenu(String text) {
+		return new SubMenuDispatcher(stack.peek(), text);
 	}
 
 	/**
