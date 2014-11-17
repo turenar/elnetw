@@ -109,6 +109,11 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		return "Timeline";
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
@@ -121,11 +126,6 @@ public class TimelineViewTab extends AbstractClientTab implements RenderTarget {
 	@Override
 	public String getTabId() {
 		return TAB_ID;
-	}
-
-	@Override
-	public String getTitle() {
-		return "Timeline";
 	}
 
 	@Override

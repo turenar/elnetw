@@ -26,6 +26,8 @@ import javax.swing.Icon;
 import jp.mydns.turenar.twclient.gui.render.RenderTarget;
 import twitter4j.Status;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * メンション表示用タブ
  *
@@ -85,6 +87,11 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
+	public String getDefaultTitle() {
+		return "Mention";
+	}
+
+	@Override
 	public DelegateRenderer getDelegateRenderer() {
 		return renderer;
 	}
@@ -100,13 +107,8 @@ public class MentionViewTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
-	public String getTitle() {
-		return "Mention";
-	}
-
-	@Override
 	public String getToolTip() {
-		return "@関連";
+		return tr("Mentioned tweets");
 	}
 
 	@Override

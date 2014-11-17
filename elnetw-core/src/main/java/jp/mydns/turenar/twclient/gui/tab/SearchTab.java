@@ -40,6 +40,7 @@ import twitter4j.Status;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * search tab
@@ -107,7 +108,7 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 
 	private JLabel getComponentSearchLabel() {
 		if (componentSearchLabel == null) {
-			componentSearchLabel = new JLabel("クエリ:");
+			componentSearchLabel = new JLabel(tr("Query:"));
 		}
 		return componentSearchLabel;
 	}
@@ -138,9 +139,14 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 
 	private JButton getComponentUpdateButton() {
 		if (componentUpdateButton == null) {
-			componentUpdateButton = new JButton("検索");
+			componentUpdateButton = new JButton(tr("Search"));
 		}
 		return componentUpdateButton;
+	}
+
+	@Override
+	public String getDefaultTitle() {
+		return tr("Search");
 	}
 
 	@Override
@@ -176,13 +182,8 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 	}
 
 	@Override
-	public String getTitle() {
-		return "検索";
-	}
-
-	@Override
 	public String getToolTip() {
-		return "検索";
+		return tr("Twitter Search Result");
 	}
 
 	@Override

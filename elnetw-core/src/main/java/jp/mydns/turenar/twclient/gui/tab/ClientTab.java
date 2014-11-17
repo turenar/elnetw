@@ -134,4 +134,11 @@ public interface ClientTab {
 	 * Application exiting. serialize your data.
 	 */
 	void serialize();
+
+	/**
+	 * set tab title
+	 *
+	 * @param title title
+	 */
+	void setTitle(String title);
 }
