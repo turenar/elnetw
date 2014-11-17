@@ -82,6 +82,7 @@ public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 				listMemberSet = longHashSet;
 				updateStream();
 			}
+			super.onClientMessage(name, arg);
 		}
 
 		@Override
