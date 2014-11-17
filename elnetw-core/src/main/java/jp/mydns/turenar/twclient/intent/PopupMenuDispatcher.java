@@ -24,10 +24,7 @@ package jp.mydns.turenar.twclient.intent;
 import javax.swing.JMenuItem;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 9/14/14
- * Time: 2:27 PM
- *
+ * popup menu dispatcher
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface PopupMenuDispatcher {
@@ -37,5 +34,7 @@ public interface PopupMenuDispatcher {
 	 * @param menu   menu
 	 * @param intent intent arguments
 	 */
-	public void addMenu(JMenuItem menu, IntentArguments intent);
+	void addMenu(JMenuItem menu, IntentArguments intent);
+
+	PopupMenuDispatcher createSubMenu(String text);
 }

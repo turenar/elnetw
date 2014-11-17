@@ -160,7 +160,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 					try {
 						account.update(twitter.updateProfileBackgroundImage(selectedFile,
 								result == JOptionPane.YES_OPTION));
-						updateText(tr("Background setting done!"));
+						updateText(tr("Updated background!"));
 					} catch (TwitterException e1) {
 						updateText(e1.getLocalizedMessage());
 						logger.warn("Failed to update profile image", e1);
@@ -178,14 +178,14 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 		@Override
 		protected void uploadImage(final Twitter twitter, final File selectedFile) {
-			updateText("ヘッダー画像の設定中...");
+			updateText(tr("Setting header image..."));
 
 			configuration.addJob(new ParallelRunnable() {
 				@Override
 				public void run() {
 					try {
 						twitter.updateProfileBanner(selectedFile);
-						updateText("ヘッダー画像の設定完了！");
+						updateText(tr("Updated header image!"));
 					} catch (TwitterException e1) {
 						updateText(e1.getLocalizedMessage());
 						logger.warn("Failed to update profile image", e1);
@@ -200,19 +200,19 @@ public class UpdateProfileTab extends AbstractClientTab {
 	private class UserIconEditActionListener extends AbstractImageUploadActionListener {
 		@Override
 		public String getChooserTitle() {
-			return "ユーザーアイコンに設定する画像を選択してください";
+			return tr("Select the image for user icon");
 		}
 
 		@Override
 		protected void uploadImage(final Twitter twitter, final File selectedFile) {
-			updateText("ユーザーアイコンの設定中...");
+			updateText(tr("Setting icon..."));
 
 			configuration.addJob(new ParallelRunnable() {
 				@Override
 				public void run() {
 					try {
 						account.update(twitter.updateProfileImage(selectedFile));
-						updateText("ユーザーアイコンの設定完了！");
+						updateText(tr("Updated icon!"));
 					} catch (TwitterException e1) {
 						updateText(e1.getLocalizedMessage());
 						logger.warn("Failed to update profile image", e1);
@@ -277,42 +277,42 @@ public class UpdateProfileTab extends AbstractClientTab {
 	private JPopupMenu createMainPanelPopup() {
 		JPopupMenu popup = new JPopupMenu();
 		{
-			JMenu headerMenu = new JMenu("ヘッダー");
+			JMenu headerMenu = new JMenu(tr("Header"));
 
-			JMenuItem headerShowMenu = new JMenuItem("表示");
+			JMenuItem headerShowMenu = new JMenuItem("Show...");
 			headerShowMenu.addActionListener(new IntentActionListener("openimg")
 					.putExtra("url", account.getProfileBannerLargeURL()));
 			headerMenu.add(headerShowMenu);
 
-			JMenuItem headerChangeMenu = new JMenuItem("変更");
+			JMenuItem headerChangeMenu = new JMenuItem(tr("Change..."));
 			headerChangeMenu.addActionListener(new BannerEditActionListener());
 			headerMenu.add(headerChangeMenu);
 
 			popup.add(headerMenu);
 		}
 		{
-			JMenu backgroundMenu = new JMenu("背景");
+			JMenu backgroundMenu = new JMenu(tr("Background"));
 
-			JMenuItem backgroundShowMenu = new JMenuItem("表示");
+			JMenuItem backgroundShowMenu = new JMenuItem(tr("Show..."));
 			backgroundShowMenu.addActionListener(new IntentActionListener("openimg")
 					.putExtra("url", account.getProfileBackgroundImageUrlHttps()));
 			backgroundMenu.add(backgroundShowMenu);
 
-			JMenuItem backgroundEditMenu = new JMenuItem("変更");
+			JMenuItem backgroundEditMenu = new JMenuItem(tr("Change..."));
 			backgroundEditMenu.addActionListener(new BackgroundEditActionListener());
 			backgroundMenu.add(backgroundEditMenu);
 
 			popup.add(backgroundMenu);
 		}
 		{
-			JMenu iconMenu = new JMenu("アイコン");
+			JMenu iconMenu = new JMenu(tr("Profile icon"));
 
-			JMenuItem iconShowMenu = new JMenuItem("表示");
+			JMenuItem iconShowMenu = new JMenuItem(tr("Show..."));
 			iconShowMenu.addActionListener(new IntentActionListener("openimg")
 					.putExtra("url", account.getOriginalProfileImageURLHttps()));
 			iconMenu.add(iconShowMenu);
 
-			JMenuItem iconEditMenu = new JMenuItem("変更");
+			JMenuItem iconEditMenu = new JMenuItem(tr("Change..."));
 			iconEditMenu.addActionListener(new UserIconEditActionListener());
 			iconMenu.add(iconEditMenu);
 
@@ -341,7 +341,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JButton getComponentCancelButton() {
 		if (componentCancelButton == null) {
-			componentCancelButton = new JButton("キャンセル");
+			componentCancelButton = new JButton(tr("Cancel"));
 			componentCancelButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -367,7 +367,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JLabel getComponentDescriptionLabel() {
 		if (componentDescriptionLabel == null) {
-			componentDescriptionLabel = new JLabel("自己紹介:");
+			componentDescriptionLabel = new JLabel(tr("Bio:"));
 			componentDescriptionLabel.setForeground(Color.WHITE);
 			componentDescriptionLabel.setBackground(TRANSPARENT);
 			componentDescriptionLabel.setOpaque(false);
@@ -389,7 +389,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JLabel getComponentLocationLabel() {
 		if (componentLocationLabel == null) {
-			componentLocationLabel = new JLabel("場所:");
+			componentLocationLabel = new JLabel(tr("Location:"));
 			componentLocationLabel.setForeground(Color.WHITE);
 			componentLocationLabel.setBackground(TRANSPARENT);
 			componentLocationLabel.setOpaque(false);
@@ -506,7 +506,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JLabel getComponentNameLabel() {
 		if (componentNameLabel == null) {
-			componentNameLabel = new JLabel("名前:");
+			componentNameLabel = new JLabel(tr("Name:"));
 			componentNameLabel.setForeground(Color.WHITE);
 			componentNameLabel.setOpaque(false);
 		}
@@ -540,7 +540,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JLabel getComponentURLLabel() {
 		if (componentURLLabel == null) {
-			componentURLLabel = new JLabel("ホームページ:");
+			componentURLLabel = new JLabel(tr("Homepage:"));
 			componentURLLabel.setForeground(Color.WHITE);
 		}
 		return componentURLLabel;
@@ -548,7 +548,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	private JButton getComponentUpdateButton() {
 		if (componentUpdateButton == null) {
-			componentUpdateButton = new JButton("更新");
+			componentUpdateButton = new JButton(tr("Update"));
 			componentUpdateButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -565,7 +565,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 									@Override
 									public void run() {
 										componentUpdateButton.setEnabled(true);
-										getComponentMessage().setText("更新完了！");
+										getComponentMessage().setText(tr("Updated!"));
 									}
 								});
 							} catch (final TwitterException e1) {
@@ -594,7 +594,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 			}
 			componentUserIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			JPopupMenu popup = new JPopupMenu();
-			JMenuItem editMenu = new JMenuItem("編集");
+			JMenuItem editMenu = new JMenuItem(tr("Edit"));
 			editMenu.addActionListener(new UserIconEditActionListener());
 			popup.add(editMenu);
 			componentUserIcon.setComponentPopupMenu(popup);
@@ -617,7 +617,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	@Override
 	public String getDefaultTitle() {
-		return "@" + account.getScreenName() + "編集";
+		return tr("Edit @%s", account.getScreenName());
 	}
 
 	@Override
@@ -655,13 +655,14 @@ public class UpdateProfileTab extends AbstractClientTab {
 
 	@Override
 	public String getToolTip() {
-		return "プロフィールを編集する";
+		return tr("Edit profile");
 	}
 
 	@Override
 	protected String getTwitterUrl() {
 		return "https://twitter.com/settings/profile";
 	}
+
 
 	/**
 	 * init user icon

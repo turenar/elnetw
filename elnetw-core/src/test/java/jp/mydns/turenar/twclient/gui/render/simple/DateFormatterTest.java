@@ -59,12 +59,14 @@ public class DateFormatterTest {
 		ClientConfigurationTestImpl configuration = getConf("ms");
 		configuration.setGlobalInstance();
 		try {
+			LocalizationResourceProxy.pushLocale(Locale.JAPAN);
 			assertEquals("2014/01/01 00:00:00.000", toDateString(-10, SEC));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, SEC));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, MINUTE));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, HOUR));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, DAY));
 		} finally {
+			LocalizationResourceProxy.popLocale();
 			configuration.clearGlobalInstance();
 		}
 	}
@@ -74,12 +76,14 @@ public class DateFormatterTest {
 		ClientConfigurationTestImpl configuration = getConf("ms+rel");
 		configuration.setGlobalInstance();
 		try {
+			LocalizationResourceProxy.pushLocale(Locale.JAPAN);
 			assertEquals("2014/01/01 00:00:00.000", toDateString(-10, SEC));
 			assertEquals("10秒 (2014/01/01 00:00:00.000)", toDateString(+10, SEC));
 			assertEquals("10分 (2014/01/01 00:00:00.000)", toDateString(+10, MINUTE));
 			assertEquals("10時間 (2014/01/01 00:00:00.000)", toDateString(+10, HOUR));
 			assertEquals("2014/01/01 00:00:00.000", toDateString(+10, DAY));
 		} finally {
+			LocalizationResourceProxy.popLocale();
 			configuration.clearGlobalInstance();
 		}
 	}
@@ -89,12 +93,14 @@ public class DateFormatterTest {
 		ClientConfigurationTestImpl configuration = getConf("rel");
 		configuration.setGlobalInstance();
 		try {
+			LocalizationResourceProxy.pushLocale(Locale.JAPAN);
 			assertEquals("未来", toDateString(-10, SEC));
 			assertEquals("10秒", toDateString(+10, SEC));
 			assertEquals("10分", toDateString(+10, MINUTE));
 			assertEquals("10時間", toDateString(+10, HOUR));
 			assertEquals("1月1日", toDateString(+10, DAY));
 		} finally {
+			LocalizationResourceProxy.popLocale();
 			configuration.clearGlobalInstance();
 		}
 	}
@@ -104,12 +110,14 @@ public class DateFormatterTest {
 		ClientConfigurationTestImpl configuration = getConf("sec");
 		configuration.setGlobalInstance();
 		try {
+			LocalizationResourceProxy.pushLocale(Locale.JAPAN);
 			assertEquals("2014/01/01 00:00:00", toDateString(-10, SEC));
 			assertEquals("2014/01/01 00:00:00", toDateString(+10, SEC));
 			assertEquals("2014/01/01 00:00:00", toDateString(+10, MINUTE));
 			assertEquals("2014/01/01 00:00:00", toDateString(+10, HOUR));
 			assertEquals("2014/01/01 00:00:00", toDateString(+10, DAY));
 		} finally {
+			LocalizationResourceProxy.popLocale();
 			configuration.clearGlobalInstance();
 		}
 	}

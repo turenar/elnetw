@@ -641,13 +641,15 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 	private JMenu getMenuAccount() {
 		if (accountMenu == null) {
-			accountMenu = new JMenu(tr("A&ccount"));
+			accountMenu = new JMenu();
+			Utility.setMnemonic(accountMenu,tr("A&ccount"));
 
 			configuration.addJob(Priority.LOW, new UserInfoFetcher());
 			accountMenu.add(getReadTimelineJMenu());
 			accountMenu.add(getPostToJMenu());
 
-			JMenuItem verifyAccountMenuItem = new JMenuItem(tr("Verify account..."), KeyEvent.VK_V);
+			JMenuItem verifyAccountMenuItem = new JMenuItem();
+			Utility.setMnemonic(verifyAccountMenuItem, tr("&Verify account..."));
 			new IntentArguments("menu_account_verify").setMenu(verifyAccountMenuItem);
 			accountMenu.add(verifyAccountMenuItem);
 		}

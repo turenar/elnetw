@@ -86,7 +86,8 @@ public class FavoriteIntent extends AbstractIntent {
 					favFlag = status.isFavorited();
 					break;
 			}
-			menuItem.setText(favFlag ? tr("Un&favorite") : tr("&Favorite"));
+			String text = favFlag ? tr("Un&favorite") : tr("&Favorite");
+			Utility.setMnemonic(menuItem,text);
 			menuItem.setEnabled(true);
 		} else {
 			menuItem.setEnabled(false);

@@ -432,7 +432,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private JCheckBoxMenuItem getComponentMuteCheckBox() {
 		if (muteCheckBox == null) {
-			muteCheckBox = new JCheckBoxMenuItem("ミュート");
+			muteCheckBox = new JCheckBoxMenuItem(tr("Mute"));
 			muteCheckBox.setEnabled(false);
 			muteCheckBox.addActionListener(new ActionListener() {
 
@@ -633,7 +633,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 	public String getDefaultTitle() {
 		StringBuilder stringBuilder = new StringBuilder();
 		if (user == null) {
-			stringBuilder.append("読込中");
+			stringBuilder.append(tr("Loading"));
 		} else {
 			stringBuilder.append('@').append(user.getScreenName());
 		}
