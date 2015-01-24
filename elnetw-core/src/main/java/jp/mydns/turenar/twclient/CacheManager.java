@@ -164,6 +164,9 @@ public class CacheManager {
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 	private final CacheStorage cacheStorage;
+	/**
+	 * lock for delayed user
+	 */
 	protected final Object delayingNotifierLock = new Object();
 
 	/**

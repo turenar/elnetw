@@ -107,8 +107,7 @@ public class ClientConfiguration {
 	public static final String PROPERTY_PAGING_LIST = "twitter.list.count";
 	/** search取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_LIST = "twitter.list.interval";
-	/** 環境依存の改行コード */
-	public static final String NEW_LINE = System.getProperty("line.separator");
+	/** UTF-8 Charset */
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";

@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jp.mydns.turenar.twclient.JobQueue.Priority;
 import org.junit.Test;
 
 import static jp.mydns.turenar.twclient.JobQueue.LinkedQueue;
@@ -31,6 +32,13 @@ import static jp.mydns.turenar.twclient.JobQueue.PHASE_EXITED;
 import static jp.mydns.turenar.twclient.JobQueue.PHASE_NEW;
 import static jp.mydns.turenar.twclient.JobQueue.PHASE_RUNNING;
 import static jp.mydns.turenar.twclient.JobQueue.PHASE_STOPPING;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_DEFAULT;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_HIGH;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_IDLE;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_LOW;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_MAX;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_MEDIUM;
+import static jp.mydns.turenar.twclient.JobQueue.PRIORITY_UI;
 import static org.junit.Assert.*;
 
 /**
@@ -638,6 +646,21 @@ public class JobQueueTest {
 		assertEquals(PHASE_STOPPING, jobQueue.getPhase());
 		shutdownQueue(jobQueue);
 		assertEquals(PHASE_EXITED, jobQueue.getPhase());
+	}
+
+	@Test
+	public void testPriority() throws Exception {
+		assertTrue(Priority.MAX > Priority.HIGH);
+		assertTrue(Priority.HIGH > Priority.UI);
+		assertTrue(Priority.UI > Priority.MEDIUM);
+		assertTrue(Priority.MEDIUM > Priority.LOW);
+		assertTrue(Priority.LOW > Priority.IDLE);
+		assertTrue(PRIORITY_MAX > PRIORITY_HIGH);
+		assertTrue(PRIORITY_HIGH > PRIORITY_UI);
+		assertTrue(PRIORITY_UI > PRIORITY_MEDIUM);
+		assertTrue(PRIORITY_MEDIUM > PRIORITY_LOW);
+		assertTrue(PRIORITY_LOW > PRIORITY_IDLE);
+		assertTrue(PRIORITY_DEFAULT == PRIORITY_MEDIUM);
 	}
 
 	@Test

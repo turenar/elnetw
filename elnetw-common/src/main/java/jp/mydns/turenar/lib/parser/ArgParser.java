@@ -48,6 +48,12 @@ public class ArgParser {
 		}
 	}
 
+	/**
+	 * get long opt from name. name can be prefixed with "--". We return "--XXX"
+	 *
+	 * @param longOptName name (prefix-able with "--")
+	 * @return --XXX style opt
+	 */
 	protected static String getLongOptName(String longOptName) {
 		return longOptName.startsWith("--") ? longOptName : ("--" + longOptName);
 	}

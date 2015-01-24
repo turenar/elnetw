@@ -34,11 +34,25 @@ import java.util.LinkedList;
  */
 public class ParsedArguments {
 	private static final NullOptionInfo NULL_OPTION_INFO = new NullOptionInfo();
+	/**
+	 * エラーメッセージのリスト。
+	 */
 	protected final ArrayList<String> errorMessages;
-	protected final ArrayList<String> processArguments;
+	/**
+	 * optionとは関係のないプロセス引数
+	 */protected final ArrayList<String> processArguments;
+	/**
+	 * オプション情報のマップ
+	 */
 	protected final HashMap<String, OptionInfo> optionInfos;
+	/**
+	 * オプションの先頭からトラバースできるリスト
+	 */
 	protected final LinkedList<OptionInfo> optionInfoList;
 
+	/**
+	 * create instance
+	 */
 	protected ParsedArguments() {
 		errorMessages = new ArrayList<>(0);
 		processArguments = new ArrayList<>();
@@ -121,6 +135,10 @@ public class ParsedArguments {
 		return errorMessages.size();
 	}
 
+	/**
+	 * エラーメッセージリストのイテレーターを取得する
+	 * @return イテレータ
+	 */
 	public Iterator<String> getErrorMessageIterator() {
 		return Collections.unmodifiableList(errorMessages).iterator();
 	}
