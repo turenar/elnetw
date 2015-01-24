@@ -240,6 +240,13 @@ public final class TwitterClientMain {
 	@InitializerInstance
 	private static volatile TwitterClientMain singleton;
 
+	/**
+	 * assert singleton. THIS METHOD IS FOR LAUNCHER, DEVELOPERS MUST NOT USE THIS METHOD.
+	 *
+	 * @param args        arguments
+	 * @param classLoader class loader
+	 * @return singleton instance
+	 */
 	public static synchronized TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
 		if (singleton != null) {
 			throw new IllegalStateException("another instance always seems to be running");

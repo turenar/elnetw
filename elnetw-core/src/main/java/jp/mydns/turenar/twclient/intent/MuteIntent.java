@@ -71,6 +71,11 @@ public class MuteIntent extends AbstractIntent {
 		}
 
 		@Override
+		public int hashCode() {
+			return (int )id;
+		}
+
+		@Override
 		public long getId() {
 			return id;
 		}

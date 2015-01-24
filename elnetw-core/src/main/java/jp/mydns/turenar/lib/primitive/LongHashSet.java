@@ -23,6 +23,9 @@ package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
 
+/**
+ * primitive hash set. faster than TreeSet&lt;Long&gt;, HashSet with random values
+ */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -155,9 +158,13 @@ public class LongHashSet implements Cloneable {
 		}
 	}
 
-	public synchronized void addAll(long[] ids) {
-		ensureCapacity(ids.length);
-		for (long id : ids) {
+	/**
+	 * add all of contents
+	 * @param elements elements to add
+	 */
+	public synchronized void addAll(long[] elements) {
+				ensureCapacity(elements.length);
+		for (long id : elements) {
 			add(id);
 		}
 	}
