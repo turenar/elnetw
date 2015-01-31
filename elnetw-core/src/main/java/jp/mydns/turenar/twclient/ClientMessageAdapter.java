@@ -39,6 +39,14 @@ public abstract class ClientMessageAdapter implements ClientMessageListener {
 	}
 
 	@Override
+	public void onUserDeletion(long deletedUser) {
+	}
+
+	@Override
+	public void onUserSuspension(long suspendedUser) {
+	}
+
+	@Override
 	public void onChangeAccount(boolean forWrite) {
 	}
 

@@ -76,7 +76,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
-			<artifactId>twitter4j-spdy-support</artifactId>
+			<artifactId>twitter4j-spdy-support2</artifactId>
 			<version>${twitter4j.version}</version>
 		</dependency>
 		<dependency>
@@ -135,7 +135,12 @@
 		<dependency>
 			<groupId>com.squareup.okhttp</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>1.5.4</version>
+			<version>${okhttp.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp</groupId>
+			<artifactId>okhttp-urlconnection</artifactId>
+			<version>${okhttp.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -192,6 +197,7 @@
 		</plugins>
 	</reporting>
 	<properties>
-		<twitter4j.version>4.0.2</twitter4j.version>
+		<twitter4j.version>4.0.3-SNAPSHOT</twitter4j.version>
+		<okhttp.version>2.2.0</okhttp.version>
 	</properties>
 </project>

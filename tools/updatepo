@@ -8,9 +8,8 @@ function _popd() {
 
 _pushd elnetw-core
 echo -n "gettext: "
-find src/main/java/ -type f -print0 | \
-	xargs -0 xgettext \
-		--files-from=- \
+find src/main/java/ -type f | \
+	xgettext --files-from=- \
 		-k \
 		-ktr \
 		--flag=tr:1:c-format \

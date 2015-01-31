@@ -141,6 +141,7 @@ public class TwitterStatus implements Status {
 	private SymbolEntity[] symbolEntities;
 	private transient Scopes scopes;
 	private MediaEntity[] extendedMediaEntities;
+	private String[] withheldInCountries;
 
 	/**
 	 * インスタンスを生成する。
@@ -198,6 +199,7 @@ public class TwitterStatus implements Status {
 		symbolEntities = originalStatus.getSymbolEntities();
 		scopes = originalStatus.getScopes();
 		extendedMediaEntities = originalStatus.getExtendedMediaEntities();
+		withheldInCountries = originalStatus.getWithheldInCountries();
 
 		Status retweetedStatus = originalStatus.getRetweetedStatus();
 		if (!(originalStatus instanceof TwitterStatus)) {
@@ -346,6 +348,11 @@ public class TwitterStatus implements Status {
 	@Override
 	public Scopes getScopes() {
 		return scopes;
+	}
+
+	@Override
+	public String[] getWithheldInCountries() {
+		return withheldInCountries;
 	}
 
 	@Override

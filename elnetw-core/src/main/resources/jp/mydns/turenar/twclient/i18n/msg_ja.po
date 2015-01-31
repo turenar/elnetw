@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-12 00:25+0900\n"
+"POT-Creation-Date: 2015-01-31 14:03+0900\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Turenar <snswinhaiku.lo@gmail.com>\n"
 "Language-Team: \n"
@@ -78,8 +78,8 @@ msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:111
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:248
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:228
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:266
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:229
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:267
 msgid "List"
 msgstr "リスト"
 
@@ -369,6 +369,14 @@ msgstr "%d時間"
 msgctxt "date short format"
 msgid "%1$tb %1$td"
 msgstr "%1$tb月%1$te日"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:101
+msgid "Account deleted: uniqId=%d"
+msgstr "アカウントが削除されました: uniqId=%d"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:102
+msgid "Account deleted: @%s"
+msgstr "アカウントが削除されました: @%s"
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
 msgid "(global)"
