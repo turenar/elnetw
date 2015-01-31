@@ -38,13 +38,13 @@ public class LongHashSetBenchmark {
 		return sum / 16;
 	}
 
-	private static long bench(int max, boolean rand) {
+	private static long bench(int max, boolean rand, boolean prealloc) {
 		System.gc();
 		long[] myTimes = new long[32];
 		for (int time = -256; time < 32; time++) {
 			System.out.printf("\r\033[Ksize=%d, %s, repeat=%d", max, rand ? "random" : "sequence", time);
 			long timeMillis = System.nanoTime();
-			testMine(max, rand);
+			testMine(max, rand, prealloc);
 			myTimes[((time + 256) % 32)] = System.nanoTime() - timeMillis;
 		}
 		System.gc();
@@ -79,17 +79,20 @@ size		average
 	 */
 	private static void outerBench(boolean rand) {
 		System.out.printf("=== rand=%s ===%n", Boolean.toString(rand));
-		System.out.println("size\t\taverage");
+		System.out.println("size\t\taverage\t(prealloc)");
 		for (int i = 4; i < 17; i += 2) {
-			System.out.printf("\r\033[K%8d\t%d%n",1 << i, bench(1 << i, rand));
+			System.out.printf("\r\033[K%8d\t%d\t%d%n",1 << i, bench(1 << i, rand,false), bench(1<<i,rand,true));
 		}
 	}
 
-	private static void testMine(int max, boolean rand) {
+	private static void testMine(int max, boolean rand, boolean prealloc) {
 		LongHashSet longHashSet = new LongHashSet();
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		int i = 0;
 		int randMax = max << 4;
+		if(prealloc){
+			longHashSet.ensureCapacity(randMax);
+		}
 		for (; i < max >> 3; i++) {
 			long e = rand ? random.nextLong(0, randMax) : i;
 			longHashSet.add(e);

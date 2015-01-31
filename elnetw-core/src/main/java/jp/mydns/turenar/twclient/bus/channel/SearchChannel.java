@@ -79,9 +79,7 @@ public class SearchChannel extends TwitterRunnable implements MessageChannel, Pa
 	protected void access() throws TwitterException {
 		Query query = new Query(this.queryText).count(configProperties.getInteger(PROPERTY_PAGING_SEARCH));
 		QueryResult tweets = twitter.search(query);
-		for (Status result : tweets.getTweets()) {
-			listeners.onStatus(result);
-		}
+		tweets.getTweets().forEach(listeners::onStatus);
 		lastTweets = tweets.getTweets();
 	}
 
@@ -100,9 +98,7 @@ public class SearchChannel extends TwitterRunnable implements MessageChannel, Pa
 	@Override
 	public void establish(ClientMessageListener listener) {
 		if (lastTweets != null) {
-			for (Status status : lastTweets) {
-				listener.onStatus(status);
-			}
+			lastTweets.forEach(listener::onStatus);
 		}
 	}
 
@@ -117,12 +113,8 @@ public class SearchChannel extends TwitterRunnable implements MessageChannel, Pa
 			twitter = new TwitterFactory(messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
-					new Runnable() {
-						@Override
-						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, SearchChannel.this);
-						}
-					}, 0, interval, TimeUnit.SECONDS);
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
+					0, interval, TimeUnit.SECONDS);
 		}
 	}
 }

@@ -89,9 +89,7 @@ public class FollowingUsersChannel extends TwitterRunnable implements MessageCha
 		@Override
 		public void onFriendList(long[] friendIds) {
 			LongHashSet list = new LongHashSet();
-			for (long friendId : friendIds) {
-				list.add(friendId);
-			}
+			list.addAll(friendIds);
 			followingList = list;
 		}
 

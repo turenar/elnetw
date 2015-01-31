@@ -150,12 +150,9 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		}
 
 		private void updateImageLabel(final String progress) {
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					if (!possiblySensitive) {
-						getComponentImageLabel().setText(progress);
-					}
+			EventQueue.invokeLater(() -> {
+				if (!possiblySensitive) {
+					getComponentImageLabel().setText(progress);
 				}
 			});
 		}

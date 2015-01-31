@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -352,9 +351,7 @@ public class MessageBus {
 	/** お掃除する */
 	public synchronized void cleanUp() {
 		Collection<MessageChannel> entries = pathMap.values();
-		for (MessageChannel entry : entries) {
-			entry.disconnect();
-		}
+		entries.forEach(MessageChannel::disconnect);
 	}
 
 	/**
@@ -558,9 +555,7 @@ public class MessageBus {
 	/** ClientTabの復元が完了し、DataFetcherの通知を受け取れるようになった */
 	public synchronized void onInitialized() {
 		isInitialized = true;
-		for (MessageChannel channel : pathMap.values()) {
-			channel.realConnect();
-		}
+		pathMap.values().forEach(MessageChannel::realConnect);
 	}
 
 	private synchronized void relogin(String accountId, boolean forWrite) {

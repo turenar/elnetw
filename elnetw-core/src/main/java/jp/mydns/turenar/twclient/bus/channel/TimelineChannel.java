@@ -75,9 +75,7 @@ public class TimelineChannel extends TwitterRunnable implements MessageChannel, 
 	protected void access() throws TwitterException {
 		ResponseList<Status> timeline = twitter.getHomeTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_TIMELINE)));
-		for (Status status : timeline) {
-			listeners.onStatus(status);
-		}
+		timeline.forEach(listeners::onStatus);
 	}
 
 	@Override
@@ -106,13 +104,9 @@ public class TimelineChannel extends TwitterRunnable implements MessageChannel, 
 		if (scheduledFuture == null) {
 			twitter = new TwitterFactory(messageBus.getTwitterConfiguration(accountId)).getInstance();
 
-			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(new Runnable() {
-
-				@Override
-				public void run() {
-					configuration.addJob(JobQueue.Priority.LOW, TimelineChannel.this);
-				}
-			}, 0, intervalOfTimeline, TimeUnit.SECONDS);
+			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
+					0, intervalOfTimeline, TimeUnit.SECONDS);
 		}
 	}
 }

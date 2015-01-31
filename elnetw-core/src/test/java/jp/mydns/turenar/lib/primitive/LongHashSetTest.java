@@ -56,6 +56,20 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testEnsureCapacity() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(4);
+		longHashSet.ensureCapacity(65536);
+		for (long i = 0; i < 65536; i++) {
+			assertTrue(longHashSet.add(i));
+		}
+		assertEquals(65536, longHashSet.size());
+		for (long i = 0; i < 65536; i++) {
+			assertTrue(longHashSet.contains(i));
+			assertFalse(longHashSet.add(i));
+		}
+	}
+
+	@Test
 	public void testAddAll() throws Exception {
 		LongHashSet longHashSet = new LongHashSet(4);
 		longHashSet.addAll(newSeqArray(0, 16));

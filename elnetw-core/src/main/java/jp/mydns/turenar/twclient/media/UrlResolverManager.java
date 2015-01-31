@@ -84,14 +84,11 @@ public class UrlResolverManager {
 		if (cachedUrl != null) {
 			dispatcher.gotMediaUrl(url, cachedUrl);
 		} else {
-			configuration.addJob(priority, new ParallelRunnable() {
-				@Override
-				public void run() {
-					try {
-						dispatcher.gotMediaUrl(url, getUrl(url));
-					} catch (Exception e) {
-						dispatcher.onException(url, e);
-					}
+			configuration.addJob(priority, () -> {
+				try {
+					dispatcher.gotMediaUrl(url, getUrl(url));
+				} catch (Exception e) {
+					dispatcher.onException(url, e);
 				}
 			});
 		}
