@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.bus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -485,18 +486,12 @@ public class MessageBus {
 	 * @return actual listerners
 	 */
 	public synchronized ClientMessageListener[] getEndpoints(String[] paths) {
-		ClientMessageListener[] listeners;
-		HashSet<ClientMessageListener> listenersSet = new HashSet<>();
-		for (String path : paths) {
-			ArrayList<ClientMessageListener> list = pathListenerMap.get(path);
-			if (list != null) {
-				for (ClientMessageListener listener : list) {
-					listenersSet.add(listener);
-				}
-			}
-		}
-		listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
-		return listeners;
+		return Arrays.stream(paths)
+				.map(pathListenerMap::get)
+				.filter(list -> list != null)
+				.flatMap(Collection::stream)
+				.distinct()
+				.toArray(ClientMessageListener[]::new);
 	}
 
 	/**
@@ -526,6 +521,7 @@ public class MessageBus {
 
 	/**
 	 * get modified count. if this value is updated, you should re-retrieve listener cache
+	 *
 	 * @return modified count
 	 */
 	public int getModifiedCount() {

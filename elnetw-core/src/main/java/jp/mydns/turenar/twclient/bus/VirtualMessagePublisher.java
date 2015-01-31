@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.bus;
 
+import java.util.Arrays;
 import java.util.TreeSet;
 
 import jp.mydns.turenar.twclient.CacheManager;
@@ -44,6 +45,31 @@ import twitter4j.UserList;
  */
 /*package*/
 class VirtualMessagePublisher implements ClientMessageListener {
+	@Override
+	public void onUserDeletion(long deletedUser) {
+		ClientMessageListener[] listeners = getListeners();
+
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserDeletion(deletedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
+			}
+		}
+	}
+
+	@Override
+	public void onUserSuspension(long suspendedUser) {
+		ClientMessageListener[] listeners = getListeners();
+
+		for (ClientMessageListener listener : listeners) {
+			try {
+				listener.onUserSuspension(suspendedUser);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
+			}
+		}
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(VirtualMessagePublisher.class);
 	private final String[] paths;

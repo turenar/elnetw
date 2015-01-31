@@ -154,6 +154,11 @@ public class NullStatus implements Status {
 	}
 
 	@Override
+	public String[] getWithheldInCountries() {
+		return new String[0];
+	}
+
+	@Override
 	public String getSource() {
 		return null;
 	}

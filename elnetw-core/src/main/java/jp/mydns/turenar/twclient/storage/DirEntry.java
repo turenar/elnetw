@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.storage;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntFunction;
 
 /**
  * Virtual Directory Entry
@@ -40,6 +41,12 @@ public interface DirEntry extends Iterable<String> {
 	 */
 	boolean exists(String path);
 
+	/**
+	 * read array of path
+	 * @param path path
+	 * @return array. if path has DirEntry, we throw Exception.
+	 */
+	String[] readStringArray(String path);
 	/**
 	 * get dir entry of path
 	 *
@@ -290,4 +297,12 @@ public interface DirEntry extends Iterable<String> {
 	 * @return this
 	 */
 	DirEntry writeString(String path, String data);
+
+	/**
+	 * write String[] to path
+	 * @param path path
+	 * @param data data
+	 * @return this
+	 */
+	DirEntry writeStringArray(String path, String[] data);
 }

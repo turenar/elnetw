@@ -27,6 +27,8 @@ package jp.mydns.turenar.twclient.storage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class IntegerConverter extends NumberConverter<Integer> {
+	public static final IntegerConverter SINGLETON = new IntegerConverter();
+
 	@Override
 	protected boolean checkRange(long l) {
 		return l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE;

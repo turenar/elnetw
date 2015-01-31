@@ -27,6 +27,8 @@ package jp.mydns.turenar.twclient.storage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class LongConverter extends NumberConverter<Long> {
+	public static final LongConverter SINGLETON = new LongConverter();
+
 	@Override
 	protected boolean checkRange(long l) {
 		return true;

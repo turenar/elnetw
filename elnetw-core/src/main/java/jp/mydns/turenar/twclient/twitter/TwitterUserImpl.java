@@ -39,6 +39,13 @@ import static jp.mydns.turenar.twclient.twitter.URLEntityImpl.getEntitiesFromDir
  */
 public class TwitterUserImpl extends TwitterUser {
 
+	private String[] withheldInCountries;
+
+	@Override
+	public String[] getWithheldInCountries() {
+		return new String[0];
+	}
+
 	private static final long serialVersionUID = -1546636227286362016L;
 
 	private final long createdAt;
@@ -126,6 +133,7 @@ public class TwitterUserImpl extends TwitterUser {
 		DirEntry entities = dirEntry.getDirEntry("entities");
 		urlEntity = new URLEntityImpl(entities.getDirEntry("url"));
 		descriptionURLEntities = getEntitiesFromDirEntry(entities.getDirEntry("description"));
+	withheldInCountries=	dirEntry.readStringArray("withheld_in_countries");
 
 		timestamp = dirEntry.exists("timestamp") ? dirEntry.readLong("timestamp") : System.currentTimeMillis();
 	}
@@ -550,6 +558,7 @@ public class TwitterUserImpl extends TwitterUser {
 		urlEntity = originalUser.getURLEntity();
 		defaultProfile = originalUser.isDefaultProfile();
 		defaultProfileImage = originalUser.isDefaultProfileImage();
+		withheldInCountries = originalUser.getWithheldInCountries();
 	}
 
 	@Override
@@ -590,6 +599,7 @@ public class TwitterUserImpl extends TwitterUser {
 				.writeString("url", url)
 				.writeInt("utc_offset", utcOffset)
 				.writeBool("verified", isVerified)
+				.writeStringArray("withheld_in_countries", withheldInCountries)
 				.writeLong("timestamp", timestamp);
 //				.writeString("notification", )
 //				.writeString("following",  )

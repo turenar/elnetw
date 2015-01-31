@@ -44,6 +44,11 @@ public class DelayedUserImpl extends TwitterUser {
 	private final long userId;
 	protected TwitterUser target;
 
+	@Override
+	public String[] getWithheldInCountries() {
+		return getTarget().getWithheldInCountries();
+	}
+
 	/**
 	 * create instance
 	 *

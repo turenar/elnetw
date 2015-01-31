@@ -181,19 +181,19 @@ public class DirEntryImpl implements DirEntry {
 	public List<Integer> readIntList(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), new IntegerConverter());
+		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), IntegerConverter.SINGLETON);
 	}
 
 	@Override
 	public Map<String, Integer> readIntMap(String path) {
-		return new DirEntryWrapMap<>(getDirEntry(path), new IntegerConverter());
+		return new DirEntryWrapMap<>(getDirEntry(path), IntegerConverter.SINGLETON);
 	}
 
 	@Override
 	public List<Object> readList(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), new ObjectConverter());
+		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), ObjectConverter.SINGLETON);
 	}
 
 	@Override
@@ -214,12 +214,12 @@ public class DirEntryImpl implements DirEntry {
 	public List<Long> readLongList(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), new LongConverter());
+		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), LongConverter.SINGLETON);
 	}
 
 	@Override
 	public Map<String, Long> readLongMap(String path) {
-		return new DirEntryWrapMap<>(getDirEntry(path), new LongConverter());
+		return new DirEntryWrapMap<>(getDirEntry(path), LongConverter.SINGLETON);
 	}
 
 	@Override
@@ -230,15 +230,28 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	public String[] readStringArray(String path) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
+		String basename = basename(path);
+		List<String> list = wrapList(parentDirectory.jsonObject.optJSONArray(basename), StringConverter.SINGLETON);
+		return list == null ? new String[0] : list.toArray(new String[list.size()]);
+	}
+
+	@Override
+	public DirEntry writeStringArray(String path, String[] data) {
+		return writeList(path, (Object[]) data);
+	}
+
+	@Override
 	public List<String> readStringList(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), new StringConverter());
+		return wrapList(parentDirectory.jsonObject.optJSONArray(basename), StringConverter.SINGLETON);
 	}
 
 	@Override
 	public Map<String, String> readStringMap(String path) {
-		return new DirEntryWrapMap<>(getDirEntry(path), new StringConverter());
+		return new DirEntryWrapMap<>(getDirEntry(path), StringConverter.SINGLETON);
 	}
 
 	@Override

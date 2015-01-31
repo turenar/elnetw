@@ -190,6 +190,11 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public String[] readStringArray(String path) {
+		return rootDirEntry.readStringArray(path);
+	}
+
+	@Override
 	public List<String> readStringList(String path) {
 		return rootDirEntry.readStringList(path);
 	}
@@ -202,6 +207,11 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public String realpath(String path) {
 		return rootDirEntry.realpath(path);
+	}
+
+	@Override
+	public DirEntry writeStringArray(String path, String[] data) {
+		rootDirEntry.writeStringArray(path, data);return this;
 	}
 
 	@Override
