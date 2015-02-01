@@ -1043,10 +1043,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 	 * initialize the form.
 	 */
 	private void initComponents() {
-		setTitle(VersionInfo.isSnapshot()
-						? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
-						: APPLICATION_NAME
-		);
+		setTitle(configuration.getTitleForMainFrame());
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 

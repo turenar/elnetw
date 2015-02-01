@@ -595,6 +595,12 @@ public class ClientConfiguration {
 		return timer;
 	}
 
+	public static String getTitleForMainFrame() {
+		return VersionInfo.isSnapshot()
+						? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
+						: APPLICATION_NAME;
+	}
+
 	/**
 	 * TrayIconをかえす。nullの場合有り。
 	 *

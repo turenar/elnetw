@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient;
 import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.SystemTray;
+import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -915,6 +917,29 @@ public final class TwitterClientMain {
 		String defaultAccountId = configuration.getDefaultAccountId();
 		configuration.setAccountIdForRead(defaultAccountId);
 		configuration.setAccountIdForWrite(defaultAccountId);
+	}
+
+	/**
+	 * set app name for GNOME3. If we don't do this, we get jp-mydns-turenar-launcher-TwitterClientLauncher for title.
+	 * see GitHub issue#76
+	 */
+	@Initializer(name = "appName", phase = "preinit")
+	public void setAppName() {
+		// for Gnome3
+		final Toolkit toolkit = Toolkit.getDefaultToolkit();
+		final Class<?> cls = toolkit.getClass();
+
+		try {
+			// When X11 toolkit is used then set the awtAppClassName field
+			if (cls.getName().equals("sun.awt.X11.XToolkit")) {
+				final Field field = cls.getDeclaredField("awtAppClassName");
+				field.setAccessible(true);
+				field.set(toolkit, ClientConfiguration.getTitleForMainFrame());
+			}
+		} catch (Exception e) {
+			// we prefer successfully initialize
+			logger.warn("failed to set application name", e);
+		}
 	}
 
 	/**
