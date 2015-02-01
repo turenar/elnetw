@@ -172,9 +172,9 @@ import org.slf4j.LoggerFactory;
 		}
 		try {
 			Class<?>[] parameterTypes = method.getParameterTypes();
-			// not supported uninit
-			// if (parameterTypes.length == 0) {}else
-			if (parameterTypes.length == 1 && InitCondition.class.isAssignableFrom(parameterTypes[0])) {
+			if (parameterTypes.length == 0) {
+				// uninit not supported
+			} else if (parameterTypes.length == 1 && InitCondition.class.isAssignableFrom(parameterTypes[0])) {
 				TreeInitConditionImpl initCondition = new TreeInitConditionImpl(this, false);
 				method.invoke(instance, initCondition);
 				logger.trace(" uninit: {}", this);

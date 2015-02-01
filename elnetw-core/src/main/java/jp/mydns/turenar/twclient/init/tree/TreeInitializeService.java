@@ -47,6 +47,7 @@ public class TreeInitializeService extends InitializeService {
 	 * weight for not unresolved
 	 */
 	protected static final int UNRESOLVED_WEIGHT = 0x10000;
+	private static final int TIMEOUT = 100;
 	/**
 	 * do not mark final: test uses multiple instance
 	 */
@@ -264,8 +265,9 @@ public class TreeInitializeService extends InitializeService {
 				} else {
 					while (!info.isAllDependenciesInitialized()) {
 						try {
-							wait();
+							wait(TIMEOUT);
 							if (treeRebuildRequired) {
+								flatTree.unnext();
 								break REBUILD; // back to rebuild tree
 							}
 						} catch (InterruptedException e) {
@@ -285,7 +287,7 @@ public class TreeInitializeService extends InitializeService {
 			}
 			while (!runningInfo.isEmpty()) {
 				try {
-					wait();
+					wait(TIMEOUT);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
