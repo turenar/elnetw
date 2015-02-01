@@ -54,7 +54,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 public class MuteIntent extends AbstractIntent {
 	private static class EntityUser extends NullUser {
 
-		private static final long serialVersionUID = -8212441575399194595L;
+		private static final long serialVersionUID = -6123337934345453719L;
 		private final String screenName;
 		private final String name;
 		private final long id;
@@ -83,6 +83,11 @@ public class MuteIntent extends AbstractIntent {
 		@Override
 		public String getScreenName() {
 			return screenName;
+		}
+
+		@Override
+		public int hashCode() {
+			return (int) id;
 		}
 	}
 

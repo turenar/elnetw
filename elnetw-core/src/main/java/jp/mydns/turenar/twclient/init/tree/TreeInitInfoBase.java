@@ -49,13 +49,13 @@ import jp.mydns.turenar.twclient.init.InitializerInfo;
 	/**
 	 * is initialized?
 	 */
-	protected boolean isInitialized;
+	protected volatile boolean isInitialized;
 	/**
 	 * if false, check all dependencies resolved
 	 */
-	protected boolean allDependenciesResolved;
-	private InitializeException exception;
-	private boolean allDependenciesInitialized;
+	protected volatile boolean allDependenciesResolved;
+	private volatile InitializeException exception;
+	private volatile boolean allDependenciesInitialized;
 
 	/**
 	 * create instance
