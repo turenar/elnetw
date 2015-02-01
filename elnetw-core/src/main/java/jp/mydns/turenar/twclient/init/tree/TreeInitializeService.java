@@ -266,6 +266,7 @@ public class TreeInitializeService extends InitializeService {
 						try {
 							wait();
 							if (treeRebuildRequired) {
+								flatTree.unnext();
 								break REBUILD; // back to rebuild tree
 							}
 						} catch (InterruptedException e) {

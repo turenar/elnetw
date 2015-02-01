@@ -137,4 +137,8 @@ import java.util.RandomAccess;
 	public int size() {
 		return size;
 	}
+
+	public void unnext() {
+		--finishedIndex;
+	}
 }
