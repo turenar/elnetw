@@ -1399,4 +1399,10 @@ public final class TwitterClientMain {
 			}
 		}
 	}
+
+	@Initializer(name = "workaround/poodle", phase = "preinit")
+	public void workaroundForPoodle() {
+		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
+		System.setProperty("jdk.tls.client.protocols", "TLSv1,TLSv1.1,TLSv1.2");
+	}
 }

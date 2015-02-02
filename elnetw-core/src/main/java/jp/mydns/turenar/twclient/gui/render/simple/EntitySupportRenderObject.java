@@ -116,8 +116,8 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 								.append("</a>");
 						for (MediaEntity extendedMediaEntity : extendedMediaEntities) {
 							IntentArguments oneImageIntent = getIntentArguments("openimg");
-							imageLists.add(extendedMediaEntity.getMediaURLHttps());
-							oneImageIntent.putExtra("url", extendedMediaEntity.getMediaURLHttps());
+							imageLists.add(extendedMediaEntity.getMediaURL());
+							oneImageIntent.putExtra("url", extendedMediaEntity.getMediaURL());
 							String imgUrl = getFrameApi().getCommandUrl(oneImageIntent);
 							stringBuilder.append("<a href='")
 									.append(imgUrl)
