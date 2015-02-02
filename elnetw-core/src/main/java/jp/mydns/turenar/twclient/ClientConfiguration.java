@@ -292,6 +292,16 @@ public class ClientConfiguration {
 		jobQueue.addJob(job);
 	}
 
+	/**
+	 * 並列的にジョブを追加する。 ラムダ用。
+	 *
+	 * @param priority 優先度
+	 * @param job      ジョブ
+	 */
+	public void addParallelJob(byte priority, ParallelRunnable job) {
+		addJob(priority, job);
+	}
+
 	private boolean checkValidAccountId(String accountId) {
 		for (String account : getAccountList()) {
 			if (account.equals(accountId)) {

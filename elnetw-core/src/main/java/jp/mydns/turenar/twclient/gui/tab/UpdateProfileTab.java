@@ -603,7 +603,8 @@ public class UpdateProfileTab extends AbstractClientTab {
 				public void mouseClicked(MouseEvent e) {
 					if (!e.isPopupTrigger()) {
 						try {
-							new ImageViewerFrame(new URL(account.getOriginalProfileImageURLHttps()), false).setVisible(true);
+							new ImageViewerFrame(false, new URL(account.getOriginalProfileImageURLHttps()),
+									new URL(account.getOriginalProfileImageURL())).setVisible(true);
 						} catch (MalformedURLException e1) {
 							logger.error("Malformed URL (never happen?)", e1);
 						}

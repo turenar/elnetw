@@ -466,7 +466,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
-						new ImageViewerFrame(new URL(user.getProfileBannerLargeURL()), false).setVisible(true);
+						new ImageViewerFrame(false,new URL(user.getProfileBannerLargeURL())).setVisible(true);
 					} catch (MalformedURLException e1) {
 						throw new AssertionError(e1);
 					}
@@ -552,7 +552,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					try {
-						new ImageViewerFrame(new URL(user.getOriginalProfileImageURLHttps()), false).setVisible(true);
+						new ImageViewerFrame(false, new URL(user.getOriginalProfileImageURLHttps()),
+								new URL(user.getOriginalProfileImageURL())).setVisible(true);
 					} catch (MalformedURLException ex) {
 						logger.warn("conversion of originalProfileImageURLHttps to URL failed", ex);
 					}

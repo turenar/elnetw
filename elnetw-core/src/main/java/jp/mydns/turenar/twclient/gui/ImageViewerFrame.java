@@ -81,13 +81,13 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	 */
 	protected class ImageFetcher implements ParallelRunnable, FetchEventHandler {
 		private final Logger logger = LoggerFactory.getLogger(ImageFetcher.class);
-		private final URL url;
+		private final URL[] urls;
 		/** フレームが閉じられた */
 		private volatile boolean isInterrupted;
 		private int contentLength;
 
-		public ImageFetcher(URL url) {
-			this.url = url;
+		public ImageFetcher(URL[] urls) {
+			this.urls = urls;
 		}
 
 		/** フレームが閉じられたことに対する通知 */
@@ -103,7 +103,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 		@Override
 		public void onException(URLConnection connection, IOException e) {
-			logger.warn(MessageFormat.format("Error while fetching: {0}", url), e);
+			logger.warn("Error while fetching: {}", connection.getURL(), e);
 		}
 
 		@Override
@@ -119,33 +119,34 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 		@Override
 		public void run() {
-			byte[] contents;
-			try {
-				contents = NetworkSupport.fetchContents(url, this);
-				if (contents != null) {
-					final Image image = Toolkit.getDefaultToolkit().createImage(contents);
-					final ImageIcon imageIcon = new ImageIcon(image);
-					if (imageIcon.getIconHeight() < 0) {
-						updateImageLabel(tr("Failed loading image"));
-					} else {
-						ImageViewerFrame.this.image = Utility.createBufferedImage(image,
-								new MediaTracker(ImageViewerFrame.this));
-						if (!possiblySensitive) {
-							checkImageSize();
-							EventQueue.invokeLater(new Runnable() {
-								@Override
-								public void run() {
+			for (URL url : urls) {
+				byte[] contents;
+				try {
+					contents = NetworkSupport.fetchContents(url, this);
+					if (contents != null) {
+						final Image image = Toolkit.getDefaultToolkit().createImage(contents);
+						final ImageIcon imageIcon = new ImageIcon(image);
+						if (imageIcon.getIconHeight() < 0) {
+							updateImageLabel(tr("Failed loading image"));
+						} else {
+							ImageViewerFrame.this.image = Utility.createBufferedImage(image,
+									new MediaTracker(ImageViewerFrame.this));
+							if (!possiblySensitive) {
+								checkImageSize();
+								EventQueue.invokeLater(() -> {
 									getComponentImageLabel().setText(null);
 									pack();
 									queueUpdateImage();
 									setIconImage(image);
-								}
-							});
+									ImageViewerFrame.this.setTitle(url.toString());
+								});
+							}
+							break; // main loop
 						}
 					}
+				} catch (InterruptedException e) {
+					updateImageLabel(tr("Thread interrupted"));
 				}
-			} catch (InterruptedException e) {
-				updateImageLabel(tr("Thread interrupted"));
 			}
 		}
 
@@ -182,7 +183,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	 * minimum image size
 	 */
 	public static final int MIN_IMAGE_SIZE = 64;
-	private final URL url;
+	private final URL[] urls;
 	/*package*/ volatile boolean possiblySensitive;
 	private int resizeScaleFactor;
 	private transient MouseListener zoomMouseListener = new MouseAdapter() {
@@ -208,15 +209,15 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 	/**
 	 * インスタンスを生成する。
 	 *
-	 * @param url               画像のURL。
+	 * @param urls              画像のURL。
 	 * @param possiblySensitive possibly sensitive
 	 */
-	public ImageViewerFrame(URL url, boolean possiblySensitive) {
-		this.url = url;
+	public ImageViewerFrame(boolean possiblySensitive, URL... urls) {
+		this.urls = urls;
 		ClientProperties configProperties = ClientConfiguration.getInstance().getConfigProperties();
 		this.possiblySensitive = configProperties.getBoolean("gui.image.follow_sensitive") && possiblySensitive;
 		initComponents();
-		scheduleImageFetcher(url);
+		scheduleImageFetcher(urls);
 		uiFont = configProperties
 				.getFont(ClientConfiguration.PROPERTY_GUI_FONT_UI).deriveFont(Font.BOLD);
 	}
@@ -295,7 +296,7 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 
 	private void initComponents() {
 		setSize(256, 256);
-		setTitle(url.toString());
+		setTitle(urls[0].toString());
 		addWindowListener(this);
 		GroupLayout layout = new GroupLayout(this.getContentPane());
 		this.getContentPane().setLayout(layout);
@@ -349,28 +350,25 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 				}
 			}
 			final MediaContainer mediaContainer = updateImageSize();
-			ClientConfiguration.getInstance().addJob(JobQueue.PRIORITY_MAX, new ParallelRunnable() {
-				@Override
-				public void run() {
-					synchronized (ImageViewerFrame.this) {
-						try {
-							mediaContainer.mediaTracker.waitForID(0);
-							EventQueue.invokeLater(new ImageUpdater(mediaContainer.fastScaledImage));
-							logger.debug("ivf.job.fastdone");
-							mediaContainer.mediaTracker.waitForID(1);
-							EventQueue.invokeLater(new ImageUpdater(mediaContainer.slowScaledImage));
-							logger.debug("ivf.job.done");
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
+			ClientConfiguration.getInstance().addParallelJob(JobQueue.PRIORITY_MAX, () -> {
+				synchronized (ImageViewerFrame.this) {
+					try {
+						mediaContainer.mediaTracker.waitForID(0);
+						EventQueue.invokeLater(new ImageUpdater(mediaContainer.fastScaledImage));
+						logger.debug("ivf.job.fastdone");
+						mediaContainer.mediaTracker.waitForID(1);
+						EventQueue.invokeLater(new ImageUpdater(mediaContainer.slowScaledImage));
+						logger.debug("ivf.job.done");
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
 					}
 				}
 			});
 		}
 	}
 
-	private void scheduleImageFetcher(URL url) {
-		imageFetcher = new ImageFetcher(url);
+	private void scheduleImageFetcher(URL[] urls) {
+		imageFetcher = new ImageFetcher(urls);
 		ClientConfiguration.getInstance().addJob(Priority.HIGH, imageFetcher);
 	}
 

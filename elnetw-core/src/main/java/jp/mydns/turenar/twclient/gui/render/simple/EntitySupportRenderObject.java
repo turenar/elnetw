@@ -107,7 +107,7 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 					MediaEntity mediaEntity = (MediaEntity) urlEntity;
 					if (extendedMediaEntities != null && mediaEntity.getStart() == extendedMediaEntities[0].getStart()) {
 						IntentArguments intent = getIntentArguments("openimg");
-						ArrayList<String> imageLists = new ArrayList<>();
+						ArrayList<String[]> imageLists = new ArrayList<>();
 						intent.putExtra("urls", imageLists);
 						intent.putExtra("possiblySensitive", possiblySensitive);
 						url = getFrameApi().getCommandUrl(intent);
@@ -118,8 +118,9 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 								.append("</a>");
 						for (MediaEntity extendedMediaEntity : extendedMediaEntities) {
 							IntentArguments openImageIntent = getIntentArguments("openimg");
-							imageLists.add(extendedMediaEntity.getMediaURLHttps());
-							openImageIntent.putExtra("url", extendedMediaEntity.getMediaURLHttps());
+							String[] candidateUrls = getUrls(extendedMediaEntity);
+							imageLists.add(candidateUrls);
+							openImageIntent.putExtra("url", candidateUrls);
 							openImageIntent.putExtra("possiblySensitive", possiblySensitive);
 							String imgUrl = getFrameApi().getCommandUrl(openImageIntent);
 							stringBuilder.append("<a href='")
@@ -173,6 +174,10 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 		}
 		escapeHTML(text.substring(offset), stringBuilder);
 		return stringBuilder.toString();
+	}
+
+	private String[] getUrls(MediaEntity extendedMediaEntity) {
+		return new String[]{extendedMediaEntity.getMediaURLHttps(), extendedMediaEntity.getMediaURL()};
 	}
 
 	@Override
