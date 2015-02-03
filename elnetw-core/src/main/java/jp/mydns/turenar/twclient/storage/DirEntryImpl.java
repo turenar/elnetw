@@ -238,11 +238,6 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
-	public DirEntry writeStringArray(String path, String[] data) {
-		return writeList(path, (Object[]) data);
-	}
-
-	@Override
 	public List<String> readStringList(String path) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
@@ -385,7 +380,7 @@ public class DirEntryImpl implements DirEntry {
 	public DirEntry writeList(String path, Object... elements) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		JSONArray jsonArray = new JSONArray(elements);
+		JSONArray jsonArray = elements == null ? null : new JSONArray(elements);
 		parentDirectory.jsonObject.put(basename, jsonArray);
 		return this;
 	}
@@ -408,5 +403,10 @@ public class DirEntryImpl implements DirEntry {
 		String basename = basename(path);
 		parentDirectory.jsonObject.put(basename, data == null ? NULL : data);
 		return this;
+	}
+
+	@Override
+	public DirEntry writeStringArray(String path, String[] data) {
+		return writeList(path, (Object[]) data);
 	}
 }

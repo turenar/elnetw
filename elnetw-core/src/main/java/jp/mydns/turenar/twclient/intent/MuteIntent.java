@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -71,11 +69,6 @@ public class MuteIntent extends AbstractIntent {
 		}
 
 		@Override
-		public int hashCode() {
-			return (int )id;
-		}
-
-		@Override
 		public long getId() {
 			return id;
 		}
@@ -88,6 +81,11 @@ public class MuteIntent extends AbstractIntent {
 		@Override
 		public String getScreenName() {
 			return screenName;
+		}
+
+		@Override
+		public int hashCode() {
+			return (int) id;
 		}
 	}
 
@@ -240,16 +238,12 @@ public class MuteIntent extends AbstractIntent {
 				new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
 		JDialog dialog = pane.createDialog(null, tr("Confirm"));
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		pane.addPropertyChangeListener(new PropertyChangeListener() {
-
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
-					if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-						ClientProperties configProperties = configuration.getConfigProperties();
-						List<String> idsString = configProperties.getList(propName);
-						idsString.add(propValue);
-					}
+		pane.addPropertyChangeListener(evt -> {
+			if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
+				if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
+					ClientProperties configProperties = configuration.getConfigProperties();
+					List<String> idsString = configProperties.getList(propName);
+					idsString.add(propValue);
 				}
 			}
 		});
