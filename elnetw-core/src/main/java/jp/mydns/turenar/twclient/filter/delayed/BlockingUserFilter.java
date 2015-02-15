@@ -53,14 +53,7 @@ public class BlockingUserFilter extends DelayedFilter implements PropertyUpdateL
 		@Override
 		public void onClientMessage(String name, Object arg) {
 			if (name.equals(BlockingUsersChannel.BLOCKING_FETCH_FINISHED_ID)) {
-				EventQueue.invokeLater(
-						new Runnable() {
-							@Override
-							public void run() {
-								child.onClientMessage(RENDER_DELETE_OBJECT, FILTER_BLOCKING_USER_WAIT_MESSAGE);
-							}
-						}
-				);
+				EventQueue.invokeLater(() -> child.onClientMessage(RENDER_DELETE_OBJECT, FILTER_BLOCKING_USER_WAIT_MESSAGE));
 				stopDelay();
 			}
 		}

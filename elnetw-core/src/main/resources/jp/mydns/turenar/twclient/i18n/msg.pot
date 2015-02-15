@@ -360,6 +360,14 @@ msgctxt "date short format"
 msgid "%1$tb %1$td"
 msgstr ""
 
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:101
+msgid "Account deleted: uniqId=%d"
+msgstr ""
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:102
+msgid "Account deleted: @%s"
+msgstr ""
+
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
 msgid "(global)"
 msgstr ""

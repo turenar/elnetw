@@ -24,6 +24,7 @@ package jp.mydns.turenar.twclient.filter;
 import java.util.Date;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jp.mydns.turenar.twclient.internal.NullStatus;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -38,7 +39,7 @@ import twitter4j.UserMentionEntity;
 
 @SuppressFBWarnings
 @SuppressWarnings("serial")
-/*package*/class TestStatus implements Status {
+/*package*/class TestStatus extends NullStatus {
 
 	private final TestUser user;
 	private final Status retweetedStatus;
@@ -61,48 +62,13 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
-	public int compareTo(Status o) {
-		return 0;
+	public long getInReplyToUserId() {
+		return inReplyToUserId;
 	}
 
 	@Override
-	public int getAccessLevel() {
-		return 0;
-	}
-
-	@Override
-	public long[] getContributors() {
-		return null;
-	}
-
-	@Override
-	public Date getCreatedAt() {
-		return null;
-	}
-
-	@Override
-	public long getCurrentUserRetweetId() {
-		return 0;
-	}
-
-	@Override
-	public MediaEntity[] getExtendedMediaEntities() {
-		return new MediaEntity[0];
-	}
-
-	@Override
-	public int getFavoriteCount() {
-		return 0;
-	}
-
-	@Override
-	public GeoLocation getGeoLocation() {
-		return null;
-	}
-
-	@Override
-	public HashtagEntity[] getHashtagEntities() {
-		return null;
+	public TestUser getUser() {
+		return user;
 	}
 
 	@Override
@@ -111,112 +77,12 @@ import twitter4j.UserMentionEntity;
 	}
 
 	@Override
-	public String getInReplyToScreenName() {
-		return null;
-	}
-
-	@Override
-	public long getInReplyToStatusId() {
-		return 0;
-	}
-
-	@Override
-	public long getInReplyToUserId() {
-		return inReplyToUserId;
-	}
-
-	@Override
-	public String getLang() {
-		return null;
-	}
-
-	@Override
-	public MediaEntity[] getMediaEntities() {
-		return null;
-	}
-
-	@Override
-	public Place getPlace() {
-		return null;
-	}
-
-	@Override
-	public RateLimitStatus getRateLimitStatus() {
-		return null;
-	}
-
-	@Override
-	public int getRetweetCount() {
-		return 0;
-	}
-
-	@Override
 	public Status getRetweetedStatus() {
 		return retweetedStatus;
 	}
 
 	@Override
-	public Scopes getScopes() {
-		return null;
-	}
-
-	@Override
-	public String getSource() {
-		return null;
-	}
-
-	@Override
-	public SymbolEntity[] getSymbolEntities() {
-		return new SymbolEntity[0];
-	}
-
-	@Override
-	public String getText() {
-		return null;
-	}
-
-	@Override
-	public URLEntity[] getURLEntities() {
-		return null;
-	}
-
-	@Override
-	public User getUser() {
-		return user;
-	}
-
-	@Override
-	public UserMentionEntity[] getUserMentionEntities() {
-		return null;
-	}
-
-	@Override
-	public boolean isFavorited() {
-		return false;
-	}
-
-	@Override
-	public boolean isPossiblySensitive() {
-		return false;
-	}
-
-	@Override
 	public boolean isRetweet() {
 		return retweetedStatus != null;
-	}
-
-	@Override
-	public boolean isRetweeted() {
-		return false;
-	}
-
-	@Override
-	public boolean isRetweetedByMe() {
-		return false;
-	}
-
-	@Override
-	public boolean isTruncated() {
-		return false;
 	}
 }

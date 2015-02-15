@@ -23,6 +23,9 @@ package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
 
+/**
+ * primitive hash set. faster than TreeSet&lt;Long&gt;, HashSet with random values
+ */
 public class LongHashSet implements Cloneable {
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
@@ -57,9 +60,9 @@ public class LongHashSet implements Cloneable {
 	}
 
 	/*package*/
-	static int powerOf(int initialCapacity) {
-		int l = Integer.highestOneBit(initialCapacity);
-		return l < initialCapacity ? l << 1 : l;
+	static int powerOf(int size) {
+		int l = Integer.highestOneBit(size);
+		return l < size ? l << 1 : l;
 	}
 
 	/**
@@ -149,14 +152,19 @@ public class LongHashSet implements Cloneable {
 			arr[toAddIndex] = aLong;
 			size++;
 			if (size > rehashThreshold) {
-				rehash();
+				rehash(values.length << 1);
 			}
 			return true;
 		}
 	}
 
-	public synchronized void addAll(long[] ids) {
-		for (long id : ids) {
+	/**
+	 * add all of contents
+	 * @param elements elements to add
+	 */
+	public synchronized void addAll(long[] elements) {
+				ensureCapacity(elements.length);
+		for (long id : elements) {
 			add(id);
 		}
 	}
@@ -195,6 +203,17 @@ public class LongHashSet implements Cloneable {
 	}
 
 	/**
+	 * ensure hash set has specified capacity. This improves performance inserting various values
+	 *
+	 * @param size required size
+	 */
+	public synchronized void ensureCapacity(int size) {
+		if (rehashThreshold <= size) {
+			rehash(powerOf((int) (size / loadFactor)));
+		}
+	}
+
+	/**
 	 * get count of hash conflict. The larger this value, the slower the performance
 	 *
 	 * @return hash conflict count.
@@ -212,10 +231,10 @@ public class LongHashSet implements Cloneable {
 		return size == 0;
 	}
 
-	private void rehash() {
+	private void rehash(int newSize) {
 		long[] oldArray = values;
-		long[] newArray = new long[oldArray.length << 1];
-		int bitSet = this.bitSet = newArray.length - 1;
+		long[] newArray = new long[newSize];
+		int bitSet = this.bitSet = newSize - 1;
 		for (long aLong : oldArray) {
 			if (aLong == FREE || aLong == REMOVED) {
 				continue;

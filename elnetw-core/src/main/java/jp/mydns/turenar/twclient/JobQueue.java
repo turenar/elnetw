@@ -79,6 +79,9 @@ public class JobQueue {
 	protected static class JobWorkerThread extends Thread {
 		private static final Logger logger = LoggerFactory.getLogger(JobWorkerThread.class);
 		private static final AtomicInteger threadNumber = new AtomicInteger();
+		/**
+		 * parent class instance: this is required in order to subclass being static to have static field
+		 */
 		protected final JobQueue jobQueue;
 		/**
 		 * is main thread: {@link jp.mydns.turenar.twclient.JobQueue#workerMainThread} == this

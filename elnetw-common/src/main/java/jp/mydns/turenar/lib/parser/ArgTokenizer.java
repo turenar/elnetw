@@ -63,7 +63,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ArgTokenizer {
-	private final String[] argv;
+	private final String[] args;
 	private String opt;
 	private String arg;
 	private String savedArg;
@@ -73,9 +73,14 @@ public class ArgTokenizer {
 	private boolean argParsed;
 	private int argIndex = 0;
 
+	/**
+	 * Initialize tokenizer from args array
+	 *
+	 * @param args arguments array
+	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
-	public ArgTokenizer(String[] argv) {
-		this.argv = argv;
+	public ArgTokenizer(String[] args) {
+		this.args = args;
 	}
 
 	/**
@@ -121,27 +126,27 @@ public class ArgTokenizer {
 			}
 		}
 		String savedArg = this.savedArg;
-		if (argIndex >= argv.length) { // すべてパースした
+		if (argIndex >= args.length) { // すべてパースした
 			opt = null;
 			arg = null;
 			return false;
 		} else if (argParseFinished) { // "--"を処理した
 			argParsed = false;
 			opt = null;
-			arg = argv[argIndex++];
+			arg = args[argIndex++];
 			return true;
 		}
 
 		while (true) {
 			String opt;
 			String arg;
-			String nextArg = argv[argIndex];
+			String nextArg = args[argIndex];
 			boolean shouldShiftArg;
 			if (savedArg != null) { // -abc or -a type (pass 2)
 				opt = "-" + savedArg.substring(0, 1);
 				savedArg = savedArg.substring(1);
 				if (savedArg.isEmpty()) {
-					arg = argIndex + 1 < argv.length ? argv[argIndex + 1] : null;
+					arg = argIndex + 1 < args.length ? args[argIndex + 1] : null;
 					savedArg = null;
 					shouldShiftArg = true;
 				} else {
@@ -161,7 +166,7 @@ public class ArgTokenizer {
 					shouldShiftArg = false;
 				} else { // --hoge type
 					opt = nextArg;
-					arg = argIndex + 1 < argv.length ? argv[argIndex + 1] : null;
+					arg = argIndex + 1 < args.length ? args[argIndex + 1] : null;
 					shouldShiftArg = true;
 				}
 			} else if (nextArg.startsWith("-")) { // -abc or -a type (pass 1)

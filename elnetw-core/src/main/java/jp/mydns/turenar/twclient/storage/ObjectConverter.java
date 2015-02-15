@@ -29,6 +29,8 @@ import org.json.JSONObject;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ObjectConverter implements Converter<Object> {
+	public static final ObjectConverter SINGLETON = new ObjectConverter();
+
 	@Override
 	public Object convert(Object obj) {
 		if (obj instanceof JSONObject) {

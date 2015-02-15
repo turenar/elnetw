@@ -23,6 +23,7 @@ package jp.mydns.turenar.twclient.intent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
 
@@ -43,43 +44,49 @@ public class OpenImageIntent implements Intent {
 		if (urls instanceof Iterable) {
 			Iterable<?> urlList = (Iterable<?>) urls;
 			for (Object url : urlList) {
-				showFrame(toUrl(url), possiblySensitive);
+				showFrame(toUrls(url), possiblySensitive);
 			}
 			return;
 		} else if (urls != null) {
 			throw new IllegalArgumentException("arg `urls' must be Iterable");
 		}
 		Object urlObject = args.getExtra("url");
-		URL url;
-		if (urlObject instanceof URL) {
-			url = (URL) urlObject;
-		} else if (urlObject instanceof String) {
-			try {
-				url = new URL((String) urlObject);
-			} catch (MalformedURLException e) {
-				throw new IllegalArgumentException(e);
-			}
+		URL[] url;
+		if (urlObject != null) {
+			url = toUrls(urlObject);
 		} else {
 			throw new IllegalArgumentException("arg `url' or `urls' is missing");
 		}
 		showFrame(url, possiblySensitive);
 	}
 
-	private void showFrame(URL url, Boolean possiblySensitive) {
-		new ImageViewerFrame(url, possiblySensitive).setVisible(true);
+	private void showFrame(URL[] url, Boolean possiblySensitive) {
+		new ImageViewerFrame(possiblySensitive, url).setVisible(true);
 	}
 
-	private URL toUrl(Object url) {
+	private URL[] toUrls(Object url) {
 		try {
-			if (url instanceof URL) {
-				return (URL) url;
+			if (url instanceof URL[]) {
+				return (URL[]) url;
+			} else if (url instanceof String[]) {
+				return Arrays.stream((String[]) url)
+						.map(urlString -> {
+							try {
+								return new URL(urlString);
+							} catch (MalformedURLException e) {
+								throw new IllegalArgumentException(e);
+							}
+						})
+						.toArray(URL[]::new);
+			} else if (url instanceof URL) {
+				return new URL[] {(URL) url};
 			} else if (url instanceof String) {
-				return new URL((String) url);
+				return new URL[] {new URL((String) url)};
 			} else {
-				throw new RuntimeException("url must be URL or String");
+				throw new IllegalArgumentException("url must be URL or String");
 			}
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException(e);
 		}
 	}
 }

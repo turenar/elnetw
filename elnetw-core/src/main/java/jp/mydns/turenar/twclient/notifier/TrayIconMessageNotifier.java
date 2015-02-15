@@ -64,13 +64,8 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 			long tempTime = lastNotified + 5000; //TODO 5000 from configure
 			if (tempTime > System.currentTimeMillis()) {
 
-				configuration.getTimer().schedule(new Runnable() {
-
-					@Override
-					public void run() {
-						TrayIconMessageNotifier.this.run();
-					}
-				}, tempTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+				configuration.getTimer().schedule(this,
+						tempTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 				return;
 			}
 			Object[] arr = queue.poll();

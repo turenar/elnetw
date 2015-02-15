@@ -107,8 +107,7 @@ public class ClientConfiguration {
 	public static final String PROPERTY_PAGING_LIST = "twitter.list.count";
 	/** search取得の取得間隔のプロパティ名 */
 	public static final String PROPERTY_INTERVAL_LIST = "twitter.list.interval";
-	/** 環境依存の改行コード */
-	public static final String NEW_LINE = System.getProperty("line.separator");
+	/** UTF-8 Charset */
 	public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 	/** アプリケーション名 */
 	public static final String APPLICATION_NAME = "elnetw";
@@ -290,6 +289,16 @@ public class ClientConfiguration {
 	 */
 	public void addJob(Runnable job) {
 		jobQueue.addJob(job);
+	}
+
+	/**
+	 * 並列的にジョブを追加する。 ラムダ用。
+	 *
+	 * @param priority 優先度
+	 * @param job      ジョブ
+	 */
+	public void addParallelJob(byte priority, ParallelRunnable job) {
+		addJob(priority, job);
 	}
 
 	private boolean checkValidAccountId(String accountId) {

@@ -428,6 +428,13 @@ public class Utility {
 		}
 	}
 
+	/**
+	 * convert stroke string to key stroke
+	 *
+	 * @param strokeString stroke
+	 * @param onKeyRelease released event?
+	 * @return key stroke
+	 */
 	public static KeyStroke toKeyStroke(String strokeString, boolean onKeyRelease) {
 		int index = 0;
 		char modifierChar = strokeString.charAt(index);

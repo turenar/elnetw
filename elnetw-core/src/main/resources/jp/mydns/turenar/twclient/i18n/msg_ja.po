@@ -35,7 +35,7 @@ msgstr "スレッドが割り込まれました"
 #: src/main/java/jp/mydns/turenar/twclient/gui/ImageViewerFrame.java:256
 msgid "<html>This image may be containing sensitive content<br>Click to show"
 msgstr ""
-"不適切な画像が表示される可能性があります。<br>表示するにはクリックしてくださ"
+"<html>不適切な画像が表示される可能性があります。<br>表示するにはクリックしてくださ"
 "い。"
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/ImageViewerFrame.java:257
@@ -369,6 +369,14 @@ msgstr "%d時間"
 msgctxt "date short format"
 msgid "%1$tb %1$td"
 msgstr "%1$tb月%1$te日"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:101
+msgid "Account deleted: uniqId=%d"
+msgstr "アカウントが削除されました: uniqId=%d"
+
+#: src/main/java/jp/mydns/turenar/twclient/gui/render/simple/SimpleRenderer.java:102
+msgid "Account deleted: @%s"
+msgstr "アカウントが削除されました: @%s"
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:121
 msgid "(global)"

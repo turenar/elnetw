@@ -150,8 +150,8 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 		switch (name) {
 			case ClientEventConstants.EVENT_CLICKED_USERICON:
 				try {
-					new ImageViewerFrame(new URL(directMessage.getSender().getOriginalProfileImageURLHttps()),
-							false).setVisible(true);
+					new ImageViewerFrame(false, new URL(directMessage.getSender().getOriginalProfileImageURLHttps()),
+							new URL(directMessage.getSender().getOriginalProfileImageURL())).setVisible(true);
 				} catch (MalformedURLException e) {
 					logger.error("failed getting original profile image", e);
 				}

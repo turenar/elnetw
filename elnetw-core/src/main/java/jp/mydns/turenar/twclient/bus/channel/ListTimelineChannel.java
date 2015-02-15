@@ -181,9 +181,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 		}
 
 		ResponseList<Status> userListStatuses = twitter.getUserListStatuses(list.getId(), paging);
-		for (Status status : userListStatuses) {
-			listeners.onStatus(status);
-		}
+		userListStatuses.forEach(listeners::onStatus);
 
 		lastTimeline = userListStatuses;
 	}
@@ -205,9 +203,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 		if (lastTimeline != null) {
 			listener.onUserListUpdate(owner, listInfo);
 			listener.onClientMessage(LIST_MEMBERS_MESSAGE_ID, listMemberSet);
-			for (Status status : lastTimeline) {
-				listener.onStatus(status);
-			}
+			lastTimeline.forEach(listener::onStatus);
 		}
 	}
 
@@ -223,12 +219,8 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 			twitter = new TwitterFactory(messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
-					new Runnable() {
-						@Override
-						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, ListTimelineChannel.this);
-						}
-					}, 0, interval, TimeUnit.SECONDS);
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
+					0, interval, TimeUnit.SECONDS);
 		}
 	}
 }

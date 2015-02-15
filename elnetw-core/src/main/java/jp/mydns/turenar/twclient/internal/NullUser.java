@@ -37,6 +37,10 @@ import twitter4j.User;
  * @see NullStatus
  */
 public class NullUser implements User {
+	@Override
+	public String[] getWithheldInCountries() {
+		return new String[0];
+	}
 
 	private static final long serialVersionUID = -709770915229434160L;
 

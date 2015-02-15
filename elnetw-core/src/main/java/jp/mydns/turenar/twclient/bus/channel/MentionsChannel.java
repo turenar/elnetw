@@ -75,9 +75,7 @@ public class MentionsChannel extends TwitterRunnable implements MessageChannel, 
 	protected void access() throws TwitterException {
 		ResponseList<Status> mentions = twitter.getMentionsTimeline(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_MENTIONS)));
-		for (Status status : mentions) {
-			listeners.onStatus(status);
-		}
+		mentions.forEach(listeners::onStatus);
 	}
 
 	@Override
@@ -107,13 +105,7 @@ public class MentionsChannel extends TwitterRunnable implements MessageChannel, 
 			twitter = new TwitterFactory(messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
-					new Runnable() {
-
-						@Override
-						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, MentionsChannel.this);
-						}
-					},
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
 					0, intervalOfMentions, TimeUnit.SECONDS
 			);
 		}

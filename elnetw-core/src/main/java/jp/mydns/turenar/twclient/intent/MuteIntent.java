@@ -21,8 +21,6 @@
 
 package jp.mydns.turenar.twclient.intent;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -263,14 +261,10 @@ public class MuteIntent extends AbstractIntent {
 				new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
 		JDialog dialog = pane.createDialog(null, tr("Confirm"));
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		pane.addPropertyChangeListener(new PropertyChangeListener() {
-
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
-					if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-						updateList(propName, propValue, remove);
-					}
+		pane.addPropertyChangeListener(evt -> {
+			if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
+				if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
+					updateList(propName, propValue, remove);
 				}
 			}
 		});

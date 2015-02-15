@@ -46,6 +46,7 @@ import jp.mydns.turenar.twclient.gui.render.RenderTarget;
 import jp.mydns.turenar.twclient.gui.render.RendererFocusEvent;
 import jp.mydns.turenar.twclient.gui.tab.TabRenderer;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
+import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.DirectMessage;
@@ -56,6 +57,7 @@ import twitter4j.User;
 import twitter4j.UserList;
 
 import static jp.mydns.turenar.twclient.ClientConfiguration.APPLICATION_NAME;
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
 /**
  * default renderer. no skin, no decoration...
@@ -469,6 +471,21 @@ public class SimpleRenderer implements TabRenderer, PropertyUpdateListener {
 	}
 
 	@Override
+	public void onUserDeletion(long deletedUser) {
+		TwitterUser cachedUser = cacheManager.getCachedUser(deletedUser);
+		String message = cachedUser == null
+				? tr("Account deleted: uniqId=%d", deletedUser)
+				: tr("Account deleted: @%s", cachedUser.getScreenName());
+		renderTarget.addStatus(new MiscRenderObject(this, null)
+				.setBackgroundColor(Color.LIGHT_GRAY)
+				.setForegroundColor(Color.BLACK)
+				.setCreatedByText(APPLICATION_NAME)
+				.setCreatedBy("!core.user.deleted")
+				.setUniqId("!core/user/deleted/" + deletedUser)
+				.setText(message));
+	}
+
+	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 	}
 
@@ -498,6 +515,21 @@ public class SimpleRenderer implements TabRenderer, PropertyUpdateListener {
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
+	}
+
+	@Override
+	public void onUserSuspension(long suspendedUser) {
+		TwitterUser cachedUser = cacheManager.getCachedUser(suspendedUser);
+		String message = cachedUser == null
+				? tr("Account suspended: uniqId=%d", suspendedUser)
+				: tr("Account suspended: @%s", cachedUser.getScreenName());
+		renderTarget.addStatus(new MiscRenderObject(this, null)
+				.setBackgroundColor(Color.LIGHT_GRAY)
+				.setForegroundColor(Color.BLACK)
+				.setCreatedByText(APPLICATION_NAME)
+				.setCreatedBy("!core.user.suspend")
+				.setUniqId("!core/user/suspend/" + suspendedUser)
+				.setText(message));
 	}
 
 	@Override

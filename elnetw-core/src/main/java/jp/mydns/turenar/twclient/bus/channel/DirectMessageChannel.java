@@ -70,9 +70,7 @@ public class DirectMessageChannel extends TwitterRunnable implements MessageChan
 	protected void access() throws TwitterException {
 		ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(
 				new Paging().count(configProperties.getInteger(ClientConfiguration.PROPERTY_PAGING_DIRECT_MESSAGES)));
-		for (DirectMessage dm : directMessages) {
-			listeners.onDirectMessage(dm);
-		}
+		directMessages.forEach(listeners::onDirectMessage);
 	}
 
 	@Override
@@ -103,12 +101,8 @@ public class DirectMessageChannel extends TwitterRunnable implements MessageChan
 					messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
-					new Runnable() {
-						@Override
-						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, DirectMessageChannel.this);
-						}
-					}, 0, intervalOfDirectMessage, TimeUnit.SECONDS);
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
+					0, intervalOfDirectMessage, TimeUnit.SECONDS);
 		}
 	}
 }

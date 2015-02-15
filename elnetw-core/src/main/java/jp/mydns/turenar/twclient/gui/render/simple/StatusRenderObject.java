@@ -477,8 +477,10 @@ public class StatusRenderObject extends EntitySupportRenderObject {
 				break;
 			case EVENT_CLICKED_USERICON:
 				try {
-					new ImageViewerFrame(new URL(getOriginalUser(status).getOriginalProfileImageURLHttps()),
-							status.isPossiblySensitive()).setVisible(true);
+					new ImageViewerFrame(status.isPossiblySensitive(),
+							new URL(getOriginalUser(status).getOriginalProfileImageURLHttps()),
+							new URL(getOriginalUser(status).getOriginalProfileImageURL()))
+							.setVisible(true);
 				} catch (MalformedURLException e) {
 					logger.error("failed getting original profile image", e);
 				}

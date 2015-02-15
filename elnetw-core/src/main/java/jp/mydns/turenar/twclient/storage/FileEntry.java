@@ -22,20 +22,83 @@
 package jp.mydns.turenar.twclient.storage;
 
 /**
- * convert to string
+ * Virtual Directory Entry
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class StringConverter implements Converter<String> {
-	public static final StringConverter SINGLETON=new StringConverter();
-	@Override
-	public String convert(Object obj) {
-		if (obj == null) {
-			return null;
-		} else if (obj instanceof String) {
-			return (String) obj;
-		} else {
-			return obj.toString();
-		}
-	}
+public interface FileEntry extends StorageEntry {
+	/**
+	 * read bool from path
+	 *
+	 * @return boolean
+	 */
+	boolean readBool();
+
+	/**
+	 * read int from path
+	 *
+	 * @return int
+	 */
+	int readInt();
+
+	/**
+	 * read long from path
+	 *
+	 * @return long
+	 */
+	long readLong();
+
+	/**
+	 * read long from path
+	 *
+	 * @param defaultValue value if path is missing
+	 * @return long
+	 */
+	long readLong(long defaultValue);
+
+	/**
+	 * read string from path
+	 *
+	 * @return String
+	 */
+	String readString();
+
+	/**
+	 * remove path from database
+	 *
+	 * @return if it exists
+	 */
+	boolean remove();
+
+	/**
+	 * write bool to path
+	 *
+	 * @param value value
+	 * @return this
+	 */
+	FileEntry writeBool(boolean value);
+
+	/**
+	 * write int to path
+	 *
+	 * @param value value
+	 * @return this
+	 */
+	FileEntry writeInt(int value);
+
+	/**
+	 * write long to path
+	 *
+	 * @param value value
+	 * @return this
+	 */
+	FileEntry writeLong(long value);
+
+	/**
+	 * write String to path
+	 *
+	 * @param data data
+	 * @return this
+	 */
+	FileEntry writeString(String data);
 }

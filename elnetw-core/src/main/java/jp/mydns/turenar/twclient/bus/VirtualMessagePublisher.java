@@ -21,15 +21,16 @@
 
 package jp.mydns.turenar.twclient.bus;
 
+import java.util.Arrays;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
-import jp.mydns.turenar.twclient.CacheManager;
-import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageListener;
 import jp.mydns.turenar.twclient.twitter.TwitterStatus;
 import jp.mydns.turenar.twclient.twitter.TwitterUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -44,11 +45,28 @@ import twitter4j.UserList;
  */
 /*package*/
 class VirtualMessagePublisher implements ClientMessageListener {
+	@FunctionalInterface
+	/*package*/interface ExceptionHandler<T> extends Consumer<T> {
+		@Override
+		default void accept(T t) {
+			try {
+				consume(t);
+			} catch (RuntimeException ex) {
+				logger.warn("uncaught exception", ex);
+			}
+		}
+
+		void consume(T t);
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(VirtualMessagePublisher.class);
+
+	private static <T> Consumer<T> handleEx(ExceptionHandler<T> handler) {
+		return handler;
+	}
+
 	private final String[] paths;
 	private final MessageBus messageBus;
-	private final CacheManager cacheManager;
 	private volatile int modifiedCount;
 	private volatile ClientMessageListener[] cachedListeners;
 
@@ -65,7 +83,6 @@ class VirtualMessagePublisher implements ClientMessageListener {
 			}
 		}
 		this.paths = paths.toArray(new String[paths.size()]);
-		cacheManager = ClientConfiguration.getInstance().getCacheManager();
 	}
 
 	private ClientMessageListener[] getListeners() {
@@ -102,112 +119,69 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onBlock(User source, User blockedUser) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		blockedUser = getUser(blockedUser, listeners);
-
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onBlock(source, blockedUser);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		final User sourceFinal = getUser(source, listeners);
+		final User blockedUserFinal = getUser(blockedUser, listeners);
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onBlock(sourceFinal, blockedUserFinal)
+		));
 	}
 
 	@Override
 	public void onChangeAccount(boolean forWrite) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onChangeAccount(forWrite);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onChangeAccount(forWrite)
+		));
 	}
 
 	@Override
 	public void onCleanUp() {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onCleanUp();
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(ConnectionLifeCycleListener::onCleanUp));
 	}
 
 	@Override
 	public void onClientMessage(String mesName, Object arg) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onClientMessage(mesName, arg);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onClientMessage(mesName, arg)
+		));
 	}
 
 	@Override
 	public void onConnect() {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onConnect();
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(ConnectionLifeCycleListener::onConnect));
 	}
 
 	@Override
 	public void onDeletionNotice(long directMessageId, long userId) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onDeletionNotice(directMessageId, userId);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onDeletionNotice(directMessageId, userId)
+		));
 	}
 
 	@Override
 	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onDeletionNotice(statusDeletionNotice);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onDeletionNotice(statusDeletionNotice)
+		));
 	}
 
 	@Override
 	public void onDirectMessage(DirectMessage directMessage) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onDirectMessage(directMessage);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onDirectMessage(directMessage)
+		));
 	}
 
 	@Override
 	public void onDisconnect() {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onDisconnect();
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(ConnectionLifeCycleListener::onDisconnect));
 	}
 
 	@Override
@@ -225,254 +199,200 @@ class VirtualMessagePublisher implements ClientMessageListener {
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		target = getUser(target, listeners);
-		favoritedStatus = getStatus(favoritedStatus, listeners);
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onFavorite(source, target, favoritedStatus);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		final User sourceFinal = getUser(source, listeners);
+		final User targetFinal = getUser(target, listeners);
+		final Status favoritedStatusFinal = getStatus(favoritedStatus, listeners);
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onFavorite(sourceFinal, targetFinal, favoritedStatusFinal)
+		));
 	}
 
 	@Override
 	public void onFollow(User source, User followedUser) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		followedUser = getUser(followedUser, listeners);
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onFollow(source, followedUser);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		final User sourceFinal = getUser(source, listeners);
+		final User followedUserFinal = getUser(followedUser, listeners);
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onFollow(sourceFinal, followedUserFinal)
+		));
 	}
 
 	@Override
 	public void onFriendList(long[] friendIds) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onFriendList(friendIds);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onFriendList(friendIds)
+		));
 	}
 
 	@Override
 	public void onScrubGeo(long userId, long upToStatusId) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onScrubGeo(userId, upToStatusId);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onScrubGeo(userId, upToStatusId)
+		));
 	}
 
 	@Override
 	public void onStallWarning(StallWarning warning) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onStallWarning(warning);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onStallWarning(warning)
+		));
 	}
 
 	@Override
 	public void onStatus(Status status) {
 		ClientMessageListener[] listeners = getListeners();
-		status = getStatus(status, listeners);
+		final Status statusFinal = getStatus(status, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onStatus(status);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onStatus(statusFinal)
+		));
 	}
 
 	@Override
 	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 		ClientMessageListener[] listeners = getListeners();
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onTrackLimitationNotice(numberOfLimitedStatuses);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onTrackLimitationNotice(numberOfLimitedStatuses)
+		));
 	}
 
 	@Override
 	public void onUnblock(User source, User unblockedUser) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		unblockedUser = getUser(unblockedUser, listeners);
+		final User sourceFinal = getUser(source, listeners);
+		final User unblockedUserFinal = getUser(unblockedUser, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUnblock(source, unblockedUser);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUnblock(sourceFinal, unblockedUserFinal)
+		));
 	}
 
 	@Override
 	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		target = getUser(target, listeners);
-		unfavoritedStatus = getStatus(unfavoritedStatus, listeners);
+		final User sourceFinal = getUser(source, listeners);
+		final User targetFinal = getUser(target, listeners);
+		final Status unfavoritedStatusFinal = getStatus(unfavoritedStatus, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUnfavorite(source, target, unfavoritedStatus);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUnfavorite(sourceFinal, targetFinal, unfavoritedStatusFinal)
+		));
 	}
 
 	@Override
 	public void onUnfollow(User source, User unfollowedUser) {
 		ClientMessageListener[] listeners = getListeners();
-		source = getUser(source, listeners);
-		unfollowedUser = getUser(unfollowedUser, listeners);
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onFollow(source, unfollowedUser);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		final User sourceFinal = getUser(source, listeners);
+		final User unfollowedUserFinal = getUser(unfollowedUser, listeners);
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onFollow(sourceFinal, unfollowedUserFinal)
+		));
+	}
+
+	@Override
+	public void onUserDeletion(long deletedUser) {
+		ClientMessageListener[] listeners = getListeners();
+
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserDeletion(deletedUser)
+		));
 	}
 
 	@Override
 	public void onUserListCreation(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		listOwner = getUser(listOwner, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListCreation(listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListCreation(listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListDeletion(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		listOwner = getUser(listOwner, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListDeletion(listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListDeletion(listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		addedMember = getUser(addedMember, listeners);
-		listOwner = getUser(listOwner, listeners);
+		final User addedMemberFinal = getUser(addedMember, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListMemberAddition(addedMember, listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListMemberAddition(addedMemberFinal, listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		deletedMember = getUser(deletedMember, listeners);
-		listOwner = getUser(listOwner, listeners);
+		final User deletedMemberFinal = getUser(deletedMember, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListMemberDeletion(deletedMember, listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListMemberDeletion(deletedMemberFinal, listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		subscriber = getUser(subscriber, listeners);
-		listOwner = getUser(listOwner, listeners);
+		final User subscriberFinal = getUser(subscriber, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListSubscription(subscriber, listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListSubscription(subscriberFinal, listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		subscriber = getUser(subscriber, listeners);
-		listOwner = getUser(listOwner, listeners);
+		final User subscriberFinal = getUser(subscriber, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListUnsubscription(subscriber, listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListUnsubscription(subscriberFinal, listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserListUpdate(User listOwner, UserList list) {
 		ClientMessageListener[] listeners = getListeners();
-		listOwner = getUser(listOwner, listeners);
+		final User listOwnerFinal = getUser(listOwner, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserListUpdate(listOwner, list);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserListUpdate(listOwnerFinal, list)
+		));
 	}
 
 	@Override
 	public void onUserProfileUpdate(User updatedUser) {
 		ClientMessageListener[] listeners = getListeners();
-		updatedUser = getUser(updatedUser, listeners);
+		final User updatedUserFinal = getUser(updatedUser, listeners);
 
-		for (ClientMessageListener listener : listeners) {
-			try {
-				listener.onUserProfileUpdate(updatedUser);
-			} catch (RuntimeException ex) {
-				logger.warn("uncaught exception", ex);
-			}
-		}
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserProfileUpdate(updatedUserFinal)
+		));
+	}
+
+	@Override
+	public void onUserSuspension(long suspendedUser) {
+		ClientMessageListener[] listeners = getListeners();
+
+		Arrays.stream(listeners).forEach(handleEx(
+				listener -> listener.onUserSuspension(suspendedUser)
+		));
 	}
 }

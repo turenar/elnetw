@@ -81,9 +81,7 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 		} else {
 			timeline = twitter.getUserTimeline(Long.parseLong(arg), paging);
 		}
-		for (Status status : timeline) {
-			listeners.onStatus(status);
-		}
+		timeline.forEach(listeners::onStatus);
 		lastTimeline = timeline;
 	}
 
@@ -102,9 +100,7 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 	@Override
 	public void establish(ClientMessageListener listener) {
 		if (lastTimeline != null) {
-			for (Status status : lastTimeline) {
-				listener.onStatus(status);
-			}
+			lastTimeline.forEach(listener::onStatus);
 		}
 	}
 
@@ -119,12 +115,8 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 			twitter = new TwitterFactory(messageBus.getTwitterConfiguration(accountId)).getInstance();
 
 			scheduledFuture = configuration.getTimer().scheduleWithFixedDelay(
-					new Runnable() {
-						@Override
-						public void run() {
-							configuration.addJob(JobQueue.Priority.LOW, UserTimelineChannel.this);
-						}
-					}, 0, interval, TimeUnit.SECONDS);
+					() -> configuration.addJob(JobQueue.Priority.LOW, this),
+					0, interval, TimeUnit.SECONDS);
 		}
 	}
 }

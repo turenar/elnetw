@@ -27,6 +27,7 @@ import java.util.ConcurrentModificationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.internal.ConcurrentSoftHashMap;
@@ -164,6 +165,9 @@ public class CacheManager {
 	/** 設定 */
 	protected final ClientConfiguration configuration;
 	private final CacheStorage cacheStorage;
+	/**
+	 * lock for delayed user
+	 */
 	protected final Object delayingNotifierLock = new Object();
 
 	/**
@@ -250,13 +254,13 @@ public class CacheManager {
 	 */
 	public void flush() {
 		DirEntry dirEntry = cacheStorage.mkdir("/cache/user", true);
-		for (User user : getUserSet()) {
-			TwitterUser twitterUser = extract(user);
-			if (twitterUser != null) {
-				dirEntry.mkdir(Long.toHexString(twitterUser.getId() & 0xff));
-				twitterUser.write(dirEntry.mkdir(getCachePath(twitterUser.getId())));
-			}
-		}
+		getCachedUserStream()
+				.map(CacheManager::extract)
+				.filter(user -> user != null)
+				.forEach(user -> {
+					dirEntry.mkdir(Long.toHexString(user.getId() & 0xff));
+					user.write(dirEntry.mkdir(getCachePath(user.getId())));
+				});
 	}
 
 	private String getCachePath(long userId) {
@@ -275,6 +279,17 @@ public class CacheManager {
 	}
 
 	/**
+	 * キャッシュとして持っているステータスを取得するための {@link Collection} を取得する。
+	 * これはキャッシュ格納に使用している {@link ConcurrentMap} が変更されても
+	 * {@link ConcurrentModificationException} はスローされず、また取得する値も変わります。
+	 *
+	 * @return Collection
+	 */
+	public Stream<Status> getCachedStatusStream() {
+		return statusCacheMap.values().stream();
+	}
+
+	/**
 	 * キャッシュ済みUserを取得する。キャッシュされていなかったりUserが存在しない(404)場合はnull。
 	 * このメソッドはブロックしない。
 	 *
@@ -290,6 +305,17 @@ public class CacheManager {
 			}
 		}
 		return extract(user);
+	}
+
+	/**
+	 * キャッシュとして持っているユーザーを取得するための {@link Collection} を取得する。
+	 * これはキャッシュ格納に使用している {@link ConcurrentMap} が変更されても
+	 * {@link ConcurrentModificationException} はスローされず、また取得する値も変わります。
+	 *
+	 * @return Collection
+	 */
+	public Stream<User> getCachedUserStream() {
+		return userCacheMap.values().stream();
 	}
 
 	/**
@@ -342,17 +368,6 @@ public class CacheManager {
 	}
 
 	/**
-	 * キャッシュとして持っているステータスを取得するための {@link Collection} を取得する。
-	 * これはキャッシュ格納に使用している {@link ConcurrentMap} が変更されても
-	 * {@link ConcurrentModificationException} はスローされず、また取得する値も変わります。
-	 *
-	 * @return Collection
-	 */
-	public Collection<Status> getStatusSet() {
-		return statusCacheMap.values();
-	}
-
-	/**
 	 * Userを取得する。なんらかの理由でUserが取得できなかった場合はnull。
 	 * このメソッドはブロックする可能性がある。
 	 *
@@ -370,17 +385,6 @@ public class CacheManager {
 			user = userCacheMap.get(userId);
 		}
 		return extract(user);
-	}
-
-	/**
-	 * キャッシュとして持っているユーザーを取得するための {@link Collection} を取得する。
-	 * これはキャッシュ格納に使用している {@link ConcurrentMap} が変更されても
-	 * {@link ConcurrentModificationException} はスローされず、また取得する値も変わります。
-	 *
-	 * @return Collection
-	 */
-	public Collection<User> getUserSet() {
-		return userCacheMap.values();
 	}
 
 	/**

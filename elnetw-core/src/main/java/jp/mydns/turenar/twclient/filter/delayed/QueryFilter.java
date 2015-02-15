@@ -127,7 +127,7 @@ public class QueryFilter extends DelayedFilter implements PropertyUpdateListener
 				child.onDirectMessage(message);
 			}
 		} else {
-			filteringQueue.add(new DelayedOnDirectMessage(this, message));
+			filteringQueue.add(() -> onDirectMessage(message));
 		}
 	}
 

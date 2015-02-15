@@ -48,7 +48,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -58,12 +57,11 @@ import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -162,6 +160,7 @@ import jp.mydns.turenar.twclient.notifier.NotifySendMessageNotifier;
 import jp.mydns.turenar.twclient.notifier.TrayIconMessageNotifier;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
 import jp.mydns.turenar.twclient.storage.DirEntry;
+import jp.mydns.turenar.twclient.storage.StorageEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
@@ -243,6 +242,13 @@ public final class TwitterClientMain {
 	@InitializerInstance
 	private static volatile TwitterClientMain singleton;
 
+	/**
+	 * assert singleton. THIS METHOD IS FOR LAUNCHER, DEVELOPERS MUST NOT USE THIS METHOD.
+	 *
+	 * @param args        arguments
+	 * @param classLoader class loader
+	 * @return singleton instance
+	 */
 	public static synchronized TwitterClientMain getInstance(String[] args, ClassLoader classLoader) {
 		if (singleton != null) {
 			throw new IllegalStateException("another instance always seems to be running");
@@ -390,34 +396,20 @@ public final class TwitterClientMain {
 	@Initializer(name = "clean/cache/user", phase = "poststart")
 	@InitDepends({"cache/db", "cache/twitter"})
 	public void cleanOldUserCache() {
-		ArrayList<String> removeList = new ArrayList<>();
 		if (!cacheStorage.isDirEntry("/cache/user")) {
 			return;
 		}
 
-		DirEntry entry = cacheStorage.getDirEntry("/cache/user");
-		for (String hexSubDirName : entry) {
-			if (entry.isDirEntry(hexSubDirName)) {
-				DirEntry subDirEntry = entry.getDirEntry(hexSubDirName);
-				for (String userCacheName : subDirEntry) {
-					if (subDirEntry.isDirEntry(userCacheName)) {
-						DirEntry userCacheEntry = subDirEntry.getDirEntry(userCacheName);
-						if (!userCacheEntry.exists("timestamp")) {
-							continue; // not user cache?
-						}
-						long cachedTimestamp = userCacheEntry.readLong("timestamp");
-						long expireTime = configProperties.getTime("core.cache.user.expire", TimeUnit.MILLISECONDS);
-						if (cachedTimestamp + expireTime < System.currentTimeMillis()) {
-							removeList.add(userCacheEntry.getPath());
-						}
-					}
-				}
-			}
-		}
-		for (String path : removeList) {
-			entry.rmdir(path, true);
-			logger.debug("clean expired user cache: {}", path);
-		}
+		long expireTime = configProperties.getTime("core.cache.user.expire", TimeUnit.MILLISECONDS);
+		DirEntry cacheDirEntry = cacheStorage.getDirEntry("/cache/user");
+		List<DirEntry> removeList = cacheDirEntry.walk(2, 2)
+				.map(StorageEntry::asDirEntry)
+				.filter(dir -> dir != null && dir.exists("timestamp"))
+				.filter(dir -> dir.readLong("timestamp") + expireTime < System.currentTimeMillis())
+				.collect(Collectors.toList());
+		removeList.stream()
+				.peek(dir -> logger.debug("clean expired user cache: {}", dir.getPath()))
+				.forEach(dir -> cacheDirEntry.rmdir(dir.getPath(), true));
 	}
 
 	/**
@@ -552,7 +544,7 @@ public final class TwitterClientMain {
 				.addConfig("core.match.id_strict_match", tr("strict ID match in detecting reply"),
 						tr("if not checked, detect reply as screen name top matching"),
 						new BooleanConfigType())
-				.addConfig("core.filter.retweet_only_once",tr("The same tweets including retweeted appears only once"),
+				.addConfig("core.filter.retweet_only_once", tr("The same tweets including retweeted appears only once"),
 						tr("default is off"), new BooleanConfigType());
 		configBuilder.getGroup("画像")
 				.addConfig("gui.image.follow_sensitive", "不適切かもしれない画像を表示するときに確認する",
@@ -1021,12 +1013,9 @@ public final class TwitterClientMain {
 	 */
 	@Initializer(name = "internal/exceptionHandler", phase = "earlyinit")
 	public void setDefaultExceptionHandler() {
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				logger.error("Uncaught exception", e);
-				quit();
-			}
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+			logger.error("Uncaught exception", e);
+			quit();
 		});
 	}
 
@@ -1145,11 +1134,8 @@ public final class TwitterClientMain {
 	@Initializer(name = "timer", phase = "earlyinit")
 	public void setTimer(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
-			configuration.setTimer(new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-				@Override
-				public Thread newThread(@Nonnull Runnable r) {
-					return new Thread(r, "timer");
-				}
+			configuration.setTimer(new ScheduledThreadPoolExecutor(1, r -> {
+				return new Thread(r, "timer");
 			}));
 		} else {
 			ScheduledExecutorService timer = configuration.getTimer();
@@ -1212,22 +1198,13 @@ public final class TwitterClientMain {
 	@InitDepends("bus/start")
 	public void showFrame(InitCondition condition) {
 		if (condition.isInitializingPhase()) {
-			java.awt.EventQueue.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					frame.start();
-				}
-			});
+			java.awt.EventQueue.invokeLater(frame::start);
 		} else {
 			logger.info("Exiting elnetw...");
 			try {
-				EventQueue.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						frame.setVisible(false);
-						frame.dispose();
-					}
+				EventQueue.invokeAndWait(() -> {
+					frame.setVisible(false);
+					frame.dispose();
 				});
 			} catch (InterruptedException e) {
 				logger.error("interrupted while closing frame", e);
@@ -1398,12 +1375,10 @@ public final class TwitterClientMain {
 				case 4: // fall-through
 					logger.info("Updating config to v5");
 				{
-					ArrayList<String> toConvertKeys = new ArrayList<>();
-					for (String key : configProperties.keySet()) {
-						if (key.startsWith("core.filter._tabs")) {
-							toConvertKeys.add(key);
-						}
-					}
+					List<String> toConvertKeys = configProperties.keySet()
+							.stream()
+							.filter(key -> key.startsWith("core.filter._tabs"))
+							.collect(Collectors.toList());
 					for (String key : toConvertKeys) {
 						String query = configProperties.getProperty(key);
 						String uniqId = key.substring("core.filter._tabs.".length());
@@ -1430,5 +1405,14 @@ public final class TwitterClientMain {
 					}
 			}
 		}
+	}
+
+	/**
+	 * workaround for SSLv3 Poodle.
+	 */
+	@Initializer(name = "workaround/poodle", phase = "preinit")
+	public void workaroundForPoodle() {
+		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
+		System.setProperty("jdk.tls.client.protocols", "TLSv1,TLSv1.1,TLSv1.2");
 	}
 }

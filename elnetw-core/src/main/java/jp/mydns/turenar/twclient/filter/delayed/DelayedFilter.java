@@ -60,7 +60,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onBlock(source, blockedUser);
 		} else {
-			filteringQueue.add(new DelayedOnBlock(this, source, blockedUser));
+			filteringQueue.add(() -> onBlock(source, blockedUser));
 		}
 	}
 
@@ -69,7 +69,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onDeletionNotice(directMessageId, userId);
 		} else {
-			filteringQueue.add(new DelayedOnDirectMessageDeletionNotice(this, directMessageId, userId));
+			filteringQueue.add(() -> onDeletionNotice(directMessageId, userId));
 		}
 	}
 
@@ -78,7 +78,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onDeletionNotice(statusDeletionNotice);
 		} else {
-			filteringQueue.add(new DelayedOnStatusDeletionNotice(this, statusDeletionNotice));
+			filteringQueue.add(() -> onDeletionNotice(statusDeletionNotice));
 		}
 	}
 
@@ -87,7 +87,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onDirectMessage(message);
 		} else {
-			filteringQueue.add(new DelayedOnDirectMessage(this, message));
+			filteringQueue.add(() -> onDirectMessage(message));
 		}
 	}
 
@@ -96,7 +96,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onFavorite(source, target, favoritedStatus);
 		} else {
-			filteringQueue.add(new DelayedOnFavorite(this, source, target, favoritedStatus));
+			filteringQueue.add(() -> onFavorite(source, target, favoritedStatus));
 		}
 	}
 
@@ -105,7 +105,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onFollow(source, followedUser);
 		} else {
-			filteringQueue.add(new DelayedOnFollow(this, source, followedUser));
+			filteringQueue.add(() -> onFollow(source, followedUser));
 		}
 	}
 
@@ -120,7 +120,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onStatus(status);
 		} else {
-			filteringQueue.add(new DelayedOnStatus(this, status));
+			filteringQueue.add(() -> onStatus(status));
 		}
 	}
 
@@ -129,7 +129,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUnblock(source, unblockedUser);
 		} else {
-			filteringQueue.add(new DelayedOnUnblock(this, source, unblockedUser));
+			filteringQueue.add(() -> onUnblock(source, unblockedUser));
 		}
 	}
 
@@ -138,7 +138,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUnfavorite(source, target, unfavoritedStatus);
 		} else {
-			filteringQueue.add(new DelayedOnUnfavorite(this, source, target, unfavoritedStatus));
+			filteringQueue.add(() -> onUnfavorite(source, target, unfavoritedStatus));
 		}
 	}
 
@@ -147,7 +147,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUnfollow(source, unfollowedUser);
 		} else {
-			filteringQueue.add(new DelayedOnUnfollow(this, source, unfollowedUser));
+			filteringQueue.add(() -> onUnfollow(source, unfollowedUser));
 		}
 	}
 
@@ -156,7 +156,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListCreation(listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListCreation(this, listOwner, list));
+			filteringQueue.add(() -> onUserListCreation(listOwner, list));
 		}
 	}
 
@@ -165,7 +165,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListDeletion(listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListDeletion(this, listOwner, list));
+			filteringQueue.add(() -> onUserListDeletion(listOwner, list));
 		}
 	}
 
@@ -174,7 +174,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListMemberAddition(addedMember, listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListMemberAddition(this, addedMember, listOwner, list));
+			filteringQueue.add(() -> onUserListMemberAddition(addedMember, listOwner, list));
 		}
 	}
 
@@ -183,7 +183,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListMemberDeletion(deletedMember, listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListMemberDeletion(this, deletedMember, listOwner, list));
+			filteringQueue.add(() -> onUserListMemberDeletion(deletedMember, listOwner, list));
 		}
 	}
 
@@ -192,7 +192,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListSubscription(subscriber, listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListSubscription(this, subscriber, listOwner, list));
+			filteringQueue.add(() -> onUserListSubscription(subscriber, listOwner, list));
 		}
 	}
 
@@ -201,7 +201,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListUnsubscription(subscriber, listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListUnsubscription(this, subscriber, listOwner, list));
+			filteringQueue.add(() -> onUserListUnsubscription(subscriber, listOwner, list));
 		}
 	}
 
@@ -210,7 +210,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserListUpdate(listOwner, list);
 		} else {
-			filteringQueue.add(new DelayedOnUserListUpdate(this, listOwner, list));
+			filteringQueue.add(() -> onUserListUpdate(listOwner, list));
 		}
 	}
 
@@ -219,7 +219,7 @@ public abstract class DelayedFilter extends AbstractMessageFilter {
 		if (isStarted) {
 			super.onUserProfileUpdate(updatedUser);
 		} else {
-			filteringQueue.add(new DelayedOnUserProfileUpdate(this, updatedUser));
+			filteringQueue.add(() -> onUserProfileUpdate(updatedUser));
 		}
 	}
 

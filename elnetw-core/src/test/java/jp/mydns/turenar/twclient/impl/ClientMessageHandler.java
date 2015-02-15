@@ -21,11 +21,9 @@
 
 package jp.mydns.turenar.twclient.impl;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 import jp.mydns.turenar.twclient.filter.MessageFilter;
-import org.junit.Assert;
 import twitter4j.DirectMessage;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -33,8 +31,7 @@ import twitter4j.StatusDeletionNotice;
 import twitter4j.User;
 import twitter4j.UserList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -44,6 +41,8 @@ import static org.junit.Assert.assertTrue;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ClientMessageHandler implements MessageFilter {
+	protected LinkedList<String> calledList = new LinkedList<>();
+
 	@Override
 	public void addChild(MessageFilter filter) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
@@ -53,104 +52,172 @@ public class ClientMessageHandler implements MessageFilter {
 	public MessageFilter clone() throws CloneNotSupportedException {
 		throw new CloneNotSupportedException();
 	}
-protected LinkedList<String> calledList = new LinkedList<>();
+
 	@Override
 	public MessageFilter getChild() throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void onChangeAccount(boolean forWrite){calledList.add("onChangeAccount");}
+	public void onBlock(User source, User blockedUser) {
+		calledList.add("onBlock");
+	}
 
 	@Override
-	public void onClientMessage(String name, Object arg){calledList.add("onClientMessage");}
+	public void onChangeAccount(boolean forWrite) {
+		calledList.add("onChangeAccount");
+	}
 
 	@Override
-	public void onConnect(){calledList.add("onConnect");}
+	public void onCleanUp() {
+		calledList.add("onCleanUp");
+	}
 
 	@Override
-	public void onDeletionNotice(long directMessageId, long userId){calledList.add("onDeletionNotice");}
+	public void onClientMessage(String name, Object arg) {
+		calledList.add("onClientMessage");
+	}
 
 	@Override
-	public void onException(Exception ex){calledList.add("onException");}
+	public void onConnect() {
+		calledList.add("onConnect");
+	}
 
 	@Override
-	public void onFriendList(long[] friendIds){calledList.add("onFriendList");}
+	public void onDeletionNotice(long directMessageId, long userId) {
+		calledList.add("onDeletionNotice");
+	}
 
 	@Override
-	public void onFavorite(User source, User target, Status favoritedStatus){calledList.add("onFavorite");}
+	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+		calledList.add("onDeletionNotice");
+	}
 
 	@Override
-	public void onStatus(Status status){calledList.add("onStatus");}
+	public void onDirectMessage(DirectMessage directMessage) {
+		calledList.add("onDirectMessage");
+	}
 
 	@Override
-	public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice){calledList.add("onDeletionNotice");}
+	public void onDisconnect() {
+		calledList.add("onDisconnect");
+	}
 
 	@Override
-	public void onTrackLimitationNotice(int numberOfLimitedStatuses){calledList.add("onTrackLimitationNotice");}
+	public void onException(Exception ex) {
+		calledList.add("onException");
+	}
 
 	@Override
-	public void onScrubGeo(long userId, long upToStatusId){calledList.add("onScrubGeo");}
+	public void onFavorite(User source, User target, Status favoritedStatus) {
+		calledList.add("onFavorite");
+	}
 
 	@Override
-	public void onStallWarning(StallWarning warning){calledList.add("onStallWarning");}
+	public void onFollow(User source, User followedUser) {
+		calledList.add("onFollow");
+	}
 
 	@Override
-	public void onUnfavorite(User source, User target, Status unfavoritedStatus){calledList.add("onUnfavorite");}
+	public void onFriendList(long[] friendIds) {
+		calledList.add("onFriendList");
+	}
 
 	@Override
-	public void onFollow(User source, User followedUser){calledList.add("onFollow");}
+	public void onScrubGeo(long userId, long upToStatusId) {
+		calledList.add("onScrubGeo");
+	}
 
 	@Override
-	public void onUnfollow(User source, User unfollowedUser){calledList.add("onUnfollow");}
+	public void onStallWarning(StallWarning warning) {
+		calledList.add("onStallWarning");
+	}
 
 	@Override
-	public void onDirectMessage(DirectMessage directMessage){calledList.add("onDirectMessage");}
+	public void onStatus(Status status) {
+		calledList.add("onStatus");
+	}
 
 	@Override
-	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list){calledList.add("onUserListMemberAddition");}
+	public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+		calledList.add("onTrackLimitationNotice");
+	}
 
 	@Override
-	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list){calledList.add("onUserListMemberDeletion");}
+	public void onUnblock(User source, User unblockedUser) {
+		calledList.add("onUnblock");
+	}
 
 	@Override
-	public void onUserListSubscription(User subscriber, User listOwner, UserList list){calledList.add("onUserListSubscription");}
+	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
+		calledList.add("onUnfavorite");
+	}
 
 	@Override
-	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list){calledList.add("onUserListUnsubscription");}
+	public void onUnfollow(User source, User unfollowedUser) {
+		calledList.add("onUnfollow");
+	}
 
 	@Override
-	public void onUserListCreation(User listOwner, UserList list){calledList.add("onUserListCreation");}
+	public void onUserDeletion(long deletedUser) {
+		calledList.add("onUserDeletion");
+	}
 
 	@Override
-	public void onUserListUpdate(User listOwner, UserList list){calledList.add("onUserListUpdate");}
+	public void onUserListCreation(User listOwner, UserList list) {
+		calledList.add("onUserListCreation");
+	}
 
 	@Override
-	public void onUserListDeletion(User listOwner, UserList list){calledList.add("onUserListDeletion");}
+	public void onUserListDeletion(User listOwner, UserList list) {
+		calledList.add("onUserListDeletion");
+	}
 
 	@Override
-	public void onUserProfileUpdate(User updatedUser){calledList.add("onUserProfileUpdate");}
+	public void onUserListMemberAddition(User addedMember, User listOwner, UserList list) {
+		calledList.add("onUserListMemberAddition");
+	}
 
 	@Override
-	public void onBlock(User source, User blockedUser){calledList.add("onBlock");}
+	public void onUserListMemberDeletion(User deletedMember, User listOwner, UserList list) {
+		calledList.add("onUserListMemberDeletion");
+	}
 
 	@Override
-	public void onUnblock(User source, User unblockedUser){calledList.add("onUnblock");}
+	public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
+		calledList.add("onUserListSubscription");
+	}
 
 	@Override
-	public void onDisconnect(){calledList.add("onDisconnect");}
+	public void onUserListUnsubscription(User subscriber, User listOwner, UserList list) {
+		calledList.add("onUserListUnsubscription");
+	}
 
 	@Override
-	public void onCleanUp(){calledList.add("onCleanUp");}
+	public void onUserListUpdate(User listOwner, UserList list) {
+		calledList.add("onUserListUpdate");
+	}
+
+	@Override
+	public void onUserProfileUpdate(User updatedUser) {
+		calledList.add("onUserProfileUpdate");
+	}
+
+	@Override
+	public void onUserSuspension(long suspendedUser) {
+		calledList.add("onUserSuspension");
+	}
 
 	@Override
 	public void setChild(MessageFilter child) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
 	}
-	public void testCalled(String message){
+
+	public void testCalled(String message) {
 		assertEquals(message, calledList.poll());
 	}
-	public void testNotCalled(){
+
+	public void testNotCalled() {
 		assertTrue(calledList.isEmpty());
 	}
 }

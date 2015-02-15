@@ -22,9 +22,9 @@
 package jp.mydns.turenar.twclient.bus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -352,9 +352,7 @@ public class MessageBus {
 	/** お掃除する */
 	public synchronized void cleanUp() {
 		Collection<MessageChannel> entries = pathMap.values();
-		for (MessageChannel entry : entries) {
-			entry.disconnect();
-		}
+		entries.forEach(MessageChannel::disconnect);
 	}
 
 	/**
@@ -488,18 +486,12 @@ public class MessageBus {
 	 * @return actual listerners
 	 */
 	public synchronized ClientMessageListener[] getEndpoints(String[] paths) {
-		ClientMessageListener[] listeners;
-		HashSet<ClientMessageListener> listenersSet = new HashSet<>();
-		for (String path : paths) {
-			ArrayList<ClientMessageListener> list = pathListenerMap.get(path);
-			if (list != null) {
-				for (ClientMessageListener listener : list) {
-					listenersSet.add(listener);
-				}
-			}
-		}
-		listeners = listenersSet.toArray(new ClientMessageListener[listenersSet.size()]);
-		return listeners;
+		return Arrays.stream(paths)
+				.map(pathListenerMap::get)
+				.filter(list -> list != null)
+				.flatMap(Collection::stream)
+				.distinct()
+				.toArray(ClientMessageListener[]::new);
 	}
 
 	/**
@@ -566,9 +558,7 @@ public class MessageBus {
 	/** ClientTabの復元が完了し、DataFetcherの通知を受け取れるようになった */
 	public synchronized void onInitialized() {
 		isInitialized = true;
-		for (MessageChannel channel : pathMap.values()) {
-			channel.realConnect();
-		}
+		pathMap.values().forEach(MessageChannel::realConnect);
 	}
 
 	private synchronized void relogin(String accountId, boolean forWrite) {
