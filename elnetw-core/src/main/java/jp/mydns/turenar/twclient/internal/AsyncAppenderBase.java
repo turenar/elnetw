@@ -214,7 +214,6 @@ public abstract class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 	/**
 	 * Is the eventObject passed as parameter discardable? The base class's implementation of this method always returns
 	 * 'false' but sub-classes may (and do) override this method.
-	 * <p/>
 	 * <p>Note that only if the buffer is nearly full are events discarded. Otherwise, when the buffer is "not full"
 	 * all events are logged.
 	 *

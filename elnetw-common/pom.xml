@@ -130,6 +130,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>${findbugsVersion}</version>
 				<configuration>
 					<excludeFilterFile>rules/findbugs-exclude.xml</excludeFilterFile>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
@@ -142,6 +143,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${checkstyleVersion}</version>
 				<configuration>
 					<includeTestSourceDirectory>false</includeTestSourceDirectory>
 					<configLocation>rules/checkstyle.xml</configLocation>

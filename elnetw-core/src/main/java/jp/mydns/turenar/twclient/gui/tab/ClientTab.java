@@ -106,7 +106,7 @@ public interface ClientTab {
 	/**
 	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
 	 * <p>
-	 * {@link jp.mydns.turenar.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * {@link jp.mydns.turenar.twclient.ClientFrameApi}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
 	 *
@@ -119,7 +119,7 @@ public interface ClientTab {
 	/**
 	 * アクションハンドラをStatusDataをつけて呼ぶメソッド。
 	 * <p>
-	 * {@link jp.mydns.turenar.twclient.TwitterClientFrame}からはいま選択しているポストはわからないのでこの関数ができた。
+	 * {@link jp.mydns.turenar.twclient.ClientFrameApi}からはいま選択しているポストはわからないのでこの関数ができた。
 	 * ハイパーリンクのクリック時などに使用される。
 	 * </p>
 	 *

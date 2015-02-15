@@ -26,7 +26,7 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 /**
  * リログインするためのアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ReloginIntent implements Intent {
 

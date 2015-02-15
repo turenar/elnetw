@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * PHASE_RUNNING では、実際にジョブを動かします。まず、ジョブが追加されるごとにworkerCountがcoreThreadPoolSizeになるまで
  * ワーカーが追加されます。coreThreadPoolSizeになったあとは、
- * <pre>jobCount &gt;= (workerCount * execWorkerThreshold)</pre> を満たすとき、
+ * <code>jobCount &gt;= (workerCount * execWorkerThreshold)</code> を満たすとき、
  * maxThreadPoolSizeになるまでワーカーが追加されます。また、workerCountがcoreThreadPoolSizeよりも大きく、
  * 先述の条件を満たさないとき、最大keepAliveTime待ったあと、ワーカーが終了します。本当に無ジョブ時間が
  * keepAliveTimeになるまで待つかどうかは保証されません。なお、workerCountが0になることはありません。

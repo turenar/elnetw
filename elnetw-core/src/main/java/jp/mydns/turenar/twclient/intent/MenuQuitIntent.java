@@ -26,7 +26,7 @@ import jp.mydns.turenar.twclient.TwitterClientMain;
 /**
  * 終了するためのアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MenuQuitIntent implements Intent {
 

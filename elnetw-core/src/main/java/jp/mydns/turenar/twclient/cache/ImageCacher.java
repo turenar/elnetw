@@ -334,7 +334,7 @@ public class ImageCacher {
 	};
 
 	/**
-	 * byte[] -> hex string
+	 * byte[] -&gt; hex string
 	 *
 	 * @param digest byte array
 	 * @return hex string

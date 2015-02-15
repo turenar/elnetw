@@ -30,7 +30,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 /**
  * アカウント認証するアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class AccountVerifierIntent implements Intent {
 	@Override

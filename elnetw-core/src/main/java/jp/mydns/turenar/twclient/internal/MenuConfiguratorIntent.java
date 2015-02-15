@@ -29,7 +29,7 @@ import jp.mydns.turenar.twclient.intent.PopupMenuDispatcher;
 /**
  * 設定フレームを表示するアクションハンドラ
  *
- * @author Turenar <snswinhaiku dot lo at gmail dot com>
+ * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class MenuConfiguratorIntent implements Intent {
 	@Override

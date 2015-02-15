@@ -33,6 +33,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<describedVersion>${build-version}</describedVersion>
+		<findbugsVersion>3.0.0</findbugsVersion>
+		<checkstyleVersion>2.15-SNAPSHOT</checkstyleVersion>
 	</properties>
 	<modules>
 		<module>elnetw-core</module>
@@ -62,6 +64,16 @@
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
+			</releases>
+		</pluginRepository>
+		<pluginRepository>
+			<id>apache.snapshots</id>
+			<url>http://repository.apache.org/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
@@ -230,7 +242,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.1-SNAPSHOT</version>
+				<version>${findbugsVersion}</version>
 				<configuration>
 					<excludeFilterFile>rules/findbugs-exclude.xml</excludeFilterFile>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
@@ -243,7 +255,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.13</version>
+				<version>${checkstyleVersion}</version>
 				<configuration>
 					<includeTestSourceDirectory>false</includeTestSourceDirectory>
 					<configLocation>rules/checkstyle.xml</configLocation>

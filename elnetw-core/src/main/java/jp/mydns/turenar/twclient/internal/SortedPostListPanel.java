@@ -62,12 +62,13 @@ import org.slf4j.LoggerFactory;
  * </p>
  * <p>
  * {@link #add(LinkedList)}を呼び出します。このとき、引数は次のようなLinkedList
+ * </p>
  * <pre>
  * {14:00, 15:00}
  * </pre>
  * です。すると、
  * <pre>
- * branches -&gt; [[<ins>&lt;-15:00</ins>, <ins>&lt;-14:00</ins>]]
+ * branches -&gt; [[<em>&lt;-15:00</em>, <em>&lt;-14:00</em>]]
  * </pre>
  * のように処理されます。そのうえでもう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -75,11 +76,11 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、
  * <pre>
- * branches -&gt; [[<ins>&lt;-18:00</ins>, 15:00, <ins>&lt;-14:30</ins>, 14:00, <ins>&lt;-12:00</ins>]]
+ * branches -&gt; [[<em>&lt;-18:00</em>, 15:00, <em>&lt;-14:30</em>, 14:00, <em>&lt;-12:00</em>]]
  * </pre>
  * となりますが、sizeがleafSize * 2 (ここでは4)を超えるため、firstBranchが分割されます。
  * <pre>
- * branches -&gt; [[18:00, 15:00, 14:30, <del>14:00, 12:00</del>] <ins>[14:00, 12:00]</ins>]
+ * branches -&gt; [[18:00, 15:00, 14:30, <span style="text-decoration: line-through">14:00, 12:00</span>] <em>[14:00, 12:00]</em>]
  * </pre>
  * このようになります。そして、もう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -87,13 +88,12 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、分割後が
  * <pre>
- * branches -&gt; [[<ins>&lt;-19:00</ins>, 18:00, <del>15:00, 14:30</del>] <ins>[15:00, 14:30]</ins> [14:00, 12:00]]
+ * branches -&gt; [[<em>&lt;-19:00</em>, 18:00, <span style="text-decoration: line-through">15:00, 14:30</span>] <em>[15:00, 14:30]</em> [14:00, 12:00]]
  * </pre>
  * となります。ここで、sizeがleafSize * 2 + maxSize (ここでは6)を超えるため、branchesからいくつかの要素が削除されます。
  * <pre>
- * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30] <del>[14:00, 12:00]</del>]
+ * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30] <span style="text-decoration: line-through">[14:00, 12:00]</span>]
  * </pre>
- * </p>
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
