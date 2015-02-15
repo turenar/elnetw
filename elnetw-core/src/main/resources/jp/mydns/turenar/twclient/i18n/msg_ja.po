@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elnetw 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-12 00:25+0900\n"
+"POT-Creation-Date: 2015-02-16 00:26+0900\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Turenar <snswinhaiku.lo@gmail.com>\n"
 "Language-Team: \n"
@@ -78,8 +78,8 @@ msgstr ""
 
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:111
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/factory/ListTimelineTabFactory.java:248
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:228
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:266
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:229
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/ListTimelineTab.java:267
 msgid "List"
 msgstr "リスト"
 
@@ -130,53 +130,53 @@ msgstr "クエリ:"
 msgid "Search"
 msgstr "検索"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:364
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:363
 msgid "Show &background"
 msgstr "背景を表示する(&B)"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:419
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:418
 msgid "Loading..."
 msgstr "読み込んでいます..."
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:435
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:120
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:434
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:125
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:285
 msgid "Mute"
 msgstr "ミュート"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:459
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:449
 msgid "Other..."
 msgstr "その他..."
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:464
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:454
 msgid "Show &header..."
 msgstr "ヘッダーを表示する(&H)"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:499
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:489
 msgid "Close"
 msgstr "閉じる"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:521
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:512
 msgid "&Update profile"
 msgstr "プロフィールを更新する(&U)"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:636
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:691
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:627
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:682
 msgid "Loading"
 msgstr "読み込んでいます"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:700
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:691
 msgid "About @%s (%s)"
 msgstr "@%1$s (%2$s) について"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:770
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:761
 #: src/main/java/jp/mydns/turenar/twclient/gui/tab/UpdateProfileTab.java:597
 #: src/main/java/jp/mydns/turenar/twclient/gui/config/QueryEditConfigType.java:112
 msgid "Edit"
 msgstr "編集"
 
-#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:790
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:93
+#: src/main/java/jp/mydns/turenar/twclient/gui/tab/UserInfoFrameTab.java:775
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:98
 msgid "This is you!"
 msgstr "これはあなたなんだからねっ！"
 
@@ -567,19 +567,19 @@ msgstr "%1$s[%2$d]に正しくない正規表現が指定されています"
 msgid "Fetching blocking users..."
 msgstr "ブロック中のユーザーを取得しています..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:346
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:348
 msgid "Filter"
 msgstr "フィルタ"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:348
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:350
 msgid "Mute blocking users"
 msgstr "ブロック中のユーザーのミュート"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:348
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:350
 msgid "Checking makes reading initial timeline delayed"
 msgstr "チェックを入れるとタイムラインの初期取得が遅延するようになります"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:478
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:480
 msgid ""
 "Detected another instance with the same cache directory running. Abort!\n"
 "\n"
@@ -590,136 +590,136 @@ msgstr ""
 "\n"
 "他のインスタンスが動いていないかどうか確認してください。"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:522
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:524
 msgid "Fetch interval (sec.)"
 msgstr "取得間隔 (秒)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:523
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:530
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:525
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:532
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:523
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:525
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:527
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:547
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:529
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:549
 msgid "seconds"
 msgstr "秒"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:525
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:532
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:527
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
 msgid "Mention"
 msgstr "メンション (@通知)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:527
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:529
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:536
 msgid "Direct message"
 msgstr "ダイレクトメッセージ"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:529
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:531
 msgid "Fetch count (tweets)"
 msgstr "取得数 (ツイート)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:530
 #: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:532
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
 msgid "tweets"
 msgstr "ツイート"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:534
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:536
 msgid "message"
 msgstr "メッセージ"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:536
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:538
 msgid "UI"
 msgstr "UI"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:537
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:539
 msgid "UI update interval (msec.)"
 msgstr "UI 更新間隔 (ミリ秒)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:537
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:539
 msgid "milliseconds"
 msgstr "ミリ秒"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:539
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:541
 msgid "scroll amounts"
 msgstr "スクロール量"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:540
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:542
 msgid "date format"
 msgstr "日時フォーマット"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:541
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:543
 msgid "sec."
 msgstr "秒"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:542
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:544
 msgid "msec."
 msgstr "ミリ秒"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:543
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:545
 msgid "sec. + relative"
 msgstr "秒+相対表記"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:544
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:546
 msgid "msec. + relative"
 msgstr "ミリ秒+相対表記"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:545
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:547
 msgid "relative"
 msgstr "相対表記"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:547
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:549
 msgid "life time of temporary message"
 msgstr "一時的なメッセージの表示時間"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:549
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:551
 msgid "strict ID match in detecting reply"
 msgstr "リプライの判断にIDの一致を使用する"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:550
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:552
 msgid "if not checked, detect reply as screen name top matching"
 msgstr ""
 "もしチェックがオフならば、リプライかどうかはスクリーンネームの先頭一致で判断"
 "します。"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:552
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:554
 msgid "The same tweets including retweeted appears only once"
 msgstr "同じツイートはリツイートでも一度しか表示しない"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:553
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:555
 msgid "default is off"
 msgstr "デフォルトはオフです。"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:557
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:559
 msgid "Advanced"
 msgstr "Advanced"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:558
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:560
 msgid "Consumer key"
 msgstr "コンシューマーキー"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:559
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:561
 msgid "Edit directly (not supported if you edit)"
 msgstr "直接編集する (動作保証外です)"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:560
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:562
 msgid "Open property editor..."
 msgstr "プロパティエディターを開く..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:835
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:837
 msgid "Preparing for logger"
 msgstr "ログの準備をしています"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:843
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:845
 msgid "Starting initializer..."
 msgstr "初期化を開始しています..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:853
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:855
 msgid "Registering initializer..."
 msgstr "初期化関数を登録しています..."
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:936
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:961
 msgid ""
 "Detected another instance with the same config running. Abort!\n"
 "\n"
@@ -730,21 +730,21 @@ msgstr ""
 "\n"
 "他のインスタンスが動いていないかどうか確認してください。"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1284
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1309
 msgid "Exit?"
 msgstr "終了しますか？"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1306
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1331
 msgid "Failed to fetch user information. Try again later: %s"
 msgstr ""
 "ユーザー情報を取得するのに失敗しました。あとでもう一度試してください: %s"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1306
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1331
 #: src/main/java/jp/mydns/turenar/twclient/intent/AccountVerifierIntent.java:51
 msgid "Error"
 msgstr "エラー"
 
-#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1391
+#: src/main/java/jp/mydns/turenar/twclient/TwitterClientMain.java:1416
 msgid ""
 "You are running older elnetw than the version of config.\n"
 "It may cause unexpected bug or crash.\n"
@@ -776,7 +776,7 @@ msgid "Delete below tweet?"
 msgstr "次のツイートを削除しますか？"
 
 #: src/main/java/jp/mydns/turenar/twclient/intent/RemoveTweetIntent.java:103
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:236
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:264
 msgid "Confirm"
 msgstr "確認"
 
@@ -797,27 +797,31 @@ msgstr "ふぁぼをつける(&F)"
 msgid "Un&favorite"
 msgstr "ふぁぼをはずす(&F)"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:93
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:98
 msgid "Already muted"
 msgstr "ミュート追加済み"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:178
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:183
 msgid "Word..."
 msgstr "ワード"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:231
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
+msgid "Unmute below?"
+msgstr "ミュートを解除しますか？"
+
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
 msgid "Mute below?"
 msgstr "ミュートしますか？"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:259
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:285
 msgid "Specify muted text as regex.%s"
 msgstr "正規表現でミュートするテキストを指定してください。%s"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:279
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:304
 msgid "Client: %s"
 msgstr "クライアント: %s"
 
-#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:283
+#: src/main/java/jp/mydns/turenar/twclient/intent/MuteIntent.java:308
 msgid "User: @%s (%s)"
 msgstr "ユーザー: @%1$s (%2$s)"
 
