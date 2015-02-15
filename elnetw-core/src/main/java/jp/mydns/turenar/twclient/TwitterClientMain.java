@@ -157,6 +157,7 @@ import jp.mydns.turenar.twclient.media.NullMediaResolver;
 import jp.mydns.turenar.twclient.media.RegexpMediaResolver;
 import jp.mydns.turenar.twclient.media.UrlResolverManager;
 import jp.mydns.turenar.twclient.media.XpathMediaResolver;
+import jp.mydns.turenar.twclient.notifier.NotifyHandler;
 import jp.mydns.turenar.twclient.notifier.NotifySendMessageNotifier;
 import jp.mydns.turenar.twclient.notifier.TrayIconMessageNotifier;
 import jp.mydns.turenar.twclient.storage.CacheStorage;
@@ -680,6 +681,12 @@ public final class TwitterClientMain {
 		configuration.addIntent("menu_login_write", new ReloginIntent(true));
 		configuration.addIntent("menu_config", new MenuConfiguratorIntent());
 		configuration.addIntent("dispReq", new DisplayRequirementIntent());
+	}
+
+	@Initializer(name = "notify", phase = "start")
+	@InitDepends({"bus", "gui/notifier"})
+	public void initNotifyHandler() {
+		NotifyHandler.register();
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.ClientMessageListener;
 import jp.mydns.turenar.twclient.ParallelRunnable;
+import jp.mydns.turenar.twclient.bus.channel.NullMessageChannel;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
 import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.tab.TabRenderer;
@@ -406,7 +407,9 @@ public class MessageBus {
 		MessageChannel messageChannel = pathMap.get(path);
 		boolean ret = true;
 		// ALL_ACCOUNT_ID is virtual id, so we must not create any channel with that id.
-		if (!accountId.equals(ALL_ACCOUNT_ID) && (messageChannel == null)) {
+		if (accountId.equals(ALL_ACCOUNT_ID)) {
+			messageChannel = NullMessageChannel.INSTANCE;
+		} else if (messageChannel == null) {
 			MessageChannelFactory factory = channelMap.get(getPathWithoutArg(notifierName));
 			if (factory == null) {
 				if (!notifierName.endsWith("all")) {
@@ -526,6 +529,7 @@ public class MessageBus {
 
 	/**
 	 * get modified count. if this value is updated, you should re-retrieve listener cache
+	 *
 	 * @return modified count
 	 */
 	public int getModifiedCount() {
