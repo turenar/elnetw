@@ -809,8 +809,8 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 		runInDispatcherThread(new Runnable() {
 			@Override
 			public void run() {
-				titleLabel.setText(getTitle());
-				titleLabel.setIcon(getIcon());
+				getTitleComponent().setText(getTitle());
+				getTitleComponent().setIcon(getIcon());
 			}
 		});
 	}

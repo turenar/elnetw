@@ -65,7 +65,6 @@ import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
-import jp.mydns.turenar.twclient.conf.ClientProperties;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
 import jp.mydns.turenar.twclient.gui.ImageResource;
 import jp.mydns.turenar.twclient.gui.ImageViewerFrame;
@@ -142,11 +141,6 @@ public class UserInfoFrameTab extends AbstractClientTab {
 						finishEdit();
 					}
 
-					@Override
-					protected void onException(TwitterException ex) {
-						finishEdit();
-					}
-
 					private void finishEdit() {
 						componentBioEditorPane.setContentType("text/html");
 						componentBioEditorPane.setEditorKit(kit);
@@ -156,6 +150,11 @@ public class UserInfoFrameTab extends AbstractClientTab {
 						componentBioEditorPane.setOpaque(false);
 						componentBioEditorPane.setBackground(new Color(0, 0, 0, 0));
 						isEditing = false;
+					}
+
+					@Override
+					protected void onException(TwitterException ex) {
+						finishEdit();
 					}
 				});
 			} else {
@@ -432,19 +431,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			muteCheckBox = new JCheckBoxMenuItem("ミュート");
 			muteCheckBox.setEnabled(false);
 			muteCheckBox.addActionListener(new ActionListener() {
-
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					ClientProperties configProperties = getConfiguration().getConfigProperties();
-					String idsString = configProperties.getProperty("core.filter.user.ids");
-					if (muteCheckBox.isSelected()) {
-						idsString =
-								idsString == null || idsString.trim().isEmpty() ? String.valueOf(user.getId())
-										: idsString + " " + user.getId();
-					} else {
-						idsString = idsString == null ? "" : idsString.replace(String.valueOf(user.getId()), "");
-					}
-					configProperties.setProperty("core.filter.user.ids", idsString);
+					new IntentArguments("mute").putExtra("user", user).putExtra("confirm", false)
+							.putExtra("remove", !muteCheckBox.isSelected()).invoke();
 				}
 			});
 		}
@@ -501,6 +491,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 						getConfiguration().removeFrameTab(UserInfoFrameTab.this);
 					}
 				});
+				closeIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
 				componentOperationsPanel.add(closeIcon);
 			} catch (IOException e) {
 				logger.warn("#getComponentOperationsPanel: Failed load resource");
@@ -757,16 +748,10 @@ public class UserInfoFrameTab extends AbstractClientTab {
 					componentBioEditorPane.setComponentPopupMenu(popup);
 				}
 
-				String idsString = configuration.getConfigProperties().getProperty("core.filter.user.ids");
-				String[] ids = idsString.split(" ");
-				String userIdString = String.valueOf(user.getId());
-				boolean filtered = false;
-				for (String id : ids) {
-					if (id.equals(userIdString)) {
-						filtered = true;
-						break;
-					}
-				}
+				IntentArguments muteArgs = new IntentArguments("mute").putExtra("user", user).putExtra("type", "check");
+				muteArgs.invoke();
+				boolean filtered = muteArgs.getExtraObj("result", Boolean.class);
+
 				JCheckBoxMenuItem componentMuteCheckBox = getComponentMuteCheckBox();
 				componentMuteCheckBox.setSelected(filtered);
 				if (frameApi.getLoginUser().getId() == user.getId()) {
