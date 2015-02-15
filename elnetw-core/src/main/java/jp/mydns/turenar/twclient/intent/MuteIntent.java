@@ -222,15 +222,38 @@ public class MuteIntent extends AbstractIntent {
 		} else {
 			throw new IllegalArgumentException("Unsupported argument");
 		}
-		showConfirmDialog(propName, propValue, text);
+
+		String type = arguments.getExtraObj("type", String.class);
+		if ("check".equals(type)) {
+			ClientProperties configProperties = configuration.getConfigProperties();
+			List<String> ids = configProperties.getList(propName);
+			arguments.putExtra("result", ids.contains(propValue));
+			return;
+		}
+		boolean confirm = arguments.getExtraObj("confirm", Boolean.class, Boolean.TRUE);
+		boolean remove;
+		if (type == null) {
+			remove = arguments.getExtraObj("remove", Boolean.class, Boolean.FALSE);
+		} else if (type.equals("add")) {
+			remove = false;
+		} else if (type.equals("remove")) {
+			remove = true;
+		} else {
+			throw new IllegalArgumentException("type must be add or remove");
+		}
+		if (confirm) {
+			showConfirmDialog(propName, propValue, text, remove);
+		} else {
+			updateList(propName, propValue, remove);
+		}
 	}
 
 
-	private void showConfirmDialog(final String propName, final String propValue, String text) {
+	private void showConfirmDialog(final String propName, final String propValue, String text, final boolean remove) {
 		JPanel panel = new JPanel();
 		BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 		panel.setLayout(layout);
-		panel.add(new JLabel("次をミュートしますか？"));
+		panel.add(new JLabel(remove ? "次のミュートを解除しますか？" : "次をミュートしますか？"));
 		panel.add(Box.createVerticalStrut(15));
 		panel.add(new JLabel(text));
 		final JOptionPane pane =
@@ -243,9 +266,7 @@ public class MuteIntent extends AbstractIntent {
 			public void propertyChange(PropertyChangeEvent evt) {
 				if (evt.getPropertyName().equals(JOptionPane.VALUE_PROPERTY)) {
 					if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue())) {
-						ClientProperties configProperties = configuration.getConfigProperties();
-						List<String> idsString = configProperties.getList(propName);
-						idsString.add(propValue);
+						updateList(propName, propValue, remove);
 					}
 				}
 			}
@@ -267,8 +288,7 @@ public class MuteIntent extends AbstractIntent {
 				}
 				// check compilable
 				Pattern pattern = Pattern.compile(muteRegexStr);
-				List<String> muteList = configuration.getConfigProperties().getList("core.filter.words");
-				muteList.add(pattern.toString());
+				updateList("core.filter.words", pattern.toString(), false);
 				return;
 			} catch (PatternSyntaxException e) {
 				message = "\n\n" + e.getLocalizedMessage();
@@ -283,5 +303,17 @@ public class MuteIntent extends AbstractIntent {
 
 	private String toMenuText(User user) {
 		return "ユーザー: @" + user.getScreenName() + " (" + user.getName() + ")";
+	}
+
+	private void updateList(String propName, String propValue, boolean remove) {
+		ClientProperties configProperties = configuration.getConfigProperties();
+		List<String> ids = configProperties.getList(propName);
+		if (remove) {
+			ids.remove(propValue);
+		} else {
+			if (!ids.contains(propValue)) {
+				ids.add(propValue);
+			}
+		}
 	}
 }

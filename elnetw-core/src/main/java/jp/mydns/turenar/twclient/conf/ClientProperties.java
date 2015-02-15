@@ -80,8 +80,8 @@ public class ClientProperties implements Map<String, String> {
 	/*package*/static class LineReader {
 		protected static final int IN_CHAR_BUF_SIZE = 8192;
 		protected static final int LINE_BUF_SIZE = 1024;
-		protected char[] lineBuf = new char[LINE_BUF_SIZE];
 		protected final Reader reader;
+		protected char[] lineBuf = new char[LINE_BUF_SIZE];
 		protected char[] inCharBuf;
 		protected int inLimit = 0;
 		protected int inOff = 0;
@@ -289,7 +289,7 @@ public class ClientProperties implements Map<String, String> {
 				checkRange(index, false);
 				String removed = getProperty(getKeyOf(index));
 				synchronized (ClientProperties.this) {
-					for (int i = index; i < len; i++) {
+					for (int i = index + 1; i < len; i++) {
 						setProperty(getKeyOf(i - 1), getProperty(getKeyOf(i)));
 					}
 				}
