@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
-import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.internal.ConcurrentSoftHashMap;
 
 /**
@@ -84,7 +83,7 @@ public class UrlResolverManager {
 		if (cachedUrl != null) {
 			dispatcher.gotMediaUrl(url, cachedUrl);
 		} else {
-			configuration.addJob(priority, () -> {
+			configuration.addParallelJob(priority, () -> {
 				try {
 					dispatcher.gotMediaUrl(url, getUrl(url));
 				} catch (Exception e) {

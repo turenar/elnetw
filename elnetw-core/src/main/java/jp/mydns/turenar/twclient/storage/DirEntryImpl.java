@@ -26,6 +26,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.json.JSONArray;
@@ -39,6 +45,11 @@ import static org.json.JSONObject.NULL;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class DirEntryImpl implements DirEntry {
+	private static final Pattern NORMALIZE_PATTERN = Pattern.compile("(?://)"
+			+ "|(?:^\\./)"
+			+ "|(?:/\\.(/|$))"
+			+ "|(?:(?:^/?\\.\\.|(?:^|/)[^/]+/\\.\\.)(?:/|$))");
+
 	/**
 	 * cast for generic
 	 *
@@ -50,7 +61,6 @@ public class DirEntryImpl implements DirEntry {
 	protected static <T> T cast(Object o) {
 		return (T) o;
 	}
-
 	private final String path;
 	private final DirEntryImpl parent;
 	private final JSONObject jsonObject;
@@ -89,6 +99,18 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	public StorageEntry getEntry(String path) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
+		String basename = basename(path);
+		JSONObject jsonObject = parentDirectory.jsonObject.optJSONObject(basename);
+		if (jsonObject == null) { // not directory
+			return new FileEntryImpl(parentDirectory, basename);
+		} else {
+			return new DirEntryImpl(realpath(path), parentDirectory, jsonObject);
+		}
+	}
+
+	@Override
 	public DirEntryImpl getParent() {
 		return parent;
 	}
@@ -115,6 +137,11 @@ public class DirEntryImpl implements DirEntry {
 			element = element.parent;
 		}
 		return element;
+	}
+
+	@Override
+	public boolean isDirEntry() {
+		return true;
 	}
 
 	@Override
@@ -151,6 +178,17 @@ public class DirEntryImpl implements DirEntry {
 	public DirEntry newMap(String path) {
 		mkdir(path);
 		return this;
+	}
+
+	@Override
+	public String normalize(String path) {
+		StringBuilder builder = new StringBuilder(path);
+		Matcher matcher = NORMALIZE_PATTERN.matcher(builder);
+		while (matcher.find(0)) {
+			int start = matcher.start();
+			builder.replace(start, matcher.end(), start != 0 || builder.charAt(0) == '/' ? "/" : "");
+		}
+		return builder.toString();
 	}
 
 	@Override
@@ -250,8 +288,13 @@ public class DirEntryImpl implements DirEntry {
 	}
 
 	@Override
+	public String realpath() {
+		return realpath(".");
+	}
+
+	@Override
 	public String realpath(String path) {
-		return this.path + "/" + path;
+		return normalize(this.path + "/" + path);
 	}
 
 	@Override
@@ -299,6 +342,17 @@ public class DirEntryImpl implements DirEntry {
 	@Override
 	public int size() {
 		return jsonObject.length();
+	}
+
+	@Override
+	public Spliterator<String> spliterator() {
+		return Spliterators.spliteratorUnknownSize(iterator(), Spliterator.DISTINCT | Spliterator.NONNULL);
+	}
+
+	@Override
+	public Stream<StorageEntry> stream() {
+		return StreamSupport.stream(spliterator(), false)
+				.map(this::getEntry);
 	}
 
 	@Override
@@ -356,6 +410,28 @@ public class DirEntryImpl implements DirEntry {
 		return dirEntry;
 	}
 
+	@Override
+	public Stream<StorageEntry> walk(int minDepth, int maxDepth) {
+		if (maxDepth < 0 || minDepth > maxDepth) {
+			return Stream.empty();
+		} else {
+			final int newMinDepth = minDepth - 1;
+			final int newMaxDepth = maxDepth - 1;
+			return Stream.concat(
+					minDepth <= 0 ? Stream.of(this) : Stream.empty(),
+					newMaxDepth < 0 ? Stream.empty()
+							: stream()
+							.flatMap(entry -> {
+								if (entry.isDirEntry()) {
+									return ((DirEntry) entry).walk(newMinDepth, newMaxDepth);
+								} else {
+									return newMinDepth > 0 ? Stream.empty() : Stream.of(entry);
+								}
+							})
+			);
+		}
+	}
+
 	private <T> List<T> wrapList(JSONArray jsonArray, Converter<T> converter) {
 		return jsonArray == null ? null : new ArrayWrapList<>(jsonArray, converter);
 	}
@@ -380,7 +456,7 @@ public class DirEntryImpl implements DirEntry {
 	public DirEntry writeList(String path, Object... elements) {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
-		JSONArray jsonArray = elements == null ? null : new JSONArray(elements);
+		Object jsonArray = elements == null ? JSONObject.NULL : new JSONArray(elements);
 		parentDirectory.jsonObject.put(basename, jsonArray);
 		return this;
 	}

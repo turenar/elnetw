@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.storage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -135,6 +136,32 @@ public class CacheStorageTest {
 		storage.mkdir("/not/existed/dir");
 	}
 
+	@Test
+	public void testNormalize() throws Exception {
+		CacheStorage storage = new CacheStorage();
+		assertEquals("/", storage.normalize("/"));
+		assertEquals("/", storage.normalize("/."));
+		assertEquals("/", storage.normalize("/.."));
+		assertEquals("/", storage.normalize("/../"));
+		assertEquals("/", storage.normalize("/storage/.."));
+		assertEquals("/", storage.normalize("/storage/../"));
+		assertEquals("/abc", storage.normalize("/abc"));
+		assertEquals("/", storage.normalize("///"));
+		assertEquals("/a/", storage.normalize("//a///"));
+		assertEquals("/a", storage.normalize("/a"));
+		assertEquals("", storage.normalize(""));
+		assertEquals(".", storage.normalize("."));
+		assertEquals("", storage.normalize(".."));
+		assertEquals("", storage.normalize("../"));
+		assertEquals("", storage.normalize("storage/.."));
+		assertEquals("", storage.normalize("storage/../"));
+		assertEquals("abc", storage.normalize("abc"));
+		assertEquals("a/", storage.normalize("a///"));
+		assertEquals("", storage.normalize("a/b/c/../../.."));
+		assertEquals("a", storage.normalize("a"));
+
+	}
+
 	@Test(expected = NoSuchElementException.class)
 	public void testNotExistedDirEntry() throws Exception {
 		DirEntry storage = new CacheStorage();
@@ -195,6 +222,19 @@ public class CacheStorageTest {
 		storage.writeString("/temp", "dead");
 		assertEquals("dead", storage.readString("/temp"));
 		assertEquals("dead", storage.readString("temp"));
+	}
+
+	@Test
+	public void testRealpath() throws Exception {
+		CacheStorage storage = new CacheStorage();
+		storage.writeBool("a", true);
+		storage.writeInt("b", 123);
+		storage.writeLong("c", 123L);
+		String[] entries = storage.stream()
+				.map(StorageEntry::realpath)
+				.sorted()
+				.toArray(String[]::new);
+		assertArrayEquals(new String[]{"/a", "/b", "/c"}, entries);
 	}
 
 	@Test
@@ -260,6 +300,19 @@ public class CacheStorageTest {
 	}
 
 	@Test
+	public void testStream() throws Exception {
+		CacheStorage storage = new CacheStorage();
+		storage.writeBool("a", true);
+		storage.writeInt("b", 123);
+		storage.writeLong("c", 123L);
+		String[] entries = storage.stream()
+				.map(StorageEntry::getPath)
+				.sorted()
+				.toArray(String[]::new);
+		assertArrayEquals(new String[]{"a", "b", "c"}, entries);
+	}
+
+	@Test
 	public void testStringList() throws Exception {
 		DirEntry storage = new CacheStorage();
 		storage.writeList("/temp", "hoge", "fuga", "null");
@@ -301,6 +354,34 @@ public class CacheStorageTest {
 		storage.mkdir("fuga");
 		storage.writeString("hoge", "fuga");
 		storage.writeString("fuga", storage.toString());
+	}
+
+	@Test
+	public void testWalk() throws Exception {
+		CacheStorage storage = new CacheStorage();
+		storage.writeBool("a", true);
+		storage.mkdir("b").writeBool("c", false).writeInt("d", 123);
+		storage.writeLong("e", 123L);
+		String[] entries = storage.walk()
+				.map(StorageEntry::realpath)
+				.sorted()
+				.toArray(String[]::new);
+		System.out.println(Arrays.toString(entries));
+		assertArrayEquals(new String[]{"/", "/a", "/b/", "/b/c", "/b/d", "/e"}, entries);
+	}
+
+	@Test
+	public void testWalkWithDepth() throws Exception {
+		CacheStorage storage = new CacheStorage();
+		storage.writeBool("a", true);
+		storage.mkdir("b").writeBool("c", false).writeInt("d", 123);
+		storage.writeLong("e", 123L);
+		String[] entries = storage.walk(2, 2)
+				.map(StorageEntry::realpath)
+				.sorted()
+				.toArray(String[]::new);
+		System.out.println(Arrays.toString(entries));
+		assertArrayEquals(new String[]{"/b/c", "/b/d"}, entries);
 	}
 
 	@Test

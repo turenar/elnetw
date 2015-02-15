@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,6 +91,11 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public DirEntry asDirEntry() {
+		return rootDirEntry;
+	}
+
+	@Override
 	public boolean exists(String path) {
 		return rootDirEntry.exists(path);
 	}
@@ -100,8 +106,13 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public StorageEntry getEntry(String path) {
+		return rootDirEntry.getEntry(path);
+	}
+
+	@Override
 	public DirEntryImpl getParent() {
-		return null;
+		return rootDirEntry.getParent();
 	}
 
 	@Override
@@ -112,6 +123,11 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public DirEntryImpl getRoot() {
 		return rootDirEntry;
+	}
+
+	@Override
+	public boolean isDirEntry() {
+		return true;
 	}
 
 	@Override
@@ -137,6 +153,11 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public DirEntry newMap(String path) {
 		return rootDirEntry.newMap(path);
+	}
+
+	@Override
+	public String normalize(String path) {
+		return rootDirEntry.normalize(path);
 	}
 
 	@Override
@@ -205,13 +226,13 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
-	public String realpath(String path) {
-		return rootDirEntry.realpath(path);
+	public String realpath() {
+		return rootDirEntry.realpath();
 	}
 
 	@Override
-	public DirEntry writeStringArray(String path, String[] data) {
-		rootDirEntry.writeStringArray(path, data);return this;
+	public String realpath(String path) {
+		return rootDirEntry.realpath(path);
 	}
 
 	@Override
@@ -250,8 +271,18 @@ public class CacheStorage implements DirEntry {
 	}
 
 	@Override
+	public Stream<StorageEntry> stream() {
+		return rootDirEntry.stream();
+	}
+
+	@Override
 	public Iterator<String> traverse() {
 		return rootDirEntry.traverse();
+	}
+
+	@Override
+	public Stream<StorageEntry> walk(int minDepth, int maxDepth) {
+		return rootDirEntry.walk(minDepth, maxDepth);
 	}
 
 	@Override
@@ -281,6 +312,12 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public CacheStorage writeString(String path, String data) {
 		rootDirEntry.writeString(path, data);
+		return this;
+	}
+
+	@Override
+	public DirEntry writeStringArray(String path, String[] data) {
+		rootDirEntry.writeStringArray(path, data);
 		return this;
 	}
 }

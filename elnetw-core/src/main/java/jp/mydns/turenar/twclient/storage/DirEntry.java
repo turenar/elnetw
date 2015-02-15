@@ -24,29 +24,14 @@ package jp.mydns.turenar.twclient.storage;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 /**
  * Virtual Directory Entry
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public interface DirEntry extends Iterable<String> {
-
-	/**
-	 * check if path is exists
-	 *
-	 * @param path path
-	 * @return exist?
-	 */
-	boolean exists(String path);
-
-	/**
-	 * read array of path
-	 * @param path path
-	 * @return array. if path has DirEntry, we throw Exception.
-	 */
-	String[] readStringArray(String path);
+public interface DirEntry extends StorageEntry, Iterable<String> {
 	/**
 	 * get dir entry of path
 	 *
@@ -56,25 +41,11 @@ public interface DirEntry extends Iterable<String> {
 	DirEntry getDirEntry(String path);
 
 	/**
-	 * get parent DirEntry
-	 *
-	 * @return DirEntry
+	 * get entry for path
+	 * @param path path
+	 * @return if path is dir, return DirEntry. otherwise (even if path is not exist), return FileEntry
 	 */
-	DirEntry getParent();
-
-	/**
-	 * get path of this
-	 *
-	 * @return path
-	 */
-	String getPath();
-
-	/**
-	 * get root of this
-	 *
-	 * @return root DirEntry
-	 */
-	DirEntry getRoot();
+	StorageEntry getEntry(String path);
 
 	/**
 	 * check if path is DirEntry
@@ -108,6 +79,14 @@ public interface DirEntry extends Iterable<String> {
 	 * @return this
 	 */
 	DirEntry newMap(String path);
+
+	/**
+	 * normalize path such as ./, ../, //
+	 *
+	 * @param path path
+	 * @return normalized path. if path starts with /, normalized path also contains preceding slash.
+	 */
+	String normalize(String path);
 
 	/**
 	 * read bool from path
@@ -191,6 +170,14 @@ public interface DirEntry extends Iterable<String> {
 	String readString(String path);
 
 	/**
+	 * read array of path
+	 *
+	 * @param path path
+	 * @return array. if path has DirEntry, we throw Exception.
+	 */
+	String[] readStringArray(String path);
+
+	/**
 	 * read List&lt;String&gt; from path
 	 *
 	 * @param path path
@@ -240,11 +227,12 @@ public interface DirEntry extends Iterable<String> {
 	boolean rmdir(String path, boolean recursive);
 
 	/**
-	 * get DirEntry size
+	 * return stream which contains all entry in this. sub directories are not included.
 	 *
-	 * @return the number of elements
+	 * @return stream
+	 * @see #walk() to walk entries
 	 */
-	int size();
+	Stream<StorageEntry> stream();
 
 	/**
 	 * get Iterator of DirEntry
@@ -252,6 +240,29 @@ public interface DirEntry extends Iterable<String> {
 	 * @return all containing path
 	 */
 	Iterator<String> traverse();
+
+	/**
+	 * return stream which contains all entry in this and sub directories.
+	 *
+	 * @return stream
+	 * @see #stream() no sub directories included
+	 * @see #walk(int, int)
+	 */
+	default Stream<StorageEntry> walk() {
+		return walk(0, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * return stream which contains all entry in this and sub directories.
+	 *
+	 * @param minDepth minimum depth. if 0, this entry is included. if 1, all entries but this are included.
+	 *                 if 2, only such as /a/c, /a/c/d are included. and so on.
+	 * @param maxDepth maximum depth. if 0, this entry is only included. if 1, don't traverse sub directories.
+	 * @return stream
+	 * @see #stream() no sub directories included
+	 * @see #walk()
+	 */
+	Stream<StorageEntry> walk(int minDepth, int maxDepth);
 
 	/**
 	 * write bool to path
@@ -300,6 +311,7 @@ public interface DirEntry extends Iterable<String> {
 
 	/**
 	 * write String[] to path
+	 *
 	 * @param path path
 	 * @param data data
 	 * @return this
