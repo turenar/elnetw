@@ -251,6 +251,7 @@ public class MiscRenderObject extends AbstractRenderObject {
 
 	/**
 	 * set popoup menu type
+	 *
 	 * @param popupType popup type (default: 'default')
 	 * @return this instance
 	 */

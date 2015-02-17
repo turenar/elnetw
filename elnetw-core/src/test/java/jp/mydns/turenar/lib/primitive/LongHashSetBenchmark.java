@@ -81,7 +81,7 @@ size		average
 		System.out.printf("=== rand=%s ===%n", Boolean.toString(rand));
 		System.out.println("size\t\taverage\t(prealloc)");
 		for (int i = 4; i < 17; i += 2) {
-			System.out.printf("\r\033[K%8d\t%d\t%d%n",1 << i, bench(1 << i, rand,false), bench(1<<i,rand,true));
+			System.out.printf("\r\033[K%8d\t%d\t%d%n", 1 << i, bench(1 << i, rand, false), bench(1 << i, rand, true));
 		}
 	}
 
@@ -90,7 +90,7 @@ size		average
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		int i = 0;
 		int randMax = max << 4;
-		if(prealloc){
+		if (prealloc) {
 			longHashSet.ensureCapacity(randMax);
 		}
 		for (; i < max >> 3; i++) {

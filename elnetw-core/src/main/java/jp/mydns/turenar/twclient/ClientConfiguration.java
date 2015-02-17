@@ -606,8 +606,8 @@ public class ClientConfiguration {
 
 	public static String getTitleForMainFrame() {
 		return VersionInfo.isSnapshot()
-						? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
-						: APPLICATION_NAME;
+				? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
+				: APPLICATION_NAME;
 	}
 
 	/**

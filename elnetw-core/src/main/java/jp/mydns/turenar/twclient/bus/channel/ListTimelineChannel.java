@@ -110,6 +110,7 @@ public class ListTimelineChannel extends TwitterRunnable implements MessageChann
 	private static MessageBus getMessageBus() {
 		return ClientConfiguration.getInstance().getMessageBus();
 	}
+
 	private final ClientConfiguration configuration;
 	private final long interval;
 	private final ClientProperties configProperties;

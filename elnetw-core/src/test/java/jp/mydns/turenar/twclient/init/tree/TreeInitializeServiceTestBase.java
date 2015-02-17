@@ -23,9 +23,6 @@ package jp.mydns.turenar.twclient.init.tree;
 
 import jp.mydns.turenar.twclient.init.InitializeService;
 import jp.mydns.turenar.twclient.init.InitializeServiceTestImpl;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /** Test for {@link jp.mydns.turenar.twclient.init.tree.TreeInitializeService} */
 public class TreeInitializeServiceTestBase extends InitializeServiceTestImpl {

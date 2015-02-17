@@ -79,9 +79,9 @@ public class OpenImageIntent implements Intent {
 						})
 						.toArray(URL[]::new);
 			} else if (url instanceof URL) {
-				return new URL[] {(URL) url};
+				return new URL[]{(URL) url};
 			} else if (url instanceof String) {
-				return new URL[] {new URL((String) url)};
+				return new URL[]{new URL((String) url)};
 			} else {
 				throw new IllegalArgumentException("url must be URL or String");
 			}

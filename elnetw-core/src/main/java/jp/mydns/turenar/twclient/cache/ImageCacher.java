@@ -525,7 +525,7 @@ public class ImageCacher {
 			}
 			if (fetchEntry == null) {
 				newEntry.addSetter(imageSetter);
-					configuration.addJob(JobQueue.PRIORITY_UI, new ImageFetcher(newEntry));
+				configuration.addJob(JobQueue.PRIORITY_UI, new ImageFetcher(newEntry));
 				return false;
 			} else {
 				synchronized (fetchEntry) {

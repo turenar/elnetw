@@ -133,7 +133,7 @@ public class TwitterUserImpl extends TwitterUser {
 		DirEntry entities = dirEntry.getDirEntry("entities");
 		urlEntity = new URLEntityImpl(entities.getDirEntry("url"));
 		descriptionURLEntities = getEntitiesFromDirEntry(entities.getDirEntry("description"));
-	withheldInCountries=	dirEntry.readStringArray("withheld_in_countries");
+		withheldInCountries = dirEntry.readStringArray("withheld_in_countries");
 
 		timestamp = dirEntry.exists("timestamp") ? dirEntry.readLong("timestamp") : System.currentTimeMillis();
 	}

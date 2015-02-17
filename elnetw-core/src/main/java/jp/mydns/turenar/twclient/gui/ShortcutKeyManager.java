@@ -65,6 +65,7 @@ public final class ShortcutKeyManager {
 	private static HashMap<String, InputMap> inputMapHashMap = new HashMap<>();
 	private static HashMap<String, ActionMap> actionMapHashMap = new HashMap<>();
 	private static HashMap<IntentArguments, KeyStroke> intentStrokeMap = new HashMap<>();
+
 	/**
 	 * add shortcutkey
 	 *

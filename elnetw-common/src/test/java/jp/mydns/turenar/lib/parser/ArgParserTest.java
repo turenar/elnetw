@@ -177,7 +177,7 @@ public class ArgParserTest {
 	public void testAddShortOptWithIllegalName1() throws Exception {
 		ArgParser parser = new ArgParser();
 		parser.addLongOpt("--gender", OptionType.NO_ARGUMENT);
-parser.addShortOpt("--gender", "--gender");
+		parser.addShortOpt("--gender", "--gender");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -186,6 +186,7 @@ parser.addShortOpt("--gender", "--gender");
 		parser.addLongOpt("--gender", OptionType.NO_ARGUMENT);
 		parser.addShortOpt("", "--gender");
 	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testAddShortOptWithIllegalName3() throws Exception {
 		ArgParser parser = new ArgParser();
@@ -290,7 +291,7 @@ parser.addShortOpt("--gender", "--gender");
 		assertTrue(arguments.hasOpt("--gender"));
 		assertNull(arguments.getOptArg("--gender"));
 		assertTrue(arguments.hasError());
-		assertEquals(1,arguments.getErrorCount());
+		assertEquals(1, arguments.getErrorCount());
 	}
 
 	@Test
@@ -302,8 +303,10 @@ parser.addShortOpt("--gender", "--gender");
 		assertNull(arguments.getOptArg("--gender"));
 		assertTrue(arguments.hasError());
 		assertEquals(4, arguments.getProcessArguments().length);
-	}@Test
-	 public void testParseWithUnknownOpt2() throws Exception {
+	}
+
+	@Test
+	public void testParseWithUnknownOpt2() throws Exception {
 		ArgParser parser = new ArgParser();
 		parser.setIgnoreUnknownOption(true);
 		ParsedArguments arguments = parser.parse(a("--gender male --gender female"));
@@ -321,9 +324,9 @@ parser.addShortOpt("--gender", "--gender");
 
 		ParsedArguments arguments = parser.parse(a("-g male --gender female test -- --gender undefined arg"));
 		assertTrue(arguments.hasOpt("--gender"));
-assertEquals("female", arguments.getOptArg("--gender"));
+		assertEquals("female", arguments.getOptArg("--gender"));
 		assertEquals(4, arguments.getProcessArguments().length);
-		assertEquals("test",arguments.getProcessArgument());
+		assertEquals("test", arguments.getProcessArgument());
 		assertEquals("--gender", arguments.getProcessArgument(1));
 		assertEquals("undefined", arguments.getProcessArgument(2));
 		assertEquals("arg", arguments.getProcessArgument(3));

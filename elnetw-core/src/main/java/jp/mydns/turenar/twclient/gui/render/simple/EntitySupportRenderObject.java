@@ -60,8 +60,8 @@ public abstract class EntitySupportRenderObject extends AbstractRenderObject imp
 	/**
 	 * ツイートビューに表示するテキストを取得する
 	 *
-	 * @param entitySupport エンティティ対応オブジェクト
-	 * @param text          テキスト
+	 * @param entitySupport     エンティティ対応オブジェクト
+	 * @param text              テキスト
 	 * @param possiblySensitive possibly sensitive
 	 * @return ツイートビューに表示するテキスト
 	 */

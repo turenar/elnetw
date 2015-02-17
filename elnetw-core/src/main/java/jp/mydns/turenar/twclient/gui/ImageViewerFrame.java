@@ -36,7 +36,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.MessageFormat;
 
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;

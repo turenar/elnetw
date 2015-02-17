@@ -456,7 +456,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
-						new ImageViewerFrame(false,new URL(user.getProfileBannerLargeURL())).setVisible(true);
+						new ImageViewerFrame(false, new URL(user.getProfileBannerLargeURL())).setVisible(true);
 					} catch (MalformedURLException e1) {
 						throw new AssertionError(e1);
 					}

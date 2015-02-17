@@ -21,14 +21,8 @@
 
 package jp.mydns.turenar.twclient.filter;
 
-import java.util.Date;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.mydns.turenar.twclient.internal.NullUser;
-import twitter4j.RateLimitStatus;
-import twitter4j.Status;
-import twitter4j.URLEntity;
-import twitter4j.User;
 
 @SuppressFBWarnings
 @SuppressWarnings("serial")
