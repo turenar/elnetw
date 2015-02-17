@@ -128,7 +128,12 @@ public class TreeInitializeService extends InitializeService {
 		//noinspection ThrowableResultOfMethodCallIgnored
 		InitializeException exception = info.getException();
 		if (exception != null) {
-			parallelException = exception;
+			logger.error("failed initializer: {}", info.getName());
+			if (parallelException == null) {
+				parallelException = exception;
+			} else {
+				parallelException.addSuppressed(exception);
+			}
 			treeRebuildRequired = true;
 		}
 		runningInfo.remove(info);
@@ -282,15 +287,15 @@ public class TreeInitializeService extends InitializeService {
 					break; // back to rebuild tree
 				}
 			}
-			if (parallelException != null) {
-				throw parallelException;
-			}
 			while (!runningInfo.isEmpty()) {
 				try {
 					wait(TIMEOUT);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
+			} // wait for parallel initialization: otherwise, we cause dead-lock uninit job queue.
+			if (parallelException != null) {
+				throw parallelException;
 			}
 		}
 		return this;
