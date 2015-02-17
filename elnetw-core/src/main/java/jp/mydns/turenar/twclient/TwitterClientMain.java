@@ -111,6 +111,7 @@ import jp.mydns.turenar.twclient.gui.tab.factory.SearchTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UpdateProfileTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
+import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
 import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
@@ -675,10 +676,15 @@ public final class TwitterClientMain {
 		configuration.addIntent("dispReq", new DisplayRequirementIntent());
 	}
 
-	@Initializer(name = "notify", phase = "start")
+	@Initializer(name = "notify", phase = "prestart")
 	@InitDepends({"bus", "gui/notifier"})
-	public void initNotifyHandler() {
-		NotifyHandler.register();
+	@InitBefore("bus/init")
+	public void initNotifyHandler(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			NotifyHandler.register();
+		} else if (!condition.isFastUninit()) {
+			NotifyHandler.serialize(cacheStorage);
+		}
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

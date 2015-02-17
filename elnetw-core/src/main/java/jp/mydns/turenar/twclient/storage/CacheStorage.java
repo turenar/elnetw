@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,11 @@ public class CacheStorage implements DirEntry {
 	@Override
 	public boolean exists(String path) {
 		return rootDirEntry.exists(path);
+	}
+
+	@Override
+	public DirEntry writeList(String path, Collection<?> elements) {
+		return rootDirEntry.writeList(path, elements);
 	}
 
 	@Override
