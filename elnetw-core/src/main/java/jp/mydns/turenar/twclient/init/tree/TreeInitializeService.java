@@ -22,7 +22,6 @@
 package jp.mydns.turenar.twclient.init.tree;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -82,7 +81,7 @@ public class TreeInitializeService extends InitializeService {
 	/*package*/ boolean treeRebuildRequired;
 	private boolean isUninitialized;
 	private Logger logger = LoggerFactory.getLogger(TreeInitializeService.class);
-	private ArrayList<TreeInitInfoBase> runningInfo = new ArrayList<>();
+	private volatile int runningJobsCount;
 	private volatile JobQueue jobQueue;
 	private InitializeException parallelException;
 
@@ -131,7 +130,7 @@ public class TreeInitializeService extends InitializeService {
 			parallelException = exception;
 			treeRebuildRequired = true;
 		}
-		runningInfo.remove(info);
+		--runningJobsCount;
 		notifyAll();
 	}
 
@@ -274,7 +273,7 @@ public class TreeInitializeService extends InitializeService {
 							Thread.currentThread().interrupt();
 						}
 					}
-					runningInfo.add(info);
+					++runningJobsCount;
 					jobQueue.addJob(JobQueue.PRIORITY_MAX, info);
 				}
 				SplashScreenCtrl.setProgress(flatTree.nowIndex(), flatTree.size());
@@ -285,7 +284,7 @@ public class TreeInitializeService extends InitializeService {
 			if (parallelException != null) {
 				throw parallelException;
 			}
-			while (!runningInfo.isEmpty()) {
+			while (runningJobsCount > 0) {
 				try {
 					wait(TIMEOUT);
 				} catch (InterruptedException e) {
