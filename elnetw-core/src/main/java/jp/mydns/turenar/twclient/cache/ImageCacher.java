@@ -558,7 +558,12 @@ public class ImageCacher {
 	 */
 	public boolean setImageIcon(JLabel label, User user) throws InterruptedException {
 		try {
-			return setImageIcon(new LabelImageSetter(label), new URL(user.getProfileImageURLHttps()));
+			String profileImageURLHttps = user.getProfileImageURLHttps();
+			if (profileImageURLHttps == null) {
+				return false;
+			} else {
+				return setImageIcon(new LabelImageSetter(label), new URL(profileImageURLHttps));
+			}
 		} catch (MalformedURLException e) {
 			throw new AssertionError(e);
 		}
