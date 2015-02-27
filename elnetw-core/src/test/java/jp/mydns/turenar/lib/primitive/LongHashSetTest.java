@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 
 public class LongHashSetTest {
 
-	private static final int TEST_SIZE = 0x1000000;
+	private static final int TEST_SIZE = 0x10000;
 
 	public static void main(String[] args) {
 		for (int i = 0; i < 16; i++) {
@@ -152,6 +152,9 @@ public class LongHashSetTest {
 		LongHashSet longHashSet = new LongHashSet(16);
 		assertTrue(longHashSet.add(4));
 		assertTrue(longHashSet.add(5));
+		// check hash conflicted. if conflicted, values = [.., 4, 5, ..]
+		// remove 4, values = [.., REMOVED, 5, ..]
+		// if we don't treat REMOVED, when we add 5, values=[.., 5, 5, ..]
 		assertEquals(1, longHashSet.getHashConflict());
 		assertTrue(longHashSet.contains(4));
 		assertTrue(longHashSet.contains(5));

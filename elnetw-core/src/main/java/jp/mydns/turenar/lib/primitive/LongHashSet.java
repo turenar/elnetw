@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
  * primitive hash set. faster than TreeSet&lt;Long&gt;, HashSet with random values
  */
 public class LongHashSet implements Cloneable {
-	private class HashSpliterator implements Spliterator.OfLong {
+	private static class HashSpliterator implements Spliterator.OfLong {
 		private final long[] values;
 		private final int end;
 		private int start;
@@ -82,6 +82,9 @@ public class LongHashSet implements Cloneable {
 		public HashSpliterator trySplit() {
 			int lo = start;
 			int mid = (lo + end) >>> 1;
+			if (size >= 0) {
+				size = -size; // mark estimated
+			}
 			return lo >= mid ? null : new HashSpliterator(values, lo, start = mid, size >>= 1);
 		}
 	}
@@ -353,6 +356,7 @@ public class LongHashSet implements Cloneable {
 	 *
 	 * <p>This captures not array values but array. This means values are affected by concurrent modification but
 	 * not concurrent rehash.</p>
+	 *
 	 * @return LongStream instance. This doesn't throw ConcurrentModificationException
 	 */
 	public LongStream stream() {
