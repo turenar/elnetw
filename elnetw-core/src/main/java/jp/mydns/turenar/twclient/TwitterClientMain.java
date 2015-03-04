@@ -68,7 +68,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import jp.mydns.turenar.lib.parser.ArgParser;
-import jp.mydns.turenar.lib.parser.OptionType;
+import jp.mydns.turenar.lib.parser.ArgumentType;
 import jp.mydns.turenar.lib.parser.ParsedArguments;
 import jp.mydns.turenar.twclient.bus.MessageBus;
 import jp.mydns.turenar.twclient.bus.factory.BlockingUsersChannelFactory;
@@ -315,12 +315,9 @@ public final class TwitterClientMain {
 		this.classLoader = classLoader;
 		mainThread = Thread.currentThread();
 		parser = new ArgParser();
-		parser.addLongOpt("--debug", OptionType.NO_ARGUMENT)
-				.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT)
-				.addLongOpt("--define", OptionType.REQUIRED_ARGUMENT)
-				.addShortOpt("-d", "--debug")
-				.addShortOpt("-L", "--classpath")
-				.addShortOpt("-D", "--define");
+		parser.addOption("-d", "--debug").argType(ArgumentType.NO_ARGUMENT);
+		parser.addOption("-L", "--classpath").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
+		parser.addOption("-D", "--define").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
 		LoggingConfigurator.setOpts(parser);
 		parsedArguments = parser.parse(args);
 
@@ -828,7 +825,7 @@ public final class TwitterClientMain {
 	 */
 	public HashMap<String, Object> run() {
 		portable = Boolean.getBoolean("config.portable");
-		if (parsedArguments.hasOpt("--debug")) {
+		if (parsedArguments.hasOptGroup("--debug")) {
 			portable = true;
 		}
 		setHomeProperty();

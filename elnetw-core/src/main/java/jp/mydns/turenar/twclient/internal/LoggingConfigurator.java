@@ -28,7 +28,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import jp.mydns.turenar.lib.parser.ArgParser;
-import jp.mydns.turenar.lib.parser.OptionType;
+import jp.mydns.turenar.lib.parser.ArgumentType;
 import jp.mydns.turenar.lib.parser.ParsedArguments;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import org.slf4j.LoggerFactory;
@@ -56,13 +56,11 @@ public class LoggingConfigurator {
 	 * @param parser ArgParser instance
 	 */
 	public static void setOpts(ArgParser parser) {
-		parser.addLongOpt("--quiet", OptionType.NO_ARGUMENT)
-				.addLongOpt("--log-level", OptionType.REQUIRED_ARGUMENT)
-				.addLongOpt("--verbose", OptionType.NO_ARGUMENT)
-				.addLongOpt("--color-log", OptionType.NO_ARGUMENT)
-				.addLongOpt("--root-log-level", OptionType.REQUIRED_ARGUMENT)
-				.addShortOpt("-q", "--quiet")
-				.addShortOpt("-v", "--verbose");
+		parser.addOption("--log-level").argType(ArgumentType.REQUIRED_ARGUMENT);
+		parser.addOption("--root-log-level").argType(ArgumentType.REQUIRED_ARGUMENT);
+		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT);
+		parser.addOption("-v", "--verbose").argType(ArgumentType.NO_ARGUMENT).group("--quiet");
+		parser.addOption("--color-log").argType(ArgumentType.NO_ARGUMENT);
 	}
 
 	private final ParsedArguments parsed;
@@ -134,9 +132,15 @@ public class LoggingConfigurator {
 		}
 	}
 
+	private String getApplicationLogLevel() {
+		String arg = parsed.getOptArg("--log-level");
+		// if --log-level is not passed fallback to --root-log-level
+		return arg == null ? getRootLogLevel() : getLogLevel(arg);
+	}
+
 	private String getLogLevel(String optArg) {
 		if (optArg == null) {
-			return parsed.hasOpt("--debug") ? "TRACE" : "INFO";
+			return parsed.hasOptGroup("--debug") ? "TRACE" : "INFO";
 		}
 		optArg = optArg.toUpperCase(Locale.ENGLISH);
 		switch (optArg) {
@@ -163,38 +167,12 @@ public class LoggingConfigurator {
 
 	private String getRootLogLevel() {
 		String arg = parsed.getOptArg("--root-log-level");
-		if (arg != null) {
-			return getLogLevel(arg);
-		}
-		// fallback from --log-level
-		arg = parsed.getOptArg("--log-level");
-		if (arg == null) {
-			return "INFO";
-		}
-		arg = arg.toUpperCase(Locale.ENGLISH);
-		switch (arg) {
-			case "TRACE":
-			case "ALL":
-			case "DEBUG":
-			case "INFO":
-				return "INFO";
-			case "WARN":
-				return "WARN";
-			case "ERROR":
-				return "ERROR";
-			case "NONE":
-			case "OFF":
-			case "QUIET":
-				return "OFF";
-			default:
-				throw new IllegalArgumentException("--log-level <level>: level must be one of trace,all,debug,info,"
-						+ "warn,error,none,off,quiet");
-		}
+		return arg == null ? "INFO" : getLogLevel(arg);
 	}
 
 	private void rootConfiguration() {
 		builder.append("<configuration");
-		if (parsed.hasOpt("--verbose")) {
+		if (parsed.hasOptGroup("--verbose")) {
 			builder.append(" debug='true'");
 		}
 		builder.append(">");
@@ -207,14 +185,17 @@ public class LoggingConfigurator {
 	private void setLogLevel() {
 		builder.append(
 				"<logger name=\"jp.mydns.turenar\">\n"
-						+ "  <level value=\""
-		).append(getLogLevel(parsed.getOptArg("--log-level"))).append("\" />\n"
-				+ "</logger>\n"
-				// root log level
-				+ "<root>\n"
-				+ "  <level value=\"").append(getRootLogLevel()).append("\" />\n"
-				+ "  <appender-ref ref=\"STDOUT\" />\n"
-				+ "  <appender-ref ref=\"ASYNC_FILE\" />\n"
-				+ "</root>");
+						+ "  <level value=\"")
+				.append(getApplicationLogLevel())
+				.append("\" />\n"
+						+ "</logger>\n"
+						// root log level
+						+ "<root>\n"
+						+ "  <level value=\"")
+				.append(getRootLogLevel())
+				.append("\" />\n"
+						+ "  <appender-ref ref=\"STDOUT\" />\n"
+						+ "  <appender-ref ref=\"ASYNC_FILE\" />\n"
+						+ "</root>");
 	}
 }

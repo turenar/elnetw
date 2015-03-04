@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * arguments parsed by ArgParser.
@@ -37,39 +39,48 @@ public class ParsedArguments {
 	/**
 	 * エラーメッセージのリスト。
 	 */
-	protected final ArrayList<String> errorMessages;
+	protected final List<String> errorMessages = new ArrayList<>(0);
 	/**
 	 * optionとは関係のないプロセス引数
 	 */
-	protected final ArrayList<String> processArguments;
+	protected final List<String> processArguments = new ArrayList<>();
 	/**
 	 * オプション情報のマップ
 	 */
-	protected final HashMap<String, OptionInfo> optionInfos;
+	protected final Map<String, OptionInfo> optionInfos = new HashMap<>();
 	/**
 	 * オプションの先頭からトラバースできるリスト
 	 */
-	protected final LinkedList<OptionInfo> optionInfoList;
+	protected final LinkedList<OptionInfo> optionInfoList = new LinkedList<>();
+	private final ArgParser parser;
 
 	/**
 	 * create instance
+	 *
+	 * @param parser ArgParser instance
 	 */
-	protected ParsedArguments() {
-		errorMessages = new ArrayList<>(0);
-		processArguments = new ArrayList<>();
-		optionInfos = new HashMap<>();
-		optionInfoList = new LinkedList<>();
+	protected ParsedArguments(ArgParser parser) {
+		this.parser = parser;
 	}
 
 	/**
-	 * 長いオプションを追加する
+	 * add option
 	 *
-	 * @param longOptName 長いオプション名
-	 * @param arg         引数
-	 * @param multiple    引数として複数指定できるかどうか
+	 * @param optName option name (such as -g, --debug)
+	 * @param arg     argument (nullable)
+	 * @param config  option configuration
 	 */
-	protected void addLongOpt(String longOptName, String arg, boolean multiple) {
-		addShortOpt(null, longOptName, arg, multiple);
+	public void addOpt(String optName, String arg, OptionConfig config) {
+		OptionInfo info = new OptionInfo(optName, arg, config);
+		optionInfoList.add(info);
+		if (config.multiple()) {
+			OptionInfo another = optionInfos.putIfAbsent(config.group(), info);
+			if (another != null && another.getConfig().equals(config)) {
+				another.add(info);
+				return;
+			}
+		}
+		optionInfos.put(config.group(), info);
 	}
 
 	/**
@@ -78,6 +89,7 @@ public class ParsedArguments {
 	 * @param errorType エラータイプ
 	 * @param opt       オプション名
 	 */
+
 	protected void addParseError(ParseErrorType errorType, String opt) {
 		String message;
 		switch (errorType) {
@@ -100,31 +112,8 @@ public class ParsedArguments {
 	 * @param arg プロセス引数 (オプションと何も関係がない引数)
 	 */
 	protected void addProcessArgument(String arg) {
-		optionInfoList.add(new OptionInfo(null, null, arg));
+		optionInfoList.add(new OptionInfo(null, arg, null));
 		processArguments.add(arg);
-	}
-
-	/**
-	 * 短いオプションを追加する
-	 *
-	 * @param shortOptName    短いオプション名
-	 * @param longOptName     長いオプション名
-	 * @param arg             引数
-	 * @param supportMultiArg 引数として複数指定できるかどうか
-	 */
-	protected void addShortOpt(String shortOptName, String longOptName, String arg, boolean supportMultiArg) {
-		OptionInfo optionInfo = optionInfos.get(longOptName);
-		OptionInfo newInfo = new OptionInfo(shortOptName, longOptName, arg);
-		optionInfoList.add(newInfo);
-		if (optionInfo == null) {
-			optionInfos.put(longOptName, newInfo);
-		} else {
-			if (supportMultiArg) {
-				optionInfo.add(newInfo);
-			} else {
-				optionInfo.update(shortOptName, longOptName, arg);
-			}
-		}
 	}
 
 	/**
@@ -155,36 +144,62 @@ public class ParsedArguments {
 	}
 
 	/**
-	 * 長いオプションと関連付けられる引数を取得する。
+	 * 引数情報を取得する
 	 *
-	 * @param longOptName 長いオプション名
-	 * @return 引数。オプションが複数指定された場合は最初のオプションの引数。nullの可能性あり。
+	 * @param optName 短いまたは長いオプション名。ハイフン付きである必要がある。
+	 * @return 引数情報
 	 */
-	public String getOptArg(String longOptName) {
-		OptionInfo optionInfo = optionInfos.get(ArgParser.getLongOptName(longOptName));
-		return optionInfo == null ? null : optionInfo.getArg();
+	public OptionInfo getOpt(String optName) {
+		OptionConfig optConfig = parser.getOptConfig(optName);
+		if (optConfig != null) {
+			OptionInfo optInfo = getOptGroup(optConfig.group());
+			return optInfo != null && optInfo.getConfig().equals(optConfig) ? optInfo : null;
+		}
+		return null;
+	}
+
+	/**
+	 * 引数情報を取得する
+	 *
+	 * @param optName  短いまたは長いオプション名。ハイフン付きである必要がある。
+	 * @param iterable イテレート可能かどうか。trueの場合nullを返さない。
+	 * @return 引数情報
+	 */
+	public OptionInfo getOpt(String optName, boolean iterable) {
+		OptionInfo optInfo = getOpt(optName);
+		return iterable && optInfo == null ? NULL_OPTION_INFO : optInfo;
+	}
+
+	/**
+	 * 指定された引数に渡された値を取得する。
+	 *
+	 * @param optName オプション名。ハイフン付きである必要がある。
+	 * @return 引数がない、または値が指定されていない時はnull。値が指定されていれば、その値。
+	 */
+	public String getOptArg(String optName) {
+		return getOpt(optName, true).getArg();
 	}
 
 	/**
 	 * オプション情報を取得する。
 	 *
-	 * @param longOptName 長いオプション名
-	 * @param iterable    イテレータブル: nullを返さない。拡張for文等でこのまま使用可能である
+	 * @param group    オプショングループ名。通常長いオプション名と同じ。
+	 * @param iterable イテレータブル: nullを返さない。拡張for文等でこのまま使用可能である
 	 * @return オプション情報
 	 */
-	public OptionInfo getOptInfo(String longOptName, boolean iterable) {
-		OptionInfo optInfo = getOptInfo(longOptName);
+	public OptionInfo getOptGroup(String group, boolean iterable) {
+		OptionInfo optInfo = getOptGroup(group);
 		return iterable && optInfo == null ? NULL_OPTION_INFO : optInfo;
 	}
 
 	/**
 	 * 長いオプションと関連付けられる{@link jp.mydns.turenar.lib.parser.OptionInfo}インスタンスを取得する。
 	 *
-	 * @param longOptName 長いオプション名
+	 * @param group オプショングループ名。通常長いオプション名と同じ。
 	 * @return オプション情報。オプションが指定されていない場合null。
 	 */
-	public OptionInfo getOptInfo(String longOptName) {
-		return optionInfos.get(ArgParser.getLongOptName(longOptName));
+	public OptionInfo getOptGroup(String group) {
+		return optionInfos.get(group);
 	}
 
 	/**
@@ -252,12 +267,35 @@ public class ParsedArguments {
 	}
 
 	/**
+	 * オプションが指定されているかどうかを調べる。同じグループ内で複数のオプションが指定されている時、最後にパースされたオプションのみが
+	 * 残っている。詳しくは{@link jp.mydns.turenar.lib.parser.ArgParser}の説明を参照する。
+	 *
+	 * @param optName オプション名
+	 * @return 指定された名前を持つオプションが有効であるかどうかを返す。単にオプションが渡されているかどうかを返すわけではないことに
+	 * 注意してください。これは、同じグループ名を持つ場合、--verbose,--quietが渡されたからと言って、hasOpt("--verbose")がtrueになる
+	 * わけではないということです。
+	 */
+	public boolean hasOpt(String optName) {
+		return getOpt(optName) != null;
+	}
+
+	/**
 	 * オプションが指定されたかどうかを返す。
 	 *
-	 * @param longOptName 長いオプション名
+	 * @param group オプショングループ名。通常長いオプション名と同じ。
 	 * @return 指定されているかどうか。
 	 */
-	public boolean hasOpt(String longOptName) {
-		return optionInfos.containsKey(ArgParser.getLongOptName(longOptName));
+	public boolean hasOptGroup(String group) {
+		return optionInfos.containsKey(group);
+	}
+
+	/**
+	 * オプションが指定されたかどうかを返す。
+	 *
+	 * @param group オプショングループ。
+	 * @return 指定されているかどうか。
+	 */
+	public boolean hasOptGroup(OptionGroup group) {
+		return hasOptGroup(group.getName());
 	}
 }

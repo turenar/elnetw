@@ -26,7 +26,7 @@ package jp.mydns.turenar.lib.parser;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public enum OptionType {
+public enum ArgumentType {
 	/**
 	 * 引数は指定できない
 	 */

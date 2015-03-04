@@ -35,8 +35,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jp.mydns.turenar.lib.parser.ArgParser;
+import jp.mydns.turenar.lib.parser.ArgumentType;
 import jp.mydns.turenar.lib.parser.OptionInfo;
-import jp.mydns.turenar.lib.parser.OptionType;
 import jp.mydns.turenar.lib.parser.ParsedArguments;
 
 /**
@@ -107,16 +107,13 @@ public class TwitterClientLauncher {
 	private ArrayList<String> classpath = new ArrayList<>();
 
 	private TwitterClientLauncher(String[] args) {
-		ArgParser parser = new ArgParser();
-		parser.addLongOpt("--classpath", OptionType.REQUIRED_ARGUMENT, true)
-				.addLongOpt("--declare", OptionType.REQUIRED_ARGUMENT, true)
-				.addLongOpt("--quiet", OptionType.NO_ARGUMENT)
-				.addShortOpt("-D", "--declare")
-				.addShortOpt("-L", "--classpath")
-				.addShortOpt("-q", "--quiet")
-				.setIgnoreUnknownOption(true);
+		ArgParser parser = new ArgParser().setIgnoreUnknownOption(true);
+		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT);
+		parser.addOption("-L", "--classpath").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
+		parser.addOption("-D", "--define").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
+
 		ParsedArguments parsedArguments = parser.parse(args);
-		for (OptionInfo info : parsedArguments.getOptInfo("--declare", true)) {
+		for (OptionInfo info : parsedArguments.getOptGroup("--declare", true)) {
 			String arg = info.getArg();
 			if (arg == null || arg.isEmpty()) {
 				System.err.println("missing argument for -D");
@@ -129,7 +126,7 @@ public class TwitterClientLauncher {
 				}
 			}
 		}
-		for (OptionInfo info : parsedArguments.getOptInfo("--classpath", true)) {
+		for (OptionInfo info : parsedArguments.getOptGroup("--classpath", true)) {
 			String arg = info.getArg();
 			if (arg == null || arg.isEmpty()) {
 				System.err.println("missing arugment for -L");
@@ -138,7 +135,7 @@ public class TwitterClientLauncher {
 			}
 		}
 		this.args = args;
-		quietFlag = parsedArguments.hasOpt("--quiet");
+		quietFlag = parsedArguments.hasOptGroup("--quiet");
 	}
 
 	private int getAbiVersion(Class<?> clazz) {
