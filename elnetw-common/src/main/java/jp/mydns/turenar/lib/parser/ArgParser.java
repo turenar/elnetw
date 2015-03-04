@@ -186,7 +186,7 @@ public class ArgParser {
 			if (breakIndex < 0) {
 				breakIndex = descLen;
 			}
-			if ((breakIndex - searchStart) << 1 > realWidth + searchStart) {
+			if ((breakIndex - searchStart) << 1 > realWidth) {
 				int consumedWidth = 0;
 				int candidate = -1;
 				int i = searchStart;
@@ -205,9 +205,11 @@ public class ArgParser {
 							breakIsSpace = true; // charAt(candidate) == WHITESPACE
 						}
 						break; // over width
-					} else if (++i >= descLen) {
-						breakIndex = descLen;
-						break; // over length
+					} else if (++i >= breakIndex) {
+						if (i < descLen) {
+							breakIsSpace = true;
+						}
+						break; // over l]ength
 					}
 					c = description.charAt(i);
 				}
@@ -280,7 +282,7 @@ public class ArgParser {
 			indent(builder, optDescPadding);
 
 			int optLength = builder.length() - lengthBeforeOpt;
-			if (optLength > helpOptColumn + optDescPadding) {
+			if (optLength > optionTotalWidth) {
 				builder.replace(builder.length() - optDescPadding, builder.length(), "\n");
 				indent(builder, optionTotalWidth);
 			} else {
@@ -464,6 +466,7 @@ public class ArgParser {
 
 	/**
 	 * ヘルプの全体幅を設定する
+	 *
 	 * @param width ヘルプの全体幅
 	 * @return このインスタンス
 	 */

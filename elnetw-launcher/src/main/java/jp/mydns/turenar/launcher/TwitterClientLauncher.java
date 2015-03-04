@@ -23,7 +23,6 @@ package jp.mydns.turenar.launcher;
 
 import java.awt.GraphicsEnvironment;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -47,13 +46,6 @@ import jp.mydns.turenar.lib.parser.ParsedArguments;
 public class TwitterClientLauncher {
 
 	public static final String DEFAULT_LAUNCHING_CLASS = "jp.mydns.turenar.twclient.TwitterClientMain";
-	private static FilenameFilter jarFilter = new FilenameFilter() {
-
-		@Override
-		public boolean accept(File dir, String name) {
-			return name.endsWith(".jar");
-		}
-	};
 
 	private static void addURL(Map<String, ClasspathEntry> urlMap, File file) {
 		if (!file.exists()) {
@@ -62,7 +54,7 @@ public class TwitterClientLauncher {
 		}
 
 		if (file.isDirectory()) { // directory traversal
-			File[] files = file.listFiles(jarFilter);
+			File[] files = file.listFiles((dir, name) -> name.endsWith(".jar"));
 			for (File childFile : files) {
 				addURL(urlMap, childFile);
 			}
@@ -108,12 +100,16 @@ public class TwitterClientLauncher {
 
 	private TwitterClientLauncher(String[] args) {
 		ArgParser parser = new ArgParser().setIgnoreUnknownOption(true);
-		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT);
+		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT).group("quiet");
 		parser.addOption("-L", "--classpath").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
 		parser.addOption("-D", "--define").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
+		parser.addOption("-h", "--help").argType(ArgumentType.NO_ARGUMENT).group("quiet");
+		parser.addOption("-V", "--version").argType(ArgumentType.NO_ARGUMENT).group("quiet");
+
 
 		ParsedArguments parsedArguments = parser.parse(args);
-		for (OptionInfo info : parsedArguments.getOptGroup("--declare", true)) {
+		quietFlag = parsedArguments.hasOptGroup("quiet");
+		for (OptionInfo info : parsedArguments.getOptGroup("--define", true)) {
 			String arg = info.getArg();
 			if (arg == null || arg.isEmpty()) {
 				System.err.println("missing argument for -D");
@@ -122,7 +118,7 @@ public class TwitterClientLauncher {
 				if (indexOf == -1) {
 					System.clearProperty(arg);
 				} else {
-					System.getProperties().setProperty(arg.substring(2, indexOf), arg.substring(indexOf + 1));
+					System.getProperties().setProperty(arg.substring(0, indexOf), arg.substring(indexOf + 1));
 				}
 			}
 		}
@@ -135,7 +131,6 @@ public class TwitterClientLauncher {
 			}
 		}
 		this.args = args;
-		quietFlag = parsedArguments.hasOptGroup("--quiet");
 	}
 
 	private int getAbiVersion(Class<?> clazz) {
@@ -159,7 +154,7 @@ public class TwitterClientLauncher {
 		}
 	}
 
-	public Class<?> getMainClass(URLClassLoader classLoader) {
+	private Class<?> getMainClass(URLClassLoader classLoader) {
 		String launchClass = System.getProperty("elnetw.launch.class", DEFAULT_LAUNCHING_CLASS);
 		try {
 			return Class.forName(launchClass, false, classLoader);
@@ -249,7 +244,7 @@ public class TwitterClientLauncher {
 		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 
-	public int run() {
+	private int run() {
 		URLClassLoader classLoader = prepareClassLoader();
 		Class<?> clazz = getMainClass(classLoader);
 		if (clazz == null) {

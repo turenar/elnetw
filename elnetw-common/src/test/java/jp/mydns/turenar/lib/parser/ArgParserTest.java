@@ -466,6 +466,31 @@ public class ArgParserTest {
 	}
 
 	@Test
+	public void test5Help1() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.description("This is description.");
+		parser.addOption("--log-level").argType(ArgumentType.REQUIRED_ARGUMENT).argName("LEVEL")
+				.description("set LEVEL as application log level\nLEVEL: one of <trace,all,debug,info,warn,error,off>");
+		parser.addOption("--no-splash").argType(ArgumentType.NO_ARGUMENT)
+				.description("起動時のスプラッシュ・スクリーンを無効にする。 --help または --version "
+						+ "を渡すと暗黙的にこのオプションが有効になる。 [launcher specific]");
+		parser.addOption("--root-log-level").argType(ArgumentType.REQUIRED_ARGUMENT).argName("LEVEL")
+				.description("set LEVEL as root log level");
+		String expected = "This is description.\n"
+				+ "\n"
+				+ "      --log-level=LEVEL       set LEVEL as application log level\n"
+				+ "                              LEVEL: one of\n"
+				+ "                              <trace,all,debug,info,warn,error,off>\n"
+				+ "      --no-splash             起動時のスプラッシュ・スクリーンを無効にする。\n"
+				+ "                              --help または --version\n"
+				+ "                              を渡すと暗黙的にこのオプションが有効になる。\n"
+				+ "                              [launcher specific]\n"
+				+ "      --root-log-level=LEVEL  set LEVEL as root log level\n";
+
+		assertEquals(expected, parser.generateHelpString());
+	}
+
+	@Test
 	public void test5ParseSortCommandOption() throws Exception {
 		ArgParser parser = new ArgParser();
 		// GNU Coreutils sort

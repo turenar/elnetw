@@ -314,10 +314,20 @@ public final class TwitterClientMain {
 	private TwitterClientMain(String[] args, ClassLoader classLoader) {
 		this.classLoader = classLoader;
 		mainThread = Thread.currentThread();
-		parser = new ArgParser();
-		parser.addOption("-d", "--debug").argType(ArgumentType.NO_ARGUMENT);
-		parser.addOption("-L", "--classpath").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
-		parser.addOption("-D", "--define").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true);
+		parser = new ArgParser()
+				.description(tr("Usage: %s [OPTION...]", System.getProperty("elnetw.launcher.bin", "elnetw")));
+		parser.addOption("-d", "--debug").argType(ArgumentType.NO_ARGUMENT)
+				.description(tr("enable function for maintainer. This enables also --portable, "
+						+ "--color-log, --log-level=TRACE"));
+		parser.addOption("-L", "--classpath").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true).argName("PATH")
+				.description(tr("add java classpath to execute\nPATH: directory or jar archive"));
+		parser.addOption("-D", "--define").argType(ArgumentType.REQUIRED_ARGUMENT).multiple(true).argName("NAME[=VALUE]")
+				.description(tr("define system property"));
+		parser.addOption("-h", "--help").argType(ArgumentType.NO_ARGUMENT).description(tr("print this help and exit"));
+		parser.addOption("-V", "--version").argType(ArgumentType.NO_ARGUMENT).description(tr("print version and exit"));
+		parser.addOption("--no-splash").argType(ArgumentType.NO_ARGUMENT)
+				.description(tr("disable splash screen. this is also implicitly enabled by passing --help or --version "
+						+ "[launcher specific]"));
 		LoggingConfigurator.setOpts(parser);
 		parsedArguments = parser.parse(args);
 
@@ -672,6 +682,9 @@ public final class TwitterClientMain {
 		configuration.addIntent("dispReq", new DisplayRequirementIntent());
 	}
 
+	/**
+	 * initialize notify handler
+	 */
 	@Initializer(name = "notify", phase = "start")
 	@InitDepends({"bus", "gui/notifier"})
 	public void initNotifyHandler() {
@@ -825,7 +838,22 @@ public final class TwitterClientMain {
 	 */
 	public HashMap<String, Object> run() {
 		portable = Boolean.getBoolean("config.portable");
-		if (parsedArguments.hasOptGroup("--debug")) {
+		if (parsedArguments.hasOpt("--help")) {
+			System.out.println(parser.generateHelpString());
+			return getResultMap(0, false);
+		} else if (parsedArguments.hasOpt("--version")) {
+			System.out.println(tr("elnetw: version %1$s [%2$s:%3$s]\n"
+							+ "Twitter Client for hitobasira\n\n"
+							+ "License: %4$s\n"
+							+ "Copyright: %5$s\n"
+							+ "Support: %6$s\n",
+					VersionInfo.getUniqueVersion(), VersionInfo.getMajorVersion(), VersionInfo.getCodeName(),
+					VersionInfo.getLicense(), VersionInfo.getCopyright(), VersionInfo.getSupportUrl()));
+			System.out.println(tr("Java VM: %s (%s)", System.getProperty("java.vm.name"),
+					System.getProperty("java.vm.version")));
+			return getResultMap(0, false);
+		}
+		if (parsedArguments.hasOpt("--debug")) {
 			portable = true;
 		}
 		setHomeProperty();

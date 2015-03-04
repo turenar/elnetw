@@ -118,13 +118,13 @@ if test ! -z "${_dist_jar}"; then
   # standalone jar is found
   add_classpath "${_dist_jar}"
   add_java_arg '-Dconfig.portable=true'
-  add_java_arg "-splash:${BATCH_PARENT_DIR}"/bin/splash.png
+  splash_arg="${splash_arg:--splash:${BATCH_PARENT_DIR}/bin/splash.png}"
 elif test -e "${BATCH_PARENT_DIR}/bin/launcher.jar"; then
   add_classpath "${BATCH_PARENT_DIR}/bin/launcher.jar"
   if test -e "${BATCH_PARENT_DIR}/bin/library.jar"; then
     add_classpath "${BATCH_PARENT_DIR}/bin/library.jar"
   fi
-  add_java_arg "-splash:${BATCH_PARENT_DIR}"/bin/splash.png
+  splash_arg="${splash_arg:--splash:${BATCH_PARENT_DIR}/bin/splash.png}"
 else
   # jarが見つからない
   echo
@@ -136,11 +136,18 @@ else
   exit 1
 fi
 
+add_arg "-Delnetw.launcher.bin=$0"
 
 while [ -n "$1" ]; do
   case "$1" in
     -J)   add_java_arg "$2"; shift;;
     -J*)  add_java_arg "${1#-J}";;
+    -h|--help|-V|--version)
+          add_arg "$1"
+          splash_arg="";;
+    --no-splash)
+          add_arg "--no-splash"
+          splash_arg="";;
     *)    add_arg "$1";;
   esac
 
@@ -154,5 +161,4 @@ add_classpath_dir "${BATCH_PARENT_DIR}/lib"
 # load ~/.elnetw/launcher.cfg
 test -x "${HOME}/.elnetw/launcher.cfg" && source "${HOME}/.elnetw/launcher.cfg"
 
-
-"${JAVA_BIN}" ${tt_java_args} -classpath "${tt_classpath}" ${TT_MAIN_CLASS} ${tt_args}
+"${JAVA_BIN}" ${splash_arg} ${tt_java_args} -classpath "${tt_classpath}" ${TT_MAIN_CLASS} ${tt_args}

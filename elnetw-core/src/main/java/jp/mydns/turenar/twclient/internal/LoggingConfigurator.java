@@ -33,6 +33,8 @@ import jp.mydns.turenar.lib.parser.ParsedArguments;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import org.slf4j.LoggerFactory;
 
+import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
+
 /**
  * Logging Configurator: set logger as app arg
  *
@@ -56,11 +58,16 @@ public class LoggingConfigurator {
 	 * @param parser ArgParser instance
 	 */
 	public static void setOpts(ArgParser parser) {
-		parser.addOption("--log-level").argType(ArgumentType.REQUIRED_ARGUMENT);
-		parser.addOption("--root-log-level").argType(ArgumentType.REQUIRED_ARGUMENT);
-		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT);
-		parser.addOption("-v", "--verbose").argType(ArgumentType.NO_ARGUMENT).group("--quiet");
-		parser.addOption("--color-log").argType(ArgumentType.NO_ARGUMENT);
+		parser.addOption("--log-level").argType(ArgumentType.REQUIRED_ARGUMENT).argName("LEVEL")
+				.description(tr("set LEVEL as application log level\nLEVEL: one of <trace,all,debug,info,warn,error,off>"));
+		parser.addOption("--root-log-level").argType(ArgumentType.REQUIRED_ARGUMENT).argName("LEVEL")
+				.description(tr("set LEVEL as root log level. see --log-level"));
+		parser.addOption("-q", "--quiet").argType(ArgumentType.NO_ARGUMENT)
+				.description(tr("disable informational output. This conflicts with --verbose"));
+		parser.addOption("-v", "--verbose").argType(ArgumentType.NO_ARGUMENT).group("--quiet")
+				.description(tr("enable more annoying messages. This conflicts with --quiet"));
+		parser.addOption("--color-log").argType(ArgumentType.NO_ARGUMENT)
+				.description(tr("colorize logging output. This don't work in Windows"));
 	}
 
 	private final ParsedArguments parsed;
