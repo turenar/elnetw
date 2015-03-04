@@ -28,12 +28,14 @@ import java.util.Objects;
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
-public class OptionConfig {
+public class OptionConfig implements Comparable<OptionConfig> {
 	private final String shortOptName;
 	private final String longOptName;
 	private ArgumentType type = ArgumentType.NO_ARGUMENT;
 	private String group;
 	private boolean multiple;
+	private String argName = "VALUE";
+	private String description = "";
 
 	/**
 	 * インスタンス生成
@@ -45,6 +47,26 @@ public class OptionConfig {
 		Objects.requireNonNull("longOptName must not be null");
 		this.shortOptName = shortOptName;
 		this.group = this.longOptName = longOptName;
+	}
+
+	/**
+	 * 引数名を設定する
+	 *
+	 * @param argName 引数名
+	 * @return このインスタンス
+	 */
+	public OptionConfig argName(String argName) {
+		this.argName = argName;
+		return this;
+	}
+
+	/**
+	 * 引数名を取得する
+	 *
+	 * @return 引数名
+	 */
+	public String argName() {
+		return argName;
 	}
 
 	/**
@@ -65,6 +87,31 @@ public class OptionConfig {
 	public OptionConfig argType(ArgumentType type) {
 		this.type = type;
 		return this;
+	}
+
+	@Override
+	public int compareTo(OptionConfig o) {
+		return longOptName.compareTo(o.longOptName);
+	}
+
+	/**
+	 * ヘルプ用説明を設定する
+	 *
+	 * @param description ヘルプ用説明
+	 * @return このインスタンス
+	 */
+	public OptionConfig description(String description) {
+		this.description = description;
+		return this;
+	}
+
+	/**
+	 * ヘルプ用説明を取得する
+	 *
+	 * @return ヘルプ用説明
+	 */
+	public String description() {
+		return description;
 	}
 
 	@Override

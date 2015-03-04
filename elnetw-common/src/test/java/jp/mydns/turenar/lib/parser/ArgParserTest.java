@@ -144,6 +144,46 @@ public class ArgParserTest {
 		assertNoError(arguments);
 	}
 
+	@Test
+	public void test1Description() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertEquals("", parser.description());
+		parser.description("Description");
+		assertEquals("Description", parser.description());
+	}
+
+	@Test
+	public void test1HelpIndent() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertEquals(ArgParser.DEFAULT_HELP_INDENT, parser.helpIndent());
+		parser.helpIndent(10);
+		assertEquals(10, parser.helpIndent());
+	}
+
+	@Test
+	public void test1HelpOptColumn() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertEquals(ArgParser.DEFAULT_OPTION_COLUMN, parser.helpOptColumn());
+		parser.helpOptColumn(60);
+		assertEquals(60, parser.helpOptColumn());
+	}
+
+	@Test
+	public void test1OptDescPadding() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertEquals(ArgParser.DEFAULT_OPTION_DESCRIPTION_PAD, parser.optDescPadding());
+		parser.optDescPadding(10);
+		assertEquals(10, parser.optDescPadding());
+	}
+
+	@Test
+	public void test1TermWidth() throws Exception {
+		ArgParser parser = new ArgParser();
+		assertEquals(ArgParser.DEFAULT_TERM_WIDTH, parser.termWidth());
+		parser.termWidth(40);
+		assertEquals(40, parser.termWidth());
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void test2AddShortOptWithIllegalName1() throws Exception {
 		ArgParser parser = new ArgParser();
@@ -368,6 +408,61 @@ public class ArgParserTest {
 		assertTrue(iterator.hasNext());
 		assertEquals("female", iterator.next().getArg());
 		assertFalse(iterator.hasNext());
+	}
+
+	@Test
+	public void test5Help() throws Exception {
+		ArgParser parser = new ArgParser();
+		parser.description("This is description.");
+		parser.addOption("--basic").description("Basic format");
+		parser.addOption("-l", "--long").description("This is long long long long long long long long 63chars string.")
+				.argType(ArgumentType.OPTIONAL_ARGUMENT).argName("<This is very long long argument name>");
+		parser.addOption("-d", "--debug").description("break\nbreak\n"
+				+ "This is long long long long long long long long 63chars string.")
+				.argType(ArgumentType.REQUIRED_ARGUMENT).argName("<This is very long long argument name>");
+		parser.addOption("--this-option-has-the-long-name").description("This option has the long name");
+		parser.addOption("--help").description("Print this help message");
+		parser.addOption("--cjk").description("これはとても長い日本語です。ヘルプには日本語も使えます。");
+
+		String expected = "This is description.\n"
+				+ "\n"
+				+ "      --basic                 Basic format\n"
+				+ "      --cjk                   これはとても長い日本語です。ヘルプには日本語も使え\n"
+				+ "                              ます。\n"
+				+ "  -d, --debug=<This is very long long argument name>\n"
+				+ "                              break\n"
+				+ "                              break\n"
+				+ "                              This is long long long long long long long long\n"
+				+ "                              63chars string.\n"
+				+ "      --help                  Print this help message\n"
+				+ "  -l, --long[=<This is very long long argument name>]\n"
+				+ "                              This is long long long long long long long long\n"
+				+ "                              63chars string.\n"
+				+ "      --this-option-has-the-long-name\n"
+				+ "                              This option has the long name\n";
+		assertEquals(expected, parser.generateHelpString());
+
+		parser.helpIndent(4);
+		parser.helpOptColumn(34);
+		parser.termWidth(100);
+		parser.optDescPadding(2);
+
+		expected = "This is description.\n"
+				+ "\n"
+				+ "        --basic                         Basic format\n"
+				+ "        --cjk                           これはとても長い日本語です。ヘルプには日本語も使えます。\n"
+				+ "    -d, --debug=<This is very long long argument name>\n"
+				+ "                                        break\n"
+				+ "                                        break\n"
+				+ "                                        This is long long long long long long long long 63chars\n"
+				+ "                                        string.\n"
+				+ "        --help                          Print this help message\n"
+				+ "    -l, --long[=<This is very long long argument name>]\n"
+				+ "                                        This is long long long long long long long long 63chars\n"
+				+ "                                        string.\n"
+				+ "        --this-option-has-the-long-name\n"
+				+ "                                        This option has the long name\n";
+		assertEquals(expected, parser.generateHelpString());
 	}
 
 	@Test

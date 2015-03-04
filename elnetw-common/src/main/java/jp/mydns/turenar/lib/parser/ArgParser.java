@@ -23,6 +23,8 @@ package jp.mydns.turenar.lib.parser;
 
 import java.util.HashMap;
 
+import jp.mydns.turenar.lib.cjk.CjkWidthDefinition;
+
 /**
  * ArgParser: parse arguments as gnu coreutils
  *
@@ -53,9 +55,26 @@ import java.util.HashMap;
  * 保持されます。これは、-e,-iがmultipleであるときに、-e 's/hoge//' -i -e's/fuga//'は-e's/fuga//'しか保持しないということを表します。
  * この挙動は直感的ではないので、multiple指定とgroup指定は同時には使わないのが望ましいでしょう。</p>
  * <p>なお、group名が省略された時には、便宜的に長いオプション (--付き) と同じものが指定されます。</p>
+ *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class ArgParser {
+	/**
+	 * デフォルトインデントサイズ
+	 */
+	public static final int DEFAULT_HELP_INDENT = 2;
+	/**
+	 * デフォルトのオプションの名前を記述するのに使う幅
+	 */
+	public static final int DEFAULT_OPTION_COLUMN = 27;
+	/**
+	 * デフォルトの端末幅
+	 */
+	public static final int DEFAULT_TERM_WIDTH = 80;
+	/**
+	 * デフォルトのオプションと説明のパディング
+	 */
+	public static final int DEFAULT_OPTION_DESCRIPTION_PAD = 1;
 
 	/**
 	 * get long opt from name. name can be prefixed with "--". We return "--XXX"
@@ -83,17 +102,22 @@ public class ArgParser {
 	/**
 	 * オプション情報を格納するマップ
 	 */
-	protected final HashMap<String, OptionConfig> optionInfoMap;
+	protected final HashMap<String, OptionConfig> optionConfigMap;
+	private int helpIndent = DEFAULT_HELP_INDENT;
+	private int helpOptColumn = DEFAULT_OPTION_COLUMN;
+	private int termWidthSize = DEFAULT_TERM_WIDTH;
+	private int optDescPadding = DEFAULT_OPTION_DESCRIPTION_PAD;
 	/**
 	 * 未知のオプションを無視するかどうか
 	 */
 	protected boolean ignoreUnknownOption;
+	private String description = "";
 
 	/**
 	 * インスタンスを作成する。
 	 */
 	public ArgParser() {
-		optionInfoMap = new HashMap<>();
+		optionConfigMap = new HashMap<>();
 	}
 
 	/**
@@ -148,6 +172,126 @@ public class ArgParser {
 		return addOption(null, longOptName);
 	}
 
+	private void descFormat(StringBuilder builder, int indent, int width, String description) {
+		int searchStart = 0;
+		int realWidth = width - indent;
+		int descLen = description.length();
+		do {
+			boolean breakIsSpace = false;
+			if (searchStart != 0) {
+				builder.append('\n');
+				indent(builder, indent);
+			}
+			int breakIndex = description.indexOf('\n', searchStart + 1);
+			if (breakIndex < 0) {
+				breakIndex = descLen;
+			}
+			if ((breakIndex - searchStart) << 1 > realWidth + searchStart) {
+				int consumedWidth = 0;
+				int candidate = -1;
+				int i = searchStart;
+				char c = description.charAt(i);
+				while (true) {
+					if (Character.isWhitespace(c)) {
+						candidate = i;
+					}
+					consumedWidth += CjkWidthDefinition.width(c, true); // TODO: ambiguous width from local
+
+					if (consumedWidth > realWidth) {
+						if (candidate == -1) {
+							breakIndex = i;
+						} else {
+							breakIndex = candidate;
+							breakIsSpace = true; // charAt(candidate) == WHITESPACE
+						}
+						break; // over width
+					} else if (++i >= descLen) {
+						breakIndex = descLen;
+						break; // over length
+					}
+					c = description.charAt(i);
+				}
+			} else {
+				breakIsSpace = true;
+			}
+			builder.append(description.substring(searchStart, breakIndex));
+			searchStart = breakIndex + (breakIsSpace ? 1 : 0);
+		} while (searchStart < descLen);
+	}
+
+	/**
+	 * 全体説明を設定する。
+	 *
+	 * @param description 全体説明
+	 * @return このインスタンス
+	 */
+	public ArgParser description(String description) {
+		this.description = description;
+		return this;
+	}
+
+	/**
+	 * 全体説明を取得する。
+	 *
+	 * @return 全体説明
+	 */
+	public String description() {
+		return description;
+	}
+
+	public String generateHelpString() {
+		StringBuilder builder = new StringBuilder(description);
+		builder.append("\n\n");
+		int optionTotalWidth = helpIndent + helpOptColumn + optDescPadding;
+
+		OptionConfig[] optionConfigs = optionConfigMap.values().stream().distinct().sorted().toArray(OptionConfig[]::new);
+
+		for (OptionConfig config : optionConfigs) {
+			int lengthBeforeOpt = builder.length();
+
+			// "  "
+			indent(builder, helpIndent);
+			// "  -a, "
+			// "      "
+			String shortOptName = config.getShortOptName();
+			if (shortOptName == null) {
+				indent(builder, 4);
+			} else {
+				builder.append(shortOptName)
+						.append(", ");
+			}
+			// "  -a, --append"
+			// "      --append"
+			builder.append(config.getLongOptName());
+			// "  -a, --append"
+			// "  -a, --append[=WHEN]"
+			// "  -a, --append=WHEN"
+			ArgumentType argumentType = config.argType();
+			if (argumentType != ArgumentType.NO_ARGUMENT) {
+				if (argumentType == ArgumentType.OPTIONAL_ARGUMENT) {
+					builder.append('[');
+				}
+				builder.append('=')
+						.append(config.argName());
+				if (argumentType == ArgumentType.OPTIONAL_ARGUMENT) {
+					builder.append(']');
+				}
+			}
+			indent(builder, optDescPadding);
+
+			int optLength = builder.length() - lengthBeforeOpt;
+			if (optLength > helpOptColumn + optDescPadding) {
+				builder.replace(builder.length() - optDescPadding, builder.length(), "\n");
+				indent(builder, optionTotalWidth);
+			} else {
+				indent(builder, optionTotalWidth - optLength);
+			}
+			descFormat(builder, optionTotalWidth, termWidthSize, config.description());
+			builder.append('\n');
+		}
+		return builder.toString();
+	}
+
 	/**
 	 * 指定したオプション名に対応する {@link jp.mydns.turenar.lib.parser.OptionConfig} を取得する
 	 *
@@ -155,7 +299,53 @@ public class ArgParser {
 	 * @return ない場合はnull
 	 */
 	public OptionConfig getOptConfig(String optName) {
-		return optionInfoMap.get(optName);
+		return optionConfigMap.get(optName);
+	}
+
+	/**
+	 * ヘルプのインデントサイズを設定する
+	 *
+	 * @param colSize インデントサイズ
+	 * @return このインスタンス
+	 */
+	public ArgParser helpIndent(int colSize) {
+		this.helpIndent = colSize;
+		return this;
+	}
+
+	/**
+	 * ヘルプのインデントサイズを取得する
+	 *
+	 * @return インデントサイズ
+	 */
+	public int helpIndent() {
+		return helpIndent;
+	}
+
+	/**
+	 * ヘルプのオプションの幅サイズ
+	 *
+	 * @param size ヘルプのオプションの幅サイズ
+	 * @return このインスタンス
+	 */
+	public ArgParser helpOptColumn(int size) {
+		this.helpOptColumn = size;
+		return this;
+	}
+
+	/**
+	 * ヘルプのオプションの幅サイズを取得する。
+	 *
+	 * @return 幅サイズ
+	 */
+	public int helpOptColumn() {
+		return helpOptColumn;
+	}
+
+	private void indent(StringBuilder builder, int size) {
+		for (int i = 0; i < size; i++) {
+			builder.append(' ');
+		}
 	}
 
 	/**
@@ -165,6 +355,26 @@ public class ArgParser {
 	 */
 	public boolean isIgnoreUnknownOption() {
 		return ignoreUnknownOption;
+	}
+
+	/**
+	 * オプションと説明の間のパディングを取得する
+	 *
+	 * @return オプションと説明の間のパディング
+	 */
+	public int optDescPadding() {
+		return optDescPadding;
+	}
+
+	/**
+	 * オプションと説明の間のパディングを設定する
+	 *
+	 * @param optDescPadding オプションと説明の間のパディング
+	 * @return このインスタンス
+	 */
+	public ArgParser optDescPadding(int optDescPadding) {
+		this.optDescPadding = optDescPadding;
+		return this;
 	}
 
 	/**
@@ -181,7 +391,7 @@ public class ArgParser {
 			if (opt == null) {
 				parsed.addProcessArgument(tokenizer.getArg());
 			} else if (!opt.equals("--")) {
-				OptionConfig optionConfig = optionInfoMap.get(opt);
+				OptionConfig optionConfig = optionConfigMap.get(opt);
 				if (optionConfig == null) {
 					if (!ignoreUnknownOption) {
 						parsed.addParseError(ParseErrorType.UNKNOWN_LONG_OPT, opt);
@@ -226,7 +436,7 @@ public class ArgParser {
 	 * @param config  オプション
 	 */
 	private void putOptionIfAbsent(String optName, OptionConfig config) {
-		OptionConfig alreadyInserted = optionInfoMap.putIfAbsent(optName, config);
+		OptionConfig alreadyInserted = optionConfigMap.putIfAbsent(optName, config);
 		if (alreadyInserted != null) {
 			throw new IllegalArgumentException(optName + " is already registered");
 		}
@@ -240,6 +450,25 @@ public class ArgParser {
 	 */
 	public ArgParser setIgnoreUnknownOption(boolean ignoreUnknownOption) {
 		this.ignoreUnknownOption = ignoreUnknownOption;
+		return this;
+	}
+
+	/**
+	 * ヘルプの全体幅を取得する
+	 *
+	 * @return ヘルプの全体幅
+	 */
+	public int termWidth() {
+		return termWidthSize;
+	}
+
+	/**
+	 * ヘルプの全体幅を設定する
+	 * @param width ヘルプの全体幅
+	 * @return このインスタンス
+	 */
+	public ArgParser termWidth(int width) {
+		termWidthSize = width;
 		return this;
 	}
 }
