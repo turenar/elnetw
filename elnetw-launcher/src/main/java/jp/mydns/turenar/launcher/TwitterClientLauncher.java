@@ -125,7 +125,7 @@ public class TwitterClientLauncher {
 				if (indexOf == -1) {
 					System.clearProperty(arg);
 				} else {
-					System.getProperties().setProperty(arg.substring(2, indexOf), arg.substring(indexOf + 1));
+					System.getProperties().setProperty(arg.substring(0, indexOf), arg.substring(indexOf + 1));
 				}
 			}
 		}
