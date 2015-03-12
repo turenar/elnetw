@@ -33,30 +33,31 @@ public class OptionInfo implements Iterable<OptionInfo> {
 	/**
 	 * イテレータ
 	 */
-	protected class InfoIterator implements Iterator<OptionInfo> {
-		private OptionInfo info;
-		private boolean isNextThis;
+	protected static class InfoIterator implements Iterator<OptionInfo> {
+		private OptionInfo next;
 
-		public InfoIterator() {
-			info = OptionInfo.this;
-			isNextThis = true;
+		/**
+		 * create instance
+		 *
+		 * @param first First Element
+		 */
+		public InfoIterator(OptionInfo first) {
+			next = first;
 		}
 
 		@Override
 		public boolean hasNext() {
-			return isNextThis || !(info == null || info.next == null);
+			return next != null;
 		}
 
 		@Override
 		public OptionInfo next() {
-			if (info == null) {
+			OptionInfo ret = next;
+			if (next == null) {
 				throw new NoSuchElementException();
-			} else if (isNextThis) {
-				isNextThis = false;
-			} else {
-				info = info.next;
 			}
-			return info;
+			next = next.next;
+			return ret;
 		}
 
 		@Override
@@ -127,7 +128,7 @@ public class OptionInfo implements Iterable<OptionInfo> {
 	 * @return OptionInfo
 	 */
 	public Iterator<OptionInfo> iterator() {
-		return new InfoIterator();
+		return new InfoIterator(this);
 	}
 
 	/**

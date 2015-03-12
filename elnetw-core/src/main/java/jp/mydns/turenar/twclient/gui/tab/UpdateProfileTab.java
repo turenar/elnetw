@@ -397,7 +397,7 @@ public class UpdateProfileTab extends AbstractClientTab {
 		return componentLocationLabel;
 	}
 
-	protected BackgroundImagePanel getComponentMainPanel() {
+	private BackgroundImagePanel getComponentMainPanel() {
 		if (componentMainPanel == null) {
 			componentMainPanel = new BackgroundImagePanel();
 			componentMainPanel.setMaximumSize(NEW_BANNER_SIZE);

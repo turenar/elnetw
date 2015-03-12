@@ -44,7 +44,7 @@ public class FilterStreamChannel implements MessageChannel {
 	 * get channel path from query
 	 *
 	 * @param query query. all values should be sorted.
-	 * @return message bus channel path
+	 * @return message bus channel path: should be referenced strongly
 	 */
 	public static synchronized String getChannelPath(FilterQuery query) {
 		for (Map.Entry<String, FilterQuery> queryEntry : filterQueryMap.entrySet()) {
@@ -57,7 +57,7 @@ public class FilterStreamChannel implements MessageChannel {
 				}
 			}
 		}
-		String key = "stream/filter?id=" + (nextQueryId++);
+		String key = "stream/filter?id=" + (++nextQueryId);
 		filterQueryMap.put(key, query);
 		return key;
 	}

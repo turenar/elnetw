@@ -38,6 +38,11 @@ import jp.mydns.turenar.twclient.ParallelRunnable;
  */
 public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnable {
 
+	/**
+	 * check usable notifier
+	 *
+	 * @return usable?
+	 */
 	public static boolean checkUsable() {
 		return !GraphicsEnvironment.isHeadless();
 	}

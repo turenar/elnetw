@@ -27,5 +27,10 @@ package jp.mydns.turenar.lib.parser;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public enum ParseErrorType {
-	UNKNOWN_LONG_OPT, MISSING_ARGUMENT, UNKNOWN_SHORT_OPT
+	/** unknown long opt (--?*) */
+	UNKNOWN_LONG_OPT,
+	/** missing argument for {@link jp.mydns.turenar.lib.parser.OptionType#REQUIRED_ARGUMENT} */
+	MISSING_ARGUMENT,
+	/** unknown short opt (-?) */
+	UNKNOWN_SHORT_OPT
 }

@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.internal;
 
 import jp.mydns.turenar.twclient.ClientConfiguration;
+import twitter4j.HttpResponseCode;
 import twitter4j.TwitterException;
 
 /**
@@ -31,8 +32,8 @@ import twitter4j.TwitterException;
  */
 public abstract class TwitterRunnable implements Runnable {
 
+	private final boolean intoQueue;
 	private int life = 10;
-	private boolean intoQueue;
 	protected ClientConfiguration configuration;
 
 
@@ -85,7 +86,8 @@ public abstract class TwitterRunnable implements Runnable {
 			access();
 		} catch (TwitterException ex) {
 			int statusCode = ex.getStatusCode();
-			if ((502 <= statusCode && statusCode <= 504) && life >= 0) {
+			// 502 - 504
+			if ((HttpResponseCode.BAD_GATEWAY <= statusCode && statusCode <= HttpResponseCode.GATEWAY_TIMEOUT) && life >= 0) {
 				// Twitter is down or overloaded
 				if (intoQueue) {
 					configuration.addJob(this);

@@ -45,6 +45,14 @@ public abstract class AbstractEntitySupportProperty<T extends TweetEntity> imple
 	 */
 	protected final Object value;
 
+	/**
+	 * make instance
+	 *
+	 * @param name     property name
+	 * @param operator operator string
+	 * @param value    value object
+	 * @throws IllegalSyntaxException illegal name/value
+	 */
 	public AbstractEntitySupportProperty(String name, String operator, Object value) throws IllegalSyntaxException {
 		// operator 処理
 		if (operator == null) {

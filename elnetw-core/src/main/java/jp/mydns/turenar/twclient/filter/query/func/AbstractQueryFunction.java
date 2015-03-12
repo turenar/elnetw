@@ -25,9 +25,7 @@ import jp.mydns.turenar.twclient.filter.query.QueryDispatcherBase;
 import jp.mydns.turenar.twclient.filter.query.QueryFunction;
 
 /**
- * Created with IntelliJ IDEA.
- * Date: 8/28/14
- * Time: 12:10 AM
+ * abstract class for query function
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */

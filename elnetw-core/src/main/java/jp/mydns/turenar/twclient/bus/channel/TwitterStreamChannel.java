@@ -38,6 +38,12 @@ public class TwitterStreamChannel implements MessageChannel {
 	private final MessageBus messageBus;
 	private volatile TwitterStream stream;
 
+	/**
+	 * create instance
+	 *
+	 * @param messageBus message bus
+	 * @param accountId  account id
+	 */
 	public TwitterStreamChannel(MessageBus messageBus, String accountId) {
 		this.messageBus = messageBus;
 		this.accountId = accountId;

@@ -43,6 +43,9 @@ public class UrlIntent extends AbstractIntent {
 	private static final Logger logger = LoggerFactory.getLogger(UrlIntent.class);
 	private final ClientConfiguration configuration;
 
+	/**
+	 * make instance
+	 */
 	public UrlIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}

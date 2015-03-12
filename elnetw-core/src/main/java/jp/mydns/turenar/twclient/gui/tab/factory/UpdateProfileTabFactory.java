@@ -36,7 +36,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
  */
 public class UpdateProfileTabFactory implements ClientTabFactory {
 
-	public static final int PRIORITY = 0x03000000;
+	private static final int PRIORITY = 0x03000000;
 
 	@Override
 	public ClientTab getInstance(String tabId, String uniqId) {

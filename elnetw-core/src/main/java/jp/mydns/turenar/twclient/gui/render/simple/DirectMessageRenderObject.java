@@ -71,6 +71,12 @@ public class DirectMessageRenderObject extends EntitySupportRenderObject {
 	private final DirectMessage directMessage;
 	private String uniqId;
 
+	/**
+	 * create instance
+	 *
+	 * @param simpleRenderer renderer
+	 * @param directMessage  direct message instance
+	 */
 	public DirectMessageRenderObject(SimpleRenderer simpleRenderer, DirectMessage directMessage) {
 		super(simpleRenderer);
 		this.directMessage = directMessage;

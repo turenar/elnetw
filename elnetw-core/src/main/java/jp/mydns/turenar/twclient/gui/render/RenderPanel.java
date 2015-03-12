@@ -89,6 +89,12 @@ public class RenderPanel extends JPanel implements Comparable<RenderPanel> {
 		return super.hashCode() + renderObject.hashCode();
 	}
 
+	/**
+	 * event (client message) handler
+	 *
+	 * @param name event name
+	 * @param arg  argument
+	 */
 	public void onEvent(String name, Object arg) {
 		renderObject.onEvent(name, arg);
 	}

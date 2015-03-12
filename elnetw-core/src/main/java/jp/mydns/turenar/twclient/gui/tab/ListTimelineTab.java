@@ -56,7 +56,7 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
  */
 public class ListTimelineTab extends AbstractClientTab implements RenderTarget {
 	private static final String TAB_ID = "list";
-	public static final int SEARCH_FIELD_MIN_SIZE = 128;
+	private static final int SEARCH_FIELD_MIN_SIZE = 128;
 	private JPanel tabComponent;
 	private JPanel componentSearchPanel;
 	private JLabel componentSearchLabel;

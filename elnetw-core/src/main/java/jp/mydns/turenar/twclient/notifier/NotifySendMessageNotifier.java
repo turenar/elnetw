@@ -36,6 +36,11 @@ import org.slf4j.LoggerFactory;
 public class NotifySendMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(NotifySendMessageNotifier.class);
 
+	/**
+	 * check if this is usable for this environment
+	 *
+	 * @return usable?
+	 */
 	public static boolean checkUsable() {
 		if (Utility.getOstype() == Utility.OSType.OTHER) {
 			try {

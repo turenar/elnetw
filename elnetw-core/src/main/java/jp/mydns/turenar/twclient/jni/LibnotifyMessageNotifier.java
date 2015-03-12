@@ -40,6 +40,11 @@ import org.slf4j.LoggerFactory;
 public class LibnotifyMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(LibnotifyMessageNotifier.class);
 
+	/**
+	 * check is usable notifier for this environment
+	 *
+	 * @return if usable?
+	 */
 	public static boolean checkUsable() {
 		JavaGnome javaGnome = JavaGnome.getInstance();
 		if (javaGnome.isDisabled()) {

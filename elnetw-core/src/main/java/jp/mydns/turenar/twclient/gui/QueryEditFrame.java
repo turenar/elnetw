@@ -41,6 +41,7 @@ import jp.mydns.turenar.twclient.filter.query.QueryController;
 import jp.mydns.turenar.twclient.filter.query.QueryDispatcherBase;
 import jp.mydns.turenar.twclient.filter.tokenizer.ParseException;
 import jp.mydns.turenar.twclient.filter.tokenizer.QueryTokenStart;
+import jp.mydns.turenar.twclient.filter.tokenizer.TokenMgrError;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.GroupLayout.Alignment.TRAILING;
@@ -111,6 +112,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 	private JRadioButton getComponentExtractOption() {
 		if (extractOptionButton == null) {
 			extractOptionButton = new JRadioButton(tr("Include"));
+			extractOptionButton.setSelected(true);
 		}
 		return extractOptionButton;
 	}
@@ -204,7 +206,7 @@ public class QueryEditFrame extends JFrame implements WindowListener {
 			}
 			properties.setProperty(propertyKey, query);
 			dispose();
-		} catch (ParseException ex) {
+		} catch (TokenMgrError | ParseException ex) {
 			JOptionPane.showMessageDialog(this, tr("Illegal syntax query\n%s", ex.getLocalizedMessage()));
 		} catch (IllegalSyntaxException ex) {
 			JOptionPane.showMessageDialog(this, tr("Failed to compile as filter\n%s", ex.getLocalizedMessage()));

@@ -110,6 +110,9 @@ public class DateFormatter implements PropertyUpdateListener {
 	 */
 	protected volatile ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new SimpleDateFormatThreadLocal(false);
 
+	/**
+	 * create instance
+	 */
 	public DateFormatter() {
 		ClientProperties configProperties = ClientConfiguration.getInstance().getConfigProperties();
 		configProperties.addPropertyUpdatedListener(this);

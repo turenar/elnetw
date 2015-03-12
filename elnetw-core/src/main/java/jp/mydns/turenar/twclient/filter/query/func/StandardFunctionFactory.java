@@ -32,6 +32,7 @@ import jp.mydns.turenar.twclient.filter.query.QueryFunctionFactory;
  */
 public final class StandardFunctionFactory implements QueryFunctionFactory {
 
+	/** singleton instance */
 	public static final StandardFunctionFactory SINGLETON = new StandardFunctionFactory();
 
 	private StandardFunctionFactory() {
@@ -39,23 +40,23 @@ public final class StandardFunctionFactory implements QueryFunctionFactory {
 
 	@Override
 	public QueryDispatcherBase getInstance(String name,
-			QueryDispatcherBase[] children) throws IllegalSyntaxException {
+			QueryDispatcherBase[] args) throws IllegalSyntaxException {
 		switch (name) {
 			case "and":
-				return new AndQueryFunction(name, children);
+				return new AndQueryFunction(name, args);
 			case "extract":
-				return new ExtractQueryFunction(name, children);
+				return new ExtractQueryFunction(name, args);
 			case "if":
-				return new IfQueryFunction(name, children);
+				return new IfQueryFunction(name, args);
 			case "inrt":
-				return new InRetweetQueryFunction(name, children);
+				return new InRetweetQueryFunction(name, args);
 			case "not":
-				return new NotQueryFunction(name, children);
+				return new NotQueryFunction(name, args);
 			case "exactly_one_of":
 			case "one_of":
-				return new OneOfQueryFunction(name, children);
+				return new OneOfQueryFunction(name, args);
 			case "or":
-				return new OrQueryFunction(name, children);
+				return new OrQueryFunction(name, args);
 			default:
 				throw new IllegalSyntaxException("function<" + name + "> is not found in StandardFunction");
 		}

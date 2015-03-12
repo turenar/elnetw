@@ -42,12 +42,10 @@ public class DelayedUserImpl extends TwitterUser {
 	private static final Logger logger = LoggerFactory.getLogger(DelayedUserImpl.class);
 	private static final long serialVersionUID = 2888425677038932000L;
 	private final long userId;
+	/**
+	 * actual user instance
+	 */
 	protected TwitterUser target;
-
-	@Override
-	public String[] getWithheldInCountries() {
-		return getTarget().getWithheldInCountries();
-	}
 
 	/**
 	 * create instance
@@ -318,6 +316,11 @@ public class DelayedUserImpl extends TwitterUser {
 	@Override
 	public int getUtcOffset() {
 		return getTarget().getUtcOffset();
+	}
+
+	@Override
+	public String[] getWithheldInCountries() {
+		return getTarget().getWithheldInCountries();
 	}
 
 	@Override

@@ -52,6 +52,11 @@ public interface InitCondition {
 	 */
 	boolean isSetFailStatus();
 
+	/**
+	 * !isFastUninit(): application can take much time for terminating
+	 *
+	 * @return negated fast uninit.
+	 */
 	boolean isSlowUninit();
 
 	/**

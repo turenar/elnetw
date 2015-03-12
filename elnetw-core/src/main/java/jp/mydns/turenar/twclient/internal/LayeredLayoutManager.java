@@ -38,6 +38,9 @@ import static java.lang.Math.max;
 public class LayeredLayoutManager implements LayoutManager2 {
 
 	private static final double DOUBLE_EQUAL_THRESHOLD = .0000001;
+	/**
+	 * maximum size
+	 */
 	protected final Dimension greatMaximumSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	/**
 	 * minimum size for component

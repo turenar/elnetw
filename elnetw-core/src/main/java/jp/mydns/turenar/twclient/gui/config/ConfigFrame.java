@@ -60,6 +60,9 @@ public class ConfigFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * preferred size of baseline group
+	 */
 	public static final int BASELINE_GROUP_PREF_SIZE = 24;
 
 	/*package*/static ConfigFrame openingFrame;

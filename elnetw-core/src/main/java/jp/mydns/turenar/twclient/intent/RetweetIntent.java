@@ -55,6 +55,7 @@ public class RetweetIntent extends AbstractIntent {
 
 	private final ClientConfiguration configuration;
 
+	/** create instance */
 	public RetweetIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}

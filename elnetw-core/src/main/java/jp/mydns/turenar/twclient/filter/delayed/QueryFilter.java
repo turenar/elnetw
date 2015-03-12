@@ -48,6 +48,9 @@ public class QueryFilter extends DelayedFilter implements PropertyUpdateListener
 	 * property name for global filter
 	 */
 	public static final String PROPERTY_KEY_FILTER_GLOBAL_QUERY = "core.filter._global";
+	/**
+	 * delaying filters
+	 */
 	protected final ArrayList<QueryDispatcherBase> delayers = new ArrayList<>();
 	private final ClientProperties configProperties;
 	private final String userId;

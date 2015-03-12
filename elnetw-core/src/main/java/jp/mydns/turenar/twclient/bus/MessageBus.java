@@ -411,7 +411,7 @@ public class MessageBus {
 			MessageChannelFactory factory = channelMap.get(getPathWithoutArg(notifierName));
 			if (factory == null) {
 				if (!notifierName.endsWith("all")) {
-					logger.warn("MessageChannel `{}' is not found.", notifierName);
+					logger.warn("MessageChannel `{}' is not found.", getPathWithoutArg(notifierName));
 					ret = false;
 				}
 				factory = NullMessageChannelFactory.INSTANCE;

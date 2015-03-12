@@ -34,6 +34,7 @@ public class SearchIntent implements Intent {
 
 	private final ClientConfiguration configuration;
 
+	/** make instance */
 	public SearchIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}

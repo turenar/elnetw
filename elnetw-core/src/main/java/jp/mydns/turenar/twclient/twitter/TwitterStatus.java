@@ -139,7 +139,7 @@ public class TwitterStatus implements Status {
 	private int favoriteCount;
 	private String lang;
 	private SymbolEntity[] symbolEntities;
-	private transient Scopes scopes;
+	private Scopes scopes;
 	private MediaEntity[] extendedMediaEntities;
 	private String[] withheldInCountries;
 
@@ -251,8 +251,8 @@ public class TwitterStatus implements Status {
 		return -1;
 	}
 
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public long[] getContributors() {
 		return contributors;
 	}
@@ -283,8 +283,8 @@ public class TwitterStatus implements Status {
 		return geoLocation;
 	}
 
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public HashtagEntity[] getHashtagEntities() {
 		return hashtagEntities;
 	}
@@ -314,8 +314,8 @@ public class TwitterStatus implements Status {
 		return lang;
 	}
 
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public MediaEntity[] getMediaEntities() {
 		return mediaEntities;
 	}
@@ -351,11 +351,6 @@ public class TwitterStatus implements Status {
 	}
 
 	@Override
-	public String[] getWithheldInCountries() {
-		return withheldInCountries;
-	}
-
-	@Override
 	public String getSource() {
 		return source;
 	}
@@ -371,8 +366,8 @@ public class TwitterStatus implements Status {
 		return text;
 	}
 
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public URLEntity[] getURLEntities() {
 		return urlEntities;
 	}
@@ -382,10 +377,16 @@ public class TwitterStatus implements Status {
 		return user;
 	}
 
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public UserMentionEntity[] getUserMentionEntities() {
 		return userMentionEntities;
+	}
+
+	@Override
+	@SuppressFBWarnings("EI_EXPOSE_REP")
+	public String[] getWithheldInCountries() {
+		return withheldInCountries;
 	}
 
 	@Override

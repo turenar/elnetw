@@ -32,6 +32,7 @@ import jp.mydns.turenar.twclient.filter.query.QueryPropertyFactory;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public final class StandardPropertyFactory implements QueryPropertyFactory {
+	/** singleton instance */
 	public static final StandardPropertyFactory SINGLETON = new StandardPropertyFactory();
 
 	private StandardPropertyFactory() {
@@ -90,7 +91,7 @@ public final class StandardPropertyFactory implements QueryPropertyFactory {
 			case "client":
 				return new ClientProperty(name, operator, value);
 			case "in_list":
-				return new InListProperty(controller,operator, value);
+				return new InListProperty(controller, operator, value);
 			case "has_hashtag":
 			case "hashashtag":
 				return new HasHashtagProperty(name, operator, value);

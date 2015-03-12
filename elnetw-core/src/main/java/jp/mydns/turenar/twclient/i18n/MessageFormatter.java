@@ -171,8 +171,8 @@ public class MessageFormatter {
 
 		/*package*/
 		static boolean isValid(char c) {
-			return (isGeneral(c) || isInteger(c) || isFloat(c) || isText(c)
-					|| c == 't' || isCharacter(c));
+			return isGeneral(c) || isInteger(c) || isFloat(c) || isText(c)
+					|| c == 't' || isCharacter(c);
 		}
 	}
 
@@ -183,7 +183,7 @@ public class MessageFormatter {
 		/*package*/static final char HOUR = 'l'; // (1 - 12) -- like I
 		/*package*/static final char MINUTE = 'M'; // (00 - 59)
 		/*package*/static final char NANOSECOND = 'N'; // (000000000 - 999999999)
-		/*package*/static final char MILLISECOND = 'L'; // jdk, not in gnu (000 - 999)
+		/*package*/static final char MILLISECOND = 'L'; // (000 - 999)
 		/*package*/static final char MILLISECOND_SINCE_EPOCH = 'Q'; // (0 - 99...?)
 		/*package*/static final char AM_PM = 'p'; // (am or pm)
 		/*package*/static final char SECONDS_SINCE_EPOCH = 's'; // (0 - 99...?)
@@ -525,8 +525,6 @@ public class MessageFormatter {
 
 			if (conversionChar == Conversion.DECIMAL_INTEGER) {
 				checkBadFlags(Flags.ALTERNATE);
-			} else if (conversionChar == Conversion.OCTAL_INTEGER) {
-				checkBadFlags(Flags.GROUP);
 			} else {
 				checkBadFlags(Flags.GROUP);
 			}

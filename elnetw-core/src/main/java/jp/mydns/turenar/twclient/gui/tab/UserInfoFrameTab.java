@@ -55,7 +55,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.LineBorder;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -63,7 +62,6 @@ import javax.swing.text.html.StyleSheet;
 import com.twitter.Regex;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
-import jp.mydns.turenar.twclient.ParallelRunnable;
 import jp.mydns.turenar.twclient.Utility;
 import jp.mydns.turenar.twclient.cache.AbstractImageSetter;
 import jp.mydns.turenar.twclient.gui.BackgroundImagePanel;
@@ -188,7 +186,7 @@ public class UserInfoFrameTab extends AbstractClientTab {
 
 	private static final String TAB_ID = "userinfo";
 	private static final Logger logger = LoggerFactory.getLogger(UserInfoFrameTab.class);
-	public static final Dimension NEW_BANNER_SIZE = new Dimension(600, 200);
+	private static final Dimension NEW_BANNER_SIZE = new Dimension(600, 200);
 
 	private static Color setAlpha(Color color, int alpha) {
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
@@ -228,12 +226,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		super(TAB_ID, uniqId);
 		final long userId = configProperties.getLong(getPropertyPrefix() + ".targetUserId");
 		configuration.getMessageBus().establish(accountId, "statuses/user_timeline?" + userId, getRenderer());
-		configuration.addJob(new ParallelRunnable() {
-			@Override
-			public void run() {
-				setUser(configuration.getCacheManager().getUser(userId));
-			}
-		});
+		configuration.addParallelJob(JobQueue.PRIORITY_UI,
+				() -> setUser(configuration.getCacheManager().getUser(userId)));
 		urlIntentMap = new HashMap<>();
 	}
 
@@ -392,21 +386,17 @@ public class UserInfoFrameTab extends AbstractClientTab {
 			componentBioEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 			componentBioEditorPane.setEditable(false);
 			componentBioEditorPane.setFont(frameApi.getUiFont());
-			componentBioEditorPane.addHyperlinkListener(new HyperlinkListener() {
-
-				@Override
-				public void hyperlinkUpdate(HyperlinkEvent e) {
-					if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						String url = e.getURL().toString();
-						IntentArguments intentArguments = urlIntentMap.get(url);
-						if (intentArguments != null) {
-							intentArguments.invoke();
-						} else {
-							try {
-								getConfiguration().getUtility().openBrowser(url);
-							} catch (Exception e1) {
-								getRenderer().onException(e1);
-							}
+			componentBioEditorPane.addHyperlinkListener(e -> {
+				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String url = e.getURL().toString();
+					IntentArguments intentArguments = urlIntentMap.get(url);
+					if (intentArguments != null) {
+						intentArguments.invoke();
+					} else {
+						try {
+							getConfiguration().getUtility().openBrowser(url);
+						} catch (Exception e1) {
+							getRenderer().onException(e1);
 						}
 					}
 				}
@@ -433,13 +423,8 @@ public class UserInfoFrameTab extends AbstractClientTab {
 		if (muteCheckBox == null) {
 			muteCheckBox = new JCheckBoxMenuItem(tr("Mute"));
 			muteCheckBox.setEnabled(false);
-			muteCheckBox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					new IntentArguments("mute").putExtra("user", user).putExtra("confirm", false)
-							.putExtra("remove", !muteCheckBox.isSelected()).invoke();
-				}
-			});
+			muteCheckBox.addActionListener(e -> new IntentArguments("mute").putExtra("user", user).putExtra("confirm", false)
+					.putExtra("remove", !muteCheckBox.isSelected()).invoke());
 		}
 		return muteCheckBox;
 	}

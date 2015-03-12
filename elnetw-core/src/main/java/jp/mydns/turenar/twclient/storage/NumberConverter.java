@@ -28,6 +28,12 @@ package jp.mydns.turenar.twclient.storage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class NumberConverter<T extends Number> implements Converter<T> {
+	/**
+	 * check long value is in range?
+	 *
+	 * @param l long value
+	 * @return l can be shown as T
+	 */
 	protected abstract boolean checkRange(long l);
 
 	@Override

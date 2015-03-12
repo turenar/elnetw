@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.JobQueue;
 import jp.mydns.turenar.twclient.ParallelRunnable;
@@ -85,6 +86,12 @@ public class ImageViewerFrame extends JFrame implements WindowListener {
 		private volatile boolean isInterrupted;
 		private int contentLength;
 
+		/**
+		 * make instance
+		 *
+		 * @param urls main and mirror urls
+		 */
+		@SuppressFBWarnings("EI_EXPOSE_REP2")
 		public ImageFetcher(URL[] urls) {
 			this.urls = urls;
 		}

@@ -33,6 +33,14 @@ import jp.mydns.turenar.twclient.bus.MessageChannel;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class VirtualChannel implements MessageChannel {
+	/**
+	 * create instance
+	 *
+	 * @param messageBus bus
+	 * @param accountId  account id
+	 * @param to         publish to
+	 * @param from       published from
+	 */
 	public VirtualChannel(MessageBus messageBus, String accountId, String to, String[] from) {
 		ClientMessageListener listener = messageBus.getListeners(accountId, to);
 		for (String s : from) {

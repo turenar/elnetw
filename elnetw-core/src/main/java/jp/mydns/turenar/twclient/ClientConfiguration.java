@@ -158,6 +158,16 @@ public class ClientConfiguration {
 	}
 
 	/**
+	 * get main frame title (and application name)
+	 * @return title
+	 */
+	public static String getTitleForMainFrame() {
+		return VersionInfo.isSnapshot()
+				? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
+				: APPLICATION_NAME;
+	}
+
+	/**
 	 * タブ復元時に使用するファクトリを追加する。
 	 *
 	 * @param id      タブ復元時に使用するID。タブクラスをFQCNで記述するといいでしょう。
@@ -181,7 +191,6 @@ public class ClientConfiguration {
 	static void setInstance(ClientConfiguration conf) {
 		singleton = conf;
 	}
-
 	private final List<ClientTab> tabsList = new ArrayList<>();
 	private final Utility utility = new Utility(this);
 	private final ReentrantReadWriteLock tabsListLock = new ReentrantReadWriteLock();
@@ -604,12 +613,6 @@ public class ClientConfiguration {
 		return timer;
 	}
 
-	public static String getTitleForMainFrame() {
-		return VersionInfo.isSnapshot()
-				? VersionInfo.getCodeName() + " (" + APPLICATION_NAME + ")"
-				: APPLICATION_NAME;
-	}
-
 	/**
 	 * TrayIconをかえす。nullの場合有り。
 	 *
@@ -763,31 +766,6 @@ public class ClientConfiguration {
 		return isInitializing;
 	}
 
-	/**
-	 * IDが呼ばれたかどうかを判定する
-	 *
-	 * @param userMentionEntities エンティティ
-	 * @return 呼ばれたかどうか
-	 * @deprecated use {@link #isMentioned(long, twitter4j.UserMentionEntity[])}
-	 */
-	@Deprecated
-	public boolean isMentioned(UserMentionEntity[] userMentionEntities) {
-		if (userMentionEntities == null) {
-			return false;
-		}
-		for (UserMentionEntity userMentionEntity : userMentionEntities) {
-			if (configProperties.getBoolean(PROPERTY_ID_STRICT_MATCH)) {
-				if (userMentionEntity.getId() == frameApi.getLoginUser().getId()) {
-					return true;
-				}
-			} else {
-				if (userMentionEntity.getScreenName().startsWith(frameApi.getLoginUser().getScreenName())) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * IDが呼ばれたかどうかを判定する

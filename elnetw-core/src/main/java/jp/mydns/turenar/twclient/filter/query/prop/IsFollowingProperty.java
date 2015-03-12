@@ -58,6 +58,7 @@ public class IsFollowingProperty extends AbstractBoolArgProperty {
 	}
 
 	private static final String FILTER_FOLLOWING_USER_WAIT_MESSAGE = "!filter/query/IsFollowing/waitMessage";
+	/** delay control */
 	protected final QueryController controller;
 	private volatile FollowingUsersChannel.FollowingUsersQuery followingUsersQuery;
 

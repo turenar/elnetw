@@ -105,6 +105,11 @@ public class ImageCacher {
 			}
 		}
 
+		/**
+		 * get alternative entry
+		 *
+		 * @return alternate entry
+		 */
 		public synchronized FetchEntry getAlternateEntry() {
 			return alternateEntry;
 		}

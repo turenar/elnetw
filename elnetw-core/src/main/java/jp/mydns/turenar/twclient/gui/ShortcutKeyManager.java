@@ -106,6 +106,12 @@ public final class ShortcutKeyManager {
 		return inputMap;
 	}
 
+	/**
+	 * get KeyStroke instance from intent arguments
+	 *
+	 * @param intent intent
+	 * @return key stroke. if not found, return null
+	 */
 	public static KeyStroke getKeyStrokeFromIntent(IntentArguments intent) {
 		return intentStrokeMap.get(intent);
 	}

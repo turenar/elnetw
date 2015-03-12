@@ -34,6 +34,11 @@ import jp.mydns.turenar.twclient.bus.channel.VirtualChannel;
 public class VirtualChannelFactory implements MessageChannelFactory {
 	private String[] to;
 
+	/**
+	 * create instance
+	 *
+	 * @param to publish to
+	 */
 	public VirtualChannelFactory(String... to) {
 		this.to = to;
 	}

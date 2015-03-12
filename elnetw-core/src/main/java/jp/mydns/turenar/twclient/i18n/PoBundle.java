@@ -109,6 +109,14 @@ public class PoBundle {
 		this(resourcePath, parent, Locale.getDefault());
 	}
 
+	/**
+	 * create instance
+	 *
+	 * @param resourcePath resource path (*.po)
+	 * @param parent       parent poBundle
+	 * @param locale       locale
+	 * @throws IOException error occurred
+	 */
 	public PoBundle(String resourcePath, PoBundle parent, Locale locale) throws IOException {
 		this(parent, locale);
 		InputStream stream = PoBundle.class.getClassLoader().getResourceAsStream(resourcePath);

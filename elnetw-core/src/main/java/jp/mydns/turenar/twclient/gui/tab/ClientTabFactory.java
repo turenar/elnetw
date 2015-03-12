@@ -54,6 +54,7 @@ public interface ClientTabFactory {
 
 	/**
 	 * get priority for adding tab menu. smaller will be above larger
+	 * @return menu priority
 	 */
 	int getPriority();
 

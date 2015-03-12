@@ -61,6 +61,14 @@ public class SearchChannel extends TwitterRunnable implements MessageChannel, Pa
 	private volatile Twitter twitter;
 	private volatile List<Status> lastTweets;
 
+	/**
+	 * create instance
+	 *
+	 * @param messageBus message bus
+	 * @param accountId  account id
+	 * @param path       path
+	 * @param arg        channel arguments
+	 */
 	public SearchChannel(MessageBus messageBus, String accountId, String path, String arg) {
 		if (arg == null || arg.isEmpty()) {
 			throw new IllegalArgumentException(path + ": argument is required");

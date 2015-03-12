@@ -45,11 +45,16 @@ public class FilterQueryFormatter implements FilterParserVisitor {
 	/** 抽出設定かどうか */
 	protected boolean isExtract;
 
+	/**
+	 * make instance
+	 *
+	 * @param stringBuilder append to
+	 */
 	public FilterQueryFormatter(StringBuilder stringBuilder) {
 		this.stringBuilder = stringBuilder;
 	}
 
-	protected void deleteLastChar() {
+	private void deleteLastChar() {
 		if (!isZeroLength()) {
 			stringBuilder.setLength(stringBuilder.length() - 1);
 		}

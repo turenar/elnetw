@@ -304,6 +304,7 @@ public abstract class AbstractClientTab implements ClientTab, RenderTarget {
 	protected final LinkedList<RenderPanel> postListAddQueue = new LinkedList<>();
 	/** [K=ユーザーID, V=ユーザーのツイートなど] */
 	protected final HashMap<String, TreeSet<RenderPanel>> listItems = new HashMap<>();
+	/** tab title label */
 	protected JLabel titleLabel;
 	/** inReplyTo呼び出しのスタック */
 	protected Stack<RenderPanel> inReplyToStack = new Stack<>();

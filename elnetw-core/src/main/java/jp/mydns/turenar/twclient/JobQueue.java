@@ -577,11 +577,11 @@ public class JobQueue {
 							continue;
 						}
 					}
-					logger.trace("{}: Try to wait", worker);
+//					logger.trace("{}: Try to wait", worker);
 					synchronized (this) {
 						wait(keepAliveTime);
 					}
-					logger.trace("{}: Wake up", worker);
+//					logger.trace("{}: Wake up", worker);
 					wakeUpFlag = true;
 				} catch (InterruptedException e) {
 					logger.info("{}: Interrupted", worker);

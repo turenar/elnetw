@@ -41,6 +41,11 @@ import jp.mydns.turenar.twclient.filter.tokenizer.Token;
 public class FilterQueryNormalizer implements FilterParserVisitor {
 	private final StringBuilder stringBuilder;
 
+	/**
+	 * create instance
+	 *
+	 * @param stringBuilder string builder
+	 */
 	public FilterQueryNormalizer(StringBuilder stringBuilder) {
 		this.stringBuilder = stringBuilder;
 	}

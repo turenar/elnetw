@@ -32,6 +32,9 @@ public class HashtagIntent implements Intent {
 
 	private final ClientConfiguration configuration;
 
+	/**
+	 * make instance
+	 */
 	public HashtagIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}

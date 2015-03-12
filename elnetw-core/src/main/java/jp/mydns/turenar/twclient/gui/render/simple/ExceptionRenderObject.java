@@ -41,6 +41,12 @@ public class ExceptionRenderObject extends AbstractRenderObject {
 	private final Exception ex;
 	private final String uniqId;
 
+	/**
+	 * make instance
+	 *
+	 * @param simpleRenderer renderer
+	 * @param ex             exception object
+	 */
 	public ExceptionRenderObject(SimpleRenderer simpleRenderer, Exception ex) {
 		super(simpleRenderer);
 		this.ex = ex;

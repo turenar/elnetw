@@ -30,6 +30,7 @@ import jp.mydns.turenar.twclient.bus.channel.NullMessageChannel;
  * null message channel factory
  */
 public class NullMessageChannelFactory implements MessageChannelFactory {
+	/** singleton instance */
 	public static final MessageChannelFactory INSTANCE = new NullMessageChannelFactory();
 
 	private NullMessageChannelFactory() {

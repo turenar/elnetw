@@ -80,7 +80,8 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * となりますが、sizeがleafSize * 2 (ここでは4)を超えるため、firstBranchが分割されます。
  * <pre>
- * branches -&gt; [[18:00, 15:00, 14:30, <span style="text-decoration: line-through">14:00, 12:00</span>] <em>[14:00, 12:00]</em>]
+ * branches -&gt; [[18:00, 15:00, 14:30, <span style="text-decoration: line-through">14:00, 12:00</span>]
+ * <em>[14:00, 12:00]</em>]
  * </pre>
  * このようになります。そして、もう一度 {@link #add(LinkedList)}を呼び出してみます。引数は、
  * <pre>
@@ -88,11 +89,13 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * の値を持つLinkedListです。すると、分割後が
  * <pre>
- * branches -&gt; [[<em>&lt;-19:00</em>, 18:00, <span style="text-decoration: line-through">15:00, 14:30</span>] <em>[15:00, 14:30]</em> [14:00, 12:00]]
+ * branches -&gt; [[<em>&lt;-19:00</em>, 18:00, <span style="text-decoration: line-through">15:00, 14:30</span>]
+ * <em>[15:00, 14:30]</em> [14:00, 12:00]]
  * </pre>
  * となります。ここで、sizeがleafSize * 2 + maxSize (ここでは6)を超えるため、branchesからいくつかの要素が削除されます。
  * <pre>
- * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30] <span style="text-decoration: line-through">[14:00, 12:00]</span>]
+ * branches -&gt; [[19:00, 18:00, 15:00, 14:30] [15:00, 14:30]
+ * <span style="text-decoration: line-through">[14:00, 12:00]</span>]
  * </pre>
  *
  * @author Turenar (snswinhaiku dot lo at gmail dot com)

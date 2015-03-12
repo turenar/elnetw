@@ -70,6 +70,14 @@ public abstract class AbstractMediaResolver implements MediaUrlResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(RegexpMediaResolver.class);
 
+	/**
+	 * read contents from url
+	 *
+	 * @param mediaUrl media url
+	 * @return contents
+	 * @throws IOException          fetch failed
+	 * @throws InterruptedException thread is interrupted
+	 */
 	public static String getContentsFromUrl(URL mediaUrl) throws IOException, InterruptedException {
 		MyFetchEventHandler handler = new MyFetchEventHandler();
 		byte[] contents = NetworkSupport.fetchContents(mediaUrl, handler);

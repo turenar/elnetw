@@ -41,6 +41,7 @@ import jp.mydns.turenar.twclient.filter.tokenizer.QueryTokenQuery;
 import jp.mydns.turenar.twclient.filter.tokenizer.QueryTokenStart;
 import jp.mydns.turenar.twclient.filter.tokenizer.SimpleNode;
 import jp.mydns.turenar.twclient.filter.tokenizer.TokenMgrError;
+import jp.mydns.turenar.twclient.internal.WrappedException;
 
 import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 
@@ -61,20 +62,6 @@ public class QueryCompiler implements FilterParserVisitor {
 		protected String operator;
 		/** 値 */
 		protected Object value;
-	}
-
-	/** 例外をラップする */
-	@SuppressWarnings("serial")
-	public static class WrappedException extends RuntimeException {
-
-		/**
-		 * インスタンスを生成する。
-		 *
-		 * @param exception 例外
-		 */
-		public WrappedException(Throwable exception) {
-			super(exception);
-		}
 	}
 
 	/** constructor ( QueryDispatcherBase[] ) */

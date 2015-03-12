@@ -46,14 +46,11 @@ import jp.mydns.turenar.lib.parser.ParsedArguments;
  */
 public class TwitterClientLauncher {
 
+	/**
+	 * default class name to launch application
+	 */
 	public static final String DEFAULT_LAUNCHING_CLASS = "jp.mydns.turenar.twclient.TwitterClientMain";
-	private static FilenameFilter jarFilter = new FilenameFilter() {
-
-		@Override
-		public boolean accept(File dir, String name) {
-			return name.endsWith(".jar");
-		}
-	};
+	private static FilenameFilter jarFilter = (dir, name) -> name.endsWith(".jar");
 
 	private static void addURL(Map<String, ClasspathEntry> urlMap, File file) {
 		if (!file.exists()) {
@@ -252,6 +249,10 @@ public class TwitterClientLauncher {
 		return new URLClassLoader(urls, TwitterClientLauncher.class.getClassLoader());
 	}
 
+	/**
+	 * start application
+	 * @return exit code
+	 */
 	public int run() {
 		URLClassLoader classLoader = prepareClassLoader();
 		Class<?> clazz = getMainClass(classLoader);

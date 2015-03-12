@@ -28,6 +28,7 @@ import jp.mydns.turenar.twclient.bus.MessageChannel;
  * null message channel
  */
 public class NullMessageChannel implements MessageChannel {
+	/** singleton */
 	public static final MessageChannel INSTANCE = new NullMessageChannel();
 
 	private NullMessageChannel() {

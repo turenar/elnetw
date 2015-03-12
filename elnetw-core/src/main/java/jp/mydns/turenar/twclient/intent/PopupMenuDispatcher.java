@@ -37,5 +37,11 @@ public interface PopupMenuDispatcher {
 	 */
 	void addMenu(JMenuItem menu, IntentArguments intent);
 
+	/**
+	 * add sub menu int popup
+	 *
+	 * @param text menu text
+	 * @return PopupMenuDispatcher for sub menu
+	 */
 	PopupMenuDispatcher createSubMenu(String text);
 }

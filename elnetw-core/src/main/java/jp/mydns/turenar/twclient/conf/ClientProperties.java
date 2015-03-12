@@ -203,6 +203,11 @@ public class ClientProperties implements Map<String, String> {
 	protected static class WeakReferenceEx<T> extends WeakReference<T> {
 		private int hash;
 
+		/**
+		 * create instance
+		 *
+		 * @param referent referent instance (not null)
+		 */
 		public WeakReferenceEx(T referent) {
 			super(referent);
 			hash = referent.hashCode();

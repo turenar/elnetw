@@ -48,7 +48,6 @@ public class BlockingUsersChannel extends TwitterRunnable implements MessageChan
 	private class BlockingUserDispatcher extends ClientMessageAdapter {
 		@Override
 		public void onBlock(User source, User blockedUser) {
-
 			synchronized (blockingUsers) {
 				blockingUsers.add(TwitterUser.getInstance(blockedUser));
 			}

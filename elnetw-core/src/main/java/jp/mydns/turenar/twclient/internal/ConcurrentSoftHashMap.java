@@ -108,6 +108,11 @@ public class ConcurrentSoftHashMap<K, V> implements ConcurrentMap<K, V> {
 			}
 		}
 
+		/**
+		 * get key object
+		 *
+		 * @return key object
+		 */
 		public K getKey() {
 			return key;
 		}

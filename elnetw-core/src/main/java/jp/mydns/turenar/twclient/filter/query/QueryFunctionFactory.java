@@ -29,5 +29,13 @@ import jp.mydns.turenar.twclient.filter.IllegalSyntaxException;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface QueryFunctionFactory {
-	QueryDispatcherBase getInstance(String name, QueryDispatcherBase[] children) throws IllegalSyntaxException;
+	/**
+	 * create instance
+	 *
+	 * @param name function name
+	 * @param args arguments
+	 * @return function instance
+	 * @throws IllegalSyntaxException illegal arguments
+	 */
+	QueryDispatcherBase getInstance(String name, QueryDispatcherBase[] args) throws IllegalSyntaxException;
 }

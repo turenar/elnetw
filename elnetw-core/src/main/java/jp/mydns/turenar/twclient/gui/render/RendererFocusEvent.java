@@ -30,6 +30,12 @@ public class RendererFocusEvent extends FocusEvent {
 	private static final long serialVersionUID = -2372696262107928913L;
 	private final RenderObject renderObject;
 
+	/**
+	 * create instance
+	 *
+	 * @param e            event
+	 * @param renderObject render object
+	 */
 	public RendererFocusEvent(FocusEvent e, RenderObject renderObject) {
 		super(e.getComponent(), e.getID(), e.isTemporary(), e.getOppositeComponent());
 		this.renderObject = renderObject;

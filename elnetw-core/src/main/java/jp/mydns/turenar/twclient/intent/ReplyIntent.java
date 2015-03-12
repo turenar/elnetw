@@ -39,6 +39,9 @@ public class ReplyIntent extends AbstractIntent {
 	private final ClientConfiguration configuration;
 	private final ClientFrameApi frameApi;
 
+	/**
+	 * make instance
+	 */
 	public ReplyIntent() {
 		configuration = ClientConfiguration.getInstance();
 		frameApi = configuration.getFrameApi();
@@ -56,6 +59,7 @@ public class ReplyIntent extends AbstractIntent {
 		Status status = getStatus(args);
 		if (status == null) {
 			throwIllegalArgument();
+			return; // not reach
 		}
 
 		String text;

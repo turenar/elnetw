@@ -52,6 +52,12 @@ public class UrlResolverManager {
 	private static ConcurrentSoftHashMap<String, UrlInfo> cacheMap = new ConcurrentSoftHashMap<>();
 	private static ClientConfiguration configuration = ClientConfiguration.getInstance();
 
+	/**
+	 * add media provider
+	 *
+	 * @param urlPattern       url regex
+	 * @param mediaUrlProvider provider
+	 */
 	public static void addMediaProvider(String urlPattern, MediaUrlResolver mediaUrlProvider) {
 		mediaResolversLock.writeLock().lock();
 		try {

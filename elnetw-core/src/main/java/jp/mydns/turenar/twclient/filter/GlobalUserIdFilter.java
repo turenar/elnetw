@@ -56,6 +56,7 @@ public class GlobalUserIdFilter extends AbstractMessageFilter implements Propert
 		initFilterIds();
 	}
 
+	@Override
 	protected boolean filterUser(long userId) {
 		return filterIds.contains(userId);
 	}

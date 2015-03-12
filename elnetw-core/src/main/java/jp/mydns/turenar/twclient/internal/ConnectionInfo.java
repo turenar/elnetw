@@ -34,6 +34,13 @@ public class ConnectionInfo {
 	private final FetchEventHandler handler;
 	private final URLConnection connection;
 
+	/**
+	 * create instance
+	 *
+	 * @param url        url
+	 * @param handler    fetch handler
+	 * @param connection url connection
+	 */
 	public ConnectionInfo(URL url, FetchEventHandler handler, URLConnection connection) {
 		this.url = url;
 		this.handler = handler;

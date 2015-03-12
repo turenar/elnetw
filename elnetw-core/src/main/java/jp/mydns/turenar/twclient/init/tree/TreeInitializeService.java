@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jp.mydns.turenar.twclient.JobQueue;
@@ -78,10 +79,10 @@ public class TreeInitializeService extends InitializeService {
 	 */
 	protected final LinkedList<Relation> unresolvedRelations = new LinkedList<>();
 	private boolean fastUninit;
-	/*package*/ boolean treeRebuildRequired;
+	/*package*/volatile boolean treeRebuildRequired;
 	private boolean isUninitialized;
 	private Logger logger = LoggerFactory.getLogger(TreeInitializeService.class);
-	private volatile int runningJobsCount;
+	private volatile AtomicInteger runningJobsCount = new AtomicInteger();
 	private volatile JobQueue jobQueue;
 	private InitializeException parallelException;
 
@@ -123,6 +124,11 @@ public class TreeInitializeService extends InitializeService {
 		return this;
 	}
 
+	/**
+	 * finish init
+	 *
+	 * @param info init info
+	 */
 	protected synchronized void finish(TreeInitInfoBase info) {
 		//noinspection ThrowableResultOfMethodCallIgnored
 		InitializeException exception = info.getException();
@@ -135,7 +141,7 @@ public class TreeInitializeService extends InitializeService {
 			}
 			treeRebuildRequired = true;
 		}
-		--runningJobsCount;
+		runningJobsCount.decrementAndGet();
 		notifyAll();
 	}
 
@@ -278,7 +284,7 @@ public class TreeInitializeService extends InitializeService {
 							Thread.currentThread().interrupt();
 						}
 					}
-					++runningJobsCount;
+					runningJobsCount.incrementAndGet();
 					jobQueue.addJob(JobQueue.PRIORITY_MAX, info);
 				}
 				SplashScreenCtrl.setProgress(flatTree.nowIndex(), flatTree.size());
@@ -286,7 +292,7 @@ public class TreeInitializeService extends InitializeService {
 					break; // back to rebuild tree
 				}
 			}
-			while (runningJobsCount > 0) {
+			while (runningJobsCount.get() > 0) {
 				try {
 					wait(TIMEOUT);
 				} catch (InterruptedException e) {

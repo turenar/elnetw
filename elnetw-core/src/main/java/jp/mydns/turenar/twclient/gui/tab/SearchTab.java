@@ -90,6 +90,9 @@ public class SearchTab extends AbstractClientTab implements RenderTarget {
 		establishChannel();
 	}
 
+	/**
+	 * establish search bus channel
+	 */
 	protected void establishChannel() {
 		configuration.getMessageBus().establish(accountId, "search?" + searchQuery, getRenderer());
 

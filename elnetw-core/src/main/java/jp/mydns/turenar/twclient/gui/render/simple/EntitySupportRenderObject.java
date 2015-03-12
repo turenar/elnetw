@@ -46,6 +46,9 @@ import twitter4j.UserMentionEntity;
  */
 public abstract class EntitySupportRenderObject extends AbstractRenderObject implements MediaUrlDispatcher {
 	private static final Logger logger = LoggerFactory.getLogger(EntitySupportRenderObject.class);
+	/**
+	 * store url&lt;-&gt;UrlInfo
+	 */
 	protected HashMap<String, UrlInfo> urlInfoMap;
 
 	/**

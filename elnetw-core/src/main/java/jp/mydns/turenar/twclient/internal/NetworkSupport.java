@@ -141,7 +141,7 @@ public class NetworkSupport {
 				}
 
 				handler.onLoaded(imageLen);
-				logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
+//				logger.trace("Image: Loaded {} bytes: buffer {}/{}", loadLen, imageLen, bufLength);
 
 				Thread.sleep(1);
 			}
@@ -171,7 +171,7 @@ public class NetworkSupport {
 	public static ConnectionInfo openConnection(URL url, FetchEventHandler handler) throws InterruptedException {
 		URLConnection connection = null;
 		try {
-			if (url.getProtocol().startsWith("https")) {
+			if (url.getProtocol().startsWith("http")) {
 				connection = urlFactory.open(url);
 			} else {
 				connection = url.openConnection();

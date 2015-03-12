@@ -57,6 +57,14 @@ public class UserTimelineChannel extends TwitterRunnable implements MessageChann
 	private volatile Twitter twitter;
 	private volatile ResponseList<Status> lastTimeline;
 
+	/**
+	 * create instance
+	 *
+	 * @param messageBus bus
+	 * @param accountId  account id
+	 * @param path       channel path
+	 * @param arg        argument
+	 */
 	public UserTimelineChannel(MessageBus messageBus, String accountId, String path, String arg) {
 		if (arg == null || arg.isEmpty()) {
 			throw new IllegalArgumentException(path + ": argument is required");

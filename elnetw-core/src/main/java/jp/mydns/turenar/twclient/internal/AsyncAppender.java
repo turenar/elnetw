@@ -38,7 +38,7 @@ public class AsyncAppender extends AsyncAppenderBase<ILoggingEvent> {
 	 * high priority flusher. this stores queued flag
 	 */
 	protected class HighPriorityWorker implements ParallelRunnable {
-		public volatile AtomicBoolean isQueued = new AtomicBoolean();
+		protected volatile AtomicBoolean isQueued = new AtomicBoolean();
 
 		@Override
 		public void run() {

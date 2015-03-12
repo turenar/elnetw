@@ -29,6 +29,9 @@ import jp.mydns.turenar.twclient.ClientMessageAdapter;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public abstract class MessageFilterAdapter extends ClientMessageAdapter implements MessageFilter {
+	/**
+	 * child filter
+	 */
 	protected MessageFilter child;
 
 	/**

@@ -27,7 +27,11 @@ package jp.mydns.turenar.twclient.storage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class StringConverter implements Converter<String> {
-	public static final StringConverter SINGLETON=new StringConverter();
+	/**
+	 * singleton instance
+	 */
+	public static final StringConverter SINGLETON = new StringConverter();
+
 	@Override
 	public String convert(Object obj) {
 		if (obj == null) {

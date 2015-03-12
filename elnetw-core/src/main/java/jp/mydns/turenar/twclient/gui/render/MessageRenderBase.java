@@ -54,6 +54,11 @@ public class MessageRenderBase {
 	private Color foregroundColor;
 	private ImageIcon icon;
 
+	/**
+	 * create instance
+	 *
+	 * @param base base object
+	 */
 	public MessageRenderBase(Object base) {
 		this.base = base;
 		date = System.currentTimeMillis();

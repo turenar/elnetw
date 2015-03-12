@@ -44,6 +44,13 @@ import static jp.mydns.turenar.twclient.ClientFrameApi.DO_NOTHING_WHEN_POINTED;
 public class MiscRenderObject extends AbstractRenderObject {
 	private static final Logger logger = LoggerFactory.getLogger(MiscRenderObject.class);
 
+	/**
+	 * create instance
+	 *
+	 * @param renderer renderer
+	 * @param obj      base obj
+	 * @return MiscRendererObject instance
+	 */
 	public static MiscRenderObject getInstance(SimpleRenderer renderer, MessageRenderBase obj) {
 		MiscRenderObject renderObject = new MiscRenderObject(renderer, obj.getBasedObject());
 		renderObject.setBackgroundColor(obj.getBackgroundColor());

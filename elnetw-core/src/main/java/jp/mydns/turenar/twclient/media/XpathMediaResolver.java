@@ -45,6 +45,11 @@ public class XpathMediaResolver extends AbstractMediaResolver {
 	private final XPath xpathEvaluator;
 	private String xpath;
 
+	/**
+	 * create instance
+	 *
+	 * @param xpath XML XPath
+	 */
 	public XpathMediaResolver(String xpath) {
 		this.xpath = xpath;
 		XPathFactory factory = XPathFactory.newInstance();

@@ -29,6 +29,11 @@ public class UrlInfo {
 	private final boolean isMediaFile;
 	private boolean shouldRecursive;
 
+	/**
+	 * make instance
+	 *
+	 * @param url url
+	 */
 	public UrlInfo(String url) {
 		this(url, false, false);
 	}

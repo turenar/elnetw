@@ -152,6 +152,12 @@ public abstract class AbstractRenderObject implements RenderObject,
 		return appendTo;
 	}
 
+	/**
+	 * get createdBy long text
+	 *
+	 * @param status status
+	 * @return @_screenName_ (_userName_)
+	 */
 	protected static String getCreatedByLongText(Status status) {
 		return MessageFormat.format("@{0} ({1})", status.getUser().getScreenName(), status.getUser().getName());
 	}

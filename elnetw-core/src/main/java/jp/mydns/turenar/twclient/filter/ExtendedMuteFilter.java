@@ -45,9 +45,12 @@ import static jp.mydns.turenar.twclient.i18n.LocalizationResource.tr;
 public class ExtendedMuteFilter extends AbstractMessageFilter implements PropertyUpdateListener {
 
 	/**
-	 * property name for user ids
+	 * property name for filtering user ids
 	 */
 	public static final String PROPERTY_KEY_FILTER_CLIENT = "core.filter.clients";
+	/**
+	 * property name for filtering words
+	 */
 	public static final String PROPERTY_KEY_FILTER_WORDS = "core.filter.words";
 	private final ClientConfiguration configuration;
 	private final Logger logger = LoggerFactory.getLogger(ExtendedMuteFilter.class);

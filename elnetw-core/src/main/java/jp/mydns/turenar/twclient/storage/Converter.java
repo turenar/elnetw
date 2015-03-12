@@ -28,5 +28,11 @@ package jp.mydns.turenar.twclient.storage;
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public interface Converter<T> {
+	/**
+	 * convert (or just cast) to T
+	 *
+	 * @param obj object
+	 * @return expected tyoe
+	 */
 	T convert(Object obj);
 }

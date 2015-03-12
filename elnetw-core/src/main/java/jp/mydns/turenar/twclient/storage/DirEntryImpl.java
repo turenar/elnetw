@@ -469,6 +469,13 @@ public class DirEntryImpl implements DirEntry {
 		return this;
 	}
 
+	/**
+	 * write raw object
+	 *
+	 * @param key   key
+	 * @param value value
+	 * @param <T>   value type
+	 */
 	protected <T> void writeRaw(String key, T value) {
 		jsonObject.put(key, value);
 	}

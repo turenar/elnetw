@@ -38,6 +38,9 @@ public class PostIntent implements Intent {
 
 	private final ClientConfiguration configuration;
 
+	/**
+	 * create instance
+	 */
 	public PostIntent() {
 		configuration = ClientConfiguration.getInstance();
 	}

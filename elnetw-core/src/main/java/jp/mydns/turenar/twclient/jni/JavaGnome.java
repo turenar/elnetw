@@ -36,6 +36,11 @@ public class JavaGnome {
 	private static final Logger logger = LoggerFactory.getLogger(JavaGnome.class);
 	private static JavaGnome singleton;
 
+	/**
+	 * get singleton instance
+	 *
+	 * @return singleton
+	 */
 	public static synchronized JavaGnome getInstance() {
 		if (singleton == null) {
 			singleton = new JavaGnome();

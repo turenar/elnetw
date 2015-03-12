@@ -36,6 +36,11 @@ import jp.mydns.turenar.twclient.AnimationCanceledImageObserver;
 public class LabelImageSetter extends AbstractImageSetter {
 	private JLabel label;
 
+	/**
+	 * create instance
+	 *
+	 * @param label label which set image
+	 */
 	public LabelImageSetter(JLabel label) {
 		this.label = label;
 	}

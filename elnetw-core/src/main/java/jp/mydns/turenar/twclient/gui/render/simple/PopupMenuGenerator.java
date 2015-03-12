@@ -77,6 +77,11 @@ public class PopupMenuGenerator implements PopupMenuDispatcher, PopupMenuListene
 	private final JPopupMenu popupMenu;
 	private Stack<JComponent> stack = new Stack<>();
 
+	/**
+	 * create instance
+	 *
+	 * @param renderer renderer
+	 */
 	public PopupMenuGenerator(SimpleRenderer renderer) {
 		this.renderer = renderer;
 		popupMenu = new JPopupMenu();

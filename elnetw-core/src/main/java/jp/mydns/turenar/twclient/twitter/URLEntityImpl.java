@@ -81,6 +81,11 @@ public class URLEntityImpl implements URLEntity {
 	private final String url;
 	private final String text;
 
+	/**
+	 * create instance
+	 *
+	 * @param base base dir entry
+	 */
 	public URLEntityImpl(DirEntry base) {
 		start = base.readInt("start");
 		end = base.readInt("end");
