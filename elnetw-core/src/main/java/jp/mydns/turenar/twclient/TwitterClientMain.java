@@ -75,6 +75,7 @@ import jp.mydns.turenar.twclient.bus.factory.BlockingUsersChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.DirectMessageChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.FilterStreamChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.FollowingUsersChannelFactory;
+import jp.mydns.turenar.twclient.bus.factory.ListMembersChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.ListTimelineChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.MentionsChannelFactory;
 import jp.mydns.turenar.twclient.bus.factory.NullMessageChannelFactory;
@@ -111,6 +112,7 @@ import jp.mydns.turenar.twclient.gui.tab.factory.SearchTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.TimelineViewTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UpdateProfileTabFactory;
 import jp.mydns.turenar.twclient.gui.tab.factory.UserInfoViewTabFactory;
+import jp.mydns.turenar.twclient.init.InitBefore;
 import jp.mydns.turenar.twclient.init.InitCondition;
 import jp.mydns.turenar.twclient.init.InitDepends;
 import jp.mydns.turenar.twclient.init.InitProvide;
@@ -765,7 +767,7 @@ public final class TwitterClientMain {
 	 * send initialized message to message bus
 	 */
 	@Initializer(name = "bus/init", phase = "prestart")
-	@InitDepends("gui/tab/restore")
+	@InitDepends({"gui/tab/restore", "bus/factory"})
 	public void realConnectMessageBus() {
 		messageBus.onInitialized();
 	}
@@ -785,7 +787,7 @@ public final class TwitterClientMain {
 	 * @param condition init condition
 	 */
 	@Initializer(name = "gui/tab/restore", phase = "prestart")
-	@InitDepends({"config", "bus", "filter/global", "gui/tab/factory", "gui/main"})
+	@InitDepends({"config", "bus/factory", "filter/global", "gui/tab/factory", "gui/main"})
 	public void restoreClientTabs(InitCondition condition) {
 		List<String> tabsList = configProperties.getList("gui.tabs.list");
 		if (condition.isInitializingPhase()) {
@@ -1102,11 +1104,23 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("users/following", new FollowingUsersChannelFactory());
 		messageBus.addChannelFactory("statuses/user_timeline", new UserTimelineChannelFactory());
 		messageBus.addChannelFactory("lists/tweets", new ListTimelineChannelFactory());
+		messageBus.addChannelFactory("lists/members", new ListMembersChannelFactory());
 		messageBus.addChannelFactory("search", new SearchChannelFactory());
 		messageBus.addChannelFactory("core", NullMessageChannelFactory.INSTANCE);
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
 
+	@Initializer(name="bus/errhandler")
+	@InitDepends("bus")
+	@InitBefore("bus/init")
+	public void setBusOnExceptionHandler(){
+		messageBus.establish(MessageBus.ALL_ACCOUNT_ID, "all", new ClientMessageAdapter() {
+			@Override
+			public void onException(Exception ex) {
+				logger.warn("Exception thrown",ex);
+			}
+		});
+	}
 	/**
 	 * set message notifiers candidates
 	 */

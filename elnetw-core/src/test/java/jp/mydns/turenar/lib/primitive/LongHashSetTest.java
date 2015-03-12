@@ -22,6 +22,7 @@
 package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
 
@@ -50,20 +51,6 @@ public class LongHashSetTest {
 		}
 		assertEquals(16, longHashSet.size());
 		for (long i = 0; i < 16; i++) {
-			assertTrue(longHashSet.contains(i));
-			assertFalse(longHashSet.add(i));
-		}
-	}
-
-	@Test
-	public void testEnsureCapacity() throws Exception {
-		LongHashSet longHashSet = new LongHashSet(4);
-		longHashSet.ensureCapacity(65536);
-		for (long i = 0; i < 65536; i++) {
-			assertTrue(longHashSet.add(i));
-		}
-		assertEquals(65536, longHashSet.size());
-		for (long i = 0; i < 65536; i++) {
 			assertTrue(longHashSet.contains(i));
 			assertFalse(longHashSet.add(i));
 		}
@@ -143,6 +130,20 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testEnsureCapacity() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(4);
+		longHashSet.ensureCapacity(65536);
+		for (long i = 0; i < 65536; i++) {
+			assertTrue(longHashSet.add(i));
+		}
+		assertEquals(65536, longHashSet.size());
+		for (long i = 0; i < 65536; i++) {
+			assertTrue(longHashSet.contains(i));
+			assertFalse(longHashSet.add(i));
+		}
+	}
+
+	@Test
 	public void testHashConflict() throws Exception {
 		LongHashSet longHashSet = new LongHashSet(16);
 		assertTrue(longHashSet.add(4));
@@ -166,6 +167,45 @@ public class LongHashSetTest {
 	}
 
 	@Test
+	public void testParallelAdd() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(4);
+		int parallelSize = 64;
+		long limit = 512 + 1024 * (parallelSize - 1);
+		CountDownLatch latch = new CountDownLatch(parallelSize);
+		Thread[] threads = new Thread[parallelSize];
+		for (long i = 0; i < limit; i += 512) {
+			longHashSet.add(i);
+		}
+		// 0x1ff == 511
+		for (int i = 0; i < threads.length; i++) {
+			final int finalI = i;
+			threads[i] = new Thread(() -> {
+				for (long j = 512 * finalI; j < 512 + 1024 * finalI; j++) {
+					if ((j & 0x1ff) == 0) {
+						longHashSet.remove(j);
+					} else {
+						longHashSet.add(j);
+					}
+				}
+				latch.countDown();
+			});
+		}
+		for (Thread thread : threads) {
+			thread.start();
+		}
+		latch.await();
+		assertFalse(longHashSet.isEmpty());
+		for (int i = 0; i < limit; i++) {
+			if ((i & 0x1ff) == 0) {
+				assertFalse(longHashSet.contains(i));
+			} else {
+				assertTrue(i + " is not found", longHashSet.contains(i));
+			}
+		}
+		assertEquals(limit - limit / 512, longHashSet.size());
+	}
+
+	@Test
 	public void testPowerOf() throws Exception {
 		assertEquals(2, LongHashSet.powerOf(2));
 		assertEquals(8, LongHashSet.powerOf(7));
@@ -178,9 +218,10 @@ public class LongHashSetTest {
 		assertEquals(0, longHashSet.size());
 		assertTrue(longHashSet.add(1L));
 		assertEquals(1, longHashSet.size());
+		assertFalse(longHashSet.remove(0));
+		assertEquals(1, longHashSet.size());
 		assertTrue(longHashSet.remove(1));
 		assertEquals(0, longHashSet.size());
-		assertFalse(longHashSet.remove(0));
 	}
 
 	@Test
