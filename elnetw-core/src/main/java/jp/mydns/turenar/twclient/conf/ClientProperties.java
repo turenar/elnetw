@@ -466,13 +466,8 @@ public class ClientProperties implements Map<String, String> {
 		}
 		ClientProperties c = (ClientProperties) o;
 		synchronized (c) {
-			if (!properties.equals(c.properties)) {
-				return false;
-			}
-			if (!listeners.equals(c.listeners)) {
-				return false;
-			}
-			if (!storePath.equals(c.storePath)) {
+			if (!(properties.equals(c.properties) && listeners.equals(c.listeners)
+					&& storePath.equals(c.storePath))) {
 				return false;
 			}
 		}
@@ -537,14 +532,17 @@ public class ClientProperties implements Map<String, String> {
 			return null;
 		}
 		String[] rgba = value.split(",");
-		if (rgba.length == 4) {
-			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
-					Integer.parseInt(rgba[3]));
-		} else if (rgba.length == 3) {
-			return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
-		} else {
-			throw new IllegalArgumentException(MessageFormat.format("{0}はColorに使用できる値ではありません: {1}", key, value));
+		try {
+			if (rgba.length == 4) {
+				return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]),
+						Integer.parseInt(rgba[3]));
+			} else if (rgba.length == 3) {
+				return new Color(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
+			}
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong color value of `" + key + "': " + value);
 		}
+		throw new IllegalArgumentException("conf[" + key + "] is not valid color: " + value);
 	}
 
 	/**
@@ -571,11 +569,15 @@ public class ClientProperties implements Map<String, String> {
 			return null;
 		}
 		String[] rgba = value.split(",");
-		if (rgba.length == 2) {
-			return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
-		} else {
-			throw new IllegalArgumentException(MessageFormat.format("{0}はDimensionに使用できる値ではありません: {1}", key, value));
+		try {
+			if (rgba.length == 2) {
+				return new Dimension(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]));
+			}
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong color value of `" + key + "': " + value);
 		}
+		throw new IllegalArgumentException("conf[" + key + "] is not valid dimension: " + value);
+
 	}
 
 	/**
@@ -587,7 +589,12 @@ public class ClientProperties implements Map<String, String> {
 	 * @return keyに関連付けられたdouble
 	 */
 	public synchronized double getDouble(String key) {
-		return Double.valueOf(getProperty(key));
+		String value = getProperty(key);
+		try {
+			return Double.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong double value of `" + key + "': " + value);
+		}
 	}
 
 	/**
@@ -600,7 +607,11 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized float getFloat(String key) {
 		String value = getProperty(key);
-		return Float.valueOf(value);
+		try {
+			return Float.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong float value of `" + key + "': " + value);
+		}
 	}
 
 	/**
@@ -677,7 +688,11 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized int getInteger(String key) throws NumberFormatException {
 		String value = getProperty(key);
-		return Integer.parseInt(value);
+		try {
+			return Integer.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong int value of `" + key + "': " + value);
+		}
 	}
 
 	/**
@@ -723,7 +738,11 @@ public class ClientProperties implements Map<String, String> {
 	 */
 	public synchronized long getLong(String key) throws NumberFormatException {
 		String value = getProperty(key);
-		return Long.parseLong(value);
+		try {
+			return Long.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Wrong long value of `" + key + "': " + value);
+		}
 	}
 
 	/**
@@ -853,8 +872,8 @@ public class ClientProperties implements Map<String, String> {
 
 	/**
 	 * Searches for the property with the specified key in this property list.
-	 * If the key is not found in this property list, the default property list,
-	 * and its defaults, recursively, are then checked. The method returns the
+	 * If the key is not found in this property list, search the default property list,
+	 * and its defaults, recursively. The method returns the
 	 * default value argument if the property is not found.
 	 *
 	 * @param key          the hashtable key.
@@ -1278,7 +1297,7 @@ public class ClientProperties implements Map<String, String> {
 	 * Converts unicodes to encoded &#92;uxxxx and escapes
 	 * special characters with a preceding slash
 	 */
-	private String saveConvert(String theString, boolean escapeSpace) {
+	private String saveConvert(String theString, boolean isKey) {
 		int len = theString.length();
 		int bufLen = len * 2;
 		if (bufLen < 0) {
@@ -1290,7 +1309,7 @@ public class ClientProperties implements Map<String, String> {
 			char aChar = theString.charAt(x);
 			switch (aChar) {
 				case ' ':
-					if (x == 0 || escapeSpace) {
+					if (x == 0 || isKey) {
 						outBuffer.append('\\');
 					}
 					outBuffer.append(' ');
@@ -1311,14 +1330,17 @@ public class ClientProperties implements Map<String, String> {
 					outBuffer.append('\\');
 					outBuffer.append('f');
 					break;
-				case '=': // Fall through
-				case ':': // Fall through
-				case '#': // Fall through
-				case '!': // Fall through
 				case '\\':
 					outBuffer.append('\\');
 					outBuffer.append(aChar);
 					break;
+				case '=': // fall through
+				case ':': // fall through
+				case '#': // fall through
+				case '!':
+					if (isKey) {
+						outBuffer.append('\\');
+					} // fall through
 				default:
 					outBuffer.append(aChar);
 			}
@@ -1541,14 +1563,15 @@ public class ClientProperties implements Map<String, String> {
 				writer.write(comments);
 				writer.newLine();
 			}
-			writer.write("#" + new Date().toString());
+			writer.write("#");
+			writer.write(new Date().toString());
 			writer.newLine();
 			synchronized (this) {
 				TreeMap<String, String> sortedMap = new TreeMap<>(properties);
 				for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-					String key = saveConvert(entry.getKey(), true);
-					String value = saveConvert(entry.getValue(), false);
-					writer.write(key + "=" + value);
+					writer.write(saveConvert(entry.getKey(), true));
+					writer.write('=');
+					writer.write(saveConvert(entry.getValue(), false));
 					writer.newLine();
 				}
 			}
