@@ -91,12 +91,30 @@ public final class VersionInfo {
 	}
 
 	/**
+	 * return copyright
+	 *
+	 * @return copyright
+	 */
+	public static String getCopyright() {
+		return getString("elnetw.copyright");
+	}
+
+	/**
 	 * ビルドのもととなったgit described versionを返す
 	 *
 	 * @return described version
 	 */
 	public static String getDescribedVersion() {
 		return getString("pom.uniqueVersion");
+	}
+
+	/**
+	 * return license
+	 *
+	 * @return license
+	 */
+	public static String getLicense() {
+		return getString("elnetw.license");
 	}
 
 	/**

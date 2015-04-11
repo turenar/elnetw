@@ -66,23 +66,29 @@ public class OptionInfo implements Iterable<OptionInfo> {
 		}
 	}
 
-	private String shortOptName;
-	private String longOptName;
+	private OptionConfig config;
+	private String optName;
 	private String arg;
+	/**
+	 * 次のOptionInfo
+	 */
 	protected OptionInfo next;
+	/**
+	 * 最後のOptionInfo。コードを見る通り、先頭ではないInfoにaddすると死にます。
+	 */
 	protected OptionInfo last = this;
 
 	/**
 	 * インスタンスを作成する
 	 *
-	 * @param shortOptName 短いオプション名 (null可)
-	 * @param longOptName  長いオプション名
-	 * @param arg          引数
+	 * @param optName オプション名
+	 * @param arg     引数
+	 * @param config  OptionConfigインスタンス
 	 */
-	public OptionInfo(String shortOptName, String longOptName, String arg) {
-		this.shortOptName = shortOptName;
-		this.longOptName = longOptName;
+	public OptionInfo(String optName, String arg, OptionConfig config) {
+		this.optName = optName;
 		this.arg = arg;
+		this.config = config;
 	}
 
 	/**
@@ -105,21 +111,30 @@ public class OptionInfo implements Iterable<OptionInfo> {
 	}
 
 	/**
-	 * 長いオプション名を取得する。
+	 * OptionConfigを取得する。
 	 *
-	 * @return 長いオプション名
+	 * @return OptionConfig
 	 */
-	public String getLongOptName() {
-		return longOptName;
+	public OptionConfig getConfig() {
+		return config;
 	}
 
 	/**
-	 * 短いオプション名を取得する。
+	 * グループ名を取得するユーティリティメソッド
 	 *
-	 * @return 短いオプション名
+	 * @return グループ名。オプションではなくプロセス引数なら、nullが返ります。
 	 */
-	public String getShortOptName() {
-		return shortOptName;
+	public String getGroup() {
+		return config == null ? null : config.group();
+	}
+
+	/**
+	 * オプション名を取得する。
+	 *
+	 * @return オプション名
+	 */
+	public String getOptName() {
+		return optName;
 	}
 
 	/**
@@ -140,16 +155,10 @@ public class OptionInfo implements Iterable<OptionInfo> {
 		return next;
 	}
 
-	/**
-	 * このインスタンスの内容を更新する
-	 *
-	 * @param shortOptName 短いオプション名 (null可)
-	 * @param longOptName  長いオプション名
-	 * @param arg          引数
-	 */
-	protected void update(String shortOptName, String longOptName, String arg) {
-		this.shortOptName = shortOptName;
-		this.longOptName = longOptName;
-		this.arg = arg;
+	@Override
+	public String toString() {
+		return optName
+				+ (arg == null ? "" : " " + arg)
+				+ (next == null ? "" : " " + next.toString());
 	}
 }
