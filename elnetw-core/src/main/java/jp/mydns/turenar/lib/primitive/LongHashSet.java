@@ -22,11 +22,70 @@
 package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
+import java.util.Spliterator;
+import java.util.function.LongConsumer;
+import java.util.stream.LongStream;
+import java.util.stream.StreamSupport;
 
 /**
  * primitive hash set. faster than TreeSet&lt;Long&gt;, HashSet with random values
  */
 public class LongHashSet implements Cloneable {
+	private class HashSpliterator implements Spliterator.OfLong {
+		private final long[] values;
+		private final int end;
+		private int start;
+		private int size;
+
+		public HashSpliterator(long[] values, int start, int end, int size) {
+			this.values = values;
+			this.start = start;
+			this.end = end;
+			this.size = size;
+		}
+
+		@Override
+		public int characteristics() {
+			return (size >= 0 ? SIZED | DISTINCT : DISTINCT);
+		}
+
+		@Override
+		public long estimateSize() {
+			return size >= 0 ? size : -size;
+		}
+
+		@Override
+		public long getExactSizeIfKnown() {
+			return size >= 0 ? size : -1;
+		}
+
+		@Override
+		public boolean tryAdvance(LongConsumer action) {
+			int lo = start;
+			while (lo < end) {
+				long val = values[lo++];
+				if (val == ZERO) {
+					action.accept(0);
+				} else if (val == FREE || val == REMOVED) {
+					continue;
+				} else {
+					action.accept(val);
+				}
+				start = lo;
+				return true;
+			}
+			start = lo;
+			return false;
+		}
+
+		@Override
+		public HashSpliterator trySplit() {
+			int lo = start;
+			int mid = (lo + end) >>> 1;
+			return lo >= mid ? null : new HashSpliterator(values, lo, start = mid, size >>= 1);
+		}
+	}
+
 	/**
 	 * this indicates free element. if this is zero, don't have to fill array with FREE.
 	 */
@@ -131,6 +190,7 @@ public class LongHashSet implements Cloneable {
 		if (aLong == 0) {
 			aLong = ZERO;
 		}
+		int bitSet = this.bitSet;
 		int index = hash(aLong) & bitSet;
 		// avoid getfield mnemonic
 		long[] arr = values;
@@ -160,10 +220,11 @@ public class LongHashSet implements Cloneable {
 
 	/**
 	 * add all of contents
+	 *
 	 * @param elements elements to add
 	 */
 	public synchronized void addAll(long[] elements) {
-				ensureCapacity(elements.length);
+		ensureCapacity(elements.length);
 		for (long id : elements) {
 			add(id);
 		}
@@ -195,6 +256,7 @@ public class LongHashSet implements Cloneable {
 			o = ZERO;
 		}
 		long[] arr = values;
+		int bitSet = this.bitSet;
 		int index = hash(o) & bitSet;
 		while (!(arr[index] == FREE || arr[index] == o)) {
 			index = (index + 1) & bitSet;
@@ -262,6 +324,7 @@ public class LongHashSet implements Cloneable {
 			o = ZERO;
 		}
 		long[] arr = values;
+		int bitSet = this.bitSet;
 		int index = hash(o) & bitSet;
 		long indexedValue = arr[index];
 		while (!(indexedValue == FREE || indexedValue == o)) {
@@ -283,6 +346,17 @@ public class LongHashSet implements Cloneable {
 	 */
 	public int size() {
 		return size;
+	}
+
+	/**
+	 * stream all values.
+	 *
+	 * <p>This captures not array values but array. This means values are affected by concurrent modification but
+	 * not concurrent rehash.</p>
+	 * @return LongStream instance. This doesn't throw ConcurrentModificationException
+	 */
+	public LongStream stream() {
+		return StreamSupport.longStream(new HashSpliterator(values, 0, values.length, size), false);
 	}
 
 	/**

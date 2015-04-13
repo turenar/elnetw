@@ -423,9 +423,19 @@ public class Utility {
 		if (createdAtDate.getTime() < SNOWFLAKE_EPOCH_OFFSET) {
 			return createdAtDate;
 		} else {
-			long date = (snowflakeId >> SNOWFLAKE_DATE_BITSHIFT) + SNOWFLAKE_EPOCH_OFFSET;
+			long date = (snowflakeId >>> SNOWFLAKE_DATE_BITSHIFT) + SNOWFLAKE_EPOCH_OFFSET;
 			return new Date(date);
 		}
+	}
+
+	/**
+	 * tear snowflake id into epoch time
+	 *
+	 * @param snowflakeId snowflake id
+	 * @return msec time
+	 */
+	public static long snowflakeIdToMilliSec(long snowflakeId) {
+		return (snowflakeId >>> SNOWFLAKE_DATE_BITSHIFT) + SNOWFLAKE_EPOCH_OFFSET;
 	}
 
 	/**

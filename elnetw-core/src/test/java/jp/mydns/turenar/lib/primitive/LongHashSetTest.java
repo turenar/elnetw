@@ -23,12 +23,17 @@ package jp.mydns.turenar.lib.primitive;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LongHashSetTest {
+
+	private static final int TEST_SIZE = 0x1000000;
+
 	public static void main(String[] args) {
 		for (int i = 0; i < 16; i++) {
 			System.out.printf("%d: %d%n", i, LongHashSet.hash(i) & 0x0f);
@@ -230,6 +235,26 @@ public class LongHashSetTest {
 		assertEquals(0, longHashSet.size());
 		longHashSet.add(1L);
 		assertEquals(1, longHashSet.size());
+	}
+
+	@Test
+	public void testStream() throws Exception {
+		LongHashSet longHashSet = new LongHashSet(TEST_SIZE);
+		for (int i = 0; i < TEST_SIZE; i++) {
+			longHashSet.add(i);
+		}
+		long[] expected = longHashSet.toArray();
+		Arrays.sort(expected);
+
+		List<Long> actualList = longHashSet.stream()
+				.parallel()
+				.boxed()
+				.collect(Collectors.toList());
+		long[] actual = actualList.stream()
+				.mapToLong(Long::longValue)
+				.sorted()
+				.toArray();
+		assertArrayEquals(expected, actual);
 	}
 
 	@Test

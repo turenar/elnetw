@@ -687,10 +687,15 @@ public final class TwitterClientMain {
 	/**
 	 * initialize notify handler
 	 */
-	@Initializer(name = "notify", phase = "start")
+	@Initializer(name = "notify", phase = "prestart")
 	@InitDepends({"bus", "gui/notifier"})
-	public void initNotifyHandler() {
-		NotifyHandler.register();
+	@InitBefore("bus/init")
+	public void initNotifyHandler(InitCondition condition) {
+		if (condition.isInitializingPhase()) {
+			NotifyHandler.register();
+		} else if (!condition.isFastUninit()) {
+			NotifyHandler.serialize(cacheStorage);
+		}
 	}
 
 	/** ショートカットキーテーブルを初期化する。 */

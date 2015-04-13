@@ -21,6 +21,7 @@
 
 package jp.mydns.turenar.twclient.storage;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public interface DirEntry extends StorageEntry, Iterable<String> {
 
 	/**
 	 * get entry for path
+	 *
 	 * @param path path
 	 * @return if path is dir, return DirEntry. otherwise (even if path is not exist), return FileEntry
 	 */
@@ -290,6 +292,15 @@ public interface DirEntry extends StorageEntry, Iterable<String> {
 	 * @return this
 	 */
 	DirEntry writeList(String path, Object... elements);
+
+	/**
+	 * write list to path
+	 *
+	 * @param path     path
+	 * @param elements elements
+	 * @return this
+	 */
+	DirEntry writeList(String path, Collection<?> elements);
 
 	/**
 	 * write long to path

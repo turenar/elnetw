@@ -22,6 +22,7 @@
 package jp.mydns.turenar.twclient.storage;
 
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class DirEntryImpl implements DirEntry {
 	protected static <T> T cast(Object o) {
 		return (T) o;
 	}
+
 	private final String path;
 	private final DirEntryImpl parent;
 	private final JSONObject jsonObject;
@@ -449,6 +451,15 @@ public class DirEntryImpl implements DirEntry {
 		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
 		String basename = basename(path);
 		parentDirectory.jsonObject.put(basename, value);
+		return this;
+	}
+
+	@Override
+	public DirEntry writeList(String path, Collection<?> elements) {
+		DirEntryImpl parentDirectory = traverseDirEntry(this, path, false, true);
+		String basename = basename(path);
+		Object jsonArray = elements == null ? JSONObject.NULL : new JSONArray(elements);
+		parentDirectory.jsonObject.put(basename, jsonArray);
 		return this;
 	}
 
