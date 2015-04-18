@@ -973,6 +973,18 @@ public final class TwitterClientMain {
 		}
 	}
 
+	@Initializer(name = "bus/errhandler")
+	@InitDepends("bus")
+	@InitBefore("bus/init")
+	public void setBusOnExceptionHandler() {
+		messageBus.establish(MessageBus.ALL_ACCOUNT_ID, "all", new ClientMessageAdapter() {
+			@Override
+			public void onException(Exception ex) {
+				logger.warn("Exception thrown", ex);
+			}
+		});
+	}
+
 	/**
 	 * set conf properties
 	 *
@@ -1140,26 +1152,15 @@ public final class TwitterClientMain {
 		messageBus.addChannelFactory("error", NullMessageChannelFactory.INSTANCE);
 	}
 
-	@Initializer(name="bus/errhandler")
-	@InitDepends("bus")
-	@InitBefore("bus/init")
-	public void setBusOnExceptionHandler(){
-		messageBus.establish(MessageBus.ALL_ACCOUNT_ID, "all", new ClientMessageAdapter() {
-			@Override
-			public void onException(Exception ex) {
-				logger.warn("Exception thrown",ex);
-			}
-		});
-	}
 	/**
 	 * set message notifiers candidates
 	 */
 	@Initializer(name = "gui/notifier/std", phase = "init")
 	@InitProvide("gui/notifier")
 	public void setMessageNotifiersCandidate() {
-		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier.class);
-		Utility.addMessageNotifier(1000, NotifySendMessageNotifier.class);
-		Utility.addMessageNotifier(0, TrayIconMessageNotifier.class);
+		Utility.addMessageNotifier(2000, LibnotifyMessageNotifier::getInstance);
+		Utility.addMessageNotifier(1000, NotifySendMessageNotifier::getInstance);
+		Utility.addMessageNotifier(0, TrayIconMessageNotifier::getInstance);
 	}
 
 	/**

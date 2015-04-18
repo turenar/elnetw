@@ -39,12 +39,12 @@ import jp.mydns.turenar.twclient.ParallelRunnable;
 public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnable {
 
 	/**
-	 * check usable notifier
+	 * check is usable notifier for this environment and get notifier instance
 	 *
-	 * @return usable?
+	 * @return if usable, return valid instance. if not, return null
 	 */
-	public static boolean checkUsable() {
-		return !GraphicsEnvironment.isHeadless();
+	public static TrayIconMessageNotifier getInstance() {
+		return GraphicsEnvironment.isHeadless() ? null : new TrayIconMessageNotifier();
 	}
 
 	private final ClientConfiguration configuration;
@@ -58,7 +58,7 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 	/**
 	 * インスタンスを生成する。
 	 */
-	public TrayIconMessageNotifier() {
+	private TrayIconMessageNotifier() {
 		this.configuration = ClientConfiguration.getInstance();
 		trayIcon = configuration.getTrayIcon();
 	}
@@ -90,7 +90,7 @@ public class TrayIconMessageNotifier implements MessageNotifier, ParallelRunnabl
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) {
 		synchronized (queue) {
-			queue.add(new Object[]{
+			queue.add(new Object[] {
 					summary,
 					text
 			/*,imageFile*/});

@@ -32,15 +32,13 @@ import java.awt.image.PixelGrabber;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.function.Supplier;
 
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -73,11 +71,11 @@ public class Utility {
 
 	private static class MessageNotifierEntry {
 		protected int priority;
-		protected Class<? extends MessageNotifier> messageNotifierClass;
+		protected Supplier<MessageNotifier> notifierSupplier;
 
-		protected MessageNotifierEntry(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
+		protected MessageNotifierEntry(int priority, Supplier<MessageNotifier> notifierSupplier) {
 			this.priority = priority;
-			this.messageNotifierClass = messageNotifierClass;
+			this.notifierSupplier = notifierSupplier;
 		}
 	}
 
@@ -125,21 +123,10 @@ public class Utility {
 	 *
 	 * @param priority             higher priority will be selected.
 	 * @param messageNotifierClass Class object.
-	 *                             messageNotifierClass must implement static method 'checkUsable(ClientConfiguration)'
+	 *                             notifierSupplier must implement static method 'checkUsable(ClientConfiguration)'
 	 *                             and constructor '&lt;init&gt;(ClientConfiguration)'
 	 */
-	public static void addMessageNotifier(int priority, Class<? extends MessageNotifier> messageNotifierClass) {
-		try {
-			messageNotifierClass.getMethod("checkUsable");
-		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException(
-					"messageNotifierClass must implement static method 'checkUsable()'", e);
-		}
-		try {
-			messageNotifierClass.getConstructor();
-		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException("messageNotifierClass must implement <init>()", e);
-		}
+	public static void addMessageNotifier(int priority, Supplier<MessageNotifier> messageNotifierClass) {
 		synchronized (messageNotifiers) {
 			ListIterator<MessageNotifierEntry> listIterator = messageNotifiers.listIterator();
 			while (true) {
@@ -317,16 +304,6 @@ public class Utility {
 		return intentArguments;
 	}
 
-
-	static {
-		privacyEntries = new KVEntry[]{
-				new KVEntry(System.getProperty("elnetw.home"), "{DATA}/"),
-				new KVEntry(System.getProperty("user.dir"), "{USER}/"),
-				new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
-				new KVEntry(System.getProperty("user.home"), "{HOME}/"),
-		};
-	}
-
 	/**
 	 * OS種別を取得する
 	 *
@@ -383,6 +360,14 @@ public class Utility {
 	 * @return builder自身。
 	 */
 	public static StringBuilder protectPrivacy(StringBuilder builder) {
+		if (privacyEntries == null) {
+			privacyEntries = new KVEntry[] {
+					new KVEntry(System.getProperty("elnetw.home"), "{DATA}/"),
+					new KVEntry(System.getProperty("user.dir"), "{USER}/"),
+					new KVEntry(System.getProperty("java.io.tmpdir"), "{TEMP}/"),
+					new KVEntry(System.getProperty("user.home"), "{HOME}/"),
+			};
+		}
 		for (KVEntry entry : privacyEntries) {
 			String before = entry.key;
 			String after = entry.value;
@@ -499,20 +484,12 @@ public class Utility {
 		if (notifySender == null) {
 			synchronized (messageNotifiers) {
 				for (MessageNotifierEntry entry : messageNotifiers) {
-					Class<? extends MessageNotifier> messageNotifierClass = entry.messageNotifierClass;
-					try {
-						Method checkUsableMethod = messageNotifierClass.getMethod("checkUsable");
-						boolean usability = (Boolean) checkUsableMethod.invoke(null);
-						if (usability) {
-							Constructor<? extends MessageNotifier> constructor = messageNotifierClass.getConstructor();
-							MessageNotifier messageNotifier = constructor.newInstance();
-							notifySender = messageNotifier;
-							logger.info("use {} as MessageNotifier", messageNotifier);
-							break;
-						}
-					} catch (NoSuchMethodException | InvocationTargetException
-							| IllegalAccessException | InstantiationException e) {
-						logger.warn("#detectNotifier", e);
+					Supplier<MessageNotifier> notifierSupplier = entry.notifierSupplier;
+					MessageNotifier notifier = notifierSupplier.get();
+					if (notifier != null) {
+						notifySender = notifier;
+						logger.info("use {} as MessageNotifier", notifier);
+						break;
 					}
 				}
 			}

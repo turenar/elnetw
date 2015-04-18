@@ -23,7 +23,9 @@ package jp.mydns.turenar.twclient.notifier;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
+import jp.mydns.turenar.twclient.ClientConfiguration;
 import jp.mydns.turenar.twclient.Utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +39,18 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(NotifySendMessageNotifier.class);
 
 	/**
-	 * check if this is usable for this environment
+	 * check is usable notifier for this environment and get notifier instance
 	 *
-	 * @return usable?
+	 * @return if usable, return valid instance. if not, return null
 	 */
-	public static boolean checkUsable() {
+	public static NotifySendMessageNotifier getInstance() {
 		if (Utility.getOstype() == Utility.OSType.OTHER) {
 			try {
-				if (Runtime.getRuntime().exec(new String[]{
+				if (Runtime.getRuntime().exec(new String[] {
 						"which",
 						"notify-send"
 				}).waitFor() == 0) {
-					return true;
+					return new NotifySendMessageNotifier();
 				}
 			} catch (InterruptedException e) {
 				// do nothing
@@ -56,26 +58,22 @@ public class NotifySendMessageNotifier implements MessageNotifier {
 				logger.warn("#detectNotifier: whichの呼び出しに失敗", e);
 			}
 		}
-		return false;
+		return null;
 	}
 
 
 	@Override
 	public void sendNotify(String summary, String text, File imageFile) throws IOException {
-		if (imageFile == null) {
-			Runtime.getRuntime().exec(new String[]{
-					"notify-send",
-					summary,
-					text
-			});
-		} else {
-			Runtime.getRuntime().exec(new String[]{
-					"notify-send",
-					"-i",
-					imageFile.getPath(),
-					summary,
-					text
-			});
+		ArrayList<String> list = new ArrayList<>();
+		list.add("notify-send");
+		list.add("--app-name");
+		list.add(ClientConfiguration.APPLICATION_NAME);
+		if (imageFile != null) {
+			list.add("--icon");
+			list.add(imageFile.getPath());
 		}
+		list.add(summary);
+		list.add(text);
+		Runtime.getRuntime().exec(list.toArray(new String[list.size()]));
 	}
 }
