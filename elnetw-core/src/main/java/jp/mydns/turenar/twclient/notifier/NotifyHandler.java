@@ -1,5 +1,27 @@
+/*
+ * The MIT License (MIT)
+ * Copyright (c) 2011-2014 Turenai Project
+ *
+ * Permission is hereby granted, free of charge,
+ *  to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation the rights to
+ *  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ *  and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ *  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package jp.mydns.turenar.twclient.notifier;
 
+import java.util.HashSet;
 import java.util.List;
 
 import jp.mydns.turenar.lib.primitive.LongHashSet;
@@ -26,6 +48,30 @@ import static jp.mydns.turenar.twclient.ClientConfiguration.PROPERTY_ACCOUNT_LIS
  * @author Turenar (snswinhaiku dot lo at gmail dot com)
  */
 public class NotifyHandler extends ClientMessageAdapter implements PropertyUpdateListener {
+	private class SourceTarget {
+		private User source;
+		private Object target;
+
+		public SourceTarget(User source, Object target) {
+			this.source = source;
+			this.target = target;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof SourceTarget) {
+				SourceTarget another = (SourceTarget) obj;
+				return source.equals(another.source) && target.equals(another.target);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return source.hashCode() * 31 + target.hashCode();
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(NotifyHandler.class);
 	private static final NotifyHandler instance = new NotifyHandler();
 	private static final long DEFAULT_EXPIRE_TIME = 60 * 60 * 1000;
@@ -45,6 +91,7 @@ public class NotifyHandler extends ClientMessageAdapter implements PropertyUpdat
 	private final ClientConfiguration configuration;
 	private LongHashSet accountList;
 	private LongHashSet notifiedStatusSet = new LongHashSet();
+	private HashSet<SourceTarget> notifiedFavoritesSet = new HashSet<>();
 
 	private NotifyHandler() {
 		configuration = ClientConfiguration.getInstance();
@@ -65,7 +112,7 @@ public class NotifyHandler extends ClientMessageAdapter implements PropertyUpdat
 
 	private boolean checkNotNotified(Status status) {
 		// status is positive number in status set
-		return notifiedStatusSet.contains(status.getId());
+		return !notifiedStatusSet.contains(status.getId());
 	}
 
 	@Override
@@ -88,19 +135,23 @@ public class NotifyHandler extends ClientMessageAdapter implements PropertyUpdat
 	@Override
 	public void onFavorite(User source, User target, Status favoritedStatus) {
 		if (!checkMyAccount(source.getId()) && checkMyAccount(target.getId())) {
-			try {
-				configuration.getUtility().sendNotify(
-						String.format("@%s (%s) にふぁぼられました", source.getScreenName(), source.getName()),
-						favoritedStatus.getText(), configuration.getImageCacher().getImageFile(source));
-			} catch (InterruptedException e) {
-				logger.warn("Interrupted", e);
+			SourceTarget obj = new SourceTarget(source, favoritedStatus);
+			if (!notifiedFavoritesSet.contains(obj)) {
+				try {
+					configuration.getUtility().sendNotify(
+							String.format("@%s (%s) にふぁぼられました", source.getScreenName(), source.getName()),
+							favoritedStatus.getText(), configuration.getImageCacher().getImageFile(source));
+					notifiedFavoritesSet.add(obj);
+				} catch (InterruptedException e) {
+					logger.warn("Interrupted", e);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void onStatus(Status status) {
-		if (checkNotExpired(status.getCreatedAt().getTime()) && checkMyAccount(status.getUser().getId())
+		if (checkNotExpired(status.getCreatedAt().getTime()) && !checkMyAccount(status.getUser().getId())
 				&& checkNotNotified(status)) {
 			try {
 				if (status.isRetweet()) {
@@ -138,6 +189,11 @@ public class NotifyHandler extends ClientMessageAdapter implements PropertyUpdat
 				logger.warn("Interrupted", e);
 			}
 		}
+	}
+
+	@Override
+	public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
+		notifiedFavoritesSet.remove(new SourceTarget(source, unfavoritedStatus));
 	}
 
 	@Override

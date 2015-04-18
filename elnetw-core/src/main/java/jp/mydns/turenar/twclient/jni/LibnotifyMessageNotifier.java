@@ -41,19 +41,19 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 	private static final Logger logger = LoggerFactory.getLogger(LibnotifyMessageNotifier.class);
 
 	/**
-	 * check is usable notifier for this environment
+	 * check is usable notifier for this environment and get notifier instance
 	 *
-	 * @return if usable?
+	 * @return if usable, return valid instance. if not, return null
 	 */
-	public static boolean checkUsable() {
+	public static LibnotifyMessageNotifier getInstance() {
 		JavaGnome javaGnome = JavaGnome.getInstance();
 		if (javaGnome.isDisabled()) {
 			logger.info("Skip java-gnome notify system");
-			return false;
+			return null;
 		} else if (Utility.getOstype() == Utility.OSType.OTHER) {
 			ClassLoader extraClassLoader = ClientConfiguration.getInstance().getExtraClassLoader();
 			if (!javaGnome.isFound()) {
-				return false;
+				return null;
 			}
 
 			try {
@@ -74,7 +74,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 				// Object serverCapabilities = Notify.getServerCapabilities();
 				Object serverCapabilities = notifyClass.getMethod("getServerCapabilities").invoke(null);
 				logger.info("connected notification server. caps:{}", serverCapabilities);
-				return true;
+				return new LibnotifyMessageNotifier();
 			} catch (ClassNotFoundException e) {
 				logger.trace("java-gnome is partial found...", e);
 			} catch (InvocationTargetException e) {
@@ -83,7 +83,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 				logger.warn("#checkUsable", e);
 			}
 		}
-		return false;
+		return null;
 	}
 
 	private final Class<?> notificationClass;
@@ -91,7 +91,7 @@ public class LibnotifyMessageNotifier implements MessageNotifier {
 	/**
 	 * インスタンスの生成
 	 */
-	public LibnotifyMessageNotifier() {
+	private LibnotifyMessageNotifier() {
 		try {
 			notificationClass = Class.forName("org.gnome.notify.Notification", true,
 					ClientConfiguration.getInstance().getExtraClassLoader());
